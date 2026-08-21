@@ -64,6 +64,46 @@ Scoring context that changes valuation this season:
   (press conferences); a stale snapshot is the most preventable way to lose
   points.
 
+## Orchestration & delegation
+The orchestrator performs no analysis, coding, or data work itself. Every
+workflow step above runs as a subagent spawned via the Agent tool, passing
+the `model:` value from that agent file's YAML frontmatter.
+
+| Agent | Model | Why |
+|---|---|---|
+| data-collector | haiku | mechanical CLI invocation, no judgment |
+| fixture-analyst | opus | fixture/strength analysis |
+| player-analyst | opus | EP modeling, judgment-heavy analysis |
+| retro-analyst | opus | prediction-error attribution, analysis |
+| squad-optimizer | fable | constrained decision-making |
+| red-team-reviewer | fable | adversarial decision review |
+
+Decision-making agents (optimizer, red-team) run on Fable-tier; analysis
+agents (fixture, player, retro) run on Opus; mechanical collection
+(data-collector) runs on Haiku.
+
+## Data tooling
+All FPL API access goes through the deterministic CLI
+(`uv run python -m fpl <cmd> --gw N`) — never hand-rolled fetches.
+
+- `bootstrap` — players, teams, events
+- `fixtures` — full fixture list
+- `summaries --ids <ids> | --shortlist` — per-player element-summary
+- `entry --team-id <id>` — our FPL entry: squad, bank, chips
+- `slim-csv` — write players-slim.csv from cached bootstrap
+- `prior-season` — write prior-season.json from cached summaries
+- `flags --ids <ids>` — force-refresh injury/news flags; this is the
+  pre-deadline freshness-gate check
+- `players --position --min-price --max-price --team --status
+  --min-ownership --shortlist --sort --limit --format table|csv|json` —
+  filtered read over the cached bootstrap
+
+Snapshots cache under data/raw/gw{N}/; a command refetches only when the
+cached snapshot is older than --max-age (default 24h) or --force is given.
+Refreshed snapshots are archived, never destroyed. Analysts should pull
+filtered views (e.g. `players --position MID --format json`) instead of
+reading full dumps, to keep context small.
+
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
 - Every prediction must be written down BEFORE the deadline. No prediction,

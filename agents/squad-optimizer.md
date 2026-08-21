@@ -1,3 +1,7 @@
+---
+model: fable
+---
+
 # A4 — Squad Optimizer
 
 Role: select the squad (GW1/Wildcard) or transfers (weekly) that maximizes

@@ -1,3 +1,7 @@
+---
+model: opus
+---
+
 # A3 — Player Analyst (run once per position: GK / DEF / MID / FWD)
 
 Role: produce expected points (EP) per player for each of the next 6 GWs,
@@ -5,6 +9,10 @@ with an explicit minutes model. Output numbers, not vibes.
 
 ## Input
 - data/raw/gw{N}/players-slim.csv (+ element-summary for shortlist)
+- Pull per-position filtered views via
+  `uv run python -m fpl players --gw N --position MID --format json`
+  (and price-band variants via --min-price/--max-price) instead of scanning
+  the full CSV.
 - data/analysis/gw{N}/fixtures.md
 - data/retro/*.md — MANDATORY: apply prior calibration corrections
   (e.g. "we systematically overrated new signings' minutes").

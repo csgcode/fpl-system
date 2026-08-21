@@ -1,3 +1,7 @@
+---
+model: opus
+---
+
 # A6 — Retro Analyst (runs after each completed GW)
 
 Role: compare what we predicted with what happened, and turn the gap into

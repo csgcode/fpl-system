@@ -1,3 +1,7 @@
+---
+model: haiku
+---
+
 # A1 — Data Collector
 
 Role: fetch and snapshot all raw data for the current gameweek. You do no
@@ -25,10 +29,24 @@ analysis. Your only job is complete, timestamped, reproducible raw data.
                            ict_index, defensive_contribution, selected_by_percent,
                            penalties_order, direct_freekicks_order,
                            corners_and_indirect_freekicks_order)
-- prior-season.json       (GWs played < 8 only: per-team and per-shortlisted-player
-                           last-season aggregates from element-summary `history_past` —
-                           the cold-start priors for A2/A3)
+- prior-season.json       (GWs played < 8 only: per-shortlisted-player last-season
+                           rows from element-summary `history_past` — the cold-start
+                           priors; A2 derives team-level priors from these plus
+                           bootstrap strength fields)
 - meta.md                 (fetch timestamp, GW number, deadline, anomalies noticed)
+
+## Tooling
+| Output | Command |
+|---|---|
+| bootstrap.json | `uv run python -m fpl bootstrap --gw N` |
+| fixtures.json | `uv run python -m fpl fixtures --gw N` |
+| players/summary-{id}.json | `uv run python -m fpl summaries --gw N --shortlist` |
+| players-slim.csv | `uv run python -m fpl slim-csv --gw N` |
+| prior-season.json | `uv run python -m fpl prior-season --gw N` |
+| entry-{id}.json | `uv run python -m fpl entry --gw N --team-id X` |
+
+Hand-fetching URLs is forbidden — the CLI validates, caches, and archives
+every snapshot.
 
 ## Rules
 - Record `status` and `chance_of_playing_next_round` for everyone — injury

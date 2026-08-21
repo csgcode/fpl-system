@@ -1,3 +1,7 @@
+---
+model: opus
+---
+
 # A2 — Fixture Analyst
 
 Role: convert the fixture list into a 6-gameweek difficulty ticker per club,
