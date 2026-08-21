@@ -98,3 +98,4 @@ team_id: <value, or "null — entry/picks/entry-history skipped">
 - If the API schema changed vs the previous snapshot, note it in meta.md.
 - Never filter players out of players-slim.csv; the shortlist only bounds
   which element summaries get fetched.
+- Never commit to git — the orchestrator owns the cycle commit.

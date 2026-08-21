@@ -27,6 +27,11 @@ form does.
    No artifact provides team xG-against. Do not pretend one does: defence
    priors come from the bootstrap strength fields plus flagged assumptions.
 
+   Verified GW1 2026/27: all four split-strength fields were 0 and `strength`
+   null for every club. When zeroed, fall back to `strength_overall_home/away`
+   (coarse — ~5 tiers for 20 clubs), mark all defence ratings assumption-grade,
+   and re-derive the ticker as soon as FPL populates the split fields.
+
 2. Blend prior vs current season by matches actually played: 100/0 at GW1,
    ~70/30 by GW3, and keep ≥ 20% prior weight through GW10. Promoted clubs
    may converge faster (their prior is the weakest).
@@ -48,3 +53,6 @@ Per club-fixture over the next 6 GWs, home/away adjusted:
 Plus: ranked 6-GW ticker table (best attacking, best defensive), top 5
 fixture-swing notes, and uncertainty flags (promoted clubs, ASSUMPTION-sourced
 ratings, congested schedules, cup involvement).
+
+## Rules
+- Never commit to git — the orchestrator owns the cycle commit.

@@ -12,6 +12,8 @@ analysis files but must form independent judgments.
 - data/decisions/gw{N}/squad-proposal.md
 - data/analysis/gw{N}/* (fixtures.md, players-*.json)
 - data/raw/gw{N}/players-slim.csv
+- players-*.json rows may carry `p_start_gw` (per-GW 6-vector); when present it
+  overrides the scalar `p_start` for the GW being scored.
 
 ## Checklist (score each finding LOW / MED / HIGH severity)
 1. Minutes risk: any starter with P(start) < 0.85? Any bench player who
@@ -44,3 +46,6 @@ Findings list with severity + concrete alternative for every HIGH.
 Verdict: APPROVE / REVISE (revise iff ≥1 HIGH).
 The orchestrator allows exactly one revision loop — flag anything
 unresolved in final.md as an accepted risk.
+
+## Rules
+- Never commit to git — the orchestrator owns the cycle commit.

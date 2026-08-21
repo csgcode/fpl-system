@@ -55,3 +55,6 @@ Run only once the GW's final fixture has `data_checked: true` in bootstrap
   (e.g. "C7: cap P(start) at 0.7 for signings until 2 consecutive 60'+ starts")
 - Running calibration stats: mean error, MAE, by position, and team-value
   delta this GW plus cumulative
+
+## Rules
+- Never commit to git — the orchestrator owns the cycle commit.

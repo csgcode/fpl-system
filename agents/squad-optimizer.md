@@ -12,6 +12,8 @@ CLAUDE.md. Then pick captain, vice, and bench order.
 - data/analysis/gw{N}/players-*.json, fixtures.md
 - data/retro/*.md — if present (absent at GW1)
 - data/decisions/gw{N}/review.md — only on a revision loop
+- players-*.json rows may carry `p_start_gw` (per-GW 6-vector); when present it
+  overrides the scalar `p_start` for the GW being scored.
 
 Branch on which cycle you are in:
 
@@ -65,3 +67,6 @@ the rationale + rejected alternatives, plus:
   earmarked for, within the windows in bootstrap's `chips` array.
 - The STATE block (yaml, schema in CLAUDE.md) reflecting the post-decision
   state, so the finalizer can carry it into final.md.
+
+## Rules
+- Never commit to git — the orchestrator owns the cycle commit.

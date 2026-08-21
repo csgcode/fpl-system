@@ -100,6 +100,9 @@ Agent tool with `subagent_type: general-purpose`, the `model:` value from that
 file's YAML frontmatter, and the file body below the frontmatter as the
 subagent prompt.
 
+Subagents never run `git commit` — the orchestrator makes exactly one commit
+per GW cycle. Every subagent prompt must restate this.
+
 | Agent | Model | Why |
 |---|---|---|
 | data-collector | haiku | mechanical CLI invocation, no judgment |
