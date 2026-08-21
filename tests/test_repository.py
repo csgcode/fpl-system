@@ -7,8 +7,9 @@ from fpl.repository import (
     PlayerRepository,
     PlayerRow,
     slim_record,
+    slim_values,
 )
-from fpl.store import SnapshotStore
+from fpl.store import SnapshotMissingError, SnapshotStore
 from tests.factories import bootstrap_payload, player_payload, team_payload
 
 GW = 5
@@ -138,3 +139,59 @@ def test_slim_record_keys_match_players_slim_columns():
     row = PlayerRow(Player.model_validate(player_payload(id=1)), team_short_name="TST")
 
     assert tuple(slim_record(row).keys()) == PLAYERS_SLIM_COLUMNS
+
+
+def test_slim_columns_end_with_the_defensive_and_price_change_block():
+    assert len(PLAYERS_SLIM_COLUMNS) == 26
+    assert PLAYERS_SLIM_COLUMNS[-6:] == (
+        "starts",
+        "clean_sheets",
+        "goals_conceded",
+        "xGC",
+        "saves",
+        "cost_change_start",
+    )
+
+
+def test_slim_values_align_with_columns():
+    row = PlayerRow(
+        Player.model_validate(
+            player_payload(
+                id=1, starts=12, clean_sheets=3, goals_conceded=9,
+                expected_goals_conceded="9.55", saves=0, cost_change_start=-2,
+            )
+        ),
+        team_short_name="TST",
+    )
+    record = slim_record(row)
+    assert len(slim_values(row)) == len(PLAYERS_SLIM_COLUMNS)
+    assert record["starts"] == 12
+    assert record["clean_sheets"] == 3
+    assert record["goals_conceded"] == 9
+    assert record["xGC"] == 9.55
+    assert record["saves"] == 0
+    assert record["cost_change_start"] == -2
+
+
+def test_unknown_sort_key_names_the_valid_options(store):
+    repo = save_bootstrap(store)
+    with pytest.raises(ValueError, match="unknown sort key 'goals'") as exc_info:
+        repo.query(GW, sort="goals")
+    assert "ownership" in str(exc_info.value)
+
+
+def test_negative_limit_is_rejected(store):
+    repo = save_bootstrap(store)
+    with pytest.raises(ValueError, match="must not be negative"):
+        repo.query(GW, limit=-1)
+
+
+def test_zero_limit_returns_nothing(store):
+    repo = save_bootstrap(store)
+    assert repo.query(GW, limit=0) == []
+
+
+def test_missing_bootstrap_carries_a_fetch_hint(store):
+    with pytest.raises(SnapshotMissingError) as exc_info:
+        PlayerRepository(store).query(GW)
+    assert exc_info.value.fetch_hint == f"bootstrap --gw {GW}"

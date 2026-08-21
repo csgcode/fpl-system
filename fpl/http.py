@@ -3,6 +3,7 @@ rest of the system (and every test) can substitute a fake."""
 
 from __future__ import annotations
 
+from types import TracebackType
 from typing import Protocol
 
 import requests
@@ -31,4 +32,24 @@ class RequestsGateway:
     def get_json(self, url: str) -> dict | list:
         response = self._session.get(url, timeout=self._timeout_s)
         response.raise_for_status()
-        return response.json()
+        payload = response.json()
+        if not isinstance(payload, (dict, list)):
+            raise ValueError(
+                f"expected a JSON object or array from {url}, "
+                f"got {type(payload).__name__}"
+            )
+        return payload
+
+    def close(self) -> None:
+        self._session.close()
+
+    def __enter__(self) -> RequestsGateway:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        self.close()

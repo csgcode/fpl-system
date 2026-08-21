@@ -10,31 +10,41 @@ form does.
 
 ## Input
 - data/raw/gw{N}/fixtures.json, bootstrap.json
-- data/retro/*.md (any prior corrections to team-strength estimates)
+- data/raw/gw{N}/prior-season.json (per-player last-season rows)
+- data/retro/*.md — if present (absent at GW1); any prior corrections to
+  team-strength estimates
 
 ## Method
-1. Build your own team-strength ratings (attack + defence separately) from
-   xG for/against per match. Blend prior season vs current season by GWs
-   actually played: 100/0 at GW1 (no current-season data exists yet),
-   ~70/30 by GW3, 0/100 from GW8.
-   Prior sources (GWs played < 8):
-   - data/raw/gw{N}/prior-season.json (collector snapshots per-team
-     last-season aggregates from element-summary history)
-   - bootstrap teams' strength_attack/_defence home/away fields as a
-     cross-check only — never as the sole source
-   - Promoted clubs have no PL prior: assign bottom-quartile attack AND
-     defence by default, flag HIGH uncertainty, and let current-season
-     data override faster (0/100 by GW5 for them).
-2. Do NOT rely solely on FPL's own FDR — it's coarse and lags reality.
+1. Team-strength ratings (attack + defence, separately). Sources, in order:
+
+   | Source | Use for | Limits |
+   |---|---|---|
+   | bootstrap teams' `strength_attack_home/away`, `strength_defence_home/away` | primary prior, attack + defence | coarse, FPL-authored |
+   | prior-season.json per-player attack aggregates (xG, xA, goals) | team ATTACK only | never sum player rows into team defence — squad turnover contaminates it |
+   | your own knowledge of last season's table / xG | either | flag every such number ASSUMPTION |
+   | current-season team xG (GW2+) | either | built by summing that team's players' per-match xG from element-summary history; request `summaries` if the snapshot lacks them |
+
+   No artifact provides team xG-against. Do not pretend one does: defence
+   priors come from the bootstrap strength fields plus flagged assumptions.
+
+2. Blend prior vs current season by matches actually played: 100/0 at GW1,
+   ~70/30 by GW3, and keep ≥ 20% prior weight through GW10. Promoted clubs
+   may converge faster (their prior is the weakest).
+3. Promoted clubs: differentiate them by Championship performance rather than
+   assigning one identical bottom-quartile block — flag each estimate
+   ASSUMPTION and keep uncertainty HIGH.
+4. Do NOT rely solely on FPL's own FDR — it's coarse and lags reality.
    Report both and explain disagreements.
-3. For each club, produce for the next 6 GWs:
-   - attack score per fixture (ease of scoring)  1–10
-   - defence score per fixture (clean-sheet odds) 1–10
-   - home/away adjusted
-4. Flag: blank gameweeks, double gameweeks (feed to phase-2 chip agent),
+5. Flag: blank gameweeks, double gameweeks (feed to phase-2 chip agent),
    fixture swings ("Club X turns easy from GW{k}").
 
 ## Output → data/analysis/gw{N}/fixtures.md
-- Ranked 6-GW ticker table (best attacking fixtures, best defensive fixtures)
-- Top 5 fixture-swing notes
-- Uncertainty flags (promoted clubs, congested schedules, cup involvement)
+Per club-fixture over the next 6 GWs, home/away adjusted:
+- λ_att — expected goals scored by that club in that fixture
+- P(CS) ≈ e^(−λ_def) — clean-sheet probability, λ_def = expected goals conceded
+- attack score 1–10 and defence score 1–10 — presentation-only deciles of the
+  respective λ; downstream agents consume λ_att and P(CS), never the scores
+
+Plus: ranked 6-GW ticker table (best attacking, best defensive), top 5
+fixture-swing notes, and uncertainty flags (promoted clubs, ASSUMPTION-sourced
+ratings, congested schedules, cup involvement).

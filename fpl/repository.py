@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from fpl.models import (
@@ -17,7 +16,7 @@ from fpl.models import (
     Position,
     is_shortlisted,
 )
-from fpl.store import SnapshotStore
+from fpl.store import SnapshotMissingError, SnapshotStore
 
 PLAYERS_SLIM_COLUMNS = (
     "id",
@@ -40,6 +39,12 @@ PLAYERS_SLIM_COLUMNS = (
     "penalties_order",
     "direct_freekicks_order",
     "corners_and_indirect_freekicks_order",
+    "starts",
+    "clean_sheets",
+    "goals_conceded",
+    "xGC",
+    "saves",
+    "cost_change_start",
 )
 
 
@@ -106,7 +111,18 @@ class PlayerRepository:
         sort: str = "price",
         limit: int | None = None,
     ) -> list[PlayerRow]:
-        bootstrap = Bootstrap.model_validate(self._store.load(gw, "bootstrap"))
+        if sort not in SORT_KEYS:
+            raise ValueError(
+                f"unknown sort key {sort!r}; choose one of: "
+                f"{', '.join(sorted(SORT_KEYS))}"
+            )
+        if limit is not None and limit < 0:
+            raise ValueError(f"limit must not be negative, got {limit}")
+        try:
+            raw = self._store.load(gw, "bootstrap")
+        except SnapshotMissingError as exc:
+            raise exc.with_hint(f"bootstrap --gw {gw}") from None
+        bootstrap = Bootstrap.model_validate(raw)
         teams = bootstrap.team_by_id()
         rows = [
             row
@@ -146,6 +162,12 @@ def slim_values(row: PlayerRow) -> list[Any]:
         blank_if_none(p.penalties_order),
         blank_if_none(p.direct_freekicks_order),
         blank_if_none(p.corners_and_indirect_freekicks_order),
+        p.starts,
+        p.clean_sheets,
+        p.goals_conceded,
+        p.expected_goals_conceded,
+        p.saves,
+        p.cost_change_start,
     ]
 
 

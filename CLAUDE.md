@@ -20,8 +20,12 @@ Transfers:
 - No mid-season free-transfer reset this year
 
 Chips (two sets):
+- Bootstrap's `chips` array (name, start_event, stop_event) is the
+  authoritative window source — read it, never hardcode windows.
 - Set 1 (Wildcard, Free Hit, Triple Captain, Bench Boost) expires at the
   GW19 deadline (13:30 GMT, 2 Jan 2027). Set 2 covers GW20–38.
+- Set-1 wildcard and freehit start at GW2, so a GW1 wildcard is impossible;
+  bboost and 3xc run GW1–19.
 - Free Hit cannot be used in consecutive GWs.
 - Wildcard/Free Hit do NOT wipe banked free transfers.
 - Only one chip per gameweek.
@@ -37,37 +41,64 @@ Scoring context that changes valuation this season:
 ### Initial squad (GW1) / Wildcard
 1. Run `agents/data-collector.md`   → data/raw/gw{N}/
 2. Run `agents/fixture-analyst.md`  → data/analysis/gw{N}/fixtures.md
-3. Run `agents/player-analyst.md` (once per position: GK, DEF, MID, FWD)
+3. Run `agents/player-analyst.md` (once per position: GKP, DEF, MID, FWD)
                                      → data/analysis/gw{N}/players-{pos}.json
 4. Run `agents/squad-optimizer.md`  → data/decisions/gw{N}/squad-proposal.md
 5. Run `agents/red-team-reviewer.md`→ data/decisions/gw{N}/review.md
-6. Revise once if the review raises HIGH-severity issues, then write the
-   final squad, captain, vice, bench order, and full rationale to
-   data/decisions/gw{N}/final.md. Include predicted points per player —
-   these predictions are the raw material for calibration.
+6. Run `agents/finalizer.md`        → data/decisions/gw{N}/final.md
 
 ### Weekly cycle (GW2 onward)
 0. Run `agents/retro-analyst.md` on the completed GW
                                      → data/retro/gw{N-1}.md
-1–5. As above, but squad-optimizer proposes TRANSFERS (default: use only
-   free transfers; a hit needs an expected gain > 4 pts over 3 GWs) plus
-   captain and bench order. It must read the current squad from the latest
-   data/decisions/*/final.md and any correction notes from data/retro/.
+1–6. As above, but squad-optimizer proposes TRANSFERS plus captain and bench
+   order, scored on the 6-GW EP horizon. It reads the current squad from the
+   STATE block of the latest data/decisions/*/final.md and any correction
+   notes from data/retro/.
+
+### Revision mechanics
+On a REVISE verdict, re-invoke squad-optimizer with review.md as additional
+input; exactly one such loop. Then step 6.
 
 ### Freshness gate (all cycles)
-- The raw snapshot must be < 24h old when final.md is written; if older,
-  rerun the data collector first.
-- Immediately before writing final.md, re-fetch bootstrap-static and re-check
-  `status`, `news`, `news_added`, `chance_of_playing_next_round` for all 15
-  selected players plus captain and vice. Any change → rerun the affected
-  analysis before finalizing. Injury news clusters in the 24h before deadline
-  (press conferences); a stale snapshot is the most preventable way to lose
-  points.
+Executed by the finalizer via `flags` before it writes final.md. If any
+`status`, `chance_of_playing_next_round`, or `news` value changed for a
+selected player, the finalizer returns REOPEN with the delta; you re-run the
+affected analysis and then re-run the finalizer. REOPEN cycles are exempt from
+the one-revision cap.
+
+The raw snapshot must be < 24h old when final.md is written; if older, rerun
+the data collector first.
+
+### final.md STATE block
+final.md ends with a machine-readable yaml block. The weekly cycle reads it as
+the current squad state.
+
+```yaml
+gw: 12
+team_id: 1234567
+team_value: 101.4
+bank: 0.3
+free_transfers_banked: 1
+chips_used:
+  - {chip: bboost, gw: 7}
+transfers_made:
+  - {out: Player A, in: Player B, cost: 0}
+```
+
+### team_id
+Lives in committed data/entry.json (`{"team_id": null}` until the user fills
+it in after registering). The data collector reads it: when non-null it runs
+`entry`, `picks`, and `entry-history`; when null it skips them and notes the
+skip in meta.md.
 
 ## Orchestration & delegation
 The orchestrator performs no analysis, coding, or data work itself. Every
-workflow step above runs as a subagent spawned via the Agent tool, passing
-the `model:` value from that agent file's YAML frontmatter.
+workflow step above runs as a subagent.
+
+Invocation mechanism: read the agent's .md file, then spawn a subagent via the
+Agent tool with `subagent_type: general-purpose`, the `model:` value from that
+file's YAML frontmatter, and the file body below the frontmatter as the
+subagent prompt.
 
 | Agent | Model | Why |
 |---|---|---|
@@ -77,32 +108,42 @@ the `model:` value from that agent file's YAML frontmatter.
 | retro-analyst | opus | prediction-error attribution, analysis |
 | squad-optimizer | fable | constrained decision-making |
 | red-team-reviewer | fable | adversarial decision review |
+| finalizer | opus | gate enforcement + final.md assembly |
 
-Decision-making agents (optimizer, red-team) run on Fable-tier; analysis
-agents (fixture, player, retro) run on Opus; mechanical collection
-(data-collector) runs on Haiku.
+Decision-making agents (optimizer, red-team) run on Fable-tier; analysis and
+gate-enforcement agents (fixture, player, retro, finalizer) run on Opus;
+mechanical collection (data-collector) runs on Haiku.
 
 ## Data tooling
 All FPL API access goes through the deterministic CLI
 (`uv run python -m fpl <cmd> --gw N`) — never hand-rolled fetches.
 
-- `bootstrap` — players, teams, events
-- `fixtures` — full fixture list
-- `summaries --ids <ids> | --shortlist` — per-player element-summary
-- `entry --team-id <id>` — our FPL entry: squad, bank, chips
-- `slim-csv` — write players-slim.csv from cached bootstrap
-- `prior-season` — write prior-season.json from cached summaries
-- `flags --ids <ids>` — force-refresh injury/news flags; this is the
-  pre-deadline freshness-gate check
-- `players --position --min-price --max-price --team --status
-  --min-ownership --shortlist --sort --limit --format table|csv|json` —
-  filtered read over the cached bootstrap
+| Command | Returns | Network |
+|---|---|---|
+| `bootstrap` | players, teams, events, chips | cached |
+| `fixtures` | full fixture list | cached |
+| `summaries --ids <ids> \| --shortlist` | per-player element-summary | cached |
+| `entry --team-id <id>` | bank + team value only — squad comes from `picks` | cached |
+| `picks --team-id <id> --event M` | our actual picks, captain, active chip for GW M | cached |
+| `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
+| `actuals --round R --ids <ids>` | per-player ACTUAL points for a completed round; sums double-gameweek rows | always refreshes |
+| `flags --ids <ids>` | injury/news flags — the pre-deadline freshness gate | always refreshes |
+| `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
+| `prior-season` | writes prior-season.json from cached summaries | local only |
+| `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json` | filtered read over the cached bootstrap | local only |
 
-Snapshots cache under data/raw/gw{N}/; a command refetches only when the
-cached snapshot is older than --max-age (default 24h) or --force is given.
-Refreshed snapshots are archived, never destroyed. Analysts should pull
-filtered views (e.g. `players --position MID --format json`) instead of
-reading full dumps, to keep context small.
+Mechanics:
+- Every command takes `--gw N`, validated 1–38. The global `--data-root` must
+  come BEFORE the subcommand. Run from the repo root.
+- Cached commands refetch only when the snapshot is older than `--max-age`
+  (default 24h) or `--force` is given, and print `(fetched)` or
+  `(cached, age Xh)` so staleness is never silent.
+- Refreshed snapshots are archived, never destroyed.
+- `bootstrap` refuses when `--gw` differs from the API's next GW, unless
+  `--allow-gw-mismatch` is passed.
+- Position token is GKP (GK is accepted as a CLI alias).
+- Analysts pull filtered views (e.g. `players --position MID --format json`)
+  instead of reading full dumps, to keep context small.
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
