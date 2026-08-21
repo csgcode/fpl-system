@@ -25,7 +25,11 @@ If a player you must score lacks an element summary, request a second pass:
 ## Fixture inputs
 Take λ_att (expected goals scored) and P(CS) per club-fixture directly from
 fixtures.md. Do not re-derive them.
-- attack multiplier = λ_att / league-average λ (≈ 1.4)
+- attack multiplier = λ_att / (league base λ × ATT_club), where ATT_club is
+  the club's attack index from fixtures.md (centred on 1.00) and league base
+  λ ≈ 1.44. Dividing by league average alone double-counts the club's own
+  attack strength — it is already embedded in the player's observed xGI
+  per-90 — and inflates strong-club players by ~15–20%.
 - clean-sheet term uses fixtures.md P(CS) as-is
 The 1–10 ticker scores in fixtures.md are presentation deciles — never use
 them as numeric inputs.

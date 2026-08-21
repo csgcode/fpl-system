@@ -1,0 +1,7103 @@
+[
+ {
+  "id": 426,
+  "name": "B.Fernandes",
+  "team": "MUN",
+  "price": 12.0,
+  "p_start": 0.86,
+  "p_start_gw": [
+   0.86,
+   0.85,
+   0.84,
+   0.82,
+   0.82,
+   0.82
+  ],
+  "ep_gw": [
+   5.66,
+   5.78,
+   4.81,
+   4.5,
+   4.78,
+   5.01
+  ],
+  "ep_total6": 30.54,
+  "ep_per_million": 2.54,
+  "uncertainty": "LOW",
+  "notes": "35 starts, 87.6 min/start, P1+FK1+CK1, 41 bonus, 51.5% owned -> the most nailed midfielder in the game; set-piece duty PENS+FK1+CK1; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 481,
+  "name": "Anderson",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.9,
+  "p_start_gw": [
+   0.9,
+   0.9,
+   0.9,
+   0.83,
+   0.82,
+   0.82
+  ],
+  "ep_gw": [
+   4.43,
+   4.24,
+   4.88,
+   3.92,
+   4.27,
+   3.86
+  ],
+  "ep_total6": 25.6,
+  "ep_per_million": 3.94,
+  "uncertainty": "LOW",
+  "notes": "37 starts, 3332 mins, dc90 13.91 (highest of any MID), CK2, 16 bonus -> nailed and the single best DefCon floor in the position; DefCon dc90 13.6 vs T=12 -> P(hit) 0.73, worth 1.45 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 427,
+  "name": "Mbeumo",
+  "team": "MUN",
+  "price": 8.0,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.8,
+   0.79,
+   0.77,
+   0.77,
+   0.77
+  ],
+  "ep_gw": [
+   4.7,
+   4.81,
+   3.93,
+   3.67,
+   3.94,
+   4.15
+  ],
+  "ep_total6": 25.2,
+  "ep_per_million": 3.15,
+  "uncertainty": "LOW",
+  "notes": "31 starts, P2+FK2+CK2, 37.5% owned -> nailed second attacker; set-piece duty pens#2; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 155,
+  "name": "Enzo",
+  "team": "CHE",
+  "price": 7.0,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.8,
+   0.8,
+   0.77,
+   0.77,
+   0.77
+  ],
+  "ep_gw": [
+   4.0,
+   4.18,
+   3.31,
+   4.79,
+   3.68,
+   3.97
+  ],
+  "ep_total6": 23.93,
+  "ep_per_million": 3.42,
+  "uncertainty": "LOW",
+  "notes": "35 starts, P2+FK2+CK3, 19 bonus, dc90 7.1 -> Chelsea's least-rotated midfielder; set-piece duty pens#2; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 397,
+  "name": "Semenyo",
+  "team": "MCI",
+  "price": 8.5,
+  "p_start": 0.85,
+  "p_start_gw": [
+   0.85,
+   0.85,
+   0.85,
+   0.78,
+   0.77,
+   0.77
+  ],
+  "ep_gw": [
+   4.03,
+   3.73,
+   4.69,
+   3.34,
+   3.85,
+   3.27
+  ],
+  "ep_total6": 22.91,
+  "ep_per_million": 2.7,
+  "uncertainty": "LOW",
+  "notes": "37 starts / 3200 mins / 202 pts at his former club, 26.3% owned. Prior output was earned in a weaker side; City's fixture run is far better but so is the competition for his slot. MED; set-piece duty pens#3; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 12,
+  "name": "Saka",
+  "team": "ARS",
+  "price": 9.5,
+  "p_start": 0.68,
+  "p_start_gw": [
+   0.68,
+   0.67,
+   0.67,
+   0.65,
+   0.65,
+   0.65
+  ],
+  "ep_gw": [
+   4.51,
+   3.56,
+   3.65,
+   3.64,
+   3.58,
+   3.84
+  ],
+  "ep_total6": 22.78,
+  "ep_per_million": 2.4,
+  "uncertainty": "LOW",
+  "notes": "88.7 min/start when fit -> nailed RW; 13 games missed last season were absence not benching, so regress availability up from starts/38; set-piece duty PENS; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 13,
+  "name": "Rice",
+  "team": "ARS",
+  "price": 7.5,
+  "p_start": 0.77,
+  "p_start_gw": [
+   0.77,
+   0.76,
+   0.76,
+   0.73,
+   0.73,
+   0.73
+  ],
+  "ep_gw": [
+   4.34,
+   3.67,
+   3.7,
+   3.67,
+   3.62,
+   3.78
+  ],
+  "ep_total6": 22.78,
+  "ep_per_million": 3.04,
+  "uncertainty": "LOW",
+  "notes": "35 starts, FK1+CK1, dc90 10.8 -> most nailed Arsenal midfielder; set-piece duty FK1+CK1; DefCon dc90 10.8 vs T=12 -> P(hit) 0.41, worth 0.82 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 237,
+  "name": "Ndiaye",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.88,
+  "p_start_gw": [
+   0.88,
+   0.85,
+   0.84,
+   0.84,
+   0.83,
+   0.83
+  ],
+  "ep_gw": [
+   3.84,
+   3.55,
+   3.54,
+   3.57,
+   4.15,
+   4.05
+  ],
+  "ep_total6": 22.7,
+  "ep_per_million": 3.78,
+  "uncertainty": "LOW",
+  "notes": "32 starts, P1 pens, 16.0% owned -> nailed penalty taker; set-piece duty PENS"
+ },
+ {
+  "id": 69,
+  "name": "Scott",
+  "team": "BOU",
+  "price": 6.0,
+  "p_start": 0.93,
+  "p_start_gw": [
+   0.93,
+   0.89,
+   0.87,
+   0.87,
+   0.87,
+   0.87
+  ],
+  "ep_gw": [
+   3.68,
+   4.0,
+   3.76,
+   3.87,
+   3.75,
+   3.6
+  ],
+  "ep_total6": 22.66,
+  "ep_per_million": 3.78,
+  "uncertainty": "LOW",
+  "notes": "34 starts, dc90 12.0, FK4+CK2 -> nailed with the best DefCon floor at 6.0m; DefCon dc90 12.0 vs T=12 -> P(hit) 0.51, worth 1.01 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 542,
+  "name": "E.Le Fée",
+  "team": "SUN",
+  "price": 6.0,
+  "p_start": 0.87,
+  "p_start_gw": [
+   0.87,
+   0.87,
+   0.87,
+   0.87,
+   0.87,
+   0.87
+  ],
+  "ep_gw": [
+   4.06,
+   4.01,
+   3.65,
+   3.49,
+   3.43,
+   3.93
+  ],
+  "ep_total6": 22.57,
+  "ep_per_million": 3.76,
+  "uncertainty": "LOW",
+  "notes": "33 starts, P2+FK2+CK1, 16 bonus, 147 pts -> nailed and on set pieces; set-piece duty pens#2+CK1; DefCon dc90 9.7 vs T=12 -> P(hit) 0.31, worth 0.61 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 68,
+  "name": "Tavernier",
+  "team": "BOU",
+  "price": 6.0,
+  "p_start": 0.89,
+  "p_start_gw": [
+   0.89,
+   0.83,
+   0.82,
+   0.82,
+   0.82,
+   0.82
+  ],
+  "ep_gw": [
+   3.61,
+   4.05,
+   3.73,
+   3.91,
+   3.71,
+   3.51
+  ],
+  "ep_total6": 22.52,
+  "ep_per_million": 3.75,
+  "uncertainty": "LOW",
+  "notes": "31 starts, P3+FK1+CK1, 14 bonus -> nailed and on set pieces; set-piece duty pens#3+FK1+CK1"
+ },
+ {
+  "id": 480,
+  "name": "Gibbs-White",
+  "team": "NFO",
+  "price": 8.0,
+  "p_start": 0.83,
+  "p_start_gw": [
+   0.83,
+   0.83,
+   0.83,
+   0.83,
+   0.83,
+   0.83
+  ],
+  "ep_gw": [
+   3.85,
+   3.36,
+   3.84,
+   3.52,
+   4.35,
+   3.51
+  ],
+  "ep_total6": 22.43,
+  "ep_per_million": 2.8,
+  "uncertainty": "LOW",
+  "notes": "35 starts, P2+FK1, 18 bonus, 188 pts -> nailed talisman; set-piece duty pens#2+FK1"
+ },
+ {
+  "id": 154,
+  "name": "Palmer",
+  "team": "CHE",
+  "price": 9.5,
+  "p_start": 0.69,
+  "p_start_gw": [
+   0.69,
+   0.68,
+   0.68,
+   0.67,
+   0.67,
+   0.67
+  ],
+  "ep_gw": [
+   3.68,
+   3.85,
+   3.01,
+   4.51,
+   3.42,
+   3.71
+  ],
+  "ep_total6": 22.18,
+  "ep_per_million": 2.33,
+  "uncertainty": "LOW",
+  "notes": "24 starts / 81 min-per-start; P1 pens + FK3. Nailed when fit, but last season's minutes were injury-truncated and Chelsea rotate hard; set-piece duty PENS; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 368,
+  "name": "Szoboszlai",
+  "team": "LIV",
+  "price": 7.0,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.8,
+   0.8,
+   0.77,
+   0.77,
+   0.77
+  ],
+  "ep_gw": [
+   3.6,
+   3.76,
+   3.9,
+   3.74,
+   3.4,
+   3.33
+  ],
+  "ep_total6": 21.73,
+  "ep_per_million": 3.1,
+  "uncertainty": "LOW",
+  "notes": "36 starts, P2+FK1+CK1, 21 bonus, 41.7% owned -> Liverpool's most nailed midfielder; set-piece duty pens#2+FK1+CK1; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 338,
+  "name": "Ampadu",
+  "team": "LEE",
+  "price": 5.5,
+  "p_start": 0.89,
+  "p_start_gw": [
+   0.89,
+   0.89,
+   0.89,
+   0.89,
+   0.89,
+   0.89
+  ],
+  "ep_gw": [
+   3.58,
+   3.63,
+   3.59,
+   3.7,
+   3.63,
+   3.31
+  ],
+  "ep_total6": 21.44,
+  "ep_per_million": 3.9,
+  "uncertainty": "LOW",
+  "notes": "35 starts, dc90 11.8 -> nailed, strong DefCon floor at 5.5m; DefCon dc90 11.8 vs T=12 -> P(hit) 0.52, worth 1.04 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 236,
+  "name": "Dewsbury-Hall",
+  "team": "EVE",
+  "price": 6.5,
+  "p_start": 0.84,
+  "p_start_gw": [
+   0.84,
+   0.81,
+   0.8,
+   0.79,
+   0.79,
+   0.79
+  ],
+  "ep_gw": [
+   3.58,
+   3.3,
+   3.29,
+   3.32,
+   3.82,
+   3.73
+  ],
+  "ep_total6": 21.04,
+  "ep_per_million": 3.24,
+  "uncertainty": "LOW",
+  "notes": "30 starts, CK2, 18 bonus; Everton's midfield injuries remove his competition"
+ },
+ {
+  "id": 127,
+  "name": "Gomez",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.91,
+  "p_start_gw": [
+   0.91,
+   0.8,
+   0.8,
+   0.8,
+   0.8,
+   0.8
+  ],
+  "ep_gw": [
+   3.83,
+   3.17,
+   3.55,
+   3.75,
+   3.13,
+   3.42
+  ],
+  "ep_total6": 20.85,
+  "ep_per_million": 4.17,
+  "uncertainty": "LOW",
+  "notes": "26 starts, dc90 10.0, FK5 -> Brighton's most nailed midfielder with Mitoma and Minteh out"
+ },
+ {
+  "id": 260,
+  "name": "Wilson",
+  "team": "LEE",
+  "price": 6.5,
+  "p_start": 0.84,
+  "p_start_gw": [
+   0.84,
+   0.84,
+   0.84,
+   0.84,
+   0.84,
+   0.84
+  ],
+  "ep_gw": [
+   3.46,
+   3.59,
+   3.47,
+   3.67,
+   3.58,
+   3.05
+  ],
+  "ep_total6": 20.82,
+  "ep_per_million": 3.2,
+  "uncertainty": "LOW",
+  "notes": "32 starts, CK2, 21 bonus, 168 pts -> nailed and Leeds' main creative outlet"
+ },
+ {
+  "id": 208,
+  "name": "Sarr",
+  "team": "CRY",
+  "price": 6.5,
+  "p_start": 0.69,
+  "p_start_gw": [
+   0.69,
+   0.69,
+   0.69,
+   0.69,
+   0.69,
+   0.69
+  ],
+  "ep_gw": [
+   3.3,
+   3.15,
+   3.38,
+   4.01,
+   3.32,
+   3.55
+  ],
+  "ep_total6": 20.71,
+  "ep_per_million": 3.19,
+  "uncertainty": "LOW",
+  "notes": "24 starts, P2 pens, xGI90 0.501 -> Palace's main threat; set-piece duty pens#2"
+ },
+ {
+  "id": 399,
+  "name": "Cherki",
+  "team": "MCI",
+  "price": 7.5,
+  "p_start": 0.62,
+  "p_start_gw": [
+   0.62,
+   0.62,
+   0.62,
+   0.56,
+   0.55,
+   0.55
+  ],
+  "ep_gw": [
+   3.63,
+   3.37,
+   4.21,
+   2.99,
+   3.41,
+   2.91
+  ],
+  "ep_total6": 20.52,
+  "ep_per_million": 2.74,
+  "uncertainty": "LOW",
+  "notes": "xGI90 0.668 is the highest in the position, but only 19 starts / 1772 mins -- a 0.6x-minutes premium; set-piece duty FK1+CK1; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 210,
+  "name": "Wharton",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.75,
+  "p_start_gw": [
+   0.75,
+   0.75,
+   0.75,
+   0.75,
+   0.75,
+   0.75
+  ],
+  "ep_gw": [
+   3.28,
+   3.17,
+   3.36,
+   3.76,
+   3.28,
+   3.45
+  ],
+  "ep_total6": 20.3,
+  "ep_per_million": 3.69,
+  "uncertainty": "MED",
+  "notes": "29 starts, CK1, dc90 10.5, flagged 100 and fit; set-piece duty CK1; DefCon dc90 10.5 vs T=12 -> P(hit) 0.38, worth 0.75 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 428,
+  "name": "Cunha",
+  "team": "MUN",
+  "price": 8.0,
+  "p_start": 0.71,
+  "p_start_gw": [
+   0.71,
+   0.7,
+   0.7,
+   0.68,
+   0.68,
+   0.68
+  ],
+  "ep_gw": [
+   3.7,
+   3.75,
+   3.17,
+   2.98,
+   3.18,
+   3.31
+  ],
+  "ep_total6": 20.09,
+  "ep_per_million": 2.51,
+  "uncertainty": "LOW",
+  "notes": "29 starts; rotates with Amad/Rashford in the third attacking slot; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 94,
+  "name": "Schade",
+  "team": "BRE",
+  "price": 6.0,
+  "p_start": 0.74,
+  "p_start_gw": [
+   0.74,
+   0.74,
+   0.73,
+   0.73,
+   0.73,
+   0.73
+  ],
+  "ep_gw": [
+   3.55,
+   3.28,
+   3.58,
+   3.2,
+   3.26,
+   3.17
+  ],
+  "ep_total6": 20.04,
+  "ep_per_million": 3.34,
+  "uncertainty": "LOW",
+  "notes": "32 starts, P2 pens, xGI90 0.463; set-piece duty pens#2"
+ },
+ {
+  "id": 335,
+  "name": "Stach",
+  "team": "LEE",
+  "price": 6.0,
+  "p_start": 0.76,
+  "p_start_gw": [
+   0.76,
+   0.76,
+   0.76,
+   0.76,
+   0.76,
+   0.76
+  ],
+  "ep_gw": [
+   3.31,
+   3.41,
+   3.33,
+   3.47,
+   3.4,
+   3.0
+  ],
+  "ep_total6": 19.92,
+  "ep_per_million": 3.32,
+  "uncertainty": "LOW",
+  "notes": "28 starts, FK1+CK1, dc90 10.1, 14 bonus; set-piece duty FK1+CK1; DefCon dc90 10.0 vs T=12 -> P(hit) 0.31, worth 0.62 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 453,
+  "name": "Barnes",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.7,
+  "p_start_gw": [
+   0.7,
+   0.7,
+   0.7,
+   0.69,
+   0.69,
+   0.69
+  ],
+  "ep_gw": [
+   3.09,
+   3.13,
+   3.27,
+   3.09,
+   3.84,
+   3.49
+  ],
+  "ep_total6": 19.91,
+  "ep_per_million": 3.32,
+  "uncertainty": "LOW",
+  "notes": "19 starts / 1951 mins, xGI90 0.441 -> best attacking rate at Newcastle"
+ },
+ {
+  "id": 366,
+  "name": "Wirtz",
+  "team": "LIV",
+  "price": 7.5,
+  "p_start": 0.68,
+  "p_start_gw": [
+   0.68,
+   0.66,
+   0.66,
+   0.65,
+   0.65,
+   0.65
+  ],
+  "ep_gw": [
+   3.26,
+   3.43,
+   3.57,
+   3.46,
+   3.12,
+   3.04
+  ],
+  "ep_total6": 19.88,
+  "ep_per_million": 2.65,
+  "uncertainty": "LOW",
+  "notes": "27 starts / 2374 mins, P4+FK2+CK3, 13.0% owned -> first-choice 10 with modest rotation exposure; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 544,
+  "name": "Xhaka",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.84,
+  "p_start_gw": [
+   0.84,
+   0.84,
+   0.84,
+   0.84,
+   0.84,
+   0.84
+  ],
+  "ep_gw": [
+   3.47,
+   3.45,
+   3.18,
+   3.1,
+   3.04,
+   3.38
+  ],
+  "ep_total6": 19.62,
+  "ep_per_million": 3.57,
+  "uncertainty": "LOW",
+  "notes": "32 starts, FK1+CK2, dc90 11.1; set-piece duty FK1; DefCon dc90 11.1 vs T=12 -> P(hit) 0.44, worth 0.89 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 525,
+  "name": "Fernandes",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.87,
+  "p_start_gw": [
+   0.87,
+   0.85,
+   0.85,
+   0.83,
+   0.83,
+   0.83
+  ],
+  "ep_gw": [
+   3.21,
+   3.35,
+   3.24,
+   3.29,
+   3.24,
+   3.03
+  ],
+  "ep_total6": 19.36,
+  "ep_per_million": 3.23,
+  "uncertainty": "LOW",
+  "notes": "35 starts, 3017 mins, dc90 10.9 -> Spurs' most nailed midfielder; DefCon dc90 10.9 vs T=12 -> P(hit) 0.40, worth 0.81 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 159,
+  "name": "Caicedo",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.78,
+  "p_start_gw": [
+   0.78,
+   0.78,
+   0.78,
+   0.75,
+   0.75,
+   0.75
+  ],
+  "ep_gw": [
+   3.27,
+   3.31,
+   2.92,
+   3.54,
+   3.01,
+   3.15
+  ],
+  "ep_total6": 19.2,
+  "ep_per_million": 3.49,
+  "uncertainty": "LOW",
+  "notes": "32 starts, dc90 11.6 -> nailed DM and the cheapest Chelsea DefCon route; DefCon dc90 11.6 vs T=12 -> P(hit) 0.49, worth 0.97 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 398,
+  "name": "Foden",
+  "team": "MCI",
+  "price": 7.0,
+  "p_start": 0.65,
+  "p_start_gw": [
+   0.65,
+   0.65,
+   0.65,
+   0.59,
+   0.58,
+   0.58
+  ],
+  "ep_gw": [
+   3.37,
+   3.13,
+   3.9,
+   2.79,
+   3.18,
+   2.72
+  ],
+  "ep_total6": 19.09,
+  "ep_per_million": 2.73,
+  "uncertainty": "LOW",
+  "notes": "23 starts, FK3+CK3; perennially rotated even in good form; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 41,
+  "name": "Buendía",
+  "team": "AVL",
+  "price": 6.0,
+  "p_start": 0.72,
+  "p_start_gw": [
+   0.72,
+   0.72,
+   0.72,
+   0.72,
+   0.72,
+   0.72
+  ],
+  "ep_gw": [
+   3.11,
+   2.9,
+   3.49,
+   3.26,
+   3.11,
+   3.19
+  ],
+  "ep_total6": 19.06,
+  "ep_per_million": 3.18,
+  "uncertainty": "LOW",
+  "notes": "21 starts, P1 pens + FK1, dc90 10.1 -> penalties plus a DefCon floor; set-piece duty PENS+FK1; DefCon dc90 9.9 vs T=12 -> P(hit) 0.30, worth 0.61 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 129,
+  "name": "Ayari",
+  "team": "BHA",
+  "price": 5.5,
+  "p_start": 0.85,
+  "p_start_gw": [
+   0.85,
+   0.72,
+   0.71,
+   0.72,
+   0.72,
+   0.72
+  ],
+  "ep_gw": [
+   3.6,
+   2.92,
+   3.17,
+   3.33,
+   2.9,
+   3.11
+  ],
+  "ep_total6": 19.03,
+  "ep_per_million": 3.46,
+  "uncertainty": "LOW",
+  "notes": "20 starts, FK2+CK4, dc90 10.5; DefCon dc90 10.3 vs T=12 -> P(hit) 0.37, worth 0.73 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 367,
+  "name": "Gakpo",
+  "team": "LIV",
+  "price": 7.0,
+  "p_start": 0.7,
+  "p_start_gw": [
+   0.7,
+   0.69,
+   0.69,
+   0.67,
+   0.67,
+   0.67
+  ],
+  "ep_gw": [
+   3.02,
+   3.2,
+   3.34,
+   3.23,
+   2.88,
+   2.8
+  ],
+  "ep_total6": 18.47,
+  "ep_per_million": 2.64,
+  "uncertainty": "LOW",
+  "notes": "32 starts, P3+CK2; set-piece duty pens#3; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 337,
+  "name": "Aaronson",
+  "team": "LEE",
+  "price": 5.5,
+  "p_start": 0.78,
+  "p_start_gw": [
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.78
+  ],
+  "ep_gw": [
+   3.05,
+   3.16,
+   3.07,
+   3.23,
+   3.15,
+   2.71
+  ],
+  "ep_total6": 18.37,
+  "ep_per_million": 3.34,
+  "uncertainty": "LOW",
+  "notes": "30 starts, FK3"
+ },
+ {
+  "id": 571,
+  "name": "Florentino",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.78,
+  "p_start_gw": [
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.78
+  ],
+  "ep_gw": [
+   3.17,
+   2.94,
+   3.01,
+   2.98,
+   3.03,
+   3.2
+  ],
+  "ep_total6": 18.33,
+  "ep_per_million": 3.67,
+  "uncertainty": "HIGH",
+  "notes": "2100 PL mins / 25 starts at a former club, dc90 13.41 -> the cheapest elite DefCon rate in the position, on the league's 19th-best fixtures; DefCon dc90 13.0 vs T=12 -> P(hit) 0.63, worth 1.25 pts/start (fixture-independent floor); promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 371,
+  "name": "Gravenberch",
+  "team": "LIV",
+  "price": 6.0,
+  "p_start": 0.79,
+  "p_start_gw": [
+   0.79,
+   0.78,
+   0.78,
+   0.75,
+   0.75,
+   0.75
+  ],
+  "ep_gw": [
+   3.05,
+   3.15,
+   3.25,
+   3.14,
+   2.89,
+   2.84
+  ],
+  "ep_total6": 18.32,
+  "ep_per_million": 3.05,
+  "uncertainty": "LOW",
+  "notes": "34 starts, 17 bonus, dc90 8.9 -> nailed pivot; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 95,
+  "name": "O.Dango",
+  "team": "BRE",
+  "price": 6.5,
+  "p_start": 0.6,
+  "p_start_gw": [
+   0.6,
+   0.59,
+   0.59,
+   0.59,
+   0.59,
+   0.59
+  ],
+  "ep_gw": [
+   3.23,
+   3.01,
+   3.24,
+   2.94,
+   2.98,
+   2.91
+  ],
+  "ep_total6": 18.31,
+  "ep_per_million": 2.82,
+  "uncertainty": "LOW",
+  "notes": "25 starts, CK2, 16 bonus"
+ },
+ {
+  "id": 45,
+  "name": "McGinn",
+  "team": "AVL",
+  "price": 5.5,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.81,
+   0.81,
+   0.81,
+   0.81,
+   0.81
+  ],
+  "ep_gw": [
+   2.95,
+   2.73,
+   3.38,
+   3.12,
+   2.96,
+   3.04
+  ],
+  "ep_total6": 18.18,
+  "ep_per_million": 3.31,
+  "uncertainty": "LOW",
+  "notes": "28 starts, CK2 -> most nailed Villa midfielder given the injury list"
+ },
+ {
+  "id": 40,
+  "name": "Rogers",
+  "team": "CHE",
+  "price": 7.5,
+  "p_start": 0.69,
+  "p_start_gw": [
+   0.69,
+   0.68,
+   0.68,
+   0.67,
+   0.67,
+   0.67
+  ],
+  "ep_gw": [
+   2.99,
+   3.08,
+   2.55,
+   3.48,
+   2.77,
+   2.96
+  ],
+  "ep_total6": 17.83,
+  "ep_per_million": 2.38,
+  "uncertainty": "LOW",
+  "notes": "37 starts / 3280 mins at his former club and 24.9% owned, so the market says nailed -- but he now joins Palmer/Enzo/Neto/Estevao competing for the same slots. MED-HIGH; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 19,
+  "name": "Zubimendi",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.73,
+  "p_start_gw": [
+   0.73,
+   0.72,
+   0.72,
+   0.7,
+   0.7,
+   0.7
+  ],
+  "ep_gw": [
+   3.37,
+   2.87,
+   2.87,
+   2.89,
+   2.84,
+   2.95
+  ],
+  "ep_total6": 17.79,
+  "ep_per_million": 3.23,
+  "uncertainty": "LOW",
+  "notes": "34 starts, dc90 9.2 -> nailed holding role, the cheapest route into Arsenal minutes; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 124,
+  "name": "Groß",
+  "team": "BHA",
+  "price": 5.5,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.68,
+   0.67,
+   0.68,
+   0.68,
+   0.68
+  ],
+  "ep_gw": [
+   3.36,
+   2.68,
+   2.95,
+   3.1,
+   2.66,
+   2.87
+  ],
+  "ep_total6": 17.62,
+  "ep_per_million": 3.2,
+  "uncertainty": "LOW",
+  "notes": "P1 pens + FK1 + CK1 at 5.5m and 14.4% owned -> the whole set-piece suite, but only 18 starts and 9 PL seasons of age curve; set-piece duty PENS+FK1+CK1"
+ },
+ {
+  "id": 211,
+  "name": "Yeremy",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.65,
+  "p_start_gw": [
+   0.65,
+   0.65,
+   0.65,
+   0.65,
+   0.65,
+   0.65
+  ],
+  "ep_gw": [
+   2.81,
+   2.69,
+   2.88,
+   3.37,
+   2.83,
+   3.01
+  ],
+  "ep_total6": 17.59,
+  "ep_per_million": 3.2,
+  "uncertainty": "LOW",
+  "notes": "26 starts, FK1+CK2; set-piece duty FK1"
+ },
+ {
+  "id": 261,
+  "name": "Iwobi",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.78,
+  "p_start_gw": [
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.76
+  ],
+  "ep_gw": [
+   2.85,
+   2.94,
+   2.95,
+   2.74,
+   2.87,
+   3.07
+  ],
+  "ep_total6": 17.42,
+  "ep_per_million": 3.17,
+  "uncertainty": "LOW",
+  "notes": "29 starts, P3+FK1+CK1, 13 bonus -> nailed and on every set piece; set-piece duty pens#3+FK1+CK1"
+ },
+ {
+  "id": 452,
+  "name": "Bruno G.",
+  "team": "ARS",
+  "price": 7.0,
+  "p_start": 0.43,
+  "p_start_gw": [
+   0.43,
+   0.54,
+   0.54,
+   0.54,
+   0.54,
+   0.54
+  ],
+  "ep_gw": [
+   2.84,
+   2.81,
+   2.85,
+   2.91,
+   2.87,
+   3.03
+  ],
+  "ep_total6": 17.31,
+  "ep_per_million": 2.47,
+  "uncertainty": "HIGH",
+  "notes": "thigh, 75% for GW1; fit thereafter but competes with Merino/Zubimendi for one slot; FLAG: Thigh injury - 75% chance of playing; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 105,
+  "name": "Anthony",
+  "team": "BRE",
+  "price": 6.0,
+  "p_start": 0.72,
+  "p_start_gw": [
+   0.72,
+   0.71,
+   0.71,
+   0.71,
+   0.71,
+   0.71
+  ],
+  "ep_gw": [
+   3.03,
+   2.83,
+   3.04,
+   2.77,
+   2.8,
+   2.76
+  ],
+  "ep_total6": 17.23,
+  "ep_per_million": 2.87,
+  "uncertainty": "LOW",
+  "notes": "32 starts, 2717 mins"
+ },
+ {
+  "id": 123,
+  "name": "Hinshelwood",
+  "team": "BHA",
+  "price": 6.0,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.68,
+   0.67,
+   0.68,
+   0.68,
+   0.68
+  ],
+  "ep_gw": [
+   3.29,
+   2.58,
+   2.92,
+   3.09,
+   2.54,
+   2.8
+  ],
+  "ep_total6": 17.22,
+  "ep_per_million": 2.87,
+  "uncertainty": "LOW",
+  "notes": "20 starts, 1736 mins"
+ },
+ {
+  "id": 160,
+  "name": "Garnacho",
+  "team": "AVL",
+  "price": 6.0,
+  "p_start": 0.64,
+  "p_start_gw": [
+   0.64,
+   0.64,
+   0.64,
+   0.64,
+   0.64,
+   0.64
+  ],
+  "ep_gw": [
+   2.75,
+   2.52,
+   3.18,
+   2.93,
+   2.75,
+   2.86
+  ],
+  "ep_total6": 16.99,
+  "ep_per_million": 2.83,
+  "uncertainty": "LOW",
+  "notes": "14 starts, xGI90 0.508"
+ },
+ {
+  "id": 431,
+  "name": "Amad",
+  "team": "MUN",
+  "price": 6.0,
+  "p_start": 0.58,
+  "p_start_gw": [
+   0.58,
+   0.57,
+   0.57,
+   0.56,
+   0.56,
+   0.56
+  ],
+  "ep_gw": [
+   3.08,
+   3.12,
+   2.63,
+   2.51,
+   2.67,
+   2.79
+  ],
+  "ep_total6": 16.8,
+  "ep_per_million": 2.8,
+  "uncertainty": "LOW",
+  "notes": "27 starts but 2339 mins -> frequently substituted, genuine rotation risk; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 336,
+  "name": "Okafor",
+  "team": "LEE",
+  "price": 6.0,
+  "p_start": 0.6,
+  "p_start_gw": [
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6
+  ],
+  "ep_gw": [
+   2.72,
+   2.83,
+   2.73,
+   2.88,
+   2.82,
+   2.4
+  ],
+  "ep_total6": 16.38,
+  "ep_per_million": 2.73,
+  "uncertainty": "LOW",
+  "notes": "19 starts / 1553 mins, 11 bonus -> productive but rotated"
+ },
+ {
+  "id": 96,
+  "name": "Damsgaard",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.54,
+  "p_start_gw": [
+   0.54,
+   0.53,
+   0.53,
+   0.53,
+   0.53,
+   0.53
+  ],
+  "ep_gw": [
+   2.84,
+   2.67,
+   2.84,
+   2.62,
+   2.65,
+   2.61
+  ],
+  "ep_total6": 16.23,
+  "ep_per_million": 2.95,
+  "uncertainty": "MED",
+  "notes": "24 starts, FK3+CK3, dc90 10.4; DefCon dc90 10.4 vs T=12 -> P(hit) 0.35, worth 0.71 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 455,
+  "name": "Tonali",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.76,
+  "p_start_gw": [
+   0.76,
+   0.74,
+   0.74,
+   0.73,
+   0.73,
+   0.73
+  ],
+  "ep_gw": [
+   2.64,
+   2.76,
+   2.65,
+   2.73,
+   2.69,
+   2.49
+  ],
+  "ep_total6": 15.96,
+  "ep_per_million": 2.9,
+  "uncertainty": "LOW",
+  "notes": "31 starts, FK4+CK2; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 239,
+  "name": "Garner",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.22,
+  "p_start_gw": [
+   0.22,
+   0.52,
+   0.63,
+   0.65,
+   0.64,
+   0.64
+  ],
+  "ep_gw": [
+   1.43,
+   2.38,
+   2.79,
+   2.89,
+   3.2,
+   3.15
+  ],
+  "ep_total6": 15.84,
+  "ep_per_million": 2.64,
+  "uncertainty": "HIGH",
+  "notes": "groin, upgraded to 25% at the 14:04Z flags refresh (was 0%) -> a GW1 gamble, but 38 starts / 3413 mins / dc90 12.1 / P3+FK1+CK1 behind it once fit; FLAG: Groin injury - 25% chance of playing; set-piece duty pens#3+FK1+CK1; DefCon dc90 11.9 vs T=12 -> P(hit) 0.54, worth 1.07 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 488,
+  "name": "I.Sangaré",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.63,
+  "p_start_gw": [
+   0.63,
+   0.63,
+   0.63,
+   0.63,
+   0.63,
+   0.63
+  ],
+  "ep_gw": [
+   2.65,
+   2.44,
+   2.67,
+   2.52,
+   2.88,
+   2.5
+  ],
+  "ep_total6": 15.66,
+  "ep_per_million": 3.13,
+  "uncertainty": "LOW",
+  "notes": "25 starts, dc90 11.6 -> DefCon floor at 5.0m; DefCon dc90 11.3 vs T=12 -> P(hit) 0.44, worth 0.87 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 156,
+  "name": "Neto",
+  "team": "CHE",
+  "price": 6.5,
+  "p_start": 0.56,
+  "p_start_gw": [
+   0.56,
+   0.55,
+   0.55,
+   0.55,
+   0.55,
+   0.55
+  ],
+  "ep_gw": [
+   2.6,
+   2.68,
+   2.2,
+   3.09,
+   2.44,
+   2.61
+  ],
+  "ep_total6": 15.62,
+  "ep_per_million": 2.4,
+  "uncertainty": "LOW",
+  "notes": "30 starts but the widest rotation exposure of the Chelsea attackers; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 265,
+  "name": "Berge",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.78,
+  "p_start_gw": [
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.78,
+   0.76
+  ],
+  "ep_gw": [
+   2.54,
+   2.64,
+   2.62,
+   2.47,
+   2.56,
+   2.72
+  ],
+  "ep_total6": 15.55,
+  "ep_per_million": 3.11,
+  "uncertainty": "LOW",
+  "notes": "34 starts, dc90 8.7 -> nailed but only 91 pts, minimal attacking return"
+ },
+ {
+  "id": 457,
+  "name": "J.Murphy",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.6,
+  "p_start_gw": [
+   0.6,
+   0.6,
+   0.6,
+   0.59,
+   0.59,
+   0.59
+  ],
+  "ep_gw": [
+   2.41,
+   2.45,
+   2.53,
+   2.42,
+   2.95,
+   2.7
+  ],
+  "ep_total6": 15.46,
+  "ep_per_million": 2.58,
+  "uncertainty": "LOW",
+  "notes": "19 starts, CK2"
+ },
+ {
+  "id": 459,
+  "name": "L.Miley",
+  "team": "NEW",
+  "price": 5.5,
+  "p_start": 0.56,
+  "p_start_gw": [
+   0.56,
+   0.56,
+   0.56,
+   0.56,
+   0.56,
+   0.56
+  ],
+  "ep_gw": [
+   2.43,
+   2.47,
+   2.52,
+   2.44,
+   2.86,
+   2.67
+  ],
+  "ep_total6": 15.39,
+  "ep_per_million": 2.8,
+  "uncertainty": "MED",
+  "notes": "15 starts, CK3, flagged 100 and fit"
+ },
+ {
+  "id": 102,
+  "name": "Yarmoliuk",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.65,
+  "p_start_gw": [
+   0.65,
+   0.64,
+   0.64,
+   0.64,
+   0.64,
+   0.64
+  ],
+  "ep_gw": [
+   2.68,
+   2.53,
+   2.68,
+   2.49,
+   2.5,
+   2.5
+  ],
+  "ep_total6": 15.38,
+  "ep_per_million": 3.08,
+  "uncertainty": "LOW",
+  "notes": "30 starts, dc90 11.3 -> nailed DM with a real DefCon floor at 5.0m; DefCon dc90 11.3 vs T=12 -> P(hit) 0.46, worth 0.92 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 67,
+  "name": "Rayan",
+  "team": "BOU",
+  "price": 6.5,
+  "p_start": 0.67,
+  "p_start_gw": [
+   0.67,
+   0.6,
+   0.58,
+   0.58,
+   0.58,
+   0.58
+  ],
+  "ep_gw": [
+   2.54,
+   2.75,
+   2.52,
+   2.63,
+   2.51,
+   2.38
+  ],
+  "ep_total6": 15.33,
+  "ep_per_million": 2.36,
+  "uncertainty": "MED",
+  "notes": "13 starts / 1110 mins at 6.5m -> rotation risk at a premium price"
+ },
+ {
+  "id": 512,
+  "name": "Kudus",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.56,
+  "p_start_gw": [
+   0.56,
+   0.66,
+   0.66,
+   0.66,
+   0.66,
+   0.66
+  ],
+  "ep_gw": [
+   2.23,
+   2.7,
+   2.58,
+   2.71,
+   2.66,
+   2.45
+  ],
+  "ep_total6": 15.33,
+  "ep_per_million": 2.36,
+  "uncertainty": "MED",
+  "notes": "thigh, 75% GW1; P2 pens, first-choice wide when fit; FLAG: Thigh injury - 75% chance of playing; set-piece duty pens#2; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 47,
+  "name": "Kamara",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.64,
+  "p_start_gw": [
+   0.64,
+   0.64,
+   0.64,
+   0.64,
+   0.64,
+   0.64
+  ],
+  "ep_gw": [
+   2.48,
+   2.35,
+   2.73,
+   2.58,
+   2.49,
+   2.51
+  ],
+  "ep_total6": 15.14,
+  "ep_per_million": 3.03,
+  "uncertainty": "MED",
+  "notes": "flagged 100 and fit; 17 starts, dc90 9.5"
+ },
+ {
+  "id": 267,
+  "name": "Lukić",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.68,
+  "p_start_gw": [
+   0.68,
+   0.68,
+   0.68,
+   0.68,
+   0.68,
+   0.68
+  ],
+  "ep_gw": [
+   2.66,
+   2.38,
+   2.47,
+   2.44,
+   2.49,
+   2.68
+  ],
+  "ep_total6": 15.12,
+  "ep_per_million": 3.02,
+  "uncertainty": "HIGH",
+  "notes": "1730 PL mins / 20 starts, dc90 9.5, CK4; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 157,
+  "name": "Estêvão",
+  "team": "CHE",
+  "price": 6.5,
+  "p_start": 0.43,
+  "p_start_gw": [
+   0.43,
+   0.45,
+   0.45,
+   0.49,
+   0.51,
+   0.51
+  ],
+  "ep_gw": [
+   2.28,
+   2.47,
+   1.97,
+   3.07,
+   2.43,
+   2.62
+  ],
+  "ep_total6": 14.84,
+  "ep_per_million": 2.28,
+  "uncertainty": "HIGH",
+  "notes": "xGI90 0.542 from only 839 mins; breakout candidate, ramping into a bigger role; set-piece duty pens#3; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 545,
+  "name": "Sadiki",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.81,
+  "p_start_gw": [
+   0.81,
+   0.81,
+   0.81,
+   0.81,
+   0.81,
+   0.81
+  ],
+  "ep_gw": [
+   2.64,
+   2.63,
+   2.38,
+   2.32,
+   2.27,
+   2.57
+  ],
+  "ep_total6": 14.81,
+  "ep_per_million": 2.96,
+  "uncertainty": "LOW",
+  "notes": "33 starts / 2891 mins -> nailed but only 80 pts, almost no attacking return"
+ },
+ {
+  "id": 372,
+  "name": "Mac Allister",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.61,
+  "p_start_gw": [
+   0.61,
+   0.6,
+   0.6,
+   0.59,
+   0.59,
+   0.59
+  ],
+  "ep_gw": [
+   2.42,
+   2.52,
+   2.6,
+   2.56,
+   2.33,
+   2.28
+  ],
+  "ep_total6": 14.71,
+  "ep_per_million": 2.67,
+  "uncertainty": "LOW",
+  "notes": "31 starts but heavily substituted; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 516,
+  "name": "Bentancur",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.58,
+  "p_start_gw": [
+   0.58,
+   0.56,
+   0.55,
+   0.55,
+   0.55,
+   0.55
+  ],
+  "ep_gw": [
+   2.44,
+   2.5,
+   2.42,
+   2.49,
+   2.46,
+   2.33
+  ],
+  "ep_total6": 14.64,
+  "ep_per_million": 2.66,
+  "uncertainty": "LOW",
+  "notes": "23 starts, dc90 13.3 -> elite DefCon rate but a rotated pivot; DefCon dc90 12.8 vs T=12 -> P(hit) 0.59, worth 1.18 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 97,
+  "name": "Jensen",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.56,
+  "p_start_gw": [
+   0.56,
+   0.55,
+   0.55,
+   0.55,
+   0.55,
+   0.55
+  ],
+  "ep_gw": [
+   2.57,
+   2.4,
+   2.57,
+   2.35,
+   2.37,
+   2.34
+  ],
+  "ep_total6": 14.6,
+  "ep_per_million": 2.65,
+  "uncertainty": "LOW",
+  "notes": "26 starts, P3+FK2+CK1; set-piece duty pens#3+CK1"
+ },
+ {
+  "id": 482,
+  "name": "Hudson-Odoi",
+  "team": "NFO",
+  "price": 6.0,
+  "p_start": 0.56,
+  "p_start_gw": [
+   0.56,
+   0.56,
+   0.56,
+   0.56,
+   0.56,
+   0.56
+  ],
+  "ep_gw": [
+   2.45,
+   2.2,
+   2.46,
+   2.29,
+   2.73,
+   2.28
+  ],
+  "ep_total6": 14.41,
+  "ep_per_million": 2.4,
+  "uncertainty": "MED",
+  "notes": "21 starts, FK4, flagged 100 and fit"
+ },
+ {
+  "id": 262,
+  "name": "Smith Rowe",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.6,
+  "p_start_gw": [
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.58
+  ],
+  "ep_gw": [
+   2.32,
+   2.39,
+   2.41,
+   2.21,
+   2.33,
+   2.5
+  ],
+  "ep_total6": 14.16,
+  "ep_per_million": 2.57,
+  "uncertainty": "LOW",
+  "notes": "22 starts, 1909 mins"
+ },
+ {
+  "id": 74,
+  "name": "Brooks",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.44,
+  "p_start_gw": [
+   0.44,
+   0.46,
+   0.44,
+   0.45,
+   0.45,
+   0.45
+  ],
+  "ep_gw": [
+   2.11,
+   2.6,
+   2.35,
+   2.49,
+   2.34,
+   2.2
+  ],
+  "ep_total6": 14.09,
+  "ep_per_million": 2.82,
+  "uncertainty": "HIGH",
+  "notes": "flagged 75; xGI90 0.698 is the highest rate in the position but from only 1188 mins; FLAG: Unspecified injury - 75% chance of playing"
+ },
+ {
+  "id": 14,
+  "name": "Eze",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.45,
+  "p_start_gw": [
+   0.45,
+   0.44,
+   0.44,
+   0.44,
+   0.44,
+   0.44
+  ],
+  "ep_gw": [
+   2.7,
+   2.17,
+   2.21,
+   2.28,
+   2.24,
+   2.38
+  ],
+  "ep_total6": 13.98,
+  "ep_per_million": 2.15,
+  "uncertainty": "MED",
+  "notes": "22 starts elsewhere last season; joins a stacked ARS front line, no settled role yet; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 454,
+  "name": "Elanga",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.56,
+  "p_start_gw": [
+   0.56,
+   0.56,
+   0.56,
+   0.56,
+   0.56,
+   0.56
+  ],
+  "ep_gw": [
+   2.13,
+   2.17,
+   2.23,
+   2.14,
+   2.58,
+   2.38
+  ],
+  "ep_total6": 13.63,
+  "ep_per_million": 2.27,
+  "uncertainty": "LOW",
+  "notes": "14 starts, CK4"
+ },
+ {
+  "id": 73,
+  "name": "Adams",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.55,
+  "p_start_gw": [
+   0.55,
+   0.58,
+   0.56,
+   0.54,
+   0.54,
+   0.54
+  ],
+  "ep_gw": [
+   2.12,
+   2.44,
+   2.29,
+   2.28,
+   2.23,
+   2.14
+  ],
+  "ep_total6": 13.5,
+  "ep_per_million": 2.7,
+  "uncertainty": "HIGH",
+  "notes": "flagged 75; 21 starts, dc90 11.8; FLAG: Unspecified injury - 75% chance of playing; DefCon dc90 11.5 vs T=12 -> P(hit) 0.46, worth 0.92 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 313,
+  "name": "Clarke",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.6,
+  "p_start_gw": [
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6
+  ],
+  "ep_gw": [
+   2.36,
+   2.13,
+   2.2,
+   2.18,
+   2.22,
+   2.38
+  ],
+  "ep_total6": 13.47,
+  "ep_per_million": 2.45,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL minutes but P1 pens + FK3 + CK3 -> penalties on a promoted side; set-piece duty PENS; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 214,
+  "name": "Kamada",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.5,
+  "p_start_gw": [
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ],
+  "ep_gw": [
+   2.17,
+   2.1,
+   2.23,
+   2.49,
+   2.18,
+   2.29
+  ],
+  "ep_total6": 13.46,
+  "ep_per_million": 2.69,
+  "uncertainty": "MED",
+  "notes": "22 starts, dc90 9.9"
+ },
+ {
+  "id": 456,
+  "name": "J.Ramsey",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.5,
+  "p_start_gw": [
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ],
+  "ep_gw": [
+   2.11,
+   2.14,
+   2.18,
+   2.11,
+   2.48,
+   2.31
+  ],
+  "ep_total6": 13.33,
+  "ep_per_million": 2.67,
+  "uncertainty": "MED",
+  "notes": "15 starts, dc90 9.3"
+ },
+ {
+  "id": 557,
+  "name": "Tzolis",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.45,
+  "p_start_gw": [
+   0.45,
+   0.44,
+   0.44,
+   0.44,
+   0.44,
+   0.44
+  ],
+  "ep_gw": [
+   2.56,
+   2.07,
+   2.1,
+   2.17,
+   2.14,
+   2.26
+  ],
+  "ep_total6": 13.3,
+  "ep_per_million": 2.05,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD. 23.3% owned (6th-most-owned MID) implies the market expects a nailed starter, but the only hard evidence is CK3 duty and price. Spec cap 0.70 applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 43,
+  "name": "Tielemans",
+  "team": "MUN",
+  "price": 6.0,
+  "p_start": 0.46,
+  "p_start_gw": [
+   0.46,
+   0.45,
+   0.45,
+   0.45,
+   0.45,
+   0.45
+  ],
+  "ep_gw": [
+   2.39,
+   2.39,
+   2.1,
+   2.04,
+   2.15,
+   2.22
+  ],
+  "ep_total6": 13.29,
+  "ep_per_million": 2.21,
+  "uncertainty": "HIGH",
+  "notes": "flagged 100 (returning); 21 starts last season, now behind Bruno/Mainoo in the pivot; set-piece duty pens#3; DefCon dc90 9.7 vs T=12 -> P(hit) 0.30, worth 0.61 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 286,
+  "name": "Belloumi",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.7,
+  "p_start_gw": [
+   0.7,
+   0.7,
+   0.7,
+   0.7,
+   0.7,
+   0.7
+  ],
+  "ep_gw": [
+   2.18,
+   2.32,
+   2.23,
+   2.11,
+   2.19,
+   2.25
+  ],
+  "ep_total6": 13.28,
+  "ep_per_million": 2.66,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD; FK2+CK3 duty; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 15,
+  "name": "Ødegaard",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.45,
+  "p_start_gw": [
+   0.45,
+   0.44,
+   0.44,
+   0.44,
+   0.44,
+   0.44
+  ],
+  "ep_gw": [
+   2.52,
+   2.07,
+   2.1,
+   2.17,
+   2.14,
+   2.25
+  ],
+  "ep_total6": 13.25,
+  "ep_per_million": 2.04,
+  "uncertainty": "MED",
+  "notes": "only 16 starts in an injury-wrecked season; captain's role secure when fit, fitness is not; set-piece duty pens#3; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 290,
+  "name": "Slater",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.7,
+  "p_start_gw": [
+   0.7,
+   0.7,
+   0.7,
+   0.7,
+   0.7,
+   0.7
+  ],
+  "ep_gw": [
+   2.16,
+   2.29,
+   2.21,
+   2.1,
+   2.17,
+   2.23
+  ],
+  "ep_total6": 13.16,
+  "ep_per_million": 2.92,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD but 2.9% owned at 4.5m and CK2 -> the market's pick as Hull's nailed cheap MID. HIGH; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 126,
+  "name": "O'Riley",
+  "team": "BHA",
+  "price": 5.5,
+  "p_start": 0.59,
+  "p_start_gw": [
+   0.59,
+   0.45,
+   0.44,
+   0.45,
+   0.45,
+   0.45
+  ],
+  "ep_gw": [
+   2.62,
+   1.97,
+   2.19,
+   2.3,
+   1.94,
+   2.11
+  ],
+  "ep_total6": 13.13,
+  "ep_per_million": 2.39,
+  "uncertainty": "MED",
+  "notes": "2 starts / 202 mins but P2 pens -> role unclear; set-piece duty pens#2"
+ },
+ {
+  "id": 213,
+  "name": "Lerma",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.45,
+  "p_start_gw": [
+   0.45,
+   0.45,
+   0.45,
+   0.45,
+   0.45,
+   0.45
+  ],
+  "ep_gw": [
+   2.12,
+   2.06,
+   2.17,
+   2.39,
+   2.12,
+   2.22
+  ],
+  "ep_total6": 13.08,
+  "ep_per_million": 2.62,
+  "uncertainty": "MED",
+  "notes": "18 starts, dc90 11.5; DefCon dc90 11.2 vs T=12 -> P(hit) 0.46, worth 0.92 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 415,
+  "name": "Dorgu",
+  "team": "MUN",
+  "price": 6.0,
+  "p_start": 0.44,
+  "p_start_gw": [
+   0.44,
+   0.43,
+   0.43,
+   0.43,
+   0.43,
+   0.43
+  ],
+  "ep_gw": [
+   2.34,
+   2.35,
+   2.02,
+   1.96,
+   2.08,
+   2.16
+  ],
+  "ep_total6": 12.91,
+  "ep_per_million": 2.15,
+  "uncertainty": "MED",
+  "notes": "15 starts, 11 bonus from 1440 mins -> wing-back usage, in and out; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 190,
+  "name": "Tchaouna",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.62,
+  "p_start_gw": [
+   0.62,
+   0.62,
+   0.62,
+   0.62,
+   0.62,
+   0.62
+  ],
+  "ep_gw": [
+   1.88,
+   2.44,
+   1.92,
+   2.17,
+   2.07,
+   2.16
+  ],
+  "ep_total6": 12.64,
+  "ep_per_million": 2.3,
+  "uncertainty": "HIGH",
+  "notes": "1259 PL mins at a former club; COV attack rating 0.68 crushes the ceiling; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 46,
+  "name": "Barkley",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.41,
+  "p_start_gw": [
+   0.41,
+   0.41,
+   0.41,
+   0.41,
+   0.41,
+   0.41
+  ],
+  "ep_gw": [
+   2.06,
+   1.93,
+   2.3,
+   2.15,
+   2.06,
+   2.11
+  ],
+  "ep_total6": 12.61,
+  "ep_per_million": 2.52,
+  "uncertainty": "HIGH",
+  "notes": "7 starts; 16 PL seasons"
+ },
+ {
+  "id": 209,
+  "name": "Johnson",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.59,
+  "p_start_gw": [
+   0.59,
+   0.55,
+   0.53,
+   0.52,
+   0.52,
+   0.52
+  ],
+  "ep_gw": [
+   2.18,
+   1.99,
+   1.96,
+   1.98,
+   2.26,
+   2.22
+  ],
+  "ep_total6": 12.59,
+  "ep_per_million": 2.1,
+  "uncertainty": "LOW",
+  "notes": "19 starts, 1710 mins"
+ },
+ {
+  "id": 487,
+  "name": "Dominguez",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.46,
+  "p_start_gw": [
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46
+  ],
+  "ep_gw": [
+   2.12,
+   1.94,
+   2.14,
+   2.0,
+   2.33,
+   1.99
+  ],
+  "ep_total6": 12.52,
+  "ep_per_million": 2.5,
+  "uncertainty": "HIGH",
+  "notes": "17 starts, dc90 11.0; DefCon dc90 10.6 vs T=12 -> P(hit) 0.30, worth 0.60 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 70,
+  "name": "Kluivert",
+  "team": "BOU",
+  "price": 6.0,
+  "p_start": 0.55,
+  "p_start_gw": [
+   0.55,
+   0.48,
+   0.46,
+   0.47,
+   0.47,
+   0.47
+  ],
+  "ep_gw": [
+   2.09,
+   2.24,
+   2.05,
+   2.14,
+   2.04,
+   1.94
+  ],
+  "ep_total6": 12.5,
+  "ep_per_million": 2.08,
+  "uncertainty": "HIGH",
+  "notes": "10 starts but P2+FK2+CK3 -> set-piece duty on a rotation risk; set-piece duty pens#2"
+ },
+ {
+  "id": 86,
+  "name": "Lewis-Potter",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.49,
+  "p_start_gw": [
+   0.49,
+   0.48,
+   0.48,
+   0.48,
+   0.48,
+   0.48
+  ],
+  "ep_gw": [
+   2.2,
+   2.05,
+   2.2,
+   2.01,
+   2.03,
+   2.0
+  ],
+  "ep_total6": 12.49,
+  "ep_per_million": 2.27,
+  "uncertainty": "MED",
+  "notes": "22 starts, FK1; set-piece duty FK1"
+ },
+ {
+  "id": 188,
+  "name": "Torp",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.62,
+  "p_start_gw": [
+   0.62,
+   0.62,
+   0.62,
+   0.62,
+   0.62,
+   0.62
+  ],
+  "ep_gw": [
+   1.93,
+   2.31,
+   1.95,
+   2.13,
+   2.06,
+   2.11
+  ],
+  "ep_total6": 12.49,
+  "ep_per_million": 2.27,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD but P2+FK2+CK2 -> the set-piece suite is the only evidence; set-piece duty pens#2; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 403,
+  "name": "Savinho",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.4,
+  "p_start_gw": [
+   0.4,
+   0.4,
+   0.4,
+   0.36,
+   0.35,
+   0.35
+  ],
+  "ep_gw": [
+   2.2,
+   2.05,
+   2.54,
+   1.83,
+   2.07,
+   1.78
+  ],
+  "ep_total6": 12.47,
+  "ep_per_million": 1.92,
+  "uncertainty": "HIGH",
+  "notes": "7 starts, 817 mins -> fringe; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 549,
+  "name": "Talbi",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.51,
+  "p_start_gw": [
+   0.51,
+   0.51,
+   0.51,
+   0.51,
+   0.51,
+   0.51
+  ],
+  "ep_gw": [
+   2.22,
+   2.21,
+   2.02,
+   1.95,
+   1.91,
+   2.16
+  ],
+  "ep_total6": 12.47,
+  "ep_per_million": 2.27,
+  "uncertainty": "MED",
+  "notes": "16 starts, 1553 mins"
+ },
+ {
+  "id": 345,
+  "name": "Tanaka",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.43,
+  "p_start_gw": [
+   0.43,
+   0.43,
+   0.43,
+   0.43,
+   0.43,
+   0.43
+  ],
+  "ep_gw": [
+   2.07,
+   2.12,
+   2.08,
+   2.16,
+   2.12,
+   1.89
+  ],
+  "ep_total6": 12.44,
+  "ep_per_million": 2.49,
+  "uncertainty": "MED",
+  "notes": "14 starts, dc90 10.1; DefCon dc90 9.9 vs T=12 -> P(hit) 0.33, worth 0.65 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 405,
+  "name": "N.Gonzalez",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.45,
+  "p_start_gw": [
+   0.45,
+   0.45,
+   0.45,
+   0.4,
+   0.39,
+   0.39
+  ],
+  "ep_gw": [
+   2.18,
+   2.08,
+   2.4,
+   1.89,
+   2.04,
+   1.84
+  ],
+  "ep_total6": 12.43,
+  "ep_per_million": 2.26,
+  "uncertainty": "MED",
+  "notes": "17 starts, dc90 11.9 -> DefCon upside but not a regular pick; DefCon dc90 11.5 vs T=12 -> P(hit) 0.49, worth 0.99 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 484,
+  "name": "Hutchinson",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.46,
+  "p_start_gw": [
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46
+  ],
+  "ep_gw": [
+   2.11,
+   1.89,
+   2.12,
+   1.97,
+   2.35,
+   1.96
+  ],
+  "ep_total6": 12.4,
+  "ep_per_million": 2.25,
+  "uncertainty": "MED",
+  "notes": "17 starts, CK4"
+ },
+ {
+  "id": 515,
+  "name": "Maddison",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.41,
+  "p_start_gw": [
+   0.41,
+   0.44,
+   0.46,
+   0.48,
+   0.48,
+   0.48
+  ],
+  "ep_gw": [
+   1.85,
+   2.08,
+   2.04,
+   2.21,
+   2.17,
+   1.99
+  ],
+  "ep_total6": 12.34,
+  "ep_per_million": 1.9,
+  "uncertainty": "HIGH",
+  "notes": "34 minutes all last season -> effectively no recent evidence either way. HIGH; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 238,
+  "name": "Grealish",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.4,
+  "p_start_gw": [
+   0.4,
+   0.4,
+   0.4,
+   0.36,
+   0.35,
+   0.35
+  ],
+  "ep_gw": [
+   2.16,
+   2.03,
+   2.43,
+   1.83,
+   2.02,
+   1.78
+  ],
+  "ep_total6": 12.25,
+  "ep_per_million": 1.88,
+  "uncertainty": "HIGH",
+  "notes": "flagged 100; 18 starts last season, now deep in the pecking order; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 514,
+  "name": "Tel",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.44,
+  "p_start_gw": [
+   0.44,
+   0.42,
+   0.42,
+   0.42,
+   0.42,
+   0.42
+  ],
+  "ep_gw": [
+   2.03,
+   2.1,
+   2.01,
+   2.11,
+   2.08,
+   1.92
+  ],
+  "ep_total6": 12.25,
+  "ep_per_million": 2.04,
+  "uncertainty": "MED",
+  "notes": "13 starts, 1334 mins; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 584,
+  "name": "Hamer",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.6,
+  "p_start_gw": [
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6,
+   0.6
+  ],
+  "ep_gw": [
+   1.88,
+   2.26,
+   1.9,
+   2.08,
+   2.01,
+   2.06
+  ],
+  "ep_total6": 12.19,
+  "ep_per_million": 2.22,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL minutes; one prior PL season. Promoted-club attack rating is ASSUMPTION-grade; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 483,
+  "name": "Ndoye",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.46,
+  "p_start_gw": [
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46
+  ],
+  "ep_gw": [
+   2.05,
+   1.86,
+   2.06,
+   1.93,
+   2.26,
+   1.92
+  ],
+  "ep_total6": 12.08,
+  "ep_per_million": 2.2,
+  "uncertainty": "HIGH",
+  "notes": "14 starts / 1167 mins"
+ },
+ {
+  "id": 131,
+  "name": "Baleba",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.7,
+   0.71,
+   0.7,
+   0.7,
+   0.7
+  ],
+  "ep_gw": [
+   0.0,
+   2.26,
+   2.53,
+   2.59,
+   2.26,
+   2.43
+  ],
+  "ep_total6": 12.07,
+  "ep_per_million": 2.41,
+  "uncertainty": "HIGH",
+  "notes": "ankle, expected back 23 Aug -> misses GW1, then 23 starts / dc90 11.4 of prior form; FLAG: Ankle injury - Expected back 23 Aug; DefCon dc90 11.1 vs T=12 -> P(hit) 0.35, worth 0.71 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 543,
+  "name": "Diarra",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.51,
+  "p_start_gw": [
+   0.51,
+   0.51,
+   0.51,
+   0.51,
+   0.51,
+   0.51
+  ],
+  "ep_gw": [
+   2.16,
+   2.14,
+   1.93,
+   1.84,
+   1.81,
+   2.09
+  ],
+  "ep_total6": 11.97,
+  "ep_per_million": 2.18,
+  "uncertainty": "MED",
+  "notes": "15 starts, P1 pens -> penalty duty on a 5.5m rotation risk; set-piece duty PENS"
+ },
+ {
+  "id": 429,
+  "name": "Rashford",
+  "team": "MUN",
+  "price": 7.0,
+  "p_start": 0.34,
+  "p_start_gw": [
+   0.34,
+   0.33,
+   0.33,
+   0.34,
+   0.34,
+   0.34
+  ],
+  "ep_gw": [
+   2.18,
+   2.2,
+   1.85,
+   1.8,
+   1.91,
+   2.0
+  ],
+  "ep_total6": 11.94,
+  "ep_per_million": 1.71,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL MINUTES after a season away; 11 PL seasons of pedigree but role and fitness both unevidenced; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 212,
+  "name": "Hughes",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.48,
+  "p_start_gw": [
+   0.48,
+   0.48,
+   0.48,
+   0.48,
+   0.48,
+   0.48
+  ],
+  "ep_gw": [
+   1.9,
+   1.83,
+   1.95,
+   2.18,
+   1.9,
+   2.0
+  ],
+  "ep_total6": 11.76,
+  "ep_per_million": 2.61,
+  "uncertainty": "MED",
+  "notes": "19 starts and 12.1% owned at 4.5m -> the position's main budget enabler; dc90 8.5 gives a partial DefCon floor"
+ },
+ {
+  "id": 186,
+  "name": "Mason-Clark",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.57,
+  "p_start_gw": [
+   0.57,
+   0.57,
+   0.57,
+   0.57,
+   0.57,
+   0.57
+  ],
+  "ep_gw": [
+   1.82,
+   2.17,
+   1.83,
+   2.0,
+   1.94,
+   1.99
+  ],
+  "ep_total6": 11.75,
+  "ep_per_million": 2.14,
+  "uncertainty": "HIGH",
+  "notes": "flagged 100; NO PL RECORD; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 268,
+  "name": "King",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.47,
+  "p_start_gw": [
+   0.47,
+   0.47,
+   0.47,
+   0.47,
+   0.47,
+   0.45
+  ],
+  "ep_gw": [
+   1.9,
+   1.95,
+   1.96,
+   1.82,
+   1.9,
+   2.02
+  ],
+  "ep_total6": 11.55,
+  "ep_per_million": 2.1,
+  "uncertainty": "MED",
+  "notes": "15 starts, 1290 mins"
+ },
+ {
+  "id": 44,
+  "name": "Bailey",
+  "team": "AVL",
+  "price": 5.5,
+  "p_start": 0.38,
+  "p_start_gw": [
+   0.38,
+   0.38,
+   0.38,
+   0.38,
+   0.38,
+   0.38
+  ],
+  "ep_gw": [
+   1.86,
+   1.74,
+   2.09,
+   1.95,
+   1.86,
+   1.91
+  ],
+  "ep_total6": 11.41,
+  "ep_per_million": 2.07,
+  "uncertainty": "HIGH",
+  "notes": "3 starts, 450 mins"
+ },
+ {
+  "id": 373,
+  "name": "C.Jones",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.26,
+  "p_start_gw": [
+   0.26,
+   0.34,
+   0.34,
+   0.35,
+   0.34,
+   0.34
+  ],
+  "ep_gw": [
+   1.6,
+   1.96,
+   2.02,
+   2.03,
+   1.88,
+   1.84
+  ],
+  "ep_total6": 11.33,
+  "ep_per_million": 2.06,
+  "uncertainty": "HIGH",
+  "notes": "hip, 75% GW1; 18 starts, dc90 11.1 when he does play; FLAG: Hip injury - 75% chance of playing; DefCon dc90 10.8 vs T=12 -> P(hit) 0.42, worth 0.84 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 71,
+  "name": "Cook",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.39,
+  "p_start_gw": [
+   0.39,
+   0.33,
+   0.32,
+   0.32,
+   0.32,
+   0.32
+  ],
+  "ep_gw": [
+   2.0,
+   1.96,
+   1.83,
+   1.88,
+   1.84,
+   1.78
+  ],
+  "ep_total6": 11.29,
+  "ep_per_million": 2.26,
+  "uncertainty": "HIGH",
+  "notes": "8 starts but dc90 14.8 -> elite DefCon rate on a fringe player; DefCon dc90 13.6 vs T=12 -> P(hit) 0.72, worth 1.45 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 518,
+  "name": "P.M.Sarr",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.38,
+  "p_start_gw": [
+   0.38,
+   0.36,
+   0.36,
+   0.36,
+   0.36,
+   0.36
+  ],
+  "ep_gw": [
+   1.88,
+   1.92,
+   1.85,
+   1.93,
+   1.91,
+   1.79
+  ],
+  "ep_total6": 11.28,
+  "ep_per_million": 2.26,
+  "uncertainty": "MED",
+  "notes": "13 starts, dc90 11.9; DefCon dc90 11.4 vs T=12 -> P(hit) 0.49, worth 0.98 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 461,
+  "name": "Touré",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.4,
+  "p_start_gw": [
+   0.4,
+   0.4,
+   0.4,
+   0.4,
+   0.4,
+   0.4
+  ],
+  "ep_gw": [
+   1.75,
+   1.78,
+   1.82,
+   1.77,
+   2.08,
+   1.94
+  ],
+  "ep_total6": 11.14,
+  "ep_per_million": 1.86,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD at 6.0m -> priced as a contributor, unevidenced. HIGH"
+ },
+ {
+  "id": 183,
+  "name": "Rudoni",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.52,
+  "p_start_gw": [
+   0.52,
+   0.52,
+   0.52,
+   0.52,
+   0.52,
+   0.52
+  ],
+  "ep_gw": [
+   1.71,
+   2.0,
+   1.72,
+   1.86,
+   1.8,
+   1.84
+  ],
+  "ep_total6": 10.93,
+  "ep_per_million": 2.19,
+  "uncertainty": "HIGH",
+  "notes": "flagged 100; FK1+CK3 duty; set-piece duty FK1; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 318,
+  "name": "Philogene",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.51,
+  "p_start_gw": [
+   0.51,
+   0.51,
+   0.51,
+   0.51,
+   0.51,
+   0.51
+  ],
+  "ep_gw": [
+   1.9,
+   1.75,
+   1.79,
+   1.77,
+   1.8,
+   1.91
+  ],
+  "ep_total6": 10.92,
+  "ep_per_million": 1.99,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 minutes; 5 prior PL seasons, P4+CK5; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 460,
+  "name": "Willock",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.38,
+  "p_start_gw": [
+   0.38,
+   0.38,
+   0.38,
+   0.38,
+   0.38,
+   0.38
+  ],
+  "ep_gw": [
+   1.71,
+   1.73,
+   1.78,
+   1.73,
+   2.05,
+   1.9
+  ],
+  "ep_total6": 10.9,
+  "ep_per_million": 2.18,
+  "uncertainty": "HIGH",
+  "notes": "10 starts, 972 mins"
+ },
+ {
+  "id": 17,
+  "name": "Merino",
+  "team": "ARS",
+  "price": 6.0,
+  "p_start": 0.26,
+  "p_start_gw": [
+   0.26,
+   0.25,
+   0.25,
+   0.26,
+   0.26,
+   0.26
+  ],
+  "ep_gw": [
+   2.05,
+   1.68,
+   1.72,
+   1.79,
+   1.77,
+   1.87
+  ],
+  "ep_total6": 10.88,
+  "ep_per_million": 1.81,
+  "uncertainty": "HIGH",
+  "notes": "10 starts; 3rd-choice CM; DefCon dc90 9.7 vs T=12 -> P(hit) 0.31, worth 0.62 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 241,
+  "name": "McNeil",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.36,
+  "p_start_gw": [
+   0.36,
+   0.36,
+   0.36,
+   0.36,
+   0.36,
+   0.36
+  ],
+  "ep_gw": [
+   1.76,
+   1.7,
+   1.79,
+   2.01,
+   1.76,
+   1.85
+  ],
+  "ep_total6": 10.87,
+  "ep_per_million": 1.98,
+  "uncertainty": "HIGH",
+  "notes": "14 starts, 1161 mins"
+ },
+ {
+  "id": 339,
+  "name": "Longstaff",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.33,
+  "p_start_gw": [
+   0.33,
+   0.33,
+   0.33,
+   0.33,
+   0.33,
+   0.33
+  ],
+  "ep_gw": [
+   1.8,
+   1.85,
+   1.81,
+   1.88,
+   1.85,
+   1.64
+  ],
+  "ep_total6": 10.83,
+  "ep_per_million": 2.17,
+  "uncertainty": "HIGH",
+  "notes": "10 starts, FK2+CK3; DefCon dc90 9.6 vs T=12 -> P(hit) 0.30, worth 0.61 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 432,
+  "name": "Mainoo",
+  "team": "MUN",
+  "price": 5.5,
+  "p_start": 0.37,
+  "p_start_gw": [
+   0.37,
+   0.36,
+   0.35,
+   0.36,
+   0.36,
+   0.36
+  ],
+  "ep_gw": [
+   1.91,
+   1.9,
+   1.7,
+   1.68,
+   1.76,
+   1.81
+  ],
+  "ep_total6": 10.76,
+  "ep_per_million": 1.96,
+  "uncertainty": "MED",
+  "notes": "16 starts, dc90 10.2 -> DefCon floor but not a guaranteed pick; DefCon dc90 10.0 vs T=12 -> P(hit) 0.33, worth 0.67 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 309,
+  "name": "Núñez",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.5,
+  "p_start_gw": [
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ],
+  "ep_gw": [
+   1.84,
+   1.71,
+   1.75,
+   1.73,
+   1.76,
+   1.86
+  ],
+  "ep_total6": 10.65,
+  "ep_per_million": 2.13,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD; FK1+CK1 duty; set-piece duty FK1+CK1; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 184,
+  "name": "Grimes",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.5,
+  "p_start_gw": [
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ],
+  "ep_gw": [
+   1.66,
+   1.94,
+   1.67,
+   1.81,
+   1.75,
+   1.79
+  ],
+  "ep_total6": 10.62,
+  "ep_per_million": 2.12,
+  "uncertainty": "HIGH",
+  "notes": "P3 pens + CK1 duty; no 25/26 PL minutes; set-piece duty pens#3+CK1; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 98,
+  "name": "Janelt",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.33,
+  "p_start_gw": [
+   0.33,
+   0.32,
+   0.32,
+   0.32,
+   0.32,
+   0.32
+  ],
+  "ep_gw": [
+   1.84,
+   1.73,
+   1.83,
+   1.71,
+   1.72,
+   1.7
+  ],
+  "ep_total6": 10.53,
+  "ep_per_million": 2.11,
+  "uncertainty": "MED",
+  "notes": "15 starts, dc90 11.5; DefCon dc90 11.1 vs T=12 -> P(hit) 0.45, worth 0.90 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 35,
+  "name": "Bogarde",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.46,
+  "p_start_gw": [
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46,
+   0.46
+  ],
+  "ep_gw": [
+   1.72,
+   1.63,
+   1.89,
+   1.79,
+   1.72,
+   1.74
+  ],
+  "ep_total6": 10.49,
+  "ep_per_million": 2.1,
+  "uncertainty": "HIGH",
+  "notes": "11 starts, 1042 mins"
+ },
+ {
+  "id": 264,
+  "name": "Bobb",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.4,
+  "p_start_gw": [
+   0.4,
+   0.4,
+   0.4,
+   0.4,
+   0.4,
+   0.38
+  ],
+  "ep_gw": [
+   1.72,
+   1.76,
+   1.78,
+   1.64,
+   1.72,
+   1.83
+  ],
+  "ep_total6": 10.45,
+  "ep_per_million": 1.9,
+  "uncertainty": "HIGH",
+  "notes": "11 starts, CK2"
+ },
+ {
+  "id": 522,
+  "name": "Gray",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.41,
+  "p_start_gw": [
+   0.41,
+   0.39,
+   0.39,
+   0.39,
+   0.39,
+   0.39
+  ],
+  "ep_gw": [
+   1.72,
+   1.77,
+   1.7,
+   1.78,
+   1.76,
+   1.64
+  ],
+  "ep_total6": 10.37,
+  "ep_per_million": 2.07,
+  "uncertainty": "MED",
+  "notes": "18 starts, 1471 mins; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 75,
+  "name": "Christie",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.28,
+   0.41,
+   0.42,
+   0.42,
+   0.42
+  ],
+  "ep_gw": [
+   0.0,
+   1.74,
+   2.11,
+   2.18,
+   2.11,
+   2.02
+  ],
+  "ep_total6": 10.16,
+  "ep_per_million": 2.03,
+  "uncertainty": "HIGH",
+  "notes": "suspended until 29 Aug -> out GW1, GW2 borderline (deadline 28 Aug); FLAG: Suspended until 29 Aug; DefCon dc90 10.8 vs T=12 -> P(hit) 0.42, worth 0.84 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 16,
+  "name": "Madueke",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.29,
+  "p_start_gw": [
+   0.29,
+   0.28,
+   0.28,
+   0.29,
+   0.29,
+   0.29
+  ],
+  "ep_gw": [
+   1.9,
+   1.58,
+   1.6,
+   1.67,
+   1.65,
+   1.73
+  ],
+  "ep_total6": 10.13,
+  "ep_per_million": 1.56,
+  "uncertainty": "MED",
+  "notes": "16 starts; 4th-choice wide option behind Saka/Eze/Martinelli; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 42,
+  "name": "Guessand",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.63,
+   1.58,
+   1.67,
+   1.87,
+   1.64,
+   1.72
+  ],
+  "ep_total6": 10.11,
+  "ep_per_million": 1.84,
+  "uncertainty": "HIGH",
+  "notes": "9 starts, 909 mins"
+ },
+ {
+  "id": 369,
+  "name": "Ngumoha",
+  "team": "LIV",
+  "price": 6.0,
+  "p_start": 0.22,
+  "p_start_gw": [
+   0.22,
+   0.23,
+   0.23,
+   0.27,
+   0.29,
+   0.29
+  ],
+  "ep_gw": [
+   1.49,
+   1.61,
+   1.66,
+   1.81,
+   1.72,
+   1.68
+  ],
+  "ep_total6": 9.97,
+  "ep_per_million": 1.66,
+  "uncertainty": "HIGH",
+  "notes": "xGI90 0.551 from 547 mins; teenage breakout on a rising minutes trend; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 263,
+  "name": "Kevin",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.37,
+  "p_start_gw": [
+   0.37,
+   0.37,
+   0.37,
+   0.37,
+   0.37,
+   0.36
+  ],
+  "ep_gw": [
+   1.64,
+   1.68,
+   1.69,
+   1.57,
+   1.64,
+   1.73
+  ],
+  "ep_total6": 9.95,
+  "ep_per_million": 1.81,
+  "uncertainty": "HIGH",
+  "notes": "9 starts, CK3"
+ },
+ {
+  "id": 548,
+  "name": "Rigg",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.38,
+  "p_start_gw": [
+   0.38,
+   0.38,
+   0.38,
+   0.38,
+   0.38,
+   0.38
+  ],
+  "ep_gw": [
+   1.77,
+   1.76,
+   1.61,
+   1.55,
+   1.52,
+   1.72
+  ],
+  "ep_total6": 9.93,
+  "ep_per_million": 1.99,
+  "uncertainty": "HIGH",
+  "notes": "11 starts, 758 mins"
+ },
+ {
+  "id": 565,
+  "name": "M.Sangaré",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.35,
+  "p_start_gw": [
+   0.35,
+   0.34,
+   0.34,
+   0.34,
+   0.34,
+   0.34
+  ],
+  "ep_gw": [
+   1.73,
+   1.63,
+   1.72,
+   1.6,
+   1.61,
+   1.6
+  ],
+  "ep_total6": 9.89,
+  "ep_per_million": 1.8,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD but 3.3% owned at 5.5m -> some expectation of minutes. HIGH"
+ },
+ {
+  "id": 18,
+  "name": "Martinelli",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.24,
+  "p_start_gw": [
+   0.24,
+   0.23,
+   0.23,
+   0.25,
+   0.25,
+   0.25
+  ],
+  "ep_gw": [
+   1.87,
+   1.51,
+   1.54,
+   1.61,
+   1.59,
+   1.69
+  ],
+  "ep_total6": 9.81,
+  "ep_per_million": 1.51,
+  "uncertainty": "HIGH",
+  "notes": "11 starts, 1065 mins -> squad rotation only; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 242,
+  "name": "George",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.32,
+  "p_start_gw": [
+   0.32,
+   0.31,
+   0.3,
+   0.31,
+   0.33,
+   0.33
+  ],
+  "ep_gw": [
+   1.62,
+   1.51,
+   1.49,
+   1.54,
+   1.83,
+   1.79
+  ],
+  "ep_total6": 9.78,
+  "ep_per_million": 1.78,
+  "uncertainty": "HIGH",
+  "notes": "xGI90 0.469 from 351 mins -> small sample, rising role"
+ },
+ {
+  "id": 101,
+  "name": "Henderson",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.3,
+  "p_start_gw": [
+   0.3,
+   0.34,
+   0.34,
+   0.34,
+   0.34,
+   0.34
+  ],
+  "ep_gw": [
+   1.5,
+   1.64,
+   1.44,
+   1.82,
+   1.55,
+   1.62
+  ],
+  "ep_total6": 9.57,
+  "ep_per_million": 1.91,
+  "uncertainty": "HIGH",
+  "notes": "wrist, 75% GW1; 22 starts last season but 17 PL seasons of age curve against him; FLAG: Wrist injury - 75% chance of playing; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 246,
+  "name": "Röhl",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.32,
+  "p_start_gw": [
+   0.32,
+   0.29,
+   0.28,
+   0.28,
+   0.28,
+   0.28
+  ],
+  "ep_gw": [
+   1.69,
+   1.54,
+   1.51,
+   1.51,
+   1.67,
+   1.65
+  ],
+  "ep_total6": 9.57,
+  "ep_per_million": 1.91,
+  "uncertainty": "HIGH",
+  "notes": "6 starts, 675 mins"
+ },
+ {
+  "id": 430,
+  "name": "Mount",
+  "team": "MUN",
+  "price": 5.5,
+  "p_start": 0.14,
+  "p_start_gw": [
+   0.14,
+   0.25,
+   0.29,
+   0.3,
+   0.3,
+   0.3
+  ],
+  "ep_gw": [
+   1.21,
+   1.69,
+   1.61,
+   1.6,
+   1.69,
+   1.74
+  ],
+  "ep_total6": 9.54,
+  "ep_per_million": 1.73,
+  "uncertainty": "HIGH",
+  "notes": "foot injury, 50% for GW1; fringe even when fit; FLAG: Foot injury - 50% chance of playing; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 520,
+  "name": "Bergvall",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.36,
+  "p_start_gw": [
+   0.36,
+   0.34,
+   0.34,
+   0.35,
+   0.35,
+   0.35
+  ],
+  "ep_gw": [
+   1.55,
+   1.61,
+   1.54,
+   1.62,
+   1.59,
+   1.48
+  ],
+  "ep_total6": 9.39,
+  "ep_per_million": 1.71,
+  "uncertainty": "HIGH",
+  "notes": "11 starts; rising but unproven; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 158,
+  "name": "Gittens",
+  "team": "CHE",
+  "price": 6.0,
+  "p_start": 0.26,
+  "p_start_gw": [
+   0.26,
+   0.25,
+   0.25,
+   0.26,
+   0.26,
+   0.26
+  ],
+  "ep_gw": [
+   1.54,
+   1.58,
+   1.33,
+   1.84,
+   1.49,
+   1.58
+  ],
+  "ep_total6": 9.36,
+  "ep_per_million": 1.56,
+  "uncertainty": "HIGH",
+  "notes": "5 starts, 486 mins -> fringe; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 243,
+  "name": "Alcaraz",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.32,
+  "p_start_gw": [
+   0.32,
+   0.29,
+   0.28,
+   0.28,
+   0.28,
+   0.28
+  ],
+  "ep_gw": [
+   1.63,
+   1.48,
+   1.45,
+   1.46,
+   1.64,
+   1.61
+  ],
+  "ep_total6": 9.27,
+  "ep_per_million": 1.85,
+  "uncertainty": "HIGH",
+  "notes": "6 starts, 679 mins"
+ },
+ {
+  "id": 323,
+  "name": "McAteer",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.41,
+  "p_start_gw": [
+   0.41,
+   0.41,
+   0.41,
+   0.41,
+   0.41,
+   0.41
+  ],
+  "ep_gw": [
+   1.58,
+   1.49,
+   1.51,
+   1.5,
+   1.52,
+   1.6
+  ],
+  "ep_total6": 9.2,
+  "ep_per_million": 2.04,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD but 1.5% owned at 4.5m -> budget-enabler candidate. HIGH; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 215,
+  "name": "Devenny",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.25,
+  "p_start_gw": [
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25
+  ],
+  "ep_gw": [
+   1.48,
+   1.44,
+   1.51,
+   1.71,
+   1.49,
+   1.56
+  ],
+  "ep_total6": 9.19,
+  "ep_per_million": 1.84,
+  "uncertainty": "HIGH",
+  "notes": "7 starts, P3+FK2; set-piece duty pens#3"
+ },
+ {
+  "id": 519,
+  "name": "Gallagher",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.3
+  ],
+  "ep_gw": [
+   1.53,
+   1.56,
+   1.51,
+   1.57,
+   1.55,
+   1.46
+  ],
+  "ep_total6": 9.18,
+  "ep_per_million": 1.67,
+  "uncertainty": "HIGH",
+  "notes": "14 starts, 1183 mins; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 162,
+  "name": "Andrey Santos",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.26,
+  "p_start_gw": [
+   0.26,
+   0.25,
+   0.25,
+   0.26,
+   0.26,
+   0.26
+  ],
+  "ep_gw": [
+   1.64,
+   1.64,
+   1.44,
+   1.42,
+   1.5,
+   1.54
+  ],
+  "ep_total6": 9.18,
+  "ep_per_million": 1.84,
+  "uncertainty": "MED",
+  "notes": "13 starts -> squad depth; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 377,
+  "name": "Munoz",
+  "team": "LIV",
+  "price": 6.5,
+  "p_start": 0.26,
+  "p_start_gw": [
+   0.26,
+   0.25,
+   0.25,
+   0.27,
+   0.26,
+   0.26
+  ],
+  "ep_gw": [
+   1.49,
+   1.54,
+   1.59,
+   1.61,
+   1.47,
+   1.44
+  ],
+  "ep_total6": 9.14,
+  "ep_per_million": 1.41,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD at 6.5m and 0.6% owned -> the market does not expect starts; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 244,
+  "name": "Armstrong",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.3,
+  "p_start_gw": [
+   0.3,
+   0.27,
+   0.26,
+   0.26,
+   0.26,
+   0.26
+  ],
+  "ep_gw": [
+   1.59,
+   1.45,
+   1.42,
+   1.43,
+   1.59,
+   1.56
+  ],
+  "ep_total6": 9.04,
+  "ep_per_million": 1.81,
+  "uncertainty": "HIGH",
+  "notes": "6 starts, 524 mins"
+ },
+ {
+  "id": 245,
+  "name": "Dibling",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.3,
+  "p_start_gw": [
+   0.3,
+   0.27,
+   0.26,
+   0.26,
+   0.26,
+   0.26
+  ],
+  "ep_gw": [
+   1.58,
+   1.44,
+   1.41,
+   1.42,
+   1.57,
+   1.55
+  ],
+  "ep_total6": 8.97,
+  "ep_per_million": 1.63,
+  "uncertainty": "HIGH",
+  "notes": "4 starts, 349 mins"
+ },
+ {
+  "id": 485,
+  "name": "Bakwa",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.25,
+  "p_start_gw": [
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25
+  ],
+  "ep_gw": [
+   1.4,
+   1.28,
+   1.41,
+   1.32,
+   1.54,
+   1.32
+  ],
+  "ep_total6": 8.27,
+  "ep_per_million": 1.5,
+  "uncertainty": "HIGH",
+  "notes": "6 starts, 549 mins"
+ },
+ {
+  "id": 486,
+  "name": "McAtee",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.23,
+  "p_start_gw": [
+   0.23,
+   0.23,
+   0.23,
+   0.23,
+   0.23,
+   0.23
+  ],
+  "ep_gw": [
+   1.39,
+   1.27,
+   1.39,
+   1.31,
+   1.52,
+   1.31
+  ],
+  "ep_total6": 8.19,
+  "ep_per_million": 1.49,
+  "uncertainty": "HIGH",
+  "notes": "2 starts, CK3"
+ },
+ {
+  "id": 343,
+  "name": "James",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.24,
+  "p_start_gw": [
+   0.24,
+   0.24,
+   0.24,
+   0.24,
+   0.24,
+   0.24
+  ],
+  "ep_gw": [
+   1.34,
+   1.39,
+   1.35,
+   1.41,
+   1.38,
+   1.22
+  ],
+  "ep_total6": 8.09,
+  "ep_per_million": 1.62,
+  "uncertainty": "HIGH",
+  "notes": "6 starts, 547 mins"
+ },
+ {
+  "id": 164,
+  "name": "Quenda",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.22,
+  "p_start_gw": [
+   0.22,
+   0.21,
+   0.21,
+   0.22,
+   0.22,
+   0.22
+  ],
+  "ep_gw": [
+   1.33,
+   1.35,
+   1.18,
+   1.54,
+   1.3,
+   1.36
+  ],
+  "ep_total6": 8.06,
+  "ep_per_million": 1.47,
+  "uncertainty": "HIGH",
+  "notes": "flagged 100 but 0 PL minutes -> unevidenced; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 551,
+  "name": "Angulo",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.25,
+  "p_start_gw": [
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25
+  ],
+  "ep_gw": [
+   1.42,
+   1.41,
+   1.3,
+   1.26,
+   1.24,
+   1.39
+  ],
+  "ep_total6": 8.02,
+  "ep_per_million": 1.6,
+  "uncertainty": "HIGH",
+  "notes": "5 starts"
+ },
+ {
+  "id": 570,
+  "name": "Palacios",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.28,
+  "p_start_gw": [
+   0.28,
+   0.28,
+   0.28,
+   0.28,
+   0.28,
+   0.27
+  ],
+  "ep_gw": [
+   1.32,
+   1.35,
+   1.35,
+   1.29,
+   1.33,
+   1.37
+  ],
+  "ep_total6": 8.01,
+  "ep_per_million": 1.46,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD"
+ },
+ {
+  "id": 287,
+  "name": "Millar",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.29,
+   1.36,
+   1.32,
+   1.26,
+   1.29,
+   1.33
+  ],
+  "ep_total6": 7.85,
+  "ep_per_million": 1.57,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 292,
+  "name": "Ömür",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.29,
+   1.36,
+   1.32,
+   1.26,
+   1.29,
+   1.33
+  ],
+  "ep_total6": 7.85,
+  "ep_per_million": 1.57,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 296,
+  "name": "Akintola",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.29,
+   1.36,
+   1.32,
+   1.26,
+   1.29,
+   1.33
+  ],
+  "ep_total6": 7.85,
+  "ep_per_million": 1.57,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 574,
+  "name": "Hjertø-Dahl",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.29,
+   1.36,
+   1.32,
+   1.26,
+   1.29,
+   1.33
+  ],
+  "ep_total6": 7.85,
+  "ep_per_million": 1.57,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 576,
+  "name": "Stroud",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.29,
+   1.36,
+   1.32,
+   1.26,
+   1.29,
+   1.33
+  ],
+  "ep_total6": 7.85,
+  "ep_per_million": 1.57,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 589,
+  "name": "Gourna-Douath",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.29,
+   1.36,
+   1.32,
+   1.26,
+   1.29,
+   1.33
+  ],
+  "ep_total6": 7.85,
+  "ep_per_million": 1.57,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 288,
+  "name": "Dowell",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.28,
+   1.34,
+   1.3,
+   1.25,
+   1.28,
+   1.31
+  ],
+  "ep_total6": 7.76,
+  "ep_per_million": 1.72,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.4% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 289,
+  "name": "Crooks",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.31,
+  "p_start_gw": [
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "ep_gw": [
+   1.28,
+   1.34,
+   1.3,
+   1.25,
+   1.28,
+   1.31
+  ],
+  "ep_total6": 7.76,
+  "ep_per_million": 1.72,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.6% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 270,
+  "name": "Reed",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.28,
+  "p_start_gw": [
+   0.28,
+   0.28,
+   0.28,
+   0.28,
+   0.28,
+   0.27
+  ],
+  "ep_gw": [
+   1.27,
+   1.31,
+   1.3,
+   1.25,
+   1.28,
+   1.31
+  ],
+  "ep_total6": 7.72,
+  "ep_per_million": 1.72,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD but 1.5% owned at 4.5m -> a budget-enabler candidate on ownership alone. HIGH"
+ },
+ {
+  "id": 247,
+  "name": "Hackney",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.25,
+  "p_start_gw": [
+   0.25,
+   0.23,
+   0.22,
+   0.21,
+   0.21,
+   0.21
+  ],
+  "ep_gw": [
+   1.33,
+   1.22,
+   1.2,
+   1.2,
+   1.32,
+   1.3
+  ],
+  "ep_total6": 7.57,
+  "ep_per_million": 1.38,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD"
+ },
+ {
+  "id": 558,
+  "name": "Schlager",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.23,
+  "p_start_gw": [
+   0.23,
+   0.23,
+   0.23,
+   0.23,
+   0.23,
+   0.23
+  ],
+  "ep_gw": [
+   1.26,
+   1.18,
+   1.27,
+   1.21,
+   1.35,
+   1.2
+  ],
+  "ep_total6": 7.47,
+  "ep_per_million": 1.49,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD, CK2 duty is the only signal"
+ },
+ {
+  "id": 400,
+  "name": "Doku",
+  "team": "MCI",
+  "price": 7.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.48,
+   0.57,
+   0.58
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   2.05,
+   2.79,
+   2.48
+  ],
+  "ep_total6": 7.32,
+  "ep_per_million": 0.98,
+  "uncertainty": "HIGH",
+  "notes": "calf, expected back 5 Sep -> misses GW1-3 (GW3 deadline 4 Sep), then ramps into rotation; FLAG: Calf injury - Expected back 5 Sep; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 161,
+  "name": "Lavia",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.16,
+  "p_start_gw": [
+   0.16,
+   0.15,
+   0.15,
+   0.16,
+   0.16,
+   0.16
+  ],
+  "ep_gw": [
+   1.2,
+   1.22,
+   1.06,
+   1.4,
+   1.18,
+   1.23
+  ],
+  "ep_total6": 7.29,
+  "ep_per_million": 1.46,
+  "uncertainty": "HIGH",
+  "notes": "4 starts, 374 mins -> fringe; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 100,
+  "name": "Carvalho",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.12,
+  "p_start_gw": [
+   0.12,
+   0.19,
+   0.2,
+   0.2,
+   0.2,
+   0.2
+  ],
+  "ep_gw": [
+   1.02,
+   1.21,
+   1.32,
+   1.23,
+   1.24,
+   1.23
+  ],
+  "ep_total6": 7.25,
+  "ep_per_million": 1.45,
+  "uncertainty": "HIGH",
+  "notes": "flagged 75 for lack of match fitness -> behind the settled midfield; FLAG: Lack of match fitness - 75% chance of playing"
+ },
+ {
+  "id": 462,
+  "name": "Steur",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.21,
+  "p_start_gw": [
+   0.21,
+   0.21,
+   0.21,
+   0.21,
+   0.21,
+   0.21
+  ],
+  "ep_gw": [
+   1.16,
+   1.17,
+   1.18,
+   1.17,
+   1.31,
+   1.25
+  ],
+  "ep_total6": 7.24,
+  "ep_per_million": 1.45,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD"
+ },
+ {
+  "id": 559,
+  "name": "Bamba",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.21,
+  "p_start_gw": [
+   0.21,
+   0.21,
+   0.21,
+   0.21,
+   0.21,
+   0.21
+  ],
+  "ep_gw": [
+   1.16,
+   1.17,
+   1.18,
+   1.17,
+   1.31,
+   1.25
+  ],
+  "ep_total6": 7.24,
+  "ep_per_million": 1.45,
+  "uncertainty": "HIGH",
+  "notes": "NO PL RECORD"
+ },
+ {
+  "id": 406,
+  "name": "Kovačić",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.15,
+  "p_start_gw": [
+   0.15,
+   0.15,
+   0.15,
+   0.13,
+   0.13,
+   0.13
+  ],
+  "ep_gw": [
+   1.22,
+   1.16,
+   1.35,
+   1.05,
+   1.14,
+   1.03
+  ],
+  "ep_total6": 6.95,
+  "ep_per_million": 1.26,
+  "uncertainty": "HIGH",
+  "notes": "1 start -> squad filler; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 547,
+  "name": "Mundle",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.18,
+  "p_start_gw": [
+   0.18,
+   0.18,
+   0.18,
+   0.18,
+   0.18,
+   0.18
+  ],
+  "ep_gw": [
+   1.2,
+   1.19,
+   1.11,
+   1.07,
+   1.06,
+   1.17
+  ],
+  "ep_total6": 6.8,
+  "ep_per_million": 1.36,
+  "uncertainty": "HIGH",
+  "notes": "2 starts"
+ },
+ {
+  "id": 562,
+  "name": "Maeda",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.21,
+  "p_start_gw": [
+   0.21,
+   0.21,
+   0.21,
+   0.21,
+   0.21,
+   0.21
+  ],
+  "ep_gw": [
+   1.14,
+   1.07,
+   1.09,
+   1.09,
+   1.1,
+   1.15
+  ],
+  "ep_total6": 6.64,
+  "ep_per_million": 1.21,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.4% owned at 5.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 7,
+  "name": "Lewis-Skelly",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.16,
+  "p_start_gw": [
+   0.16,
+   0.15,
+   0.15,
+   0.16,
+   0.16,
+   0.16
+  ],
+  "ep_gw": [
+   1.16,
+   1.0,
+   1.01,
+   1.05,
+   1.04,
+   1.08
+  ],
+  "ep_total6": 6.34,
+  "ep_per_million": 1.15,
+  "uncertainty": "HIGH",
+  "notes": "5 starts, 697 mins -> fringe; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 315,
+  "name": "Fatawu",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.19,
+  "p_start_gw": [
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19
+  ],
+  "ep_gw": [
+   1.08,
+   1.02,
+   1.04,
+   1.03,
+   1.04,
+   1.09
+  ],
+  "ep_total6": 6.3,
+  "ep_per_million": 1.15,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.2% owned at 5.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 370,
+  "name": "Chiesa",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.11,
+  "p_start_gw": [
+   0.11,
+   0.1,
+   0.1,
+   0.11,
+   0.11,
+   0.11
+  ],
+  "ep_gw": [
+   0.99,
+   1.03,
+   1.06,
+   1.07,
+   0.99,
+   0.97
+  ],
+  "ep_total6": 6.11,
+  "ep_per_million": 1.11,
+  "uncertainty": "HIGH",
+  "notes": "1 start from 317 mins -> impact sub; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 563,
+  "name": "Morita",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.19,
+  "p_start_gw": [
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19
+  ],
+  "ep_gw": [
+   1.0,
+   1.05,
+   1.02,
+   0.98,
+   1.0,
+   1.02
+  ],
+  "ep_total6": 6.07,
+  "ep_per_million": 1.21,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; FLAG: Calf injury - 50% chance of playing; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 580,
+  "name": "Charles",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.16,
+  "p_start_gw": [
+   0.16,
+   0.16,
+   0.16,
+   0.16,
+   0.16,
+   0.15
+  ],
+  "ep_gw": [
+   0.97,
+   0.99,
+   0.98,
+   0.95,
+   0.97,
+   0.99
+  ],
+  "ep_total6": 5.85,
+  "ep_per_million": 1.17,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 minutes"
+ },
+ {
+  "id": 568,
+  "name": "Barco",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.91,
+   0.92,
+   0.82,
+   1.03,
+   0.89,
+   0.93
+  ],
+  "ep_total6": 5.5,
+  "ep_per_million": 1.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.5m -> minutes estimated from price + ownership, spec cap applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 374,
+  "name": "Endo",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.11,
+  "p_start_gw": [
+   0.11,
+   0.1,
+   0.1,
+   0.11,
+   0.11,
+   0.11
+  ],
+  "ep_gw": [
+   0.9,
+   0.91,
+   0.93,
+   0.95,
+   0.9,
+   0.89
+  ],
+  "ep_total6": 5.48,
+  "ep_per_million": 1.1,
+  "uncertainty": "HIGH",
+  "notes": "flagged 100 but 1 start last season; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 410,
+  "name": "Monga",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.09,
+   0.08,
+   0.08
+  ],
+  "ep_gw": [
+   0.9,
+   0.86,
+   0.97,
+   0.8,
+   0.85,
+   0.79
+  ],
+  "ep_total6": 5.17,
+  "ep_per_million": 1.03,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 383,
+  "name": "Elliott",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.08,
+  "p_start_gw": [
+   0.08,
+   0.08,
+   0.08,
+   0.09,
+   0.09,
+   0.09
+  ],
+  "ep_gw": [
+   0.84,
+   0.86,
+   0.88,
+   0.89,
+   0.84,
+   0.83
+  ],
+  "ep_total6": 5.14,
+  "ep_per_million": 0.93,
+  "uncertainty": "HIGH",
+  "notes": "1 start, 110 mins; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 409,
+  "name": "Mukasa",
+  "team": "MCI",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.09,
+   0.08,
+   0.08
+  ],
+  "ep_gw": [
+   0.86,
+   0.84,
+   0.92,
+   0.78,
+   0.82,
+   0.77
+  ],
+  "ep_total6": 4.99,
+  "ep_per_million": 1.11,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.2% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 575,
+  "name": "Yirenkyi",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.12,
+  "p_start_gw": [
+   0.12,
+   0.12,
+   0.12,
+   0.12,
+   0.12,
+   0.12
+  ],
+  "ep_gw": [
+   0.79,
+   0.87,
+   0.79,
+   0.83,
+   0.81,
+   0.83
+  ],
+  "ep_total6": 4.92,
+  "ep_per_million": 0.98,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.3% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 135,
+  "name": "Yohanna",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.83,
+   0.79,
+   0.83,
+   0.85,
+   0.79,
+   0.82
+  ],
+  "ep_total6": 4.91,
+  "ep_per_million": 0.98,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies"
+ },
+ {
+  "id": 600,
+  "name": "Osman",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.83,
+   0.79,
+   0.83,
+   0.85,
+   0.79,
+   0.82
+  ],
+  "ep_total6": 4.91,
+  "ep_per_million": 0.98,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies"
+ },
+ {
+  "id": 50,
+  "name": "Burrowes",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.81,
+   0.79,
+   0.85,
+   0.83,
+   0.81,
+   0.82
+  ],
+  "ep_total6": 4.91,
+  "ep_per_million": 1.09,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.7% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies"
+ },
+ {
+  "id": 51,
+  "name": "George Hemmings",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.81,
+   0.79,
+   0.85,
+   0.83,
+   0.81,
+   0.82
+  ],
+  "ep_total6": 4.91,
+  "ep_per_million": 1.09,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.7% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies"
+ },
+ {
+  "id": 134,
+  "name": "Oriola",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.81,
+   0.78,
+   0.81,
+   0.83,
+   0.78,
+   0.8
+  ],
+  "ep_total6": 4.81,
+  "ep_per_million": 1.07,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.3% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies"
+ },
+ {
+  "id": 76,
+  "name": "Tóth.A",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.08,
+  "p_start_gw": [
+   0.08,
+   0.08,
+   0.07,
+   0.07,
+   0.07,
+   0.07
+  ],
+  "ep_gw": [
+   0.77,
+   0.81,
+   0.77,
+   0.79,
+   0.77,
+   0.75
+  ],
+  "ep_total6": 4.66,
+  "ep_per_million": 0.93,
+  "uncertainty": "HIGH",
+  "notes": "only 135 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 185,
+  "name": "Sakamoto",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.74,
+   0.82,
+   0.75,
+   0.78,
+   0.77,
+   0.78
+  ],
+  "ep_total6": 4.64,
+  "ep_per_million": 0.93,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 187,
+  "name": "Eccles",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.74,
+   0.82,
+   0.75,
+   0.78,
+   0.77,
+   0.78
+  ],
+  "ep_total6": 4.64,
+  "ep_per_million": 0.93,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 314,
+  "name": "Ogbene",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.79,
+   0.76,
+   0.77,
+   0.76,
+   0.77,
+   0.79
+  ],
+  "ep_total6": 4.64,
+  "ep_per_million": 0.93,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 324,
+  "name": "Mehmeti",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.79,
+   0.76,
+   0.77,
+   0.76,
+   0.77,
+   0.79
+  ],
+  "ep_total6": 4.64,
+  "ep_per_million": 0.93,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 20,
+  "name": "Dowman",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.04,
+  "p_start_gw": [
+   0.04,
+   0.04,
+   0.04,
+   0.04,
+   0.04,
+   0.04
+  ],
+  "ep_gw": [
+   0.84,
+   0.72,
+   0.74,
+   0.75,
+   0.75,
+   0.78
+  ],
+  "ep_total6": 4.58,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "only 152 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 595,
+  "name": "Gozo",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.07,
+  "p_start_gw": [
+   0.07,
+   0.07,
+   0.07,
+   0.07,
+   0.07,
+   0.07
+  ],
+  "ep_gw": [
+   0.75,
+   0.74,
+   0.76,
+   0.81,
+   0.75,
+   0.77
+  ],
+  "ep_total6": 4.58,
+  "ep_per_million": 0.92,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies"
+ },
+ {
+  "id": 189,
+  "name": "Shepherd",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.74,
+   0.8,
+   0.74,
+   0.77,
+   0.76,
+   0.77
+  ],
+  "ep_total6": 4.58,
+  "ep_per_million": 1.02,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.3% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 191,
+  "name": "Borges Rodrigues",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.74,
+   0.8,
+   0.74,
+   0.77,
+   0.76,
+   0.77
+  ],
+  "ep_total6": 4.58,
+  "ep_per_million": 1.02,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.2% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 192,
+  "name": "Andrews",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.74,
+   0.8,
+   0.74,
+   0.77,
+   0.76,
+   0.77
+  ],
+  "ep_total6": 4.58,
+  "ep_per_million": 1.02,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.7% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 381,
+  "name": "Koumas",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.07,
+  "p_start_gw": [
+   0.07,
+   0.07,
+   0.07,
+   0.07,
+   0.07,
+   0.07
+  ],
+  "ep_gw": [
+   0.75,
+   0.76,
+   0.77,
+   0.78,
+   0.74,
+   0.74
+  ],
+  "ep_total6": 4.54,
+  "ep_per_million": 0.91,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 437,
+  "name": "Bendito Mantato",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.07,
+  "p_start_gw": [
+   0.07,
+   0.06,
+   0.06,
+   0.07,
+   0.07,
+   0.07
+  ],
+  "ep_gw": [
+   0.76,
+   0.75,
+   0.71,
+   0.71,
+   0.72,
+   0.74
+  ],
+  "ep_total6": 4.39,
+  "ep_per_million": 0.98,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.2% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 378,
+  "name": "McConnell",
+  "team": "LIV",
+  "price": 4.5,
+  "p_start": 0.07,
+  "p_start_gw": [
+   0.07,
+   0.07,
+   0.07,
+   0.07,
+   0.07,
+   0.07
+  ],
+  "ep_gw": [
+   0.72,
+   0.73,
+   0.74,
+   0.75,
+   0.72,
+   0.72
+  ],
+  "ep_total6": 4.38,
+  "ep_per_million": 0.97,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.3% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 24,
+  "name": "Nelson",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.03,
+  "p_start_gw": [
+   0.03,
+   0.02,
+   0.02,
+   0.03,
+   0.03,
+   0.03
+  ],
+  "ep_gw": [
+   0.75,
+   0.66,
+   0.67,
+   0.68,
+   0.68,
+   0.7
+  ],
+  "ep_total6": 4.14,
+  "ep_per_million": 0.75,
+  "uncertainty": "HIGH",
+  "notes": "only 118 min last season -> known fringe, rates fall back to the price prior; DefCon dc90 12.0 vs T=12 -> P(hit) 0.42, worth 0.84 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 22,
+  "name": "Nwaneri",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.04,
+  "p_start_gw": [
+   0.04,
+   0.03,
+   0.03,
+   0.04,
+   0.04,
+   0.04
+  ],
+  "ep_gw": [
+   0.74,
+   0.66,
+   0.67,
+   0.68,
+   0.68,
+   0.7
+  ],
+  "ep_total6": 4.13,
+  "ep_per_million": 0.75,
+  "uncertainty": "HIGH",
+  "notes": "only 165 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 72,
+  "name": "Gannon-Doak",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.04,
+  "p_start_gw": [
+   0.04,
+   0.04,
+   0.04,
+   0.04,
+   0.04,
+   0.04
+  ],
+  "ep_gw": [
+   0.64,
+   0.68,
+   0.65,
+   0.67,
+   0.65,
+   0.64
+  ],
+  "ep_total6": 3.93,
+  "ep_per_million": 0.79,
+  "uncertainty": "HIGH",
+  "notes": "only 105 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 434,
+  "name": "J.Fletcher",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.03,
+  "p_start_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03
+  ],
+  "ep_gw": [
+   0.65,
+   0.65,
+   0.61,
+   0.6,
+   0.62,
+   0.63
+  ],
+  "ep_total6": 3.76,
+  "ep_per_million": 0.75,
+  "uncertainty": "HIGH",
+  "notes": "only 107 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 104,
+  "name": "Onyeka",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.04,
+  "p_start_gw": [
+   0.04,
+   0.04,
+   0.04,
+   0.04,
+   0.04,
+   0.04
+  ],
+  "ep_gw": [
+   0.58,
+   0.64,
+   0.59,
+   0.61,
+   0.6,
+   0.61
+  ],
+  "ep_total6": 3.63,
+  "ep_per_million": 0.73,
+  "uncertainty": "HIGH",
+  "notes": "only 88 min last season -> known fringe, rates fall back to the price prior; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 52,
+  "name": "Alysson",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.02,
+  "p_start_gw": [
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02
+  ],
+  "ep_gw": [
+   0.57,
+   0.56,
+   0.6,
+   0.58,
+   0.57,
+   0.58
+  ],
+  "ep_total6": 3.46,
+  "ep_per_million": 0.69,
+  "uncertainty": "HIGH",
+  "notes": "only 47 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 550,
+  "name": "Jocelin.T",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.02,
+  "p_start_gw": [
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02
+  ],
+  "ep_gw": [
+   0.59,
+   0.59,
+   0.57,
+   0.56,
+   0.56,
+   0.58
+  ],
+  "ep_total6": 3.45,
+  "ep_per_million": 0.69,
+  "uncertainty": "HIGH",
+  "notes": "only 38 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 435,
+  "name": "Lacey",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.58,
+   0.59,
+   0.55,
+   0.55,
+   0.56,
+   0.57
+  ],
+  "ep_total6": 3.4,
+  "ep_per_million": 0.68,
+  "uncertainty": "HIGH",
+  "notes": "only 40 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 216,
+  "name": "Esse",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.55,
+   0.55,
+   0.56,
+   0.59,
+   0.56,
+   0.57
+  ],
+  "ep_total6": 3.38,
+  "ep_per_million": 0.68,
+  "uncertainty": "HIGH",
+  "notes": "only 40 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 375,
+  "name": "Nyoni",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.55,
+   0.56,
+   0.57,
+   0.57,
+   0.55,
+   0.54
+  ],
+  "ep_total6": 3.34,
+  "ep_per_million": 0.67,
+  "uncertainty": "HIGH",
+  "notes": "only 21 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 163,
+  "name": "D.Essugo",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.54,
+   0.55,
+   0.51,
+   0.57,
+   0.54,
+   0.55
+  ],
+  "ep_total6": 3.26,
+  "ep_per_million": 0.72,
+  "uncertainty": "HIGH",
+  "notes": "only 26 min last season -> known fringe, rates fall back to the price prior; DefCon dc90 11.5 vs T=12 -> P(hit) 0.38, worth 0.76 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 103,
+  "name": "Dasilva",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.53,
+   0.53,
+   0.54,
+   0.52,
+   0.53,
+   0.52
+  ],
+  "ep_total6": 3.17,
+  "ep_per_million": 0.63,
+  "uncertainty": "HIGH",
+  "notes": "only 2 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 438,
+  "name": "Fletcher",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.54,
+   0.54,
+   0.52,
+   0.51,
+   0.52,
+   0.52
+  ],
+  "ep_total6": 3.15,
+  "ep_per_million": 0.7,
+  "uncertainty": "HIGH",
+  "notes": "only 17 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 221,
+  "name": "Drakes-Thomas",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.51,
+   0.5,
+   0.51,
+   0.53,
+   0.51,
+   0.52
+  ],
+  "ep_total6": 3.08,
+  "ep_per_million": 0.68,
+  "uncertainty": "HIGH",
+  "notes": "only 7 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 524,
+  "name": "Olusesi",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.5,
+   0.51,
+   0.5,
+   0.51,
+   0.5,
+   0.5
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.67,
+  "uncertainty": "HIGH",
+  "notes": "only 14 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 266,
+  "name": "Cairney",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.15
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.54
+  ],
+  "ep_total6": 0.54,
+  "ep_per_million": 0.11,
+  "uncertainty": "HIGH",
+  "notes": "knee, expected back 10 Oct -> GW6 at the earliest; FLAG: Knee injury - Expected back 10 Oct"
+ },
+ {
+  "id": 78,
+  "name": "Kroupi.Jr",
+  "team": "BOU",
+  "price": 7.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "21 starts / 1663 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Foot injury - Unknown return date; set-piece duty PENS"
+ },
+ {
+  "id": 402,
+  "name": "Rodrigo",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Barcelona permanently"
+ },
+ {
+  "id": 521,
+  "name": "Kulusevski",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; FLAG: Knee injury - Unknown return date; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 53,
+  "name": "Manzambi",
+  "team": "AVL",
+  "price": 6.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.4% owned at 6.0m -> minutes estimated from price + ownership, spec cap applies; FLAG: Knee injury - Unknown return date"
+ },
+ {
+  "id": 121,
+  "name": "Mitoma",
+  "team": "BHA",
+  "price": 6.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "19 starts / 1714 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Hamstring injury - Unknown return date"
+ },
+ {
+  "id": 122,
+  "name": "Minteh",
+  "team": "BHA",
+  "price": 6.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "26 starts / 2389 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Leg injury - Expected back 28 Nov"
+ },
+ {
+  "id": 404,
+  "name": "Reijnders",
+  "team": "MCI",
+  "price": 6.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Al Qadsiah permanently"
+ },
+ {
+  "id": 513,
+  "name": "Xavi",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "19 starts / 1747 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Knee injury - Unknown return date; set-piece duty pens#3; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 23,
+  "name": "Fábio Vieira",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 54,
+  "name": "Gomes",
+  "team": "AVL",
+  "price": 5.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "32 starts / 2829 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Calf injury - Unknown return date; DefCon dc90 12.1 vs T=12 -> P(hit) 0.55, worth 1.09 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 458,
+  "name": "Joelinton",
+  "team": "NEW",
+  "price": 5.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "23 starts / 1950 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Unspecified injury - Unknown return date; DefCon dc90 10.8 vs T=12 -> P(hit) 0.39, worth 0.77 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 517,
+  "name": "Odobert",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "10 starts / 972 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Knee injury - Unknown return date; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 578,
+  "name": "Mudryk",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 591,
+  "name": "Enciso",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 21,
+  "name": "Nørgaard",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 101 min last season -> known fringe, rates fall back to the price prior; FLAG: Unspecified injury - Unknown return date; DefCon dc90 10.8 vs T=12 -> P(hit) 0.32, worth 0.64 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 48,
+  "name": "Onana",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "21 starts / 1755 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Knee injury - Unknown return date; DefCon dc90 10.9 vs T=12 -> P(hit) 0.40, worth 0.80 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 49,
+  "name": "Iling Jr",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Bolton Wanderers on loan for the rest of the season"
+ },
+ {
+  "id": 77,
+  "name": "Adli",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "10 starts / 1074 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Unspecified injury - Unknown return date; DefCon dc90 10.0 vs T=12 -> P(hit) 0.33, worth 0.67 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 99,
+  "name": "Milambo",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 45 min last season -> known fringe, rates fall back to the price prior; FLAG: Knee injury - Unknown return date"
+ },
+ {
+  "id": 128,
+  "name": "Buonanotte",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Elche on loan for the rest of the season"
+ },
+ {
+  "id": 133,
+  "name": "Watson",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Leicester City on loan for the rest of the season"
+ },
+ {
+  "id": 217,
+  "name": "M.França",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 218,
+  "name": "Doucouré",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 219,
+  "name": "J.Rak-Sakyi",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior"
+ },
+ {
+  "id": 240,
+  "name": "Iroegbunam",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "17 starts / 1477 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Thigh injury - Unknown return date; DefCon dc90 11.2 vs T=12 -> P(hit) 0.44, worth 0.88 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 293,
+  "name": "Kamara",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Portsmouth permanently"
+ },
+ {
+  "id": 310,
+  "name": "Matusiwa",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 5.0m -> minutes estimated from price + ownership, spec cap applies; FLAG: Muscular injury - Unknown return date; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 311,
+  "name": "Burns",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Leicester City permanently"
+ },
+ {
+  "id": 319,
+  "name": "Szmodics",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Derby County on loan for the rest of the season"
+ },
+ {
+  "id": 340,
+  "name": "Gelhardt",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; FLAG: Ankle injury - Expected back 5 Sep; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 341,
+  "name": "Gnonto",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "4 starts / 521 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Hamstring injury - Unknown return date; DefCon dc90 9.7 vs T=12 -> P(hit) 0.31, worth 0.62 pts/start (fixture-independent floor)"
+ },
+ {
+  "id": 342,
+  "name": "Harrison",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined New England Revolution permanently"
+ },
+ {
+  "id": 344,
+  "name": "Gruev",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "15 starts / 1318 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Knee injury - Unknown return date"
+ },
+ {
+  "id": 376,
+  "name": "Bajcetic",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; FLAG: Hamstring injury - Expected back 23 Aug; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 407,
+  "name": "Echeverri",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 408,
+  "name": "Phillips",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Sheffield United on loan for the rest of the season"
+ },
+ {
+  "id": 433,
+  "name": "Ugarte",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "8 starts / 876 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Knee injury - Unknown return date; DefCon dc90 13.5 vs T=12 -> P(hit) 0.72, worth 1.43 pts/start (fixture-independent floor); European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 436,
+  "name": "Collyer",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 523,
+  "name": "Moore",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "only 0 min last season -> known fringe, rates fall back to the price prior; European rotation risk from GW4 (not modelled in fixtures.md)"
+ },
+ {
+  "id": 546,
+  "name": "Adingra",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "9 starts / 649 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Ankle injury - Unknown return date"
+ },
+ {
+  "id": 132,
+  "name": "Howell",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "UNSELECTABLE - Has joined Leicester City on loan for the rest of the season"
+ },
+ {
+  "id": 291,
+  "name": "Matazo",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; FLAG: Knee injury - Unknown return date; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 294,
+  "name": "Zambrano",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; FLAG: Thigh injury - Unknown return date; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 297,
+  "name": "Gyabi",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.0% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; FLAG: Thigh injury - Unknown return date; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 312,
+  "name": "Taylor",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "NO 25/26 PL RECORD; 0.1% owned at 4.5m -> minutes estimated from price + ownership, spec cap applies; FLAG: Knee injury - Unknown return date; promoted club: attack rating is ASSUMPTION-grade per fixtures.md, output discounted"
+ },
+ {
+  "id": 489,
+  "name": "Yates",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "2 starts / 602 min last season -> p_start 0.00 after regressing availability and the club's XI-slot constraint; FLAG: Unspecified injury - Unknown return date"
+ }
+]
