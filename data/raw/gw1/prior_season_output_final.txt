@@ -1,0 +1,2 @@
+wrote data/raw/gw1/prior-season.json
+players: 398, no_pl_history: 54, missing_summaries: 1

@@ -1,0 +1,3 @@
+WARNING: prior-season has no players — fetch element summaries first (python -m fpl summaries --gw 1 --shortlist)
+wrote data/raw/gw1/prior-season.json
+players: 0, no_pl_history: 0, missing_summaries: 453
