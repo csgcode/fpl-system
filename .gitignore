@@ -5,3 +5,6 @@ __pycache__/
 
 # raw snapshot archives stay on disk, out of git
 data/raw/**/.archive/
+
+# session credentials — secrets, never committed (data/auth.example.json is the template)
+data/auth.json

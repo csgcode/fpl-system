@@ -54,6 +54,15 @@ Scoring context that changes valuation this season:
    order, scored on the 6-GW EP horizon. It reads the current squad from the
    STATE block of the latest data/decisions/*/final.md and any correction
    notes from data/retro/.
+7. OPTIONAL: run `agents/team-executor.md` → data/executor/gw{N}/
+   Runs only when data/auth.json exists, team_id is non-null, and the user
+   has not opted out for the GW. When skipped, the user applies final.md on
+   the website manually — the cycle is complete at step 6 either way.
+   The executor applies the lineup (set-lineup dry-run, then --apply) and
+   produces the make-transfers DRY-RUN payload only. Relay that payload to
+   the user; transfers are POSTed only after the user confirms and `--apply`
+   is run with their approval. Declining API transfers and applying them
+   manually (or not at all) is a valid outcome, not an error.
 
 ### Revision mechanics
 On a REVISE verdict, re-invoke squad-optimizer with review.md as additional
@@ -83,7 +92,18 @@ chips_used:
   - {chip: bboost, gw: 7}
 transfers_made:
   - {out: Player A, in: Player B, cost: 0}
+picks:
+  - {id: 17, name: Raya, position: 1, captain: false, vice: false}
+  - {id: 233, name: Haaland, position: 10, captain: true, vice: false}
+  - {id: 615, name: Dubravka, position: 12, captain: false, vice: false}
+  # … one strict-format line per squad slot, 15 total. Positions 1–11 = XI,
+  # 12–15 = bench in auto-sub order (position 12 = backup GK). Exactly one
+  # captain and one vice, both in the XI. Ids/names from bootstrap.json.
 ```
+
+The `picks:` list is the executable lineup: `set-lineup --from-final` and
+`make-transfers --from-final` strict-parse it, so the finalizer must emit
+every line in exactly this format.
 
 ### team_id
 Lives in committed data/entry.json (`{"team_id": null}` until the user fills
@@ -112,10 +132,11 @@ per GW cycle. Every subagent prompt must restate this.
 | squad-optimizer | fable | constrained decision-making |
 | red-team-reviewer | fable | adversarial decision review |
 | finalizer | opus | gate enforcement + final.md assembly |
+| team-executor | haiku | mechanical CLI invocation, no judgment |
 
 Decision-making agents (optimizer, red-team) run on Fable-tier; analysis and
 gate-enforcement agents (fixture, player, retro, finalizer) run on Opus;
-mechanical collection (data-collector) runs on Haiku.
+mechanical agents (data-collector, team-executor) run on Haiku.
 
 ## Data tooling
 All FPL API access goes through the deterministic CLI
@@ -134,6 +155,20 @@ All FPL API access goes through the deterministic CLI
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
 | `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json` | filtered read over the cached bootstrap | local only |
+| `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
+| `set-lineup --team-id <id> --from-final <final.md> [--apply]` | XI/captain/vice/bench POST; dry-run without `--apply`; verifies after write | write (auth) |
+| `make-transfers --team-id <id> --from-final <final.md> [--apply]` | transfer POST; dry-run without `--apply` — `--apply` is the USER confirmation gate, never automated | write (auth) |
+
+Authenticated write mechanics (details: docs/api-write.md):
+- Credentials live in git-ignored data/auth.json (template:
+  data/auth.example.json). Write commands refuse when it is missing, when
+  team_id is null, when the GW deadline has passed, or when it is < 30 min
+  away (`--force-deadline` overrides the margin only, never a passed
+  deadline).
+- If current state already matches, commands print "already applied" and send
+  nothing. Selling prices come from `my-team`, never bootstrap.
+- Authenticated responses are never cached into data/raw/; every `--apply`
+  leaves a timestamped audit record under data/executor/gw{N}/.
 
 Mechanics:
 - Every command takes `--gw N`, validated 1–38. The global `--data-root` must

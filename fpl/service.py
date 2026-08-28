@@ -38,6 +38,14 @@ def _summary_name(player_id: int) -> str:
     return f"players/summary-{player_id}"
 
 
+def load_cached_bootstrap(store: SnapshotStore, gw: int) -> Bootstrap:
+    try:
+        raw = store.load(gw, "bootstrap")
+    except SnapshotMissingError as exc:
+        raise exc.with_hint(f"bootstrap --gw {gw}") from None
+    return Bootstrap.model_validate(raw)
+
+
 def _dedupe(ids: Iterable[int]) -> list[int]:
     """Order-preserving: callers pass shortlists that may repeat an id, and a
     repeated fetch would archive the snapshot it just wrote."""
@@ -316,11 +324,7 @@ class FplDataService:
         )
 
     def _cached_bootstrap(self, gw: int) -> Bootstrap:
-        try:
-            raw = self._store.load(gw, "bootstrap")
-        except SnapshotMissingError as exc:
-            raise exc.with_hint(f"bootstrap --gw {gw}") from None
-        return Bootstrap.model_validate(raw)
+        return load_cached_bootstrap(self._store, gw)
 
     def _load_or_fetch(
         self,

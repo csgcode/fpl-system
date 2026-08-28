@@ -28,7 +28,14 @@ Only when the gate passes. Contents:
 - Transfers made (weekly cycles), with any hit cost
 - Accepted risks: every review finding left unresolved after the revision loop
 - Rationale summary
-- The STATE block (yaml, schema in CLAUDE.md) as the last thing in the file
+- The STATE block (yaml, schema in CLAUDE.md) as the last thing in the file.
+  It MUST include the `picks:` list — one line per squad slot, exactly:
+  `- {id: <element id>, name: <web_name>, position: <1-15>, captain: <true|false>, vice: <true|false>}`
+  15 lines, no omissions. Positions 1–11 are the XI, 12–15 the bench in
+  auto-sub order (position 12 = backup GK); exactly one captain and one vice,
+  both in the XI. Element ids and web_names come from bootstrap.json. The
+  team-executor applies this block verbatim via `set-lineup --from-final`,
+  and it is strict-parsed: any format deviation makes the executor refuse.
 
 ## 3. Rules
 - Never overwrite an existing final.md. If one exists, stop and report.

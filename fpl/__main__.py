@@ -20,8 +20,9 @@ import requests
 from pydantic import ValidationError
 
 from fpl.api import FplApi
+from fpl.auth import AuthCredentials, AuthMissingError, load_auth
 from fpl.http import RequestsGateway
-from fpl.models import POSITION_ALIASES, PlayerStatus, Position
+from fpl.models import POSITION_ALIASES, MyTeam, PlayerStatus, Position
 from fpl.repository import (
     PLAYERS_SLIM_COLUMNS,
     SORT_KEYS,
@@ -31,14 +32,31 @@ from fpl.repository import (
     slim_record,
     slim_values,
 )
-from fpl.service import DEFAULT_MAX_AGE_HOURS, FetchEvent, FplDataService
+from fpl.service import (
+    DEFAULT_MAX_AGE_HOURS,
+    FetchEvent,
+    FplDataService,
+    load_cached_bootstrap,
+)
+from fpl.state import PlannedPicks, parse_state_picks, picks_from_ids
 from fpl.store import ArchiveCollisionError, SnapshotMissingError, SnapshotStore
+from fpl.write import (
+    AuthenticatedRequestsGateway,
+    SessionExpiredError,
+    TransferPlan,
+    VerifyMismatchError,
+    WriteApi,
+    WriteGateway,
+    WriteService,
+)
 
 MIN_GW = 1
 MAX_GW = 38
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_EMPTY = 2
+
+WRITE_COMMANDS = ("my-team", "set-lineup", "make-transfers")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -113,6 +131,60 @@ def build_parser() -> argparse.ArgumentParser:
     flags.add_argument(
         "--ids", type=_id_list, required=True, help="comma-separated player ids"
     )
+    def add_write(name: str, help_text: str) -> argparse.ArgumentParser:
+        p = add(name, help_text, cached=False)
+        p.add_argument(
+            "--team-id", type=int,
+            help="our FPL entry id (default: team_id from data/entry.json)",
+        )
+        p.add_argument(
+            "--auth", type=Path, default=Path("data/auth.json"),
+            help="credentials file (git-ignored; see docs/api-write.md)",
+        )
+        p.add_argument(
+            "--executor-root", type=Path, default=Path("data/executor"),
+            help="audit-record root for applied writes",
+        )
+        p.add_argument(
+            "--entry-file", type=Path, default=Path("data/entry.json"),
+            help="team-id fallback source",
+        )
+        return p
+
+    def add_apply_gates(p: argparse.ArgumentParser) -> None:
+        p.add_argument(
+            "--from-final", type=Path,
+            help="final.md whose STATE picks: block is the payload source",
+        )
+        p.add_argument("--chip", help="chip to play with this request")
+        p.add_argument(
+            "--apply", action="store_true",
+            help="send the POST; without it the command is a dry run",
+        )
+        p.add_argument(
+            "--force-deadline", action="store_true",
+            help="override the 30-minute deadline margin (never a passed deadline)",
+        )
+
+    add_write("my-team", "authenticated read: squad, sell prices, chips, transfers")
+    set_lineup = add_write("set-lineup", "set XI, captain, vice and bench order")
+    add_apply_gates(set_lineup)
+    set_lineup.add_argument(
+        "--picks", type=_id_list, help="all 15 player ids in position order"
+    )
+    set_lineup.add_argument("--captain", type=int, help="captain's player id")
+    set_lineup.add_argument("--vice", type=int, help="vice-captain's player id")
+    make_transfers = add_write("make-transfers", "make transfers (--apply is the gate)")
+    add_apply_gates(make_transfers)
+    make_transfers.add_argument(
+        "--out", dest="transfers_out", type=_id_list,
+        help="comma-separated player ids to transfer out",
+    )
+    make_transfers.add_argument(
+        "--in", dest="transfers_in", type=_id_list,
+        help="comma-separated player ids to transfer in",
+    )
+
     players = add("players", "filtered view over the cached bootstrap", cached=False)
     players.add_argument(
         "--position", type=_position_set, default=frozenset(),
@@ -188,15 +260,30 @@ def _default_service(store: SnapshotStore) -> FplDataService:
     return FplDataService(FplApi(RequestsGateway()), store)
 
 
+def _default_write_gateway(credentials: AuthCredentials) -> WriteGateway:
+    return AuthenticatedRequestsGateway(credentials)
+
+
 def main(
     argv: list[str] | None = None,
     service_factory: Callable[[SnapshotStore], FplDataService] | None = None,
+    write_gateway_factory: Callable[[AuthCredentials], WriteGateway] | None = None,
 ) -> int:
     args = build_parser().parse_args(argv)
     store = SnapshotStore(args.data_root)
-    service = (service_factory or _default_service)(store)
     try:
+        if args.command in WRITE_COMMANDS:
+            return run_write_command(
+                store, args, write_gateway_factory or _default_write_gateway
+            )
+        service = (service_factory or _default_service)(store)
         return run_command(service, store, args.gw, args)
+    except AuthMissingError as exc:
+        _stderr(f"error: {exc}")
+        return EXIT_ERROR
+    except (SessionExpiredError, VerifyMismatchError) as exc:
+        _stderr(f"error: {exc}")
+        return EXIT_ERROR
     except SnapshotMissingError as exc:
         _stderr(f"error: {exc}")
         hint = exc.fetch_hint
@@ -334,6 +421,138 @@ def run_command(
         rows = PlayerRepository(store).query(gw, player_filter, args.sort, args.limit)
         print_players(rows, args.format)
     return EXIT_OK
+
+
+def run_write_command(
+    store: SnapshotStore,
+    args: argparse.Namespace,
+    gateway_factory: Callable[[AuthCredentials], WriteGateway],
+) -> int:
+    gw = args.gw
+    team_id = _resolve_team_id(args.team_id, args.entry_file)
+    credentials = load_auth(args.auth)
+    service = WriteService(
+        WriteApi(gateway_factory(credentials)),
+        store,
+        SnapshotStore(args.executor_root),
+    )
+    if args.command == "my-team":
+        _print_my_team(service.my_team(team_id), team_id, _player_names(store, gw))
+        return EXIT_OK
+    service.ensure_deadline_open(gw, override_margin=args.force_deadline)
+    if args.command == "set-lineup":
+        picks = _resolve_lineup_picks(args)
+        service.validate_formation(gw, picks)
+        plan = service.plan_lineup(team_id=team_id, picks=picks, chip=args.chip)
+        if plan.already_applied:
+            print("already applied — current lineup matches; no request sent")
+            return EXIT_OK
+        if not args.apply:
+            _print_dry_run(plan.url, plan.payload, ())
+            return EXIT_OK
+        print(f"applied and verified — audit: {service.apply_lineup(gw, plan)}")
+        return EXIT_OK
+    plan = _transfer_plan(service, gw, team_id, args)
+    if plan.already_applied:
+        print("already applied — requested transfers are in place; no request sent")
+        return EXIT_OK
+    if not args.apply:
+        _print_dry_run(plan.url, plan.payload, plan.notes)
+        return EXIT_OK
+    print(f"applied and verified — audit: {service.apply_transfers(gw, plan)}")
+    return EXIT_OK
+
+
+def _resolve_team_id(explicit: int | None, entry_file: Path) -> int:
+    if explicit is not None:
+        return explicit
+    if not entry_file.is_file():
+        raise ValueError(f"no --team-id given and {entry_file} does not exist")
+    entry = json.loads(entry_file.read_text(encoding="utf-8"))
+    if not isinstance(entry, dict):
+        raise ValueError(f"{entry_file} must be a JSON object with a team_id field")
+    team_id = entry.get("team_id")
+    if team_id is None:
+        raise ValueError(
+            f"team_id is null in {entry_file} — register the team and fill it "
+            "in, or pass --team-id"
+        )
+    return int(team_id)
+
+
+def _read_final(path: Path) -> str:
+    if not path.is_file():
+        raise ValueError(f"no final.md at {path}")
+    return path.read_text(encoding="utf-8")
+
+
+def _resolve_lineup_picks(args: argparse.Namespace) -> PlannedPicks:
+    if args.from_final is not None:
+        return parse_state_picks(_read_final(args.from_final), expected_gw=args.gw)
+    if args.picks and args.captain is not None and args.vice is not None:
+        return picks_from_ids(args.picks, captain=args.captain, vice=args.vice)
+    raise ValueError(
+        "provide --from-final, or --picks (15 ids in position order) with "
+        "--captain and --vice"
+    )
+
+
+def _transfer_plan(
+    service: WriteService, gw: int, team_id: int, args: argparse.Namespace
+) -> TransferPlan:
+    if args.from_final is not None:
+        picks = parse_state_picks(_read_final(args.from_final), expected_gw=gw)
+        return service.plan_transfers(
+            gw=gw, team_id=team_id, chip=args.chip, target_ids=picks.ids()
+        )
+    if args.transfers_out and args.transfers_in:
+        return service.plan_transfers(
+            gw=gw, team_id=team_id, chip=args.chip,
+            out_ids=args.transfers_out, in_ids=args.transfers_in,
+        )
+    raise ValueError("provide --from-final, or --out and --in id lists")
+
+
+def _print_dry_run(url: str, payload: dict, notes: Sequence[str]) -> None:
+    print("DRY RUN — no request sent; re-run with --apply to execute")
+    print(f"POST {url}")
+    print(json.dumps(payload, indent=1))
+    for note in notes:
+        print(note)
+
+
+def _print_my_team(team: MyTeam, team_id: int, names: dict[int, str]) -> None:
+    transfers = team.transfers
+    print(
+        f"entry {team_id} — bank {_tenths(transfers.bank)}, "
+        f"value {_tenths(transfers.value)}, "
+        f"free transfers {_blank(transfers.limit)}, made {_blank(transfers.made)}"
+    )
+    chips = ", ".join(
+        f"{chip.name} ({chip.status_for_entry or 'unknown'})" for chip in team.chips
+    )
+    print(f"chips: {chips or 'none'}")
+    print(f"{'pos':>3}  {'element':>7}  {'name':<20} {'sell':>5}  {'buy':>5}  role")
+    for pick in sorted(team.picks, key=lambda p: p.position):
+        role = "C" if pick.is_captain else ("VC" if pick.is_vice_captain else "")
+        print(
+            f"{pick.position:>3}  {pick.element:>7}  "
+            f"{names.get(pick.element, ''):<20.20} "
+            f"{_tenths(pick.selling_price):>5}  "
+            f"{_tenths(pick.purchase_price):>5}  {role}"
+        )
+
+
+def _player_names(store: SnapshotStore, gw: int) -> dict[int, str]:
+    try:
+        bootstrap = load_cached_bootstrap(store, gw)
+    except SnapshotMissingError:
+        return {}
+    return {p.id: p.web_name for p in bootstrap.elements}
+
+
+def _tenths(value: int | None) -> str:
+    return "" if value is None else f"{value / 10:.1f}"
 
 
 def _blank(value: object) -> str:

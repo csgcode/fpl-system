@@ -15,10 +15,16 @@ agents/
   red-team-reviewer.md A5  adversarial review
   retro-analyst.md     A6  predicted-vs-actual calibration
   finalizer.md         A7  freshness gate + final.md assembly
+  team-executor.md     A8  applies final.md to the real team (write API)
+docs/
+  api-write.md         authenticated write path: credential capture, gates
 fpl/                   deterministic data CLI package
   models.py            typed FPL API payloads (validation boundary)
   http.py              HTTP gateway (swappable for tests)
   api.py               FPL API endpoint calls; raw payload + source URL
+  auth.py              git-ignored session credentials (data-driven schema)
+  write.py             authenticated gateway + lineup/transfer write service
+  state.py             final.md STATE picks parsing + validation
   store.py             snapshot persistence: cache, archive-on-refresh
   service.py           fetch-if-stale orchestration, validate-before-persist
   repository.py        filtered player queries over cached snapshots
@@ -29,9 +35,11 @@ uv.lock                pinned dependency lock
 .python-version        pinned interpreter version
 data/
   entry.json           our FPL team_id (null until registered)
+  auth.example.json    credentials template (fill into git-ignored data/auth.json)
   raw/gw{N}/           immutable API snapshots
   analysis/gw{N}/      fixture + player EP outputs
   decisions/gw{N}/     proposal, review, final (with predictions + STATE block)
+  executor/gw{N}/      audit records for applied lineup/transfer writes
   retro/gw{M}.md       calibration + correction rules for completed GW M
 ```
 Each agents/*.md carries `model:` YAML frontmatter selecting its Claude Code
@@ -53,6 +61,10 @@ subagent tier.
   `--data-root` goes before the subcommand)
 - `picks`, `entry-history`, and `actuals` back the retro loop: our actual
   picks for a GW, our per-GW results, and per-player actual points
+- `my-team`, `set-lineup`, `make-transfers` are the authenticated write path
+  (setup: docs/api-write.md). Writes are dry-run by default; `--apply`
+  executes, and for transfers it is the user-confirmation gate — never
+  automated
 
 ## Usage (Claude Code)
 - GW1/wildcard: "Run the initial squad workflow in CLAUDE.md."

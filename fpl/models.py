@@ -136,6 +136,9 @@ class Bootstrap(_FrozenModel):
     def next_deadline(self) -> datetime | None:
         return next((e.deadline_time for e in self.events if e.is_next), None)
 
+    def deadline_for(self, gw: int) -> datetime | None:
+        return next((e.deadline_time for e in self.events if e.id == gw), None)
+
     def team_by_id(self) -> dict[int, Team]:
         return {t.id: t for t in self.teams}
 
@@ -234,6 +237,44 @@ class Pick(_FrozenModel):
 class EventPicks(_FrozenModel):
     active_chip: str | None = None
     picks: tuple[Pick, ...] = ()
+
+
+class MyTeamPick(_FrozenModel):
+    element: int
+    position: int = Field(ge=1, le=15)
+    selling_price: int
+    purchase_price: int
+    is_captain: bool = False
+    is_vice_captain: bool = False
+    multiplier: int | None = None
+
+
+class MyTeamChip(_FrozenModel):
+    name: str
+    status_for_entry: str | None = None
+
+
+class MyTeamTransfersState(_FrozenModel):
+    bank: int | None = None
+    value: int | None = None
+    limit: int | None = None
+    made: int | None = None
+    cost: int | None = None
+
+
+class MyTeam(_FrozenModel):
+    """Authenticated my-team read: the only trustworthy source of selling
+    prices — bootstrap's now_cost is the buy price, not ours."""
+
+    picks: tuple[MyTeamPick, ...]
+    chips: tuple[MyTeamChip, ...] = ()
+    transfers: MyTeamTransfersState = MyTeamTransfersState()
+
+    def squad_ids(self) -> frozenset[int]:
+        return frozenset(p.element for p in self.picks)
+
+    def pick_by_element(self) -> dict[int, MyTeamPick]:
+        return {p.element: p for p in self.picks}
 
 
 SHORTLIST_PRICE_FLOOR_TENTHS = 45

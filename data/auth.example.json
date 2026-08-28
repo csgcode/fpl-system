@@ -1,0 +1,9 @@
+{
+ "headers": {
+  "X-Api-Authorization": "Bearer <paste from a my-team request in devtools>"
+ },
+ "cookies": {
+  "pl_profile": "<paste from devtools>",
+  "datadome": "<paste from devtools>"
+ }
+}

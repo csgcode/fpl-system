@@ -212,6 +212,62 @@ def entry_history_payload(current: list[dict] | None = None) -> dict[str, Any]:
     }
 
 
+def my_team_pick_payload(**overrides: Any) -> dict[str, Any]:
+    payload = {
+        "element": 1,
+        "position": 1,
+        "selling_price": 45,
+        "purchase_price": 45,
+        "multiplier": 1,
+        "is_captain": False,
+        "is_vice_captain": False,
+        "element_type": 1,
+        "can_captain": True,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def my_team_chip_payload(**overrides: Any) -> dict[str, Any]:
+    payload = {
+        "id": 3,
+        "name": "bboost",
+        "number": 1,
+        "start_event": 1,
+        "stop_event": 19,
+        "chip_type": "team",
+        "status_for_entry": "available",
+        "played_by_entry": [],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def my_team_transfers_payload(**overrides: Any) -> dict[str, Any]:
+    payload = {
+        "bank": 5,
+        "value": 1003,
+        "limit": 1,
+        "made": 0,
+        "cost": 4,
+        "status": "cost",
+    }
+    payload.update(overrides)
+    return payload
+
+
+def my_team_payload(
+    picks: list[dict] | None = None,
+    chips: list[dict] | None = None,
+    transfers: dict | None = None,
+) -> dict[str, Any]:
+    return {
+        "picks": picks if picks is not None else [my_team_pick_payload()],
+        "chips": chips if chips is not None else [my_team_chip_payload()],
+        "transfers": transfers if transfers is not None else my_team_transfers_payload(),
+    }
+
+
 def pick_payload(**overrides: Any) -> dict[str, Any]:
     payload = {
         "element": 1,
