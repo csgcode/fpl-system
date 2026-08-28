@@ -1,0 +1,5468 @@
+[
+ {
+  "id": 426,
+  "name": "B.Fernandes",
+  "team": "MUN",
+  "price": 12.0,
+  "p_start": 0.924,
+  "ep_gw": [
+   5.66,
+   5.16,
+   4.74,
+   5.23,
+   5.75,
+   4.92
+  ],
+  "ep_total6": 31.46,
+  "ep_per_million": 2.62,
+  "uncertainty": "LOW",
+  "notes": "25/26: 35 starts, 88'/start; GW1 90' (started), DC 6; dc90 8.07 (r=0.672, P(hit)=0.181), DefCon = 7% of EP6; xG90 0.241/xA90 0.288, attack = 41% of EP6; PENS+FK1+CK1; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 368,
+  "name": "Szoboszlai",
+  "team": "LIV",
+  "price": 7.0,
+  "p_start": 0.922,
+  "ep_gw": [
+   4.62,
+   4.67,
+   4.94,
+   4.43,
+   4.16,
+   4.2
+  ],
+  "ep_total6": 27.02,
+  "ep_per_million": 3.86,
+  "uncertainty": "LOW",
+  "notes": "25/26: 36 starts, 90'/start; GW1 90' (started), DC 7; dc90 9.0 (r=0.75, P(hit)=0.25), DefCon = 11% of EP6; xG90 0.246/xA90 0.188, attack = 40% of EP6; PENS+FK1+CK1; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 481,
+  "name": "Anderson",
+  "team": "MCI",
+  "price": 6.4,
+  "p_start": 0.928,
+  "ep_gw": [
+   4.23,
+   4.87,
+   4.22,
+   4.78,
+   4.17,
+   4.71
+  ],
+  "ep_total6": 26.98,
+  "ep_per_million": 4.22,
+  "uncertainty": "LOW",
+  "notes": "25/26: 37 starts, 84'/start; GW1 62' (started), DC 6; dc90 13.1 (r=1.091, P(hit)=0.687), DefCon = 29% of EP6; xG90 0.09/xA90 0.154, attack = 23% of EP6; CK2; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 427,
+  "name": "Mbeumo",
+  "team": "MUN",
+  "price": 8.0,
+  "p_start": 0.86,
+  "ep_gw": [
+   4.9,
+   4.39,
+   3.96,
+   4.45,
+   4.99,
+   4.15
+  ],
+  "ep_total6": 26.84,
+  "ep_per_million": 3.35,
+  "uncertainty": "LOW",
+  "notes": "25/26: 31 starts, 85'/start; GW1 90' (started), DC 4; dc90 4.9 (r=0.408, P(hit)=0.079), DefCon = 3% of EP6; xG90 0.353/xA90 0.169, attack = 53% of EP6; pen2+FK2+CK2; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 40,
+  "name": "Rogers",
+  "team": "CHE",
+  "price": 7.5,
+  "p_start": 0.919,
+  "ep_gw": [
+   4.34,
+   3.58,
+   5.32,
+   3.97,
+   4.52,
+   4.35
+  ],
+  "ep_total6": 26.08,
+  "ep_per_million": 3.48,
+  "uncertainty": "LOW",
+  "notes": "25/26: 37 starts, 87'/start; GW1 81' (started), DC 7; dc90 6.62 (r=0.551, P(hit)=0.101), DefCon = 4% of EP6; xG90 0.299/xA90 0.121, attack = 46% of EP6; CK4; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 13,
+  "name": "Rice",
+  "team": "ARS",
+  "price": 7.5,
+  "p_start": 0.923,
+  "ep_gw": [
+   4.34,
+   4.23,
+   4.43,
+   4.1,
+   4.33,
+   4.15
+  ],
+  "ep_total6": 25.58,
+  "ep_per_million": 3.41,
+  "uncertainty": "LOW",
+  "notes": "25/26: 35 starts, 84'/start; GW1 67' (started), DC 6; dc90 10.49 (r=0.874, P(hit)=0.382), DefCon = 17% of EP6; xG90 0.109/xA90 0.18, attack = 26% of EP6; FK1+CK1; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 68,
+  "name": "Tavernier",
+  "team": "BOU",
+  "price": 6.0,
+  "p_start": 0.879,
+  "ep_gw": [
+   4.38,
+   4.22,
+   4.01,
+   3.99,
+   3.81,
+   4.59
+  ],
+  "ep_total6": 25.0,
+  "ep_per_million": 4.17,
+  "uncertainty": "LOW",
+  "notes": "25/26: 31 starts, 88'/start; GW1 90' (started), DC 8; dc90 8.24 (r=0.687, P(hit)=0.191), DefCon = 9% of EP6; xG90 0.275/xA90 0.135, attack = 45% of EP6; pen3+FK1+CK1; best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 397,
+  "name": "Semenyo",
+  "team": "MCI",
+  "price": 8.5,
+  "p_start": 0.928,
+  "ep_gw": [
+   3.78,
+   4.66,
+   3.76,
+   4.53,
+   3.7,
+   4.43
+  ],
+  "ep_total6": 24.86,
+  "ep_per_million": 2.92,
+  "uncertainty": "LOW",
+  "notes": "25/26: 37 starts, 87'/start; GW1 90' (started), DC 5; dc90 6.48 (r=0.54, P(hit)=0.099), DefCon = 5% of EP6; xG90 0.236/xA90 0.088, attack = 40% of EP6; pen3; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 94,
+  "name": "Schade",
+  "team": "BRE",
+  "price": 6.0,
+  "p_start": 0.879,
+  "ep_gw": [
+   3.82,
+   4.64,
+   3.92,
+   4.05,
+   4.16,
+   3.94
+  ],
+  "ep_total6": 24.53,
+  "ep_per_million": 4.09,
+  "uncertainty": "LOW",
+  "notes": "25/26: 32 starts, 87'/start; GW1 90' (started), DC 9; dc90 6.78 (r=0.565, P(hit)=0.11), DefCon = 5% of EP6; xG90 0.349/xA90 0.076, attack = 52% of EP6; pen2; best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 237,
+  "name": "Ndiaye",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.898,
+  "ep_gw": [
+   3.8,
+   3.89,
+   4.06,
+   4.27,
+   4.34,
+   3.89
+  ],
+  "ep_total6": 24.25,
+  "ep_per_million": 4.04,
+  "uncertainty": "LOW",
+  "notes": "25/26: 32 starts, 88'/start; GW1 90' (started), DC 12; dc90 9.55 (r=0.796, P(hit)=0.296), DefCon = 14% of EP6; xG90 0.203/xA90 0.166, attack = 38% of EP6; PENS; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 127,
+  "name": "Gomez",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.93,
+  "ep_gw": [
+   3.73,
+   4.05,
+   4.31,
+   3.58,
+   4.19,
+   3.99
+  ],
+  "ep_total6": 23.85,
+  "ep_per_million": 4.77,
+  "uncertainty": "LOW",
+  "notes": "25/26: 26 starts, 82'/start; GW1 85' (started), DC 6; dc90 9.46 (r=0.789, P(hit)=0.289), DefCon = 14% of EP6; xG90 0.219/xA90 0.154, attack = 38% of EP6; FK5; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 480,
+  "name": "Gibbs-White",
+  "team": "NFO",
+  "price": 8.0,
+  "p_start": 0.93,
+  "ep_gw": [
+   3.63,
+   4.36,
+   4.01,
+   4.53,
+   3.7,
+   3.54
+  ],
+  "ep_total6": 23.77,
+  "ep_per_million": 2.97,
+  "uncertainty": "LOW",
+  "notes": "25/26: 35 starts, 89'/start; GW1 90' (started), DC 3; dc90 5.01 (r=0.418, P(hit)=0.081), DefCon = 4% of EP6; xG90 0.247/xA90 0.093, attack = 36% of EP6; pen2+FK1; best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 69,
+  "name": "Scott",
+  "team": "BOU",
+  "price": 6.0,
+  "p_start": 0.93,
+  "ep_gw": [
+   4.03,
+   3.91,
+   3.79,
+   3.79,
+   3.67,
+   4.17
+  ],
+  "ep_total6": 23.36,
+  "ep_per_million": 3.89,
+  "uncertainty": "LOW",
+  "notes": "25/26: 34 starts, 85'/start; GW1 90' (started), DC 11; dc90 11.81 (r=0.984, P(hit)=0.529), DefCon = 26% of EP6; xG90 0.112/xA90 0.091, attack = 22% of EP6; FK4+CK2; best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 12,
+  "name": "Saka",
+  "team": "ARS",
+  "price": 9.5,
+  "p_start": 0.68,
+  "ep_gw": [
+   3.99,
+   3.89,
+   4.08,
+   3.63,
+   3.95,
+   3.67
+  ],
+  "ep_total6": 23.21,
+  "ep_per_million": 2.44,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 25 starts, 84'/start; GW1 67' (started), DC 7; dc90 7.76 (r=0.646, P(hit)=0.164), DefCon = 8% of EP6; xG90 0.319/xA90 0.218, attack = 60% of EP6; PENS+FK2+CK2; p_start 0.68<0.70 (C7); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 367,
+  "name": "Gakpo",
+  "team": "LIV",
+  "price": 7.0,
+  "p_start": 0.878,
+  "ep_gw": [
+   3.86,
+   3.9,
+   4.15,
+   3.68,
+   3.44,
+   3.47
+  ],
+  "ep_total6": 22.5,
+  "ep_per_million": 3.21,
+  "uncertainty": "LOW",
+  "notes": "25/26: 32 starts, 86'/start; GW1 90' (started), DC 12; dc90 6.25 (r=0.521, P(hit)=0.096), DefCon = 5% of EP6; xG90 0.246/xA90 0.147, attack = 46% of EP6; pen3+CK2; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 41,
+  "name": "Buend\u00eda",
+  "team": "AVL",
+  "price": 6.0,
+  "p_start": 0.909,
+  "ep_gw": [
+   3.33,
+   3.99,
+   3.7,
+   3.77,
+   3.58,
+   3.72
+  ],
+  "ep_total6": 22.09,
+  "ep_per_million": 3.68,
+  "uncertainty": "LOW",
+  "notes": "25/26: 21 starts, 84'/start; GW1 85' (started), DC 7; dc90 9.59 (r=0.799, P(hit)=0.299), DefCon = 15% of EP6; xG90 0.162/xA90 0.118, attack = 30% of EP6; PENS+FK1+CK3; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 428,
+  "name": "Cunha",
+  "team": "MUN",
+  "price": 8.0,
+  "p_start": 0.812,
+  "ep_gw": [
+   3.96,
+   3.61,
+   3.31,
+   3.67,
+   4.02,
+   3.45
+  ],
+  "ep_total6": 22.02,
+  "ep_per_million": 2.75,
+  "uncertainty": "MED",
+  "notes": "25/26: 29 starts, 85'/start; GW1 79' (started), DC 3; dc90 7.12 (r=0.593, P(hit)=0.129), DefCon = 7% of EP6; xG90 0.225/xA90 0.14, attack = 44% of EP6; no set-pieces; p_start 0.81<0.85 (C7); best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 338,
+  "name": "Ampadu",
+  "team": "LEE",
+  "price": 5.5,
+  "p_start": 0.925,
+  "ep_gw": [
+   3.62,
+   3.58,
+   3.86,
+   3.67,
+   3.4,
+   3.67
+  ],
+  "ep_total6": 21.8,
+  "ep_per_million": 3.96,
+  "uncertainty": "LOW",
+  "notes": "25/26: 35 starts, 89'/start; GW1 90' (started), DC 13; dc90 11.97 (r=0.998, P(hit)=0.547), DefCon = 30% of EP6; xG90 0.082/xA90 0.077, attack = 16% of EP6; no set-pieces; best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 236,
+  "name": "Dewsbury-Hall",
+  "team": "EVE",
+  "price": 6.5,
+  "p_start": 0.863,
+  "ep_gw": [
+   3.42,
+   3.49,
+   3.64,
+   3.8,
+   3.86,
+   3.48
+  ],
+  "ep_total6": 21.69,
+  "ep_per_million": 3.34,
+  "uncertainty": "LOW",
+  "notes": "25/26: 30 starts, 88'/start; GW1 90' (started), DC 8; dc90 7.93 (r=0.661, P(hit)=0.174), DefCon = 9% of EP6; xG90 0.147/xA90 0.167, attack = 35% of EP6; CK2; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 366,
+  "name": "Wirtz",
+  "team": "LIV",
+  "price": 7.5,
+  "p_start": 0.745,
+  "ep_gw": [
+   3.64,
+   3.68,
+   3.89,
+   3.49,
+   3.28,
+   3.31
+  ],
+  "ep_total6": 21.29,
+  "ep_per_million": 2.84,
+  "uncertainty": "MED",
+  "notes": "25/26: 27 starts, 83'/start; GW1 62' (started), DC 5; dc90 6.86 (r=0.572, P(hit)=0.114), DefCon = 6% of EP6; xG90 0.239/xA90 0.161, attack = 49% of EP6; pen4+FK2+CK3; p_start 0.74<0.85 (C7); best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 371,
+  "name": "Gravenberch",
+  "team": "LIV",
+  "price": 6.0,
+  "p_start": 0.919,
+  "ep_gw": [
+   3.57,
+   3.57,
+   3.71,
+   3.42,
+   3.29,
+   3.3
+  ],
+  "ep_total6": 20.86,
+  "ep_per_million": 3.48,
+  "uncertainty": "LOW",
+  "notes": "25/26: 34 starts, 86'/start; GW1 77' (started), DC 11; dc90 9.44 (r=0.787, P(hit)=0.287), DefCon = 16% of EP6; xG90 0.085/xA90 0.084, attack = 20% of EP6; no set-pieces; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 398,
+  "name": "Foden",
+  "team": "MCI",
+  "price": 7.0,
+  "p_start": 0.706,
+  "ep_gw": [
+   3.16,
+   3.93,
+   3.13,
+   3.82,
+   3.08,
+   3.73
+  ],
+  "ep_total6": 20.85,
+  "ep_per_million": 2.98,
+  "uncertainty": "MED",
+  "notes": "25/26: 23 starts, 88'/start; GW1 81' (started), DC 6; dc90 7.01 (r=0.584, P(hit)=0.123), DefCon = 7% of EP6; xG90 0.209/xA90 0.214, attack = 57% of EP6; FK3+CK3; p_start 0.71<0.85 (C7); best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 210,
+  "name": "Wharton",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.829,
+  "ep_gw": [
+   3.27,
+   3.53,
+   3.72,
+   3.37,
+   3.54,
+   3.34
+  ],
+  "ep_total6": 20.77,
+  "ep_per_million": 3.78,
+  "uncertainty": "MED",
+  "notes": "25/26: 29 starts, 88'/start; GW1 90' (started), DC 14; dc90 11.05 (r=0.921, P(hit)=0.444), DefCon = 25% of EP6; xG90 0.075/xA90 0.222, attack = 25% of EP6; CK1; p_start 0.83<0.85 (C7); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 542,
+  "name": "E.Le F\u00e9e",
+  "team": "SUN",
+  "price": 6.0,
+  "p_start": 0.911,
+  "ep_gw": [
+   3.83,
+   3.35,
+   3.3,
+   3.21,
+   3.59,
+   3.49
+  ],
+  "ep_total6": 20.77,
+  "ep_per_million": 3.46,
+  "uncertainty": "LOW",
+  "notes": "25/26: 33 starts, 87'/start; GW1 79' (started), DC 2; dc90 8.74 (r=0.728, P(hit)=0.228), DefCon = 13% of EP6; xG90 0.138/xA90 0.15, attack = 27% of EP6; pen2+FK2+CK1; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 335,
+  "name": "Stach",
+  "team": "LEE",
+  "price": 6.0,
+  "p_start": 0.796,
+  "ep_gw": [
+   3.44,
+   3.36,
+   3.74,
+   3.49,
+   3.14,
+   3.48
+  ],
+  "ep_total6": 20.65,
+  "ep_per_million": 3.44,
+  "uncertainty": "MED",
+  "notes": "25/26: 28 starts, 86'/start; GW1 90' (started), DC 16; dc90 10.88 (r=0.907, P(hit)=0.426), DefCon = 24% of EP6; xG90 0.122/xA90 0.14, attack = 28% of EP6; FK1+CK1; p_start 0.80<0.85 (C7); best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 129,
+  "name": "Ayari",
+  "team": "BHA",
+  "price": 5.5,
+  "p_start": 0.884,
+  "ep_gw": [
+   3.23,
+   3.48,
+   3.66,
+   3.18,
+   3.57,
+   3.42
+  ],
+  "ep_total6": 20.54,
+  "ep_per_million": 3.73,
+  "uncertainty": "LOW",
+  "notes": "25/26: 20 starts, 85'/start; GW1 63' (started), DC 4; dc90 9.86 (r=0.822, P(hit)=0.322), DefCon = 18% of EP6; xG90 0.14/xA90 0.081, attack = 27% of EP6; FK2+CK4; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 95,
+  "name": "O.Dango",
+  "team": "BRE",
+  "price": 6.5,
+  "p_start": 0.686,
+  "ep_gw": [
+   3.21,
+   3.79,
+   3.28,
+   3.36,
+   3.45,
+   3.29
+  ],
+  "ep_total6": 20.38,
+  "ep_per_million": 3.14,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 25 starts, 85'/start; GW1 66' (started), DC 6; dc90 7.51 (r=0.626, P(hit)=0.15), DefCon = 8% of EP6; xG90 0.236/xA90 0.179, attack = 55% of EP6; CK2; p_start 0.69<0.70 (C7); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 260,
+  "name": "Wilson",
+  "team": "LEE",
+  "price": 6.5,
+  "p_start": 0.886,
+  "ep_gw": [
+   3.35,
+   3.24,
+   3.72,
+   3.4,
+   2.95,
+   3.39
+  ],
+  "ep_total6": 20.05,
+  "ep_per_million": 3.08,
+  "uncertainty": "LOW",
+  "notes": "25/26: 32 starts, 80'/start; GW1 65' (started), DC 2; dc90 5.77 (r=0.481, P(hit)=0.09), DefCon = 5% of EP6; xG90 0.164/xA90 0.138, attack = 34% of EP6; CK2; best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 544,
+  "name": "Xhaka",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.892,
+  "ep_gw": [
+   3.53,
+   3.19,
+   3.18,
+   3.1,
+   3.36,
+   3.29
+  ],
+  "ep_total6": 19.65,
+  "ep_per_million": 3.57,
+  "uncertainty": "LOW",
+  "notes": "25/26: 32 starts, 90'/start; GW1 90' (started), DC 13; dc90 11.35 (r=0.945, P(hit)=0.477), DefCon = 29% of EP6; xG90 0.059/xA90 0.116, attack = 16% of EP6; FK1+CK2; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 239,
+  "name": "Garner",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.755,
+  "ep_gw": [
+   3.09,
+   3.14,
+   3.25,
+   3.36,
+   3.4,
+   3.12
+  ],
+  "ep_total6": 19.36,
+  "ep_per_million": 3.23,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 38 starts, 90'/start; GW1 11' (sub/unused); dc90 11.88 (r=0.99, P(hit)=0.536), DefCon = 33% of EP6; xG90 0.083/xA90 0.154, attack = 28% of EP6; pen3+FK1+CK1; p_start 0.76<0.85 (C7); role contradicted by GW1 (fit, benched); best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 154,
+  "name": "Palmer",
+  "team": "CHE",
+  "price": 9.5,
+  "p_start": 0.603,
+  "ep_gw": [
+   3.18,
+   2.58,
+   3.94,
+   2.89,
+   3.32,
+   3.18
+  ],
+  "ep_total6": 19.09,
+  "ep_per_million": 2.01,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 24 starts, 82'/start; GW1 82' (started), DC 9; dc90 6.9 (r=0.575, P(hit)=0.117), DefCon = 7% of EP6; xG90 0.348/xA90 0.133, attack = 76% of EP6; PENS+FK3; p_start 0.60<0.70 (C7); best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 124,
+  "name": "Gro\u00df",
+  "team": "BHA",
+  "price": 5.5,
+  "p_start": 0.834,
+  "ep_gw": [
+   2.99,
+   3.23,
+   3.42,
+   2.92,
+   3.33,
+   3.18
+  ],
+  "ep_total6": 19.07,
+  "ep_per_million": 3.47,
+  "uncertainty": "MED",
+  "notes": "25/26: 18 starts, 90'/start; GW1 90' (started), DC 5; dc90 7.58 (r=0.631, P(hit)=0.154), DefCon = 10% of EP6; xG90 0.095/xA90 0.193, attack = 32% of EP6; PENS+FK1+CK1; p_start 0.83<0.85 (C7); best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 261,
+  "name": "Iwobi",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.858,
+  "ep_gw": [
+   3.18,
+   3.05,
+   2.88,
+   3.04,
+   3.14,
+   3.51
+  ],
+  "ep_total6": 18.8,
+  "ep_per_million": 3.42,
+  "uncertainty": "LOW",
+  "notes": "25/26: 29 starts, 85'/start; GW1 90' (started), DC 10; dc90 7.54 (r=0.628, P(hit)=0.152), DefCon = 9% of EP6; xG90 0.086/xA90 0.142, attack = 26% of EP6; pen3+FK1+CK1; best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 452,
+  "name": "Bruno G.",
+  "team": "ARS",
+  "price": 6.9,
+  "p_start": 0.628,
+  "ep_gw": [
+   2.64,
+   2.9,
+   3.3,
+   3.13,
+   3.43,
+   3.26
+  ],
+  "ep_total6": 18.66,
+  "ep_per_million": 2.7,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 27 starts, 90'/start; GW1 0' (sub/unused); dc90 9.14 (r=0.762, P(hit)=0.262), DefCon = 17% of EP6; xG90 0.188/xA90 0.164, attack = 48% of EP6; pen4+CK5; FLAG: Thigh injury - 75% chance of playing; p_start 0.63<0.70 (C7); doubtful flag; best fixture GW4 (SUN A, lam 1.86)",
+  "p_start_gw": [
+   0.514,
+   0.582,
+   0.637,
+   0.665,
+   0.685,
+   0.685
+  ]
+ },
+ {
+  "id": 159,
+  "name": "Caicedo",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.771,
+  "ep_gw": [
+   2.56,
+   2.6,
+   3.52,
+   3.06,
+   3.4,
+   3.34
+  ],
+  "ep_total6": 18.48,
+  "ep_per_million": 3.36,
+  "uncertainty": "MED",
+  "notes": "25/26: 32 starts, 87'/start; GW1 0' (sub/unused); dc90 11.56 (r=0.963, P(hit)=0.501), DefCon = 32% of EP6; xG90 0.081/xA90 0.094, attack = 25% of EP6; no set-pieces; FLAG: Unspecified injury - 75% chance of playing; p_start 0.77<0.85 (C7); doubtful flag; best fixture GW4 (HUL H, lam 2.83) \u00b1band",
+  "p_start_gw": [
+   0.631,
+   0.715,
+   0.782,
+   0.816,
+   0.841,
+   0.841
+  ]
+ },
+ {
+  "id": 155,
+  "name": "Enzo",
+  "team": "CHE",
+  "price": 7.0,
+  "p_start": 0.609,
+  "ep_gw": [
+   3.05,
+   2.53,
+   3.71,
+   2.79,
+   3.17,
+   3.05
+  ],
+  "ep_total6": 18.3,
+  "ep_per_million": 2.61,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 35 starts, 89'/start; GW1 25' (sub/unused), DC 3; dc90 7.29 (r=0.608, P(hit)=0.138), DefCon = 9% of EP6; xG90 0.264/xA90 0.182, attack = 66% of EP6; pen2+FK2+CK3; p_start 0.61<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 337,
+  "name": "Aaronson",
+  "team": "LEE",
+  "price": 5.5,
+  "p_start": 0.843,
+  "ep_gw": [
+   2.99,
+   2.91,
+   3.3,
+   3.04,
+   2.66,
+   3.03
+  ],
+  "ep_total6": 17.93,
+  "ep_per_million": 3.26,
+  "uncertainty": "MED",
+  "notes": "25/26: 30 starts, 82'/start; GW1 81' (started), DC 7; dc90 7.95 (r=0.663, P(hit)=0.175), DefCon = 11% of EP6; xG90 0.142/xA90 0.116, attack = 33% of EP6; FK3; p_start 0.84<0.85 (C7); best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 453,
+  "name": "Barnes",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.655,
+  "ep_gw": [
+   2.91,
+   2.89,
+   2.67,
+   3.33,
+   3.01,
+   3.04
+  ],
+  "ep_total6": 17.85,
+  "ep_per_million": 2.98,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 90'/start; GW1 90' (started), DC 8; dc90 5.43 (r=0.452, P(hit)=0.086), DefCon = 6% of EP6; xG90 0.225/xA90 0.112, attack = 55% of EP6; no set-pieces; p_start 0.66<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 97,
+  "name": "Jensen",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.716,
+  "ep_gw": [
+   2.76,
+   3.23,
+   2.81,
+   2.87,
+   2.94,
+   2.82
+  ],
+  "ep_total6": 17.43,
+  "ep_per_million": 3.17,
+  "uncertainty": "MED",
+  "notes": "25/26: 26 starts, 82'/start; GW1 66' (started), DC 5; dc90 8.59 (r=0.716, P(hit)=0.216), DefCon = 14% of EP6; xG90 0.113/xA90 0.231, attack = 48% of EP6; pen3+FK2+CK1; p_start 0.72<0.85 (C7); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 455,
+  "name": "Tonali",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.873,
+  "ep_gw": [
+   2.97,
+   2.73,
+   2.93,
+   2.97,
+   2.66,
+   3.13
+  ],
+  "ep_total6": 17.39,
+  "ep_per_million": 3.16,
+  "uncertainty": "LOW",
+  "notes": "25/26: 31 starts, 83'/start; GW1 90' (started), DC 4; dc90 8.32 (r=0.693, P(hit)=0.195), DefCon = 13% of EP6; xG90 0.086/xA90 0.104, attack = 26% of EP6; FK5+CK2; best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 265,
+  "name": "Berge",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.93,
+  "ep_gw": [
+   2.93,
+   2.81,
+   2.66,
+   2.8,
+   2.89,
+   3.21
+  ],
+  "ep_total6": 17.3,
+  "ep_per_million": 3.46,
+  "uncertainty": "LOW",
+  "notes": "25/26: 34 starts, 83'/start; GW1 72' (started), DC 4; dc90 8.23 (r=0.685, P(hit)=0.19), DefCon = 12% of EP6; xG90 0.076/xA90 0.069, attack = 20% of EP6; no set-pieces; best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 431,
+  "name": "Amad",
+  "team": "MUN",
+  "price": 5.9,
+  "p_start": 0.652,
+  "ep_gw": [
+   2.58,
+   2.65,
+   2.65,
+   3.04,
+   3.42,
+   2.94
+  ],
+  "ep_total6": 17.28,
+  "ep_per_million": 2.93,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 27 starts, 87'/start; GW1 0' (sub/unused); dc90 7.69 (r=0.641, P(hit)=0.16), DefCon = 11% of EP6; xG90 0.191/xA90 0.164, attack = 53% of EP6; CK4; FLAG: Unspecified injury - 75% chance of playing; p_start 0.65<0.70 (C7); doubtful flag; best fixture GW6 (TOT H, lam 1.98)",
+  "p_start_gw": [
+   0.534,
+   0.605,
+   0.662,
+   0.69,
+   0.712,
+   0.712
+  ]
+ },
+ {
+  "id": 45,
+  "name": "McGinn",
+  "team": "AVL",
+  "price": 5.5,
+  "p_start": 0.93,
+  "ep_gw": [
+   2.55,
+   3.14,
+   2.88,
+   2.95,
+   2.78,
+   2.91
+  ],
+  "ep_total6": 17.21,
+  "ep_per_million": 3.13,
+  "uncertainty": "LOW",
+  "notes": "25/26: 28 starts, 77'/start; GW1 81' (started), DC 6; dc90 6.53 (r=0.544, P(hit)=0.099), DefCon = 6% of EP6; xG90 0.125/xA90 0.138, attack = 35% of EP6; CK2; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 47,
+  "name": "Kamara",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.819,
+  "ep_gw": [
+   2.63,
+   3.01,
+   2.85,
+   2.88,
+   2.74,
+   2.82
+  ],
+  "ep_total6": 16.93,
+  "ep_per_million": 3.39,
+  "uncertainty": "MED",
+  "notes": "25/26: 17 starts, 84'/start; GW1 90' (started), DC 7; dc90 9.03 (r=0.752, P(hit)=0.252), DefCon = 17% of EP6; xG90 0.079/xA90 0.077, attack = 21% of EP6; no set-pieces; p_start 0.82<0.85 (C7); best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 525,
+  "name": "Fernandes",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.729,
+  "ep_gw": [
+   2.79,
+   2.6,
+   2.77,
+   2.8,
+   2.54,
+   2.93
+  ],
+  "ep_total6": 16.43,
+  "ep_per_million": 2.74,
+  "uncertainty": "MED",
+  "notes": "25/26: 35 starts, 86'/start; GW1 45' (sub/unused), DC 2; dc90 10.34 (r=0.861, P(hit)=0.365), DefCon = 26% of EP6; xG90 0.082/xA90 0.103, attack = 27% of EP6; no set-pieces; p_start 0.73<0.85 (C7); best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 86,
+  "name": "Lewis-Potter",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.591,
+  "ep_gw": [
+   2.53,
+   3.0,
+   2.58,
+   2.65,
+   2.72,
+   2.59
+  ],
+  "ep_total6": 16.07,
+  "ep_per_million": 2.92,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 22 starts, 89'/start; GW1 90' (started), DC 10; dc90 4.79 (r=0.399, P(hit)=0.078), DefCon = 6% of EP6; xG90 0.239/xA90 0.122, attack = 64% of EP6; FK1; p_start 0.59<0.70 (C7); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 399,
+  "name": "Cherki",
+  "team": "MCI",
+  "price": 7.5,
+  "p_start": 0.437,
+  "ep_gw": [
+   2.43,
+   3.01,
+   2.4,
+   2.92,
+   2.37,
+   2.86
+  ],
+  "ep_total6": 15.99,
+  "ep_per_million": 2.13,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 90'/start; GW1 27' (sub/unused), DC 0; dc90 6.71 (r=0.559, P(hit)=0.106), DefCon = 8% of EP6; xG90 0.183/xA90 0.376, attack = 92% of EP6; FK1+CK1; p_start 0.44<0.70 (C7); best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 483,
+  "name": "Ndoye",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.774,
+  "ep_gw": [
+   2.44,
+   2.84,
+   2.65,
+   2.93,
+   2.48,
+   2.41
+  ],
+  "ep_total6": 15.75,
+  "ep_per_million": 2.86,
+  "uncertainty": "MED",
+  "notes": "25/26: 14 starts, 79'/start; GW1 61' (started), DC 3; dc90 7.24 (r=0.604, P(hit)=0.136), DefCon = 9% of EP6; xG90 0.108/xA90 0.112, attack = 31% of EP6; no set-pieces; p_start 0.77<0.85 (C7); best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 267,
+  "name": "Luki\u0107",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.789,
+  "ep_gw": [
+   2.54,
+   2.62,
+   2.55,
+   2.68,
+   2.86,
+   2.41
+  ],
+  "ep_total6": 15.66,
+  "ep_per_million": 3.13,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 20 starts, 87'/start; GW1 90' (started), DC 6; dc90 8.9 (r=0.742, P(hit)=0.242), DefCon = 18% of EP6; xG90 0.113/xA90 0.099, attack = 28% of EP6; CK4; p_start 0.79<0.85 (C7); promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 46,
+  "name": "Barkley",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.644,
+  "ep_gw": [
+   2.35,
+   2.81,
+   2.61,
+   2.66,
+   2.53,
+   2.63
+  ],
+  "ep_total6": 15.59,
+  "ep_per_million": 3.12,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 7 starts, 87'/start; GW1 73' (started), DC 1; dc90 7.18 (r=0.598, P(hit)=0.132), DefCon = 10% of EP6; xG90 0.156/xA90 0.12, attack = 41% of EP6; CK4; p_start 0.64<0.70 (C7); prior sample 844' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 571,
+  "name": "Florentino",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.67,
+  "ep_gw": [
+   2.1,
+   2.41,
+   2.57,
+   2.77,
+   2.98,
+   2.66
+  ],
+  "ep_total6": 15.49,
+  "ep_per_million": 3.1,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 25 starts, 84'/start; GW1 0' (sub/unused); dc90 12.99 (r=1.082, P(hit)=0.673), DefCon = 49% of EP6; xG90 0.077/xA90 0.064, attack = 19% of EP6; no set-pieces; FLAG: Calf injury - 75% chance of playing; p_start 0.67<0.70 (C7); doubtful flag; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band",
+  "p_start_gw": [
+   0.548,
+   0.621,
+   0.679,
+   0.709,
+   0.73,
+   0.73
+  ]
+ },
+ {
+  "id": 19,
+  "name": "Zubimendi",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.64,
+  "ep_gw": [
+   2.58,
+   2.51,
+   2.64,
+   2.45,
+   2.58,
+   2.48
+  ],
+  "ep_total6": 15.24,
+  "ep_per_million": 2.77,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 34 starts, 88'/start; GW1 22' (sub/unused), DC 3; dc90 9.19 (r=0.766, P(hit)=0.266), DefCon = 20% of EP6; xG90 0.107/xA90 0.088, attack = 32% of EP6; no set-pieces; p_start 0.64<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 214,
+  "name": "Kamada",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.672,
+  "ep_gw": [
+   2.35,
+   2.55,
+   2.71,
+   2.43,
+   2.56,
+   2.4
+  ],
+  "ep_total6": 15.0,
+  "ep_per_million": 3.0,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 22 starts, 87'/start; GW1 90' (started), DC 14; dc90 10.37 (r=0.864, P(hit)=0.369), DefCon = 29% of EP6; xG90 0.093/xA90 0.163, attack = 33% of EP6; CK4; p_start 0.67<0.70 (C7); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 545,
+  "name": "Sadiki",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.911,
+  "ep_gw": [
+   2.7,
+   2.37,
+   2.37,
+   2.29,
+   2.54,
+   2.47
+  ],
+  "ep_total6": 14.74,
+  "ep_per_million": 2.95,
+  "uncertainty": "LOW",
+  "notes": "25/26: 33 starts, 88'/start; GW1 90' (started), DC 2; dc90 6.9 (r=0.575, P(hit)=0.117), DefCon = 9% of EP6; xG90 0.076/xA90 0.066, attack = 19% of EP6; no set-pieces; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 268,
+  "name": "King",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.658,
+  "ep_gw": [
+   2.48,
+   2.37,
+   2.21,
+   2.35,
+   2.43,
+   2.77
+  ],
+  "ep_total6": 14.61,
+  "ep_per_million": 2.66,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 87'/start; GW1 90' (started), DC 8; dc90 7.66 (r=0.638, P(hit)=0.159), DefCon = 13% of EP6; xG90 0.165/xA90 0.082, attack = 41% of EP6; no set-pieces; p_start 0.66<0.70 (C7); best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 43,
+  "name": "Tielemans",
+  "team": "MUN",
+  "price": 6.0,
+  "p_start": 0.593,
+  "ep_gw": [
+   2.57,
+   2.39,
+   2.24,
+   2.43,
+   2.6,
+   2.31
+  ],
+  "ep_total6": 14.54,
+  "ep_per_million": 2.42,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 21 starts, 84'/start; GW1 66' (started), DC 5; dc90 9.39 (r=0.782, P(hit)=0.282), DefCon = 22% of EP6; xG90 0.092/xA90 0.147, attack = 39% of EP6; pen3; p_start 0.59<0.70 (C7); best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 486,
+  "name": "McAtee",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.614,
+  "ep_gw": [
+   2.25,
+   2.61,
+   2.44,
+   2.7,
+   2.29,
+   2.23
+  ],
+  "ep_total6": 14.52,
+  "ep_per_million": 2.64,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 2 starts, 87'/start; GW1 73' (started), DC 8; dc90 9.44 (r=0.786, P(hit)=0.286), DefCon = 23% of EP6; xG90 0.121/xA90 0.137, attack = 37% of EP6; CK2; p_start 0.61<0.70 (C7); prior sample 288' <900; best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 105,
+  "name": "Anthony",
+  "team": "BRE",
+  "price": 6.0,
+  "p_start": 0.594,
+  "ep_gw": [
+   2.3,
+   2.67,
+   2.34,
+   2.38,
+   2.44,
+   2.34
+  ],
+  "ep_total6": 14.47,
+  "ep_per_million": 2.41,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 32 starts, 85'/start; GW1 23' (sub/unused), DC 8; dc90 7.74 (r=0.645, P(hit)=0.163), DefCon = 13% of EP6; xG90 0.165/xA90 0.106, attack = 52% of EP6; no set-pieces; p_start 0.59<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 459,
+  "name": "L.Miley",
+  "team": "NEW",
+  "price": 5.5,
+  "p_start": 0.574,
+  "ep_gw": [
+   2.37,
+   2.35,
+   2.22,
+   2.62,
+   2.43,
+   2.44
+  ],
+  "ep_total6": 14.43,
+  "ep_per_million": 2.62,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 87'/start; GW1 75' (started), DC 13; dc90 10.04 (r=0.836, P(hit)=0.336), DefCon = 27% of EP6; xG90 0.109/xA90 0.114, attack = 42% of EP6; CK3; p_start 0.57<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 190,
+  "name": "Tchaouna",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.762,
+  "ep_gw": [
+   2.69,
+   2.1,
+   2.34,
+   2.28,
+   2.49,
+   2.41
+  ],
+  "ep_total6": 14.31,
+  "ep_per_million": 2.6,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 14 starts, 88'/start; GW1 81' (started), DC 8; dc90 5.89 (r=0.491, P(hit)=0.091), DefCon = 8% of EP6; xG90 0.113/xA90 0.089, attack = 30% of EP6; no set-pieces; p_start 0.76<0.85 (C7); promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 264,
+  "name": "Bobb",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.617,
+  "ep_gw": [
+   2.35,
+   2.24,
+   2.09,
+   2.23,
+   2.31,
+   2.64
+  ],
+  "ep_total6": 13.86,
+  "ep_per_million": 2.52,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 11 starts, 85'/start; GW1 66' (started), DC 6; dc90 7.08 (r=0.59, P(hit)=0.126), DefCon = 10% of EP6; xG90 0.128/xA90 0.177, attack = 46% of EP6; CK2; p_start 0.62<0.70 (C7); best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 67,
+  "name": "Rayan",
+  "team": "BOU",
+  "price": 6.5,
+  "p_start": 0.566,
+  "ep_gw": [
+   2.39,
+   2.3,
+   2.2,
+   2.19,
+   2.1,
+   2.49
+  ],
+  "ep_total6": 13.67,
+  "ep_per_million": 2.1,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 13 starts, 86'/start; GW1 88' (started), DC 1; dc90 6.06 (r=0.505, P(hit)=0.093), DefCon = 8% of EP6; xG90 0.163/xA90 0.124, attack = 55% of EP6; no set-pieces; p_start 0.57<0.70 (C7); best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 71,
+  "name": "Cook",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.492,
+  "ep_gw": [
+   2.31,
+   2.25,
+   2.19,
+   2.19,
+   2.13,
+   2.37
+  ],
+  "ep_total6": 13.44,
+  "ep_per_million": 2.69,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 8 starts, 87'/start; GW1 75' (started), DC 7; dc90 12.94 (r=1.078, P(hit)=0.667), DefCon = 58% of EP6; xG90 0.084/xA90 0.088, attack = 32% of EP6; CK5; p_start 0.49<0.70 (C7); prior sample 872' <900; best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 454,
+  "name": "Elanga",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.573,
+  "ep_gw": [
+   2.18,
+   2.16,
+   2.01,
+   2.47,
+   2.25,
+   2.27
+  ],
+  "ep_total6": 13.34,
+  "ep_per_million": 2.22,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 14 starts, 87'/start; GW1 75' (started), DC 2; dc90 4.17 (r=0.348, P(hit)=0.071), DefCon = 6% of EP6; xG90 0.151/xA90 0.112, attack = 55% of EP6; CK4; p_start 0.57<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 211,
+  "name": "Yeremy",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.557,
+  "ep_gw": [
+   2.04,
+   2.25,
+   2.43,
+   2.12,
+   2.26,
+   2.09
+  ],
+  "ep_total6": 13.19,
+  "ep_per_million": 2.4,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 26 starts, 80'/start; GW1 35' (sub/unused), DC 5; dc90 7.68 (r=0.64, P(hit)=0.16), DefCon = 13% of EP6; xG90 0.179/xA90 0.204, attack = 58% of EP6; FK1+CK2; p_start 0.56<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 372,
+  "name": "Mac Allister",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.566,
+  "ep_gw": [
+   2.21,
+   2.22,
+   2.32,
+   2.12,
+   2.02,
+   2.02
+  ],
+  "ep_total6": 12.91,
+  "ep_per_million": 2.35,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 31 starts, 86'/start; GW1 27' (sub/unused), DC 3; dc90 7.91 (r=0.66, P(hit)=0.173), DefCon = 15% of EP6; xG90 0.134/xA90 0.08, attack = 43% of EP6; pen5; p_start 0.57<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 70,
+  "name": "Kluivert",
+  "team": "BOU",
+  "price": 6.0,
+  "p_start": 0.525,
+  "ep_gw": [
+   2.24,
+   2.16,
+   2.06,
+   2.05,
+   1.97,
+   2.34
+  ],
+  "ep_total6": 12.82,
+  "ep_per_million": 2.14,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 10 starts, 87'/start; GW1 74' (started), DC 9; dc90 7.13 (r=0.594, P(hit)=0.129), DefCon = 12% of EP6; xG90 0.177/xA90 0.121, attack = 62% of EP6; pen2+FK2+CK3; p_start 0.53<0.70 (C7); best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 102,
+  "name": "Yarmoliuk",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.541,
+  "ep_gw": [
+   2.07,
+   2.29,
+   2.09,
+   2.1,
+   2.15,
+   2.09
+  ],
+  "ep_total6": 12.79,
+  "ep_per_million": 2.56,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 30 starts, 88'/start; GW1 23' (sub/unused), DC 6; dc90 11.26 (r=0.938, P(hit)=0.468), DefCon = 43% of EP6; xG90 0.079/xA90 0.075, attack = 32% of EP6; no set-pieces; p_start 0.54<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 457,
+  "name": "J.Murphy",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.5,
+  "ep_gw": [
+   2.08,
+   2.07,
+   1.92,
+   2.37,
+   2.15,
+   2.17
+  ],
+  "ep_total6": 12.76,
+  "ep_per_million": 2.13,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 84'/start; GW1 14' (sub/unused); dc90 5.42 (r=0.452, P(hit)=0.086), DefCon = 8% of EP6; xG90 0.165/xA90 0.141, attack = 66% of EP6; CK2; p_start 0.50<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 156,
+  "name": "Neto",
+  "team": "CHE",
+  "price": 6.5,
+  "p_start": 0.47,
+  "ep_gw": [
+   2.12,
+   1.8,
+   2.54,
+   1.95,
+   2.19,
+   2.12
+  ],
+  "ep_total6": 12.72,
+  "ep_per_million": 1.96,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 30 starts, 88'/start; GW1 14' (sub/unused); dc90 4.48 (r=0.373, P(hit)=0.074), DefCon = 7% of EP6; xG90 0.157/xA90 0.2, attack = 72% of EP6; FK4+CK2; p_start 0.47<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 244,
+  "name": "Armstrong",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.517,
+  "ep_gw": [
+   2.02,
+   2.06,
+   2.13,
+   2.21,
+   2.24,
+   2.04
+  ],
+  "ep_total6": 12.7,
+  "ep_per_million": 2.54,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 6 starts, 88'/start; GW1 90' (started), DC 16; dc90 9.67 (r=0.806, P(hit)=0.306), DefCon = 28% of EP6; xG90 0.128/xA90 0.095, attack = 43% of EP6; no set-pieces; p_start 0.52<0.70 (C7); prior sample 524' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 516,
+  "name": "Bentancur",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.511,
+  "ep_gw": [
+   2.13,
+   2.01,
+   2.11,
+   2.13,
+   1.97,
+   2.22
+  ],
+  "ep_total6": 12.57,
+  "ep_per_million": 2.29,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 23 starts, 82'/start; GW1 45' (sub/unused), DC 5; dc90 12.63 (r=1.053, P(hit)=0.629), DefCon = 55% of EP6; xG90 0.078/xA90 0.073, attack = 29% of EP6; no set-pieces; p_start 0.51<0.70 (C7); best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 514,
+  "name": "Tel",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.487,
+  "ep_gw": [
+   2.16,
+   1.95,
+   2.12,
+   2.15,
+   1.91,
+   2.26
+  ],
+  "ep_total6": 12.55,
+  "ep_per_million": 2.09,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 13 starts, 90'/start; GW1 90' (started), DC 8; dc90 7.68 (r=0.64, P(hit)=0.16), DefCon = 15% of EP6; xG90 0.146/xA90 0.135, attack = 53% of EP6; FK4+CK4; p_start 0.49<0.70 (C7); best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 562,
+  "name": "Maeda",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.739,
+  "ep_gw": [
+   2.04,
+   2.1,
+   2.05,
+   2.14,
+   2.27,
+   1.94
+  ],
+  "ep_total6": 12.54,
+  "ep_per_million": 2.28,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 79' (started), DC 9; dc90 8.35 (r=0.696, P(hit)=0.197), DefCon = 15% of EP6; xG90 0.136/xA90 0.054, attack = 29% of EP6; no set-pieces; p_start 0.74<0.85 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 522,
+  "name": "Gray",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.591,
+  "ep_gw": [
+   2.14,
+   1.97,
+   2.11,
+   2.14,
+   1.92,
+   2.25
+  ],
+  "ep_total6": 12.53,
+  "ep_per_million": 2.51,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 18 starts, 82'/start; GW1 85' (started), DC 5; dc90 7.72 (r=0.644, P(hit)=0.162), DefCon = 14% of EP6; xG90 0.105/xA90 0.09, attack = 37% of EP6; no set-pieces; p_start 0.59<0.70 (C7); best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 73,
+  "name": "Adams",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.527,
+  "ep_gw": [
+   2.13,
+   2.07,
+   2.01,
+   2.01,
+   1.95,
+   2.2
+  ],
+  "ep_total6": 12.37,
+  "ep_per_million": 2.47,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 21 starts, 84'/start; GW1 15' (sub/unused); dc90 11.47 (r=0.955, P(hit)=0.491), DefCon = 45% of EP6; xG90 0.085/xA90 0.074, attack = 33% of EP6; no set-pieces; p_start 0.53<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 238,
+  "name": "Grealish",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.417,
+  "ep_gw": [
+   1.88,
+   2.24,
+   1.86,
+   2.19,
+   1.84,
+   2.15
+  ],
+  "ep_total6": 12.16,
+  "ep_per_million": 1.87,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 18 starts, 90'/start; GW1 8' (sub/unused); dc90 7.58 (r=0.632, P(hit)=0.154), DefCon = 15% of EP6; xG90 0.132/xA90 0.162, attack = 69% of EP6; no set-pieces; p_start 0.42<0.70 (C7); best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 246,
+  "name": "R\u00f6hl",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.495,
+  "ep_gw": [
+   1.93,
+   1.96,
+   2.03,
+   2.11,
+   2.13,
+   1.95
+  ],
+  "ep_total6": 12.11,
+  "ep_per_million": 2.42,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 6 starts, 90'/start; GW1 90' (started), DC 9; dc90 8.94 (r=0.745, P(hit)=0.245), DefCon = 24% of EP6; xG90 0.113/xA90 0.096, attack = 42% of EP6; no set-pieces; p_start 0.49<0.70 (C7); prior sample 675' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 96,
+  "name": "Damsgaard",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.388,
+  "ep_gw": [
+   1.9,
+   2.17,
+   1.93,
+   1.96,
+   2.01,
+   1.94
+  ],
+  "ep_total6": 11.91,
+  "ep_per_million": 2.17,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 24 starts, 85'/start; GW1 14' (sub/unused); dc90 10.41 (r=0.868, P(hit)=0.374), DefCon = 36% of EP6; xG90 0.131/xA90 0.197, attack = 70% of EP6; FK3+CK3; p_start 0.39<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 591,
+  "name": "Enciso",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.739,
+  "ep_gw": [
+   1.92,
+   1.97,
+   1.93,
+   2.01,
+   2.12,
+   1.84
+  ],
+  "ep_total6": 11.79,
+  "ep_per_million": 2.14,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 70' (started), DC 8; dc90 8.32 (r=0.693, P(hit)=0.195), DefCon = 16% of EP6; xG90 0.079/xA90 0.101, attack = 26% of EP6; no set-pieces; p_start 0.74<0.85 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 482,
+  "name": "Hudson-Odoi",
+  "team": "NFO",
+  "price": 6.0,
+  "p_start": 0.467,
+  "ep_gw": [
+   1.79,
+   2.09,
+   1.95,
+   2.17,
+   1.82,
+   1.76
+  ],
+  "ep_total6": 11.58,
+  "ep_per_million": 1.93,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 21 starts, 88'/start; GW1 0' (sub/unused); dc90 5.51 (r=0.459, P(hit)=0.087), DefCon = 9% of EP6; xG90 0.144/xA90 0.141, attack = 55% of EP6; FK4; p_start 0.47<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 262,
+  "name": "Smith Rowe",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.483,
+  "ep_gw": [
+   1.96,
+   1.87,
+   1.74,
+   1.86,
+   1.93,
+   2.21
+  ],
+  "ep_total6": 11.57,
+  "ep_per_million": 2.1,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 22 starts, 87'/start; GW1 0' (sub/unused); dc90 7.12 (r=0.593, P(hit)=0.129), DefCon = 13% of EP6; xG90 0.195/xA90 0.085, attack = 60% of EP6; no set-pieces; p_start 0.48<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 557,
+  "name": "Tzolis",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.56,
+  "ep_gw": [
+   1.97,
+   1.92,
+   2.01,
+   1.84,
+   1.96,
+   1.86
+  ],
+  "ep_total6": 11.56,
+  "ep_per_million": 1.78,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 75' (started), DC 6; dc90 7.95 (r=0.662, P(hit)=0.175), DefCon = 15% of EP6; xG90 0.103/xA90 0.112, attack = 52% of EP6; CK3; p_start 0.56<0.70 (C7); prior sample 0' <900; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 241,
+  "name": "McNeil",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.518,
+  "ep_gw": [
+   1.78,
+   1.94,
+   2.06,
+   1.84,
+   1.94,
+   1.82
+  ],
+  "ep_total6": 11.38,
+  "ep_per_million": 2.07,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 14 starts, 79'/start; GW1 62' (started), DC 5; dc90 8.45 (r=0.704, P(hit)=0.204), DefCon = 19% of EP6; xG90 0.126/xA90 0.128, attack = 47% of EP6; no set-pieces; p_start 0.52<0.70 (C7); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 15,
+  "name": "\u00d8degaard",
+  "team": "ARS",
+  "price": 6.6,
+  "p_start": 0.41,
+  "ep_gw": [
+   1.92,
+   1.87,
+   1.97,
+   1.79,
+   1.91,
+   1.82
+  ],
+  "ep_total6": 11.28,
+  "ep_per_million": 1.71,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 16 starts, 83'/start; GW1 75' (started), DC 8; dc90 7.29 (r=0.607, P(hit)=0.138), DefCon = 14% of EP6; xG90 0.135/xA90 0.179, attack = 68% of EP6; pen3+CK4; p_start 0.41<0.70 (C7); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 315,
+  "name": "Fatawu",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.738,
+  "ep_gw": [
+   1.83,
+   1.87,
+   1.83,
+   1.91,
+   2.0,
+   1.76
+  ],
+  "ep_total6": 11.2,
+  "ep_per_million": 2.04,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 65' (started), DC 7; dc90 8.23 (r=0.686, P(hit)=0.191), DefCon = 16% of EP6; xG90 0.045/xA90 0.117, attack = 22% of EP6; no set-pieces; p_start 0.74<0.85 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 98,
+  "name": "Janelt",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.378,
+  "ep_gw": [
+   1.77,
+   2.02,
+   1.8,
+   1.83,
+   1.87,
+   1.8
+  ],
+  "ep_total6": 11.09,
+  "ep_per_million": 2.22,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 90'/start; GW1 90' (started), DC 13; dc90 11.4 (r=0.95, P(hit)=0.483), DefCon = 52% of EP6; xG90 0.145/xA90 0.142, attack = 70% of EP6; CK4; p_start 0.38<0.70 (C7); best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 209,
+  "name": "Johnson",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.5,
+  "ep_gw": [
+   1.71,
+   1.75,
+   1.82,
+   1.91,
+   1.94,
+   1.74
+  ],
+  "ep_total6": 10.87,
+  "ep_per_million": 1.81,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 90'/start; GW1 6' (sub/unused); dc90 6.59 (r=0.549, P(hit)=0.1), DefCon = 11% of EP6; xG90 0.141/xA90 0.096, attack = 55% of EP6; no set-pieces; p_start 0.50<0.70 (C7); best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 415,
+  "name": "Dorgu",
+  "team": "MUN",
+  "price": 6.0,
+  "p_start": 0.4,
+  "ep_gw": [
+   1.95,
+   1.78,
+   1.64,
+   1.8,
+   1.98,
+   1.7
+  ],
+  "ep_total6": 10.85,
+  "ep_per_million": 1.81,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 81'/start; GW1 45' (started), DC 1; dc90 6.08 (r=0.507, P(hit)=0.094), DefCon = 10% of EP6; xG90 0.212/xA90 0.118, attack = 83% of EP6; no set-pieces; p_start 0.40<0.70 (C7); best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 242,
+  "name": "George",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.43,
+  "ep_gw": [
+   1.7,
+   1.74,
+   1.81,
+   1.9,
+   1.93,
+   1.73
+  ],
+  "ep_total6": 10.81,
+  "ep_per_million": 1.97,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 1 starts, 89'/start; GW1 83' (started), DC 7; dc90 6.94 (r=0.578, P(hit)=0.119), DefCon = 13% of EP6; xG90 0.163/xA90 0.157, attack = 70% of EP6; no set-pieces; p_start 0.43<0.70 (C7); prior sample 351' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 290,
+  "name": "Slater",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.708,
+  "ep_gw": [
+   1.86,
+   1.84,
+   1.7,
+   1.78,
+   1.83,
+   1.8
+  ],
+  "ep_total6": 10.81,
+  "ep_per_million": 2.4,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 90' (started), DC 3; dc90 7.3 (r=0.608, P(hit)=0.139), DefCon = 13% of EP6; xG90 0.03/xA90 0.103, attack = 18% of EP6; CK2; p_start 0.71<0.85 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 160,
+  "name": "Garnacho",
+  "team": "AVL",
+  "price": 6.0,
+  "p_start": 0.399,
+  "ep_gw": [
+   1.58,
+   1.97,
+   1.8,
+   1.84,
+   1.74,
+   1.83
+  ],
+  "ep_total6": 10.76,
+  "ep_per_million": 1.79,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 14 starts, 90'/start; GW1 4' (sub/unused); dc90 5.53 (r=0.461, P(hit)=0.087), DefCon = 10% of EP6; xG90 0.2/xA90 0.196, attack = 84% of EP6; no set-pieces; p_start 0.40<0.70 (C7); best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 162,
+  "name": "Andrey Santos",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.397,
+  "ep_gw": [
+   1.88,
+   1.74,
+   1.63,
+   1.77,
+   1.9,
+   1.68
+  ],
+  "ep_total6": 10.6,
+  "ep_per_million": 2.12,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 13 starts, 85'/start; GW1 66' (started), DC 9; dc90 9.53 (r=0.795, P(hit)=0.295), DefCon = 32% of EP6; xG90 0.134/xA90 0.122, attack = 62% of EP6; no set-pieces; p_start 0.40<0.70 (C7); best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 456,
+  "name": "J.Ramsey",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.424,
+  "ep_gw": [
+   1.73,
+   1.72,
+   1.62,
+   1.93,
+   1.78,
+   1.79
+  ],
+  "ep_total6": 10.57,
+  "ep_per_million": 2.11,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 90'/start; GW1 34' (sub/unused), DC 6; dc90 9.58 (r=0.799, P(hit)=0.299), DefCon = 34% of EP6; xG90 0.116/xA90 0.105, attack = 57% of EP6; no set-pieces; p_start 0.42<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 519,
+  "name": "Gallagher",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.5,
+  "ep_gw": [
+   1.81,
+   1.65,
+   1.78,
+   1.81,
+   1.62,
+   1.9
+  ],
+  "ep_total6": 10.57,
+  "ep_per_million": 1.92,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 14 starts, 77'/start; GW1 45' (started), DC 3; dc90 9.05 (r=0.754, P(hit)=0.254), DefCon = 25% of EP6; xG90 0.12/xA90 0.096, attack = 49% of EP6; no set-pieces; p_start 0.50<0.70 (C7); best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 405,
+  "name": "N.Gonzalez",
+  "team": "NEW",
+  "price": 5.5,
+  "p_start": 0.401,
+  "ep_gw": [
+   1.72,
+   1.71,
+   1.63,
+   1.88,
+   1.77,
+   1.77
+  ],
+  "ep_total6": 10.48,
+  "ep_per_million": 1.91,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 17 starts, 90'/start; GW1 0' (sub/unused); dc90 11.49 (r=0.958, P(hit)=0.493), DefCon = 56% of EP6; xG90 0.092/xA90 0.095, attack = 48% of EP6; no set-pieces; p_start 0.40<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 570,
+  "name": "Palacios",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.637,
+  "ep_gw": [
+   1.77,
+   1.7,
+   1.62,
+   1.7,
+   1.75,
+   1.92
+  ],
+  "ep_total6": 10.46,
+  "ep_per_million": 1.9,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 72' (started), DC 4; dc90 7.69 (r=0.641, P(hit)=0.161), DefCon = 15% of EP6; xG90 0.082/xA90 0.072, attack = 29% of EP6; no set-pieces; p_start 0.64<0.70 (C7); prior sample 0' <900; best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 484,
+  "name": "Hutchinson",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.401,
+  "ep_gw": [
+   1.55,
+   1.82,
+   1.69,
+   1.89,
+   1.58,
+   1.53
+  ],
+  "ep_total6": 10.06,
+  "ep_per_million": 1.83,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 17 starts, 90'/start; GW1 0' (sub/unused); dc90 7.09 (r=0.591, P(hit)=0.127), DefCon = 15% of EP6; xG90 0.129/xA90 0.175, attack = 64% of EP6; CK4; p_start 0.40<0.70 (C7); best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 74,
+  "name": "Brooks",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.305,
+  "ep_gw": [
+   1.75,
+   1.68,
+   1.59,
+   1.58,
+   1.51,
+   1.83
+  ],
+  "ep_total6": 9.94,
+  "ep_per_million": 1.99,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 13 starts, 90'/start; GW1 0' (sub/unused); dc90 7.32 (r=0.61, P(hit)=0.14), DefCon = 17% of EP6; xG90 0.292/xA90 0.192, attack = 130% of EP6; FK3+CK4; p_start 0.30<0.70 (C7); best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 336,
+  "name": "Okafor",
+  "team": "LEE",
+  "price": 6.0,
+  "p_start": 0.359,
+  "ep_gw": [
+   1.66,
+   1.6,
+   1.85,
+   1.68,
+   1.45,
+   1.68
+  ],
+  "ep_total6": 9.92,
+  "ep_per_million": 1.65,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 82'/start; GW1 24' (sub/unused), DC 5; dc90 6.77 (r=0.564, P(hit)=0.109), DefCon = 12% of EP6; xG90 0.237/xA90 0.102, attack = 83% of EP6; no set-pieces; p_start 0.36<0.70 (C7); best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 14,
+  "name": "Eze",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.332,
+  "ep_gw": [
+   1.69,
+   1.65,
+   1.73,
+   1.56,
+   1.68,
+   1.58
+  ],
+  "ep_total6": 9.89,
+  "ep_per_million": 1.52,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 22 starts, 86'/start; GW1 14' (sub/unused); dc90 5.99 (r=0.499, P(hit)=0.093), DefCon = 11% of EP6; xG90 0.21/xA90 0.129, attack = 92% of EP6; FK3; p_start 0.33<0.70 (C7); role contradicted by GW1 (fit, benched); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 373,
+  "name": "C.Jones",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.333,
+  "ep_gw": [
+   1.38,
+   1.57,
+   1.77,
+   1.7,
+   1.67,
+   1.68
+  ],
+  "ep_total6": 9.77,
+  "ep_per_million": 1.78,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 18 starts, 90'/start; GW1 0' (sub/unused); dc90 10.85 (r=0.904, P(hit)=0.422), DefCon = 52% of EP6; xG90 0.125/xA90 0.13, attack = 65% of EP6; no set-pieces; FLAG: Hip injury - 75% chance of playing; p_start 0.33<0.70 (C7); doubtful flag; best fixture GW4 (FUL H, lam 2.06)",
+  "p_start_gw": [
+   0.272,
+   0.309,
+   0.338,
+   0.352,
+   0.363,
+   0.363
+  ]
+ },
+ {
+  "id": 520,
+  "name": "Bergvall",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.455,
+  "ep_gw": [
+   1.68,
+   1.52,
+   1.65,
+   1.67,
+   1.49,
+   1.75
+  ],
+  "ep_total6": 9.76,
+  "ep_per_million": 1.77,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 11 starts, 78'/start; GW1 45' (started), DC 8; dc90 8.25 (r=0.688, P(hit)=0.192), DefCon = 21% of EP6; xG90 0.129/xA90 0.088, attack = 53% of EP6; no set-pieces; p_start 0.46<0.70 (C7); best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 565,
+  "name": "M.Sangar\u00e9",
+  "team": "BRE",
+  "price": 5.6,
+  "p_start": 0.462,
+  "ep_gw": [
+   1.55,
+   1.76,
+   1.57,
+   1.6,
+   1.63,
+   1.58
+  ],
+  "ep_total6": 9.69,
+  "ep_per_million": 1.73,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 75' (started), DC 13; dc90 9.0 (r=0.75, P(hit)=0.25), DefCon = 25% of EP6; xG90 0.067/xA90 0.122, attack = 56% of EP6; no set-pieces; p_start 0.46<0.70 (C7); prior sample 0' <900; best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 101,
+  "name": "Henderson",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.396,
+  "ep_gw": [
+   1.28,
+   1.28,
+   1.78,
+   1.52,
+   1.7,
+   1.66
+  ],
+  "ep_total6": 9.22,
+  "ep_per_million": 1.84,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 22 starts, 87'/start; GW1 0' (sub/unused); dc90 8.61 (r=0.717, P(hit)=0.217), DefCon = 27% of EP6; xG90 0.072/xA90 0.118, attack = 53% of EP6; no set-pieces; FLAG: Wrist injury - 75% chance of playing; p_start 0.40<0.70 (C7); doubtful flag; best fixture GW4 (HUL H, lam 2.83) \u00b1band",
+  "p_start_gw": [
+   0.324,
+   0.367,
+   0.402,
+   0.419,
+   0.432,
+   0.432
+  ]
+ },
+ {
+  "id": 400,
+  "name": "Doku",
+  "team": "MCI",
+  "price": 7.5,
+  "p_start": 0.295,
+  "ep_gw": [
+   0.0,
+   0.0,
+   1.46,
+   2.76,
+   2.29,
+   2.7
+  ],
+  "ep_total6": 9.21,
+  "ep_per_million": 1.23,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 90'/start; GW1 0' (sub/unused); dc90 6.61 (r=0.551, P(hit)=0.1), DefCon = 13% of EP6; xG90 0.15/xA90 0.227, attack = 113% of EP6; pen4; FLAG: Calf injury - Expected back 5 Sep; p_start 0.29<0.70 (C7); unavailable/returning; best fixture GW3 (COV H, lam 2.59) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.3,
+   0.49,
+   0.49,
+   0.49
+  ]
+ },
+ {
+  "id": 247,
+  "name": "Hackney",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.521,
+  "ep_gw": [
+   1.2,
+   1.37,
+   1.53,
+   1.63,
+   1.7,
+   1.56
+  ],
+  "ep_total6": 8.99,
+  "ep_per_million": 1.63,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 78' (started), DC 7; dc90 8.06 (r=0.672, P(hit)=0.181), DefCon = 20% of EP6; xG90 0.059/xA90 0.071, attack = 32% of EP6; no set-pieces; FLAG: Knock - 75% chance of playing; p_start 0.52<0.70 (C7); doubtful flag; prior sample 0' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band",
+  "p_start_gw": [
+   0.426,
+   0.483,
+   0.528,
+   0.551,
+   0.568,
+   0.568
+  ]
+ },
+ {
+  "id": 123,
+  "name": "Hinshelwood",
+  "team": "BHA",
+  "price": 6.0,
+  "p_start": 0.281,
+  "ep_gw": [
+   0.83,
+   1.26,
+   1.65,
+   1.43,
+   1.84,
+   1.75
+  ],
+  "ep_total6": 8.76,
+  "ep_per_million": 1.46,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 20 starts, 82'/start; GW1 63' (started), DC 3; dc90 5.98 (r=0.498, P(hit)=0.092), DefCon = 12% of EP6; xG90 0.402/xA90 0.116, attack = 156% of EP6; no set-pieces; FLAG: Unspecified injury - 25% chance of playing; p_start 0.28<0.70 (C7); doubtful flag; best fixture GW4 (COV A, lam 1.65) \u00b1band",
+  "p_start_gw": [
+   0.169,
+   0.236,
+   0.29,
+   0.317,
+   0.338,
+   0.338
+  ]
+ },
+ {
+  "id": 286,
+  "name": "Belloumi",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.54,
+  "ep_gw": [
+   1.5,
+   1.48,
+   1.39,
+   1.44,
+   1.48,
+   1.46
+  ],
+  "ep_total6": 8.75,
+  "ep_per_million": 1.75,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 90' (started), DC 10; dc90 8.35 (r=0.696, P(hit)=0.197), DefCon = 23% of EP6; xG90 0.044/xA90 0.049, attack = 17% of EP6; FK2+CK3; p_start 0.54<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 213,
+  "name": "Lerma",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.325,
+  "ep_gw": [
+   1.38,
+   1.48,
+   1.56,
+   1.42,
+   1.48,
+   1.41
+  ],
+  "ep_total6": 8.73,
+  "ep_per_million": 1.75,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 18 starts, 90'/start; GW1 0' (sub/unused); dc90 11.18 (r=0.932, P(hit)=0.459), DefCon = 63% of EP6; xG90 0.122/xA90 0.101, attack = 54% of EP6; no set-pieces; p_start 0.33<0.70 (C7); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 512,
+  "name": "Kudus",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.36,
+  "ep_gw": [
+   1.14,
+   1.22,
+   1.49,
+   1.6,
+   1.47,
+   1.74
+  ],
+  "ep_total6": 8.66,
+  "ep_per_million": 1.33,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 81'/start; GW1 0' (sub/unused); dc90 7.88 (r=0.656, P(hit)=0.171), DefCon = 22% of EP6; xG90 0.133/xA90 0.137, attack = 73% of EP6; pen2+FK3+CK5; FLAG: Thigh injury - 50% chance of playing; p_start 0.36<0.70 (C7); doubtful flag; best fixture GW7 (COV H, lam 1.45) \u00b1band",
+  "p_start_gw": [
+   0.27,
+   0.324,
+   0.367,
+   0.389,
+   0.405,
+   0.405
+  ]
+ },
+ {
+  "id": 309,
+  "name": "N\u00fa\u00f1ez",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.536,
+  "ep_gw": [
+   1.42,
+   1.44,
+   1.42,
+   1.46,
+   1.53,
+   1.38
+  ],
+  "ep_total6": 8.65,
+  "ep_per_million": 1.73,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 79' (started), DC 12; dc90 8.8 (r=0.733, P(hit)=0.233), DefCon = 26% of EP6; xG90 0.042/xA90 0.05, attack = 18% of EP6; FK1+CK1; p_start 0.54<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 549,
+  "name": "Talbi",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.374,
+  "ep_gw": [
+   1.57,
+   1.39,
+   1.37,
+   1.34,
+   1.48,
+   1.44
+  ],
+  "ep_total6": 8.59,
+  "ep_per_million": 1.56,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 16 starts, 90'/start; GW1 31' (sub/unused), DC 2; dc90 5.7 (r=0.475, P(hit)=0.089), DefCon = 12% of EP6; xG90 0.131/xA90 0.092, attack = 51% of EP6; no set-pieces; p_start 0.37<0.70 (C7); best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 460,
+  "name": "Willock",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.315,
+  "ep_gw": [
+   1.4,
+   1.39,
+   1.3,
+   1.58,
+   1.45,
+   1.46
+  ],
+  "ep_total6": 8.58,
+  "ep_per_million": 1.72,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 10 starts, 90'/start; GW1 34' (sub/unused), DC 3; dc90 8.26 (r=0.689, P(hit)=0.192), DefCon = 27% of EP6; xG90 0.145/xA90 0.137, attack = 89% of EP6; no set-pieces; p_start 0.32<0.70 (C7); best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 487,
+  "name": "Dominguez",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.379,
+  "ep_gw": [
+   1.34,
+   1.54,
+   1.44,
+   1.58,
+   1.36,
+   1.32
+  ],
+  "ep_total6": 8.58,
+  "ep_per_million": 1.72,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 17 starts, 69'/start; GW1 0' (sub/unused); dc90 10.65 (r=0.887, P(hit)=0.4), DefCon = 43% of EP6; xG90 0.136/xA90 0.097, attack = 62% of EP6; no set-pieces; p_start 0.38<0.70 (C7); best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 184,
+  "name": "Grimes",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.537,
+  "ep_gw": [
+   1.52,
+   1.33,
+   1.41,
+   1.39,
+   1.44,
+   1.43
+  ],
+  "ep_total6": 8.52,
+  "ep_per_million": 1.7,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 90' (started), DC 7; dc90 7.9 (r=0.658, P(hit)=0.172), DefCon = 20% of EP6; xG90 0.037/xA90 0.046, attack = 15% of EP6; pen3+CK1; p_start 0.54<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 104,
+  "name": "Onyeka",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.522,
+  "ep_gw": [
+   1.5,
+   1.31,
+   1.39,
+   1.38,
+   1.42,
+   1.41
+  ],
+  "ep_total6": 8.41,
+  "ep_per_million": 1.68,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 90' (started), DC 9; dc90 8.2 (r=0.683, P(hit)=0.189), DefCon = 23% of EP6; xG90 0.037/xA90 0.046, attack = 16% of EP6; no set-pieces; p_start 0.52<0.70 (C7); prior sample 88' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 523,
+  "name": "Moore",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.473,
+  "ep_gw": [
+   1.43,
+   1.32,
+   1.41,
+   1.43,
+   1.3,
+   1.49
+  ],
+  "ep_total6": 8.38,
+  "ep_per_million": 1.68,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 67' (started), DC 2; dc90 7.46 (r=0.621, P(hit)=0.148), DefCon = 16% of EP6; xG90 0.107/xA90 0.064, attack = 44% of EP6; no set-pieces; p_start 0.47<0.70 (C7); prior sample 0' <900; best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 51,
+  "name": "George Hemmings",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.506,
+  "ep_gw": [
+   1.32,
+   1.47,
+   1.41,
+   1.42,
+   1.36,
+   1.39
+  ],
+  "ep_total6": 8.37,
+  "ep_per_million": 1.86,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 90' (started), DC 5; dc90 7.6 (r=0.633, P(hit)=0.155), DefCon = 19% of EP6; xG90 0.039/xA90 0.048, attack = 22% of EP6; no set-pieces; p_start 0.51<0.70 (C7); prior sample 25' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 576,
+  "name": "Stroud",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.536,
+  "ep_gw": [
+   1.38,
+   1.37,
+   1.28,
+   1.33,
+   1.37,
+   1.35
+  ],
+  "ep_total6": 8.08,
+  "ep_per_million": 1.62,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 70' (started), DC 6; dc90 8.02 (r=0.668, P(hit)=0.179), DefCon = 21% of EP6; xG90 0.038/xA90 0.051, attack = 18% of EP6; no set-pieces; p_start 0.54<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 369,
+  "name": "Ngumoha",
+  "team": "LIV",
+  "price": 6.0,
+  "p_start": 0.254,
+  "ep_gw": [
+   1.38,
+   1.39,
+   1.46,
+   1.32,
+   1.25,
+   1.26
+  ],
+  "ep_total6": 8.06,
+  "ep_per_million": 1.34,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 5 starts, 84'/start; GW1 62' (started), DC 3; dc90 5.73 (r=0.477, P(hit)=0.089), DefCon = 13% of EP6; xG90 0.163/xA90 0.174, attack = 111% of EP6; no set-pieces; p_start 0.25<0.70 (C7); prior sample 547' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 551,
+  "name": "Angulo",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.393,
+  "ep_gw": [
+   1.47,
+   1.29,
+   1.27,
+   1.24,
+   1.38,
+   1.35
+  ],
+  "ep_total6": 8.0,
+  "ep_per_million": 1.6,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 5 starts, 76'/start; GW1 58' (started), DC 7; dc90 8.33 (r=0.695, P(hit)=0.196), DefCon = 26% of EP6; xG90 0.167/xA90 0.098, attack = 60% of EP6; FK3; p_start 0.39<0.70 (C7); prior sample 401' <900; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 462,
+  "name": "Steur",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.482,
+  "ep_gw": [
+   1.31,
+   1.3,
+   1.25,
+   1.42,
+   1.34,
+   1.34
+  ],
+  "ep_total6": 7.96,
+  "ep_per_million": 1.59,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 55' (started), DC 2; dc90 7.62 (r=0.635, P(hit)=0.157), DefCon = 18% of EP6; xG90 0.051/xA90 0.062, attack = 38% of EP6; no set-pieces; p_start 0.48<0.70 (C7); prior sample 0' <900; best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 543,
+  "name": "Diarra",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.35,
+  "ep_gw": [
+   1.46,
+   1.27,
+   1.24,
+   1.21,
+   1.36,
+   1.32
+  ],
+  "ep_total6": 7.86,
+  "ep_per_million": 1.43,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 90'/start; GW1 10' (sub/unused); dc90 5.49 (r=0.458, P(hit)=0.087), DefCon = 13% of EP6; xG90 0.184/xA90 0.092, attack = 70% of EP6; PENS; p_start 0.35<0.70 (C7); best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 212,
+  "name": "Hughes",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.342,
+  "ep_gw": [
+   1.2,
+   1.3,
+   1.38,
+   1.24,
+   1.3,
+   1.22
+  ],
+  "ep_total6": 7.64,
+  "ep_per_million": 1.7,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 82'/start; GW1 0' (sub/unused); dc90 8.53 (r=0.711, P(hit)=0.211), DefCon = 31% of EP6; xG90 0.106/xA90 0.121, attack = 60% of EP6; CK3; p_start 0.34<0.70 (C7); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 263,
+  "name": "Kevin",
+  "team": "FUL",
+  "price": 5.5,
+  "p_start": 0.297,
+  "ep_gw": [
+   1.29,
+   1.24,
+   1.17,
+   1.23,
+   1.27,
+   1.43
+  ],
+  "ep_total6": 7.63,
+  "ep_per_million": 1.39,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 9 starts, 90'/start; GW1 17' (sub/unused); dc90 7.67 (r=0.639, P(hit)=0.16), DefCon = 25% of EP6; xG90 0.134/xA90 0.13, attack = 76% of EP6; CK3; p_start 0.30<0.70 (C7); best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 289,
+  "name": "Crooks",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.51,
+  "ep_gw": [
+   1.31,
+   1.29,
+   1.21,
+   1.25,
+   1.29,
+   1.28
+  ],
+  "ep_total6": 7.63,
+  "ep_per_million": 1.7,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 90' (started), DC 9; dc90 8.2 (r=0.683, P(hit)=0.189), DefCon = 25% of EP6; xG90 0.03/xA90 0.037, attack = 14% of EP6; no set-pieces; p_start 0.51<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 575,
+  "name": "Yirenkyi",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.537,
+  "ep_gw": [
+   1.32,
+   1.14,
+   1.21,
+   1.2,
+   1.25,
+   1.23
+  ],
+  "ep_total6": 7.35,
+  "ep_per_million": 1.47,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 61' (started), DC 3; dc90 7.69 (r=0.641, P(hit)=0.16), DefCon = 20% of EP6; xG90 0.039/xA90 0.047, attack = 19% of EP6; no set-pieces; p_start 0.54<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 75,
+  "name": "Christie",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.227,
+  "ep_gw": [
+   1.26,
+   1.23,
+   1.19,
+   1.18,
+   1.14,
+   1.31
+  ],
+  "ep_total6": 7.31,
+  "ep_per_million": 1.46,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 9 starts, 90'/start; GW1 0' (sub/unused); dc90 10.84 (r=0.903, P(hit)=0.421), DefCon = 69% of EP6; xG90 0.161/xA90 0.106, attack = 98% of EP6; CK6; p_start 0.23<0.70 (C7); best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 35,
+  "name": "Bogarde",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.336,
+  "ep_gw": [
+   1.13,
+   1.3,
+   1.23,
+   1.24,
+   1.18,
+   1.22
+  ],
+  "ep_total6": 7.3,
+  "ep_per_million": 1.46,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 11 starts, 90'/start; GW1 16' (sub/unused); dc90 5.71 (r=0.476, P(hit)=0.089), DefCon = 15% of EP6; xG90 0.087/xA90 0.081, attack = 53% of EP6; no set-pieces; p_start 0.34<0.70 (C7); best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 432,
+  "name": "Mainoo",
+  "team": "MUN",
+  "price": 5.5,
+  "p_start": 0.263,
+  "ep_gw": [
+   1.27,
+   1.19,
+   1.13,
+   1.21,
+   1.27,
+   1.16
+  ],
+  "ep_total6": 7.23,
+  "ep_per_million": 1.31,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 16 starts, 90'/start; GW1 23' (sub/unused), DC 1; dc90 10.0 (r=0.833, P(hit)=0.333), DefCon = 55% of EP6; xG90 0.083/xA90 0.097, attack = 62% of EP6; no set-pieces; p_start 0.26<0.70 (C7); best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 430,
+  "name": "Mount",
+  "team": "MUN",
+  "price": 5.5,
+  "p_start": 0.218,
+  "ep_gw": [
+   0.99,
+   1.03,
+   1.05,
+   1.19,
+   1.31,
+   1.16
+  ],
+  "ep_total6": 6.73,
+  "ep_per_million": 1.22,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 12 starts, 84'/start; GW1 0' (sub/unused); dc90 8.99 (r=0.749, P(hit)=0.249), DefCon = 42% of EP6; xG90 0.149/xA90 0.137, attack = 110% of EP6; FK3; FLAG: Foot injury - 75% chance of playing; p_start 0.22<0.70 (C7); doubtful flag; best fixture GW6 (TOT H, lam 1.98)",
+  "p_start_gw": [
+   0.179,
+   0.202,
+   0.221,
+   0.231,
+   0.238,
+   0.238
+  ]
+ },
+ {
+  "id": 243,
+  "name": "Alcaraz",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.233,
+  "ep_gw": [
+   1.05,
+   1.07,
+   1.11,
+   1.16,
+   1.17,
+   1.07
+  ],
+  "ep_total6": 6.63,
+  "ep_per_million": 1.33,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 6 starts, 90'/start; GW1 1' (sub/unused); dc90 9.1 (r=0.758, P(hit)=0.258), DefCon = 47% of EP6; xG90 0.156/xA90 0.111, attack = 100% of EP6; no set-pieces; p_start 0.23<0.70 (C7); prior sample 679' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 54,
+  "name": "Gomes",
+  "team": "AVL",
+  "price": 5.5,
+  "p_start": 0.293,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   3.11,
+   3.19
+  ],
+  "ep_total6": 6.3,
+  "ep_per_million": 1.15,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 32 starts, 78'/start; GW1 39' (started), DC 7; dc90 12.33 (r=1.027, P(hit)=0.591), DefCon = 100% of EP6; xG90 0.072/xA90 0.083, attack = 56% of EP6; no set-pieces; FLAG: Suspended until 19 Sep; p_start 0.29<0.70 (C7); unavailable/returning; best fixture GW3 (HUL A, lam 1.58) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.879,
+   0.879
+  ]
+ },
+ {
+  "id": 161,
+  "name": "Lavia",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.186,
+  "ep_gw": [
+   1.04,
+   0.91,
+   1.21,
+   0.97,
+   1.07,
+   1.04
+  ],
+  "ep_total6": 6.24,
+  "ep_per_million": 1.25,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 4 starts, 85'/start; GW1 64' (started), DC 9; dc90 9.17 (r=0.764, P(hit)=0.264), DefCon = 48% of EP6; xG90 0.15/xA90 0.122, attack = 137% of EP6; no set-pieces; p_start 0.19<0.70 (C7); prior sample 374' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 16,
+  "name": "Madueke",
+  "team": "ARS",
+  "price": 6.4,
+  "p_start": 0.195,
+  "ep_gw": [
+   1.03,
+   1.01,
+   1.05,
+   0.97,
+   1.03,
+   0.98
+  ],
+  "ep_total6": 6.07,
+  "ep_per_million": 0.95,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 16 starts, 75'/start; GW1 22' (sub/unused), DC 2; dc90 5.69 (r=0.474, P(hit)=0.089), DefCon = 15% of EP6; xG90 0.125/xA90 0.171, attack = 121% of EP6; CK6; p_start 0.20<0.70 (C7); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 345,
+  "name": "Tanaka",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.193,
+  "ep_gw": [
+   1.01,
+   0.99,
+   1.09,
+   1.02,
+   0.93,
+   1.02
+  ],
+  "ep_total6": 6.06,
+  "ep_per_million": 1.21,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 14 starts, 90'/start; GW1 0' (sub/unused); dc90 9.9 (r=0.825, P(hit)=0.325), DefCon = 64% of EP6; xG90 0.128/xA90 0.114, attack = 90% of EP6; CK4; p_start 0.19<0.70 (C7); best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 42,
+  "name": "Guessand",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.205,
+  "ep_gw": [
+   0.94,
+   1.02,
+   1.08,
+   0.97,
+   1.02,
+   0.96
+  ],
+  "ep_total6": 5.99,
+  "ep_per_million": 1.09,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 9 starts, 90'/start; GW1 27' (sub/unused), DC 1; dc90 8.04 (r=0.67, P(hit)=0.18), DefCon = 36% of EP6; xG90 0.153/xA90 0.11, attack = 96% of EP6; no set-pieces; p_start 0.20<0.70 (C7); best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 7,
+  "name": "Lewis-Skelly",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.223,
+  "ep_gw": [
+   1.01,
+   0.98,
+   1.03,
+   0.95,
+   1.01,
+   0.97
+  ],
+  "ep_total6": 5.95,
+  "ep_per_million": 1.08,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 5 starts, 90'/start; GW1 90' (started), DC 7; dc90 4.79 (r=0.399, P(hit)=0.078), DefCon = 16% of EP6; xG90 0.099/xA90 0.097, attack = 87% of EP6; no set-pieces; p_start 0.22<0.70 (C7); prior sample 697' <900; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 339,
+  "name": "Longstaff",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.175,
+  "ep_gw": [
+   0.97,
+   0.95,
+   1.05,
+   0.99,
+   0.89,
+   0.98
+  ],
+  "ep_total6": 5.83,
+  "ep_per_million": 1.17,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 10 starts, 90'/start; GW1 8' (sub/unused); dc90 9.64 (r=0.803, P(hit)=0.303), DefCon = 62% of EP6; xG90 0.136/xA90 0.147, attack = 107% of EP6; FK2+CK3; p_start 0.17<0.70 (C7); best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 548,
+  "name": "Rigg",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.255,
+  "ep_gw": [
+   1.01,
+   0.9,
+   0.88,
+   0.86,
+   0.95,
+   0.93
+  ],
+  "ep_total6": 5.53,
+  "ep_per_million": 1.11,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 11 starts, 69'/start; GW1 10' (sub/unused); dc90 7.13 (r=0.594, P(hit)=0.129), DefCon = 22% of EP6; xG90 0.136/xA90 0.124, attack = 84% of EP6; no set-pieces; p_start 0.26<0.70 (C7); prior sample 758' <900; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 17,
+  "name": "Merino",
+  "team": "ARS",
+  "price": 6.0,
+  "p_start": 0.106,
+  "ep_gw": [
+   0.84,
+   0.83,
+   0.86,
+   0.79,
+   0.84,
+   0.8
+  ],
+  "ep_total6": 4.96,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 10 starts, 90'/start; GW1 14' (sub/unused); dc90 9.69 (r=0.808, P(hit)=0.308), DefCon = 74% of EP6; xG90 0.217/xA90 0.13, attack = 193% of EP6; no set-pieces; p_start 0.11<0.70 (C7); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 403,
+  "name": "S\u00e1vio",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.135,
+  "ep_gw": [
+   0.85,
+   0.76,
+   0.83,
+   0.84,
+   0.75,
+   0.88
+  ],
+  "ep_total6": 4.91,
+  "ep_per_million": 0.76,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 7 starts, 90'/start; GW1 0' (sub/unused); dc90 6.89 (r=0.574, P(hit)=0.116), DefCon = 28% of EP6; xG90 0.202/xA90 0.148, attack = 168% of EP6; no set-pieces; p_start 0.14<0.70 (C7); prior sample 817' <900; best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 78,
+  "name": "Kroupi.Jr",
+  "team": "BOU",
+  "price": 7.5,
+  "p_start": 0.157,
+  "ep_gw": [
+   0.0,
+   0.17,
+   0.47,
+   0.86,
+   1.3,
+   1.91
+  ],
+  "ep_total6": 4.71,
+  "ep_per_million": 0.63,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 21 starts, 79'/start; GW1 0' (sub/unused); dc90 6.32 (r=0.527, P(hit)=0.097), DefCon = 22% of EP6; xG90 0.321/xA90 0.104, attack = 258% of EP6; PENS; FLAG: Foot injury - Unknown return date; p_start 0.16<0.70 (C7); unavailable/returning; best fixture GW7 (SUN H, lam 1.84)",
+  "p_start_gw": [
+   0.0,
+   0.032,
+   0.095,
+   0.178,
+   0.286,
+   0.349
+  ]
+ },
+ {
+  "id": 208,
+  "name": "Sarr",
+  "team": "CRY",
+  "price": 6.4,
+  "p_start": 0.164,
+  "ep_gw": [
+   0.0,
+   0.17,
+   0.54,
+   0.86,
+   1.45,
+   1.63
+  ],
+  "ep_total6": 4.65,
+  "ep_per_million": 0.73,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 24 starts, 90'/start; GW1 0' (sub/unused); dc90 5.91 (r=0.493, P(hit)=0.092), DefCon = 24% of EP6; xG90 0.342/xA90 0.08, attack = 214% of EP6; pen2; FLAG: Groin injury - Unknown return date; p_start 0.16<0.70 (C7); unavailable/returning; best fixture GW4 (IPS H, lam 2.00) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.033,
+   0.1,
+   0.186,
+   0.299,
+   0.366
+  ]
+ },
+ {
+  "id": 245,
+  "name": "Dibling",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.128,
+  "ep_gw": [
+   0.73,
+   0.74,
+   0.76,
+   0.79,
+   0.8,
+   0.74
+  ],
+  "ep_total6": 4.56,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 4 starts, 87'/start; GW1 0' (sub/unused); dc90 9.65 (r=0.804, P(hit)=0.304), DefCon = 78% of EP6; xG90 0.134/xA90 0.111, attack = 129% of EP6; no set-pieces; p_start 0.13<0.70 (C7); prior sample 349' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 215,
+  "name": "Devenny",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.121,
+  "ep_gw": [
+   0.72,
+   0.77,
+   0.82,
+   0.74,
+   0.77,
+   0.73
+  ],
+  "ep_total6": 4.55,
+  "ep_per_million": 0.91,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 7 starts, 90'/start; GW1 0' (sub/unused); dc90 8.3 (r=0.692, P(hit)=0.194), DefCon = 51% of EP6; xG90 0.2/xA90 0.099, attack = 152% of EP6; pen3+FK2; p_start 0.12<0.70 (C7); prior sample 785' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 515,
+  "name": "Maddison",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.188,
+  "ep_gw": [
+   0.62,
+   0.65,
+   0.75,
+   0.79,
+   0.74,
+   0.84
+  ],
+  "ep_total6": 4.39,
+  "ep_per_million": 0.68,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 22' (sub/unused), DC 2; dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 39% of EP6; xG90 0.086/xA90 0.105, attack = 86% of EP6; no set-pieces; FLAG: Shoulder injury - 75% chance of playing; p_start 0.19<0.70 (C7); doubtful flag; prior sample 34' <900; best fixture GW7 (COV H, lam 1.45) \u00b1band",
+  "p_start_gw": [
+   0.153,
+   0.174,
+   0.19,
+   0.198,
+   0.205,
+   0.205
+  ]
+ },
+ {
+  "id": 44,
+  "name": "Bailey",
+  "team": "AVL",
+  "price": 5.5,
+  "p_start": 0.11,
+  "ep_gw": [
+   0.67,
+   0.77,
+   0.73,
+   0.74,
+   0.71,
+   0.73
+  ],
+  "ep_total6": 4.35,
+  "ep_per_million": 0.79,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 3 starts, 90'/start; GW1 0' (sub/unused); dc90 9.26 (r=0.771, P(hit)=0.271), DefCon = 75% of EP6; xG90 0.142/xA90 0.173, attack = 157% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 450' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 461,
+  "name": "Tour\u00e9",
+  "team": "NEW",
+  "price": 6.0,
+  "p_start": 0.164,
+  "ep_gw": [
+   0.71,
+   0.71,
+   0.68,
+   0.77,
+   0.73,
+   0.73
+  ],
+  "ep_total6": 4.33,
+  "ep_per_million": 0.72,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 40% of EP6; xG90 0.076/xA90 0.092, attack = 103% of EP6; no set-pieces; p_start 0.16<0.70 (C7); prior sample 0' <900; best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 616,
+  "name": "Bouaddi",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.152,
+  "ep_gw": [
+   0.68,
+   0.77,
+   0.68,
+   0.76,
+   0.67,
+   0.75
+  ],
+  "ep_total6": 4.31,
+  "ep_per_million": 0.78,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 40% of EP6; xG90 0.066/xA90 0.08, attack = 114% of EP6; no set-pieces; p_start 0.15<0.70 (C7); prior sample 0' <900; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 188,
+  "name": "Torp",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.207,
+  "ep_gw": [
+   0.76,
+   0.67,
+   0.71,
+   0.7,
+   0.73,
+   0.72
+  ],
+  "ep_total6": 4.29,
+  "ep_per_million": 0.78,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 28' (sub/unused), DC 1; dc90 7.83 (r=0.653, P(hit)=0.168), DefCon = 37% of EP6; xG90 0.049/xA90 0.076, attack = 44% of EP6; pen2+FK2+CK2; p_start 0.21<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 488,
+  "name": "I.Sangar\u00e9",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.19,
+  "ep_gw": [
+   0.0,
+   0.16,
+   0.45,
+   0.92,
+   1.26,
+   1.5
+  ],
+  "ep_total6": 4.29,
+  "ep_per_million": 0.86,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 25 starts, 84'/start; GW1 90' (started), DC 6; dc90 10.52 (r=0.877, P(hit)=0.386), DefCon = 102% of EP6; xG90 0.082/xA90 0.085, attack = 87% of EP6; no set-pieces; FLAG: Calf injury - Unknown return date; p_start 0.19<0.70 (C7); unavailable/returning; best fixture GW5 (COV H, lam 1.60) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.039,
+   0.116,
+   0.216,
+   0.347,
+   0.424
+  ]
+ },
+ {
+  "id": 313,
+  "name": "Clarke",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.208,
+  "ep_gw": [
+   0.7,
+   0.71,
+   0.7,
+   0.72,
+   0.75,
+   0.69
+  ],
+  "ep_total6": 4.27,
+  "ep_per_million": 0.78,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 19' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 40% of EP6; xG90 0.051/xA90 0.062, attack = 44% of EP6; PENS+FK3+CK3; p_start 0.21<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 458,
+  "name": "Joelinton",
+  "team": "NEW",
+  "price": 5.5,
+  "p_start": 0.169,
+  "ep_gw": [
+   0.0,
+   0.14,
+   0.4,
+   0.88,
+   1.29,
+   1.56
+  ],
+  "ep_total6": 4.27,
+  "ep_per_million": 0.78,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 23 starts, 85'/start; GW1 0' (sub/unused); dc90 10.75 (r=0.896, P(hit)=0.411), DefCon = 110% of EP6; xG90 0.128/xA90 0.09, attack = 144% of EP6; no set-pieces; FLAG: Unspecified injury - Unknown return date; p_start 0.17<0.70 (C7); unavailable/returning; best fixture GW5 (HUL H, lam 2.05) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.034,
+   0.103,
+   0.192,
+   0.309,
+   0.377
+  ]
+ },
+ {
+  "id": 584,
+  "name": "Hamer",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.206,
+  "ep_gw": [
+   0.76,
+   0.67,
+   0.7,
+   0.7,
+   0.72,
+   0.71
+  ],
+  "ep_total6": 4.26,
+  "ep_per_million": 0.77,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 8' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 40% of EP6; xG90 0.051/xA90 0.062, attack = 42% of EP6; no set-pieces; p_start 0.21<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 559,
+  "name": "Bamba",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.176,
+  "ep_gw": [
+   0.7,
+   0.7,
+   0.67,
+   0.75,
+   0.71,
+   0.71
+  ],
+  "ep_total6": 4.24,
+  "ep_per_million": 0.85,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 14' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 40% of EP6; xG90 0.056/xA90 0.068, attack = 78% of EP6; no set-pieces; p_start 0.18<0.70 (C7); prior sample 0' <900; best fixture GW5 (HUL H, lam 2.05) \u00b1band"
+ },
+ {
+  "id": 406,
+  "name": "Kova\u010di\u0107",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.149,
+  "ep_gw": [
+   0.67,
+   0.75,
+   0.66,
+   0.74,
+   0.66,
+   0.73
+  ],
+  "ep_total6": 4.21,
+  "ep_per_million": 0.77,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 27' (sub/unused), DC 2; dc90 7.99 (r=0.666, P(hit)=0.177), DefCon = 40% of EP6; xG90 0.063/xA90 0.078, attack = 112% of EP6; no set-pieces; p_start 0.15<0.70 (C7); prior sample 125' <900; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 429,
+  "name": "Rashford",
+  "team": "MUN",
+  "price": 7.0,
+  "p_start": 0.143,
+  "ep_gw": [
+   0.74,
+   0.69,
+   0.66,
+   0.7,
+   0.75,
+   0.67
+  ],
+  "ep_total6": 4.21,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 45' (sub/unused), DC 1; dc90 7.6 (r=0.634, P(hit)=0.156), DefCon = 35% of EP6; xG90 0.088/xA90 0.123, attack = 130% of EP6; no set-pieces; p_start 0.14<0.70 (C7); prior sample 0' <900; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 135,
+  "name": "Yohanna",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.176,
+  "ep_gw": [
+   0.67,
+   0.7,
+   0.72,
+   0.66,
+   0.71,
+   0.69
+  ],
+  "ep_total6": 4.15,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 12' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 41% of EP6; xG90 0.056/xA90 0.068, attack = 69% of EP6; no set-pieces; p_start 0.18<0.70 (C7); prior sample 0' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 600,
+  "name": "Osman",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.175,
+  "ep_gw": [
+   0.67,
+   0.7,
+   0.72,
+   0.66,
+   0.71,
+   0.69
+  ],
+  "ep_total6": 4.15,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 12' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 41% of EP6; xG90 0.056/xA90 0.068, attack = 69% of EP6; no set-pieces; p_start 0.17<0.70 (C7); prior sample 0' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 18,
+  "name": "Martinelli",
+  "team": "ARS",
+  "price": 6.4,
+  "p_start": 0.083,
+  "ep_gw": [
+   0.71,
+   0.69,
+   0.72,
+   0.66,
+   0.7,
+   0.66
+  ],
+  "ep_total6": 4.14,
+  "ep_per_million": 0.65,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 11 starts, 90'/start; GW1 0' (sub/unused); dc90 6.82 (r=0.568, P(hit)=0.112), DefCon = 32% of EP6; xG90 0.243/xA90 0.121, attack = 246% of EP6; no set-pieces; p_start 0.08<0.70 (C7); best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 72,
+  "name": "Gannon-Doak",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.167,
+  "ep_gw": [
+   0.7,
+   0.68,
+   0.67,
+   0.67,
+   0.65,
+   0.71
+  ],
+  "ep_total6": 4.08,
+  "ep_per_million": 0.82,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 1' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 42% of EP6; xG90 0.056/xA90 0.068, attack = 77% of EP6; no set-pieces; p_start 0.17<0.70 (C7); prior sample 105' <900; best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 558,
+  "name": "Schlager",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.176,
+  "ep_gw": [
+   0.65,
+   0.71,
+   0.68,
+   0.73,
+   0.66,
+   0.65
+  ],
+  "ep_total6": 4.08,
+  "ep_per_million": 0.82,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 16' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 42% of EP6; xG90 0.056/xA90 0.068, attack = 60% of EP6; CK3; p_start 0.18<0.70 (C7); prior sample 0' <900; best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 52,
+  "name": "Alysson",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.175,
+  "ep_gw": [
+   0.64,
+   0.71,
+   0.68,
+   0.69,
+   0.67,
+   0.68
+  ],
+  "ep_total6": 4.07,
+  "ep_per_million": 0.81,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 8' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 42% of EP6; xG90 0.056/xA90 0.068, attack = 65% of EP6; no set-pieces; p_start 0.17<0.70 (C7); prior sample 47' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 76,
+  "name": "T\u00f3th.A",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.166,
+  "ep_gw": [
+   0.69,
+   0.68,
+   0.66,
+   0.66,
+   0.65,
+   0.71
+  ],
+  "ep_total6": 4.05,
+  "ep_per_million": 0.81,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 15' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 42% of EP6; xG90 0.056/xA90 0.068, attack = 78% of EP6; no set-pieces; p_start 0.17<0.70 (C7); prior sample 135' <900; best fixture GW7 (SUN H, lam 1.84)"
+ },
+ {
+  "id": 580,
+  "name": "Charles",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.176,
+  "ep_gw": [
+   0.68,
+   0.66,
+   0.64,
+   0.66,
+   0.67,
+   0.72
+  ],
+  "ep_total6": 4.03,
+  "ep_per_million": 0.81,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 23' (sub/unused), DC 3; dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 43% of EP6; xG90 0.056/xA90 0.068, attack = 58% of EP6; no set-pieces; p_start 0.18<0.70 (C7); prior sample 0' <900; best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 126,
+  "name": "O'Riley",
+  "team": "BHA",
+  "price": 5.5,
+  "p_start": 0.086,
+  "ep_gw": [
+   0.64,
+   0.68,
+   0.71,
+   0.62,
+   0.69,
+   0.67
+  ],
+  "ep_total6": 4.01,
+  "ep_per_million": 0.73,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 2 starts, 90'/start; GW1 0' (sub/unused); dc90 6.46 (r=0.538, P(hit)=0.098), DefCon = 29% of EP6; xG90 0.208/xA90 0.125, attack = 208% of EP6; pen3; p_start 0.09<0.70 (C7); prior sample 202' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 157,
+  "name": "Est\u00eav\u00e3o",
+  "team": "CHE",
+  "price": 6.5,
+  "p_start": 0.083,
+  "ep_gw": [
+   0.66,
+   0.57,
+   0.78,
+   0.62,
+   0.69,
+   0.66
+  ],
+  "ep_total6": 3.98,
+  "ep_per_million": 0.61,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 12 starts, 70'/start; GW1 7' (sub/unused); dc90 6.48 (r=0.54, P(hit)=0.099), DefCon = 23% of EP6; xG90 0.217/xA90 0.17, attack = 293% of EP6; pen3+CK5; p_start 0.08<0.70 (C7); prior sample 839' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 48,
+  "name": "Onana",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.158,
+  "ep_gw": [
+   0.0,
+   0.15,
+   0.41,
+   0.77,
+   1.17,
+   1.46
+  ],
+  "ep_total6": 3.96,
+  "ep_per_million": 0.79,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 21 starts, 84'/start; GW1 0' (sub/unused); dc90 10.95 (r=0.912, P(hit)=0.433), DefCon = 123% of EP6; xG90 0.116/xA90 0.076, attack = 117% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.16<0.70 (C7); unavailable/returning; best fixture GW3 (HUL A, lam 1.58) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.032,
+   0.096,
+   0.179,
+   0.288,
+   0.353
+  ]
+ },
+ {
+  "id": 183,
+  "name": "Rudoni",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.176,
+  "ep_gw": [
+   0.67,
+   0.6,
+   0.63,
+   0.63,
+   0.65,
+   0.64
+  ],
+  "ep_total6": 3.82,
+  "ep_per_million": 0.76,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 20' (sub/unused), DC 5; dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 45% of EP6; xG90 0.043/xA90 0.053, attack = 39% of EP6; FK1+CK3; p_start 0.18<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 287,
+  "name": "Millar",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.176,
+  "ep_gw": [
+   0.65,
+   0.64,
+   0.61,
+   0.63,
+   0.64,
+   0.63
+  ],
+  "ep_total6": 3.8,
+  "ep_per_million": 0.76,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 19' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 45% of EP6; xG90 0.043/xA90 0.053, attack = 40% of EP6; no set-pieces; p_start 0.18<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 489,
+  "name": "Yates",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.089,
+  "ep_gw": [
+   0.59,
+   0.66,
+   0.62,
+   0.67,
+   0.6,
+   0.58
+  ],
+  "ep_total6": 3.72,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 2 starts, 90'/start; GW1 0' (sub/unused); dc90 9.86 (r=0.822, P(hit)=0.322), DefCon = 104% of EP6; xG90 0.13/xA90 0.108, attack = 140% of EP6; no set-pieces; p_start 0.09<0.70 (C7); prior sample 602' <900; best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ },
+ {
+  "id": 605,
+  "name": "Yalcouy\u00e9",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.145,
+  "ep_gw": [
+   0.59,
+   0.61,
+   0.63,
+   0.59,
+   0.62,
+   0.61
+  ],
+  "ep_total6": 3.65,
+  "ep_per_million": 0.81,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 4' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 47% of EP6; xG90 0.046/xA90 0.056, attack = 64% of EP6; no set-pieces; p_start 0.14<0.70 (C7); prior sample 0' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 121,
+  "name": "Mitoma",
+  "team": "BHA",
+  "price": 6.0,
+  "p_start": 0.147,
+  "ep_gw": [
+   0.0,
+   0.13,
+   0.41,
+   0.62,
+   1.15,
+   1.33
+  ],
+  "ep_total6": 3.64,
+  "ep_per_million": 0.61,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 90'/start; GW1 0' (sub/unused); dc90 5.92 (r=0.493, P(hit)=0.092), DefCon = 30% of EP6; xG90 0.188/xA90 0.139, attack = 217% of EP6; no set-pieces; FLAG: Hamstring injury - Unknown return date; p_start 0.15<0.70 (C7); unavailable/returning; best fixture GW4 (COV A, lam 1.65) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.03,
+   0.089,
+   0.166,
+   0.268,
+   0.327
+  ]
+ },
+ {
+  "id": 513,
+  "name": "Xavi",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.133,
+  "ep_gw": [
+   0.0,
+   0.11,
+   0.37,
+   0.69,
+   0.97,
+   1.4
+  ],
+  "ep_total6": 3.54,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 90'/start; GW1 0' (sub/unused); dc90 7.76 (r=0.647, P(hit)=0.164), DefCon = 56% of EP6; xG90 0.157/xA90 0.17, attack = 217% of EP6; pen3+FK2+CK6; FLAG: Knee injury - Unknown return date; p_start 0.13<0.70 (C7); unavailable/returning; best fixture GW7 (COV H, lam 1.45) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.027,
+   0.081,
+   0.151,
+   0.243,
+   0.297
+  ]
+ },
+ {
+  "id": 323,
+  "name": "McAteer",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.155,
+  "ep_gw": [
+   0.58,
+   0.59,
+   0.58,
+   0.59,
+   0.61,
+   0.57
+  ],
+  "ep_total6": 3.52,
+  "ep_per_million": 0.78,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 24' (sub/unused), DC 3; dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 49% of EP6; xG90 0.036/xA90 0.043, attack = 37% of EP6; no set-pieces; p_start 0.15<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 186,
+  "name": "Mason-Clark",
+  "team": "COV",
+  "price": 5.5,
+  "p_start": 0.136,
+  "ep_gw": [
+   0.6,
+   0.54,
+   0.56,
+   0.56,
+   0.58,
+   0.57
+  ],
+  "ep_total6": 3.41,
+  "ep_per_million": 0.62,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 50% of EP6; xG90 0.051/xA90 0.062, attack = 52% of EP6; no set-pieces; p_start 0.14<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 343,
+  "name": "James",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.075,
+  "ep_gw": [
+   0.57,
+   0.55,
+   0.61,
+   0.57,
+   0.52,
+   0.57
+  ],
+  "ep_total6": 3.39,
+  "ep_per_million": 0.68,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 6 starts, 90'/start; GW1 0' (sub/unused); dc90 6.49 (r=0.541, P(hit)=0.099), DefCon = 35% of EP6; xG90 0.154/xA90 0.127, attack = 188% of EP6; no set-pieces; p_start 0.07<0.70 (C7); prior sample 547' <900; best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 377,
+  "name": "Munoz",
+  "team": "LIV",
+  "price": 6.5,
+  "p_start": 0.086,
+  "ep_gw": [
+   0.56,
+   0.57,
+   0.59,
+   0.55,
+   0.53,
+   0.53
+  ],
+  "ep_total6": 3.33,
+  "ep_per_million": 0.51,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 27' (sub/unused), DC 0; dc90 7.69 (r=0.641, P(hit)=0.161), DefCon = 46% of EP6; xG90 0.097/xA90 0.106, attack = 171% of EP6; no set-pieces; p_start 0.09<0.70 (C7); prior sample 0' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 240,
+  "name": "Iroegbunam",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.135,
+  "ep_gw": [
+   0.0,
+   0.11,
+   0.34,
+   0.64,
+   1.03,
+   1.14
+  ],
+  "ep_total6": 3.26,
+  "ep_per_million": 0.65,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 17 starts, 87'/start; GW1 0' (sub/unused); dc90 11.15 (r=0.93, P(hit)=0.456), DefCon = 163% of EP6; xG90 0.091/xA90 0.085, attack = 131% of EP6; no set-pieces; FLAG: Thigh injury - Unknown return date; p_start 0.14<0.70 (C7); unavailable/returning; best fixture GW6 (HUL A, lam 1.58) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.027,
+   0.082,
+   0.153,
+   0.246,
+   0.301
+  ]
+ },
+ {
+  "id": 131,
+  "name": "Baleba",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.143,
+  "ep_gw": [
+   0.0,
+   0.11,
+   0.3,
+   0.59,
+   0.99,
+   1.09
+  ],
+  "ep_total6": 3.08,
+  "ep_per_million": 0.62,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 23 starts, 72'/start; GW1 0' (sub/unused); dc90 11.11 (r=0.926, P(hit)=0.451), DefCon = 143% of EP6; xG90 0.093/xA90 0.08, attack = 145% of EP6; no set-pieces; FLAG: Ankle injury - Unknown return date; p_start 0.14<0.70 (C7); unavailable/returning; best fixture GW6 (TOT H, lam 1.98)",
+  "p_start_gw": [
+   0.0,
+   0.029,
+   0.087,
+   0.162,
+   0.261,
+   0.319
+  ]
+ },
+ {
+  "id": 185,
+  "name": "Sakamoto",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.108,
+  "ep_gw": [
+   0.53,
+   0.48,
+   0.5,
+   0.5,
+   0.51,
+   0.51
+  ],
+  "ep_total6": 3.03,
+  "ep_per_million": 0.61,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 50% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 292,
+  "name": "\u00d6m\u00fcr",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.51,
+   0.51,
+   0.49,
+   0.5,
+   0.51,
+   0.5
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 51% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 296,
+  "name": "Akintola",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.51,
+   0.51,
+   0.49,
+   0.5,
+   0.51,
+   0.5
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 51% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 563,
+  "name": "Morita",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.51,
+   0.51,
+   0.49,
+   0.5,
+   0.51,
+   0.5
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 51% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 574,
+  "name": "Hjert\u00f8-Dahl",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.108,
+  "ep_gw": [
+   0.51,
+   0.51,
+   0.49,
+   0.5,
+   0.51,
+   0.5
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 51% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 589,
+  "name": "Gourna-Douath",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.51,
+   0.51,
+   0.49,
+   0.5,
+   0.51,
+   0.5
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 51% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 314,
+  "name": "Ogbene",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.5,
+   0.5,
+   0.5,
+   0.51,
+   0.52,
+   0.49
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 53% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 324,
+  "name": "Mehmeti",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.5,
+   0.5,
+   0.5,
+   0.51,
+   0.52,
+   0.49
+  ],
+  "ep_total6": 3.02,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 53% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 187,
+  "name": "Eccles",
+  "team": "COV",
+  "price": 5.0,
+  "p_start": 0.107,
+  "ep_gw": [
+   0.53,
+   0.48,
+   0.5,
+   0.49,
+   0.51,
+   0.5
+  ],
+  "ep_total6": 3.01,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 57% of EP6; xG90 0.043/xA90 0.053, attack = 50% of EP6; no set-pieces; p_start 0.11<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 407,
+  "name": "Echeverri",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.072,
+  "ep_gw": [
+   0.47,
+   0.52,
+   0.47,
+   0.51,
+   0.47,
+   0.51
+  ],
+  "ep_total6": 2.95,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 58% of EP6; xG90 0.056/xA90 0.068, attack = 142% of EP6; no set-pieces; p_start 0.07<0.70 (C7); prior sample 0' <900; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 410,
+  "name": "Monga",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.072,
+  "ep_gw": [
+   0.47,
+   0.52,
+   0.47,
+   0.51,
+   0.47,
+   0.51
+  ],
+  "ep_total6": 2.95,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 58% of EP6; xG90 0.056/xA90 0.068, attack = 142% of EP6; no set-pieces; p_start 0.07<0.70 (C7); prior sample 0' <900; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 547,
+  "name": "Mundle",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.056,
+  "ep_gw": [
+   0.52,
+   0.48,
+   0.47,
+   0.47,
+   0.5,
+   0.49
+  ],
+  "ep_total6": 2.93,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 2 starts, 90'/start; GW1 0' (sub/unused); dc90 7.79 (r=0.649, P(hit)=0.166), DefCon = 68% of EP6; xG90 0.166/xA90 0.126, attack = 175% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 399' <900; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 270,
+  "name": "Reed",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.091,
+  "ep_gw": [
+   0.48,
+   0.48,
+   0.46,
+   0.47,
+   0.48,
+   0.5
+  ],
+  "ep_total6": 2.87,
+  "ep_per_million": 0.64,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 60% of EP6; xG90 0.046/xA90 0.056, attack = 67% of EP6; no set-pieces; p_start 0.09<0.70 (C7); prior sample 89' <900; best fixture GW7 (HUL H, lam 1.57) \u00b1band"
+ },
+ {
+  "id": 50,
+  "name": "Burrowes",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.085,
+  "ep_gw": [
+   0.46,
+   0.49,
+   0.47,
+   0.48,
+   0.47,
+   0.47
+  ],
+  "ep_total6": 2.84,
+  "ep_per_million": 0.63,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 60% of EP6; xG90 0.046/xA90 0.056, attack = 76% of EP6; no set-pieces; p_start 0.09<0.70 (C7); prior sample 16' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 134,
+  "name": "Oriola",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.082,
+  "ep_gw": [
+   0.46,
+   0.48,
+   0.49,
+   0.46,
+   0.48,
+   0.47
+  ],
+  "ep_total6": 2.84,
+  "ep_per_million": 0.63,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 60% of EP6; xG90 0.046/xA90 0.056, attack = 83% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 1' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 607,
+  "name": "Lynch",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.081,
+  "ep_gw": [
+   0.45,
+   0.48,
+   0.47,
+   0.47,
+   0.46,
+   0.47
+  ],
+  "ep_total6": 2.8,
+  "ep_per_million": 0.62,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 61% of EP6; xG90 0.046/xA90 0.056, attack = 77% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 0' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 77,
+  "name": "Adli",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.088,
+  "ep_gw": [
+   0.0,
+   0.1,
+   0.28,
+   0.51,
+   0.78,
+   1.1
+  ],
+  "ep_total6": 2.77,
+  "ep_per_million": 0.55,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 10 starts, 90'/start; GW1 0' (sub/unused); dc90 10.02 (r=0.835, P(hit)=0.335), DefCon = 145% of EP6; xG90 0.184/xA90 0.134, attack = 304% of EP6; no set-pieces; FLAG: Unspecified injury - Unknown return date; p_start 0.09<0.70 (C7); unavailable/returning; best fixture GW7 (SUN H, lam 1.84)",
+  "p_start_gw": [
+   0.0,
+   0.018,
+   0.054,
+   0.1,
+   0.161,
+   0.197
+  ]
+ },
+ {
+  "id": 192,
+  "name": "Andrews",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.084,
+  "ep_gw": [
+   0.47,
+   0.43,
+   0.45,
+   0.44,
+   0.46,
+   0.45
+  ],
+  "ep_total6": 2.7,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 64% of EP6; xG90 0.036/xA90 0.043, attack = 46% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 518,
+  "name": "P.M.Sarr",
+  "team": "TOT",
+  "price": 4.9,
+  "p_start": 0.092,
+  "ep_gw": [
+   0.0,
+   0.09,
+   0.28,
+   0.52,
+   0.76,
+   1.05
+  ],
+  "ep_total6": 2.7,
+  "ep_per_million": 0.55,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 13 starts, 90'/start; GW1 0' (sub/unused); dc90 11.44 (r=0.953, P(hit)=0.488), DefCon = 217% of EP6; xG90 0.13/xA90 0.101, attack = 206% of EP6; no set-pieces; FLAG: Hamstring injury - Unknown return date; p_start 0.09<0.70 (C7); unavailable/returning; best fixture GW7 (COV H, lam 1.45) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.019,
+   0.056,
+   0.105,
+   0.168,
+   0.206
+  ]
+ },
+ {
+  "id": 288,
+  "name": "Dowell",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.083,
+  "ep_gw": [
+   0.45,
+   0.45,
+   0.44,
+   0.44,
+   0.45,
+   0.45
+  ],
+  "ep_total6": 2.68,
+  "ep_per_million": 0.6,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 64% of EP6; xG90 0.036/xA90 0.043, attack = 47% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 435,
+  "name": "Lacey",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.062,
+  "ep_gw": [
+   0.46,
+   0.44,
+   0.43,
+   0.45,
+   0.46,
+   0.44
+  ],
+  "ep_total6": 2.68,
+  "ep_per_million": 0.54,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 10' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 64% of EP6; xG90 0.056/xA90 0.068, attack = 122% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 40' <900; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 189,
+  "name": "Shepherd",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.082,
+  "ep_gw": [
+   0.46,
+   0.43,
+   0.44,
+   0.44,
+   0.45,
+   0.45
+  ],
+  "ep_total6": 2.67,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 64% of EP6; xG90 0.036/xA90 0.043, attack = 46% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 191,
+  "name": "Borges Rodrigues",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.081,
+  "ep_gw": [
+   0.46,
+   0.43,
+   0.44,
+   0.44,
+   0.45,
+   0.45
+  ],
+  "ep_total6": 2.67,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 64% of EP6; xG90 0.036/xA90 0.043, attack = 46% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW2 (HUL H, lam 1.31) \u00b1band"
+ },
+ {
+  "id": 602,
+  "name": "Humphreys",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.08,
+  "ep_gw": [
+   0.44,
+   0.44,
+   0.44,
+   0.45,
+   0.46,
+   0.43
+  ],
+  "ep_total6": 2.66,
+  "ep_per_million": 0.59,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 64% of EP6; xG90 0.036/xA90 0.043, attack = 50% of EP6; no set-pieces; p_start 0.08<0.70 (C7); prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 216,
+  "name": "Esse",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.061,
+  "ep_gw": [
+   0.42,
+   0.44,
+   0.45,
+   0.43,
+   0.44,
+   0.43
+  ],
+  "ep_total6": 2.61,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.056/xA90 0.068, attack = 104% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 40' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 217,
+  "name": "M.Fran\u00e7a",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.061,
+  "ep_gw": [
+   0.42,
+   0.44,
+   0.45,
+   0.43,
+   0.44,
+   0.43
+  ],
+  "ep_total6": 2.61,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.056/xA90 0.068, attack = 104% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 0' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 218,
+  "name": "Doucour\u00e9",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.062,
+  "ep_gw": [
+   0.42,
+   0.44,
+   0.45,
+   0.43,
+   0.44,
+   0.43
+  ],
+  "ep_total6": 2.61,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.056/xA90 0.068, attack = 104% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 0' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 219,
+  "name": "J.Rak-Sakyi",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.061,
+  "ep_gw": [
+   0.42,
+   0.44,
+   0.45,
+   0.43,
+   0.44,
+   0.43
+  ],
+  "ep_total6": 2.61,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.056/xA90 0.068, attack = 104% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 0' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 595,
+  "name": "Gozo",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.061,
+  "ep_gw": [
+   0.42,
+   0.44,
+   0.45,
+   0.43,
+   0.44,
+   0.43
+  ],
+  "ep_total6": 2.61,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.056/xA90 0.068, attack = 104% of EP6; no set-pieces; p_start 0.06<0.70 (C7); prior sample 0' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 550,
+  "name": "Jocelin.T",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.07,
+  "ep_gw": [
+   0.45,
+   0.43,
+   0.43,
+   0.42,
+   0.44,
+   0.44
+  ],
+  "ep_total6": 2.61,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.056/xA90 0.068, attack = 73% of EP6; no set-pieces; p_start 0.07<0.70 (C7); prior sample 38' <900; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 409,
+  "name": "Mukasa",
+  "team": "MCI",
+  "price": 4.5,
+  "p_start": 0.053,
+  "ep_gw": [
+   0.42,
+   0.45,
+   0.42,
+   0.45,
+   0.42,
+   0.44
+  ],
+  "ep_total6": 2.6,
+  "ep_per_million": 0.58,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 66% of EP6; xG90 0.046/xA90 0.056, attack = 132% of EP6; no set-pieces; p_start 0.05<0.70 (C7); prior sample 25' <900; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 158,
+  "name": "Gittens",
+  "team": "CHE",
+  "price": 6.0,
+  "p_start": 0.019,
+  "ep_gw": [
+   0.42,
+   0.38,
+   0.47,
+   0.4,
+   0.43,
+   0.42
+  ],
+  "ep_total6": 2.52,
+  "ep_per_million": 0.42,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 5 starts, 90'/start; GW1 0' (sub/unused); dc90 6.28 (r=0.523, P(hit)=0.096), DefCon = 46% of EP6; xG90 0.154/xA90 0.143, attack = 361% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 486' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 613,
+  "name": "Ahoka",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.065,
+  "ep_gw": [
+   0.43,
+   0.41,
+   0.41,
+   0.41,
+   0.42,
+   0.42
+  ],
+  "ep_total6": 2.5,
+  "ep_per_million": 0.56,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 69% of EP6; xG90 0.046/xA90 0.056, attack = 63% of EP6; no set-pieces; p_start 0.07<0.70 (C7); prior sample 0' <900; best fixture GW2 (FUL H, lam 1.22)"
+ },
+ {
+  "id": 381,
+  "name": "Koumas",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.044,
+  "ep_gw": [
+   0.41,
+   0.41,
+   0.42,
+   0.41,
+   0.4,
+   0.4
+  ],
+  "ep_total6": 2.45,
+  "ep_per_million": 0.49,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 12' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 70% of EP6; xG90 0.056/xA90 0.068, attack = 141% of EP6; no set-pieces; p_start 0.04<0.70 (C7); prior sample 0' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 524,
+  "name": "Olusesi",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.054,
+  "ep_gw": [
+   0.41,
+   0.4,
+   0.41,
+   0.41,
+   0.39,
+   0.42
+  ],
+  "ep_total6": 2.44,
+  "ep_per_million": 0.54,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 70% of EP6; xG90 0.046/xA90 0.056, attack = 83% of EP6; no set-pieces; p_start 0.05<0.70 (C7); prior sample 14' <900; best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 601,
+  "name": "Williams-Barnett",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.051,
+  "ep_gw": [
+   0.4,
+   0.39,
+   0.4,
+   0.4,
+   0.39,
+   0.41
+  ],
+  "ep_total6": 2.39,
+  "ep_per_million": 0.53,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 72% of EP6; xG90 0.046/xA90 0.056, attack = 85% of EP6; no set-pieces; p_start 0.05<0.70 (C7); prior sample 0' <900; best fixture GW7 (COV H, lam 1.45) \u00b1band"
+ },
+ {
+  "id": 164,
+  "name": "Quenda",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.031,
+  "ep_gw": [
+   0.39,
+   0.37,
+   0.42,
+   0.38,
+   0.4,
+   0.39
+  ],
+  "ep_total6": 2.35,
+  "ep_per_million": 0.43,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 8' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 73% of EP6; xG90 0.066/xA90 0.08, attack = 199% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 0' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 221,
+  "name": "Drakes-Thomas",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.045,
+  "ep_gw": [
+   0.38,
+   0.39,
+   0.4,
+   0.39,
+   0.39,
+   0.39
+  ],
+  "ep_total6": 2.34,
+  "ep_per_million": 0.52,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 73% of EP6; xG90 0.046/xA90 0.056, attack = 96% of EP6; no set-pieces; p_start 0.04<0.70 (C7); prior sample 7' <900; best fixture GW4 (IPS H, lam 2.00) \u00b1band"
+ },
+ {
+  "id": 383,
+  "name": "Elliott",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.032,
+  "ep_gw": [
+   0.39,
+   0.39,
+   0.4,
+   0.39,
+   0.38,
+   0.38
+  ],
+  "ep_total6": 2.33,
+  "ep_per_million": 0.42,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 74% of EP6; xG90 0.066/xA90 0.08, attack = 175% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 110' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 22,
+  "name": "Nwaneri",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.029,
+  "ep_gw": [
+   0.39,
+   0.38,
+   0.39,
+   0.38,
+   0.39,
+   0.38
+  ],
+  "ep_total6": 2.31,
+  "ep_per_million": 0.42,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 74% of EP6; xG90 0.066/xA90 0.08, attack = 174% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 165' <900; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 24,
+  "name": "Nelson",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.029,
+  "ep_gw": [
+   0.39,
+   0.38,
+   0.39,
+   0.37,
+   0.38,
+   0.38
+  ],
+  "ep_total6": 2.29,
+  "ep_per_million": 0.42,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 75% of EP6; xG90 0.066/xA90 0.08, attack = 175% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 118' <900; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 434,
+  "name": "J.Fletcher",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.034,
+  "ep_gw": [
+   0.39,
+   0.38,
+   0.37,
+   0.38,
+   0.39,
+   0.38
+  ],
+  "ep_total6": 2.29,
+  "ep_per_million": 0.46,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 75% of EP6; xG90 0.056/xA90 0.068, attack = 143% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 107' <900; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 436,
+  "name": "Collyer",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.033,
+  "ep_gw": [
+   0.39,
+   0.38,
+   0.37,
+   0.38,
+   0.39,
+   0.37
+  ],
+  "ep_total6": 2.28,
+  "ep_per_million": 0.46,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 75% of EP6; xG90 0.056/xA90 0.068, attack = 144% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 0' <900; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 23,
+  "name": "F\u00e1bio Vieira",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.028,
+  "ep_gw": [
+   0.38,
+   0.38,
+   0.39,
+   0.37,
+   0.38,
+   0.37
+  ],
+  "ep_total6": 2.27,
+  "ep_per_million": 0.41,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 76% of EP6; xG90 0.066/xA90 0.08, attack = 177% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 0' <900; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 20,
+  "name": "Dowman",
+  "team": "ARS",
+  "price": 5.4,
+  "p_start": 0.028,
+  "ep_gw": [
+   0.38,
+   0.38,
+   0.38,
+   0.37,
+   0.38,
+   0.37
+  ],
+  "ep_total6": 2.26,
+  "ep_per_million": 0.42,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 76% of EP6; xG90 0.064/xA90 0.078, attack = 172% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 152' <900; best fixture GW4 (SUN A, lam 1.86)"
+ },
+ {
+  "id": 100,
+  "name": "Carvalho",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.024,
+  "ep_gw": [
+   0.36,
+   0.38,
+   0.36,
+   0.36,
+   0.37,
+   0.36
+  ],
+  "ep_total6": 2.19,
+  "ep_per_million": 0.44,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 78% of EP6; xG90 0.056/xA90 0.068, attack = 170% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 100' <900; best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 103,
+  "name": "Dasilva",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.024,
+  "ep_gw": [
+   0.36,
+   0.38,
+   0.36,
+   0.36,
+   0.37,
+   0.36
+  ],
+  "ep_total6": 2.19,
+  "ep_per_million": 0.44,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 78% of EP6; xG90 0.056/xA90 0.068, attack = 170% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 2' <900; best fixture GW3 (SUN H, lam 2.27)"
+ },
+ {
+  "id": 604,
+  "name": "Cresswell",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.031,
+  "ep_gw": [
+   0.36,
+   0.36,
+   0.37,
+   0.36,
+   0.35,
+   0.36
+  ],
+  "ep_total6": 2.16,
+  "ep_per_million": 0.48,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 79% of EP6; xG90 0.046/xA90 0.056, attack = 101% of EP6; no set-pieces; p_start 0.03<0.70 (C7); prior sample 0' <900; best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 374,
+  "name": "Endo",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.024,
+  "ep_gw": [
+   0.36,
+   0.37,
+   0.37,
+   0.36,
+   0.35,
+   0.35
+  ],
+  "ep_total6": 2.16,
+  "ep_per_million": 0.43,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 79% of EP6; xG90 0.056/xA90 0.068, attack = 160% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 170' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 517,
+  "name": "Odobert",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.072,
+  "ep_gw": [
+   0.0,
+   0.07,
+   0.22,
+   0.42,
+   0.6,
+   0.85
+  ],
+  "ep_total6": 2.16,
+  "ep_per_million": 0.39,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 10 starts, 90'/start; GW1 0' (sub/unused); dc90 7.36 (r=0.613, P(hit)=0.142), DefCon = 79% of EP6; xG90 0.165/xA90 0.123, attack = 317% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.07<0.70 (C7); unavailable/returning; best fixture GW7 (COV H, lam 1.45) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.015,
+   0.044,
+   0.081,
+   0.131,
+   0.16
+  ]
+ },
+ {
+  "id": 568,
+  "name": "Barco",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.017,
+  "ep_gw": [
+   0.36,
+   0.34,
+   0.38,
+   0.35,
+   0.36,
+   0.36
+  ],
+  "ep_total6": 2.15,
+  "ep_per_million": 0.39,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 80% of EP6; xG90 0.066/xA90 0.08, attack = 217% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 0' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 578,
+  "name": "Mudryk",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.017,
+  "ep_gw": [
+   0.36,
+   0.34,
+   0.38,
+   0.35,
+   0.36,
+   0.36
+  ],
+  "ep_total6": 2.15,
+  "ep_per_million": 0.39,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 80% of EP6; xG90 0.066/xA90 0.08, attack = 217% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 0' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 375,
+  "name": "Nyoni",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.024,
+  "ep_gw": [
+   0.36,
+   0.36,
+   0.37,
+   0.36,
+   0.35,
+   0.35
+  ],
+  "ep_total6": 2.15,
+  "ep_per_million": 0.43,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 80% of EP6; xG90 0.056/xA90 0.068, attack = 161% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 21' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 437,
+  "name": "Bendito Mantato",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.024,
+  "ep_gw": [
+   0.36,
+   0.35,
+   0.34,
+   0.35,
+   0.36,
+   0.35
+  ],
+  "ep_total6": 2.11,
+  "ep_per_million": 0.47,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 81% of EP6; xG90 0.046/xA90 0.056, attack = 128% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 15' <900; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 438,
+  "name": "Fletcher",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.024,
+  "ep_gw": [
+   0.36,
+   0.35,
+   0.34,
+   0.35,
+   0.36,
+   0.35
+  ],
+  "ep_total6": 2.11,
+  "ep_per_million": 0.47,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 81% of EP6; xG90 0.046/xA90 0.056, attack = 128% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 17' <900; best fixture GW6 (TOT H, lam 1.98)"
+ },
+ {
+  "id": 344,
+  "name": "Gruev",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.088,
+  "ep_gw": [
+   0.0,
+   0.07,
+   0.24,
+   0.41,
+   0.59,
+   0.79
+  ],
+  "ep_total6": 2.1,
+  "ep_per_million": 0.42,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 15 starts, 88'/start; GW1 0' (sub/unused); dc90 7.88 (r=0.656, P(hit)=0.171), DefCon = 96% of EP6; xG90 0.094/xA90 0.095, attack = 200% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.09<0.70 (C7); unavailable/returning; best fixture GW4 (NEW H, lam 1.75)",
+  "p_start_gw": [
+   0.0,
+   0.018,
+   0.053,
+   0.1,
+   0.16,
+   0.196
+  ]
+ },
+ {
+  "id": 378,
+  "name": "McConnell",
+  "team": "LIV",
+  "price": 4.5,
+  "p_start": 0.017,
+  "ep_gw": [
+   0.34,
+   0.34,
+   0.35,
+   0.34,
+   0.33,
+   0.33
+  ],
+  "ep_total6": 2.03,
+  "ep_per_million": 0.45,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 84% of EP6; xG90 0.046/xA90 0.056, attack = 140% of EP6; no set-pieces; p_start 0.02<0.70 (C7); prior sample 0' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 340,
+  "name": "Gelhardt",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.084,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.33,
+   0.54,
+   0.55,
+   0.54
+  ],
+  "ep_total6": 1.96,
+  "ep_per_million": 0.39,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 88% of EP6; xG90 0.043/xA90 0.053, attack = 78% of EP6; no set-pieces; FLAG: Ankle injury - Expected back 5 Sep; p_start 0.08<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.085,
+   0.14,
+   0.14,
+   0.14
+  ]
+ },
+ {
+  "id": 163,
+  "name": "D.Essugo",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.009,
+  "ep_gw": [
+   0.32,
+   0.31,
+   0.34,
+   0.32,
+   0.33,
+   0.32
+  ],
+  "ep_total6": 1.94,
+  "ep_per_million": 0.43,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 88% of EP6; xG90 0.046/xA90 0.056, attack = 168% of EP6; no set-pieces; p_start 0.01<0.70 (C7); prior sample 26' <900; best fixture GW4 (HUL H, lam 2.83) \u00b1band"
+ },
+ {
+  "id": 266,
+  "name": "Cairney",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.06,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.64,
+   1.14
+  ],
+  "ep_total6": 1.78,
+  "ep_per_million": 0.36,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 6 starts, 90'/start; GW1 0' (sub/unused); dc90 7.52 (r=0.626, P(hit)=0.151), DefCon = 102% of EP6; xG90 0.152/xA90 0.119, attack = 335% of EP6; no set-pieces; FLAG: Knee injury - Expected back 10 Oct; p_start 0.06<0.70 (C7); unavailable/returning; prior sample 756' <900; best fixture GW7 (HUL H, lam 1.57) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.138,
+   0.225
+  ]
+ },
+ {
+  "id": 546,
+  "name": "Adingra",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.065,
+  "ep_gw": [
+   0.0,
+   0.05,
+   0.15,
+   0.27,
+   0.47,
+   0.55
+  ],
+  "ep_total6": 1.49,
+  "ep_per_million": 0.3,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 9 starts, 72'/start; GW1 0' (sub/unused); dc90 6.77 (r=0.564, P(hit)=0.109), DefCon = 72% of EP6; xG90 0.12/xA90 0.116, attack = 279% of EP6; no set-pieces; FLAG: Ankle injury - Unknown return date; p_start 0.07<0.70 (C7); unavailable/returning; prior sample 649' <900; best fixture GW2 (FUL H, lam 1.22)",
+  "p_start_gw": [
+   0.0,
+   0.013,
+   0.04,
+   0.074,
+   0.12,
+   0.146
+  ]
+ },
+ {
+  "id": 53,
+  "name": "Manzambi",
+  "team": "AVL",
+  "price": 6.0,
+  "p_start": 0.066,
+  "ep_gw": [
+   0.0,
+   0.05,
+   0.15,
+   0.28,
+   0.43,
+   0.54
+  ],
+  "ep_total6": 1.45,
+  "ep_per_million": 0.24,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 118% of EP6; xG90 0.076/xA90 0.092, attack = 246% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.07<0.70 (C7); unavailable/returning; prior sample 0' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.013,
+   0.04,
+   0.075,
+   0.121,
+   0.147
+  ]
+ },
+ {
+  "id": 433,
+  "name": "Ugarte",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.035,
+  "ep_gw": [
+   0.0,
+   0.05,
+   0.14,
+   0.27,
+   0.46,
+   0.51
+  ],
+  "ep_total6": 1.43,
+  "ep_per_million": 0.29,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 8 starts, 90'/start; GW1 0' (sub/unused); dc90 13.45 (r=1.121, P(hit)=0.716), DefCon = 601% of EP6; xG90 0.123/xA90 0.085, attack = 394% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.04<0.70 (C7); unavailable/returning; prior sample 876' <900; best fixture GW6 (TOT H, lam 1.98)",
+  "p_start_gw": [
+   0.0,
+   0.007,
+   0.021,
+   0.04,
+   0.064,
+   0.079
+  ]
+ },
+ {
+  "id": 521,
+  "name": "Kulusevski",
+  "team": "TOT",
+  "price": 6.5,
+  "p_start": 0.06,
+  "ep_gw": [
+   0.0,
+   0.05,
+   0.14,
+   0.27,
+   0.39,
+   0.54
+  ],
+  "ep_total6": 1.39,
+  "ep_per_million": 0.21,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 123% of EP6; xG90 0.086/xA90 0.105, attack = 272% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.06<0.70 (C7); unavailable/returning; prior sample 0' <900; best fixture GW7 (COV H, lam 1.45) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.012,
+   0.037,
+   0.069,
+   0.11,
+   0.135
+  ]
+ },
+ {
+  "id": 318,
+  "name": "Philogene",
+  "team": "IPS",
+  "price": 5.5,
+  "p_start": 0.052,
+  "ep_gw": [
+   0.0,
+   0.04,
+   0.12,
+   0.22,
+   0.36,
+   0.4
+  ],
+  "ep_total6": 1.14,
+  "ep_per_million": 0.21,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 150% of EP6; xG90 0.051/xA90 0.062, attack = 165% of EP6; pen3+CK5; FLAG: Ankle injury - Unknown return date; p_start 0.05<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.011,
+   0.032,
+   0.059,
+   0.095,
+   0.116
+  ]
+ },
+ {
+  "id": 21,
+  "name": "N\u00f8rgaard",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.038,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.1,
+   0.2,
+   0.31,
+   0.36
+  ],
+  "ep_total6": 1.0,
+  "ep_per_million": 0.2,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 172% of EP6; xG90 0.056/xA90 0.068, attack = 278% of EP6; no set-pieces; FLAG: Unspecified injury - Unknown return date; p_start 0.04<0.70 (C7); unavailable/returning; prior sample 101' <900; best fixture GW6 (HUL A, lam 1.58) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.008,
+   0.023,
+   0.044,
+   0.07,
+   0.086
+  ]
+ },
+ {
+  "id": 310,
+  "name": "Matusiwa",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.038,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.09,
+   0.18,
+   0.29,
+   0.33
+  ],
+  "ep_total6": 0.92,
+  "ep_per_million": 0.18,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 186% of EP6; xG90 0.043/xA90 0.053, attack = 174% of EP6; no set-pieces; FLAG: Muscular injury - Unknown return date; p_start 0.04<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.008,
+   0.023,
+   0.043,
+   0.07,
+   0.085
+  ]
+ },
+ {
+  "id": 341,
+  "name": "Gnonto",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.021,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.1,
+   0.18,
+   0.26,
+   0.34
+  ],
+  "ep_total6": 0.91,
+  "ep_per_million": 0.18,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 4 starts, 90'/start; GW1 0' (sub/unused); dc90 9.72 (r=0.81, P(hit)=0.31), DefCon = 408% of EP6; xG90 0.131/xA90 0.132, attack = 638% of EP6; no set-pieces; FLAG: Hamstring injury - Unknown return date; p_start 0.02<0.70 (C7); unavailable/returning; prior sample 521' <900; best fixture GW4 (NEW H, lam 1.75)",
+  "p_start_gw": [
+   0.0,
+   0.004,
+   0.013,
+   0.023,
+   0.038,
+   0.046
+  ]
+ },
+ {
+  "id": 312,
+  "name": "Taylor",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.025,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.08,
+   0.14,
+   0.23,
+   0.27
+  ],
+  "ep_total6": 0.75,
+  "ep_per_million": 0.17,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 229% of EP6; xG90 0.036/xA90 0.043, attack = 175% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.03<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.005,
+   0.015,
+   0.028,
+   0.045,
+   0.055
+  ]
+ },
+ {
+  "id": 291,
+  "name": "Matazo",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.025,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.07,
+   0.14,
+   0.23,
+   0.27
+  ],
+  "ep_total6": 0.74,
+  "ep_per_million": 0.16,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 232% of EP6; xG90 0.036/xA90 0.043, attack = 170% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.03<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.005,
+   0.015,
+   0.028,
+   0.045,
+   0.055
+  ]
+ },
+ {
+  "id": 294,
+  "name": "Zambrano",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.025,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.07,
+   0.14,
+   0.23,
+   0.27
+  ],
+  "ep_total6": 0.74,
+  "ep_per_million": 0.16,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 232% of EP6; xG90 0.036/xA90 0.043, attack = 170% of EP6; no set-pieces; FLAG: Thigh injury - Unknown return date; p_start 0.03<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.005,
+   0.015,
+   0.028,
+   0.046,
+   0.056
+  ]
+ },
+ {
+  "id": 297,
+  "name": "Gyabi",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.025,
+  "ep_gw": [
+   0.0,
+   0.03,
+   0.07,
+   0.14,
+   0.23,
+   0.27
+  ],
+  "ep_total6": 0.74,
+  "ep_per_million": 0.16,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 232% of EP6; xG90 0.036/xA90 0.043, attack = 170% of EP6; no set-pieces; FLAG: Thigh injury - Unknown return date; p_start 0.03<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band",
+  "p_start_gw": [
+   0.0,
+   0.005,
+   0.015,
+   0.028,
+   0.045,
+   0.055
+  ]
+ },
+ {
+  "id": 370,
+  "name": "Chiesa",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.003,
+  "ep_gw": [
+   0.0,
+   0.02,
+   0.07,
+   0.11,
+   0.18,
+   0.22
+  ],
+  "ep_total6": 0.6,
+  "ep_per_million": 0.11,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 1 starts, 90'/start; GW1 0' (sub/unused); dc90 8.5 (r=0.709, P(hit)=0.209), DefCon = 417% of EP6; xG90 0.206/xA90 0.14, attack = 1660% of EP6; no set-pieces; FLAG: Back injury - Unknown return date; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 317' <900; best fixture GW4 (FUL H, lam 2.06)"
+ },
+ {
+  "id": 99,
+  "name": "Milambo",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.009,
+  "ep_gw": [
+   0.0,
+   0.02,
+   0.06,
+   0.11,
+   0.18,
+   0.22
+  ],
+  "ep_total6": 0.59,
+  "ep_per_million": 0.12,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 291% of EP6; xG90 0.056/xA90 0.068, attack = 633% of EP6; no set-pieces; FLAG: Knee injury - Unknown return date; p_start 0.01<0.70 (C7); unavailable/returning; prior sample 45' <900; best fixture GW3 (SUN H, lam 2.27)",
+  "p_start_gw": [
+   0.0,
+   0.002,
+   0.006,
+   0.011,
+   0.017,
+   0.021
+  ]
+ },
+ {
+  "id": 376,
+  "name": "Bajcetic",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.009,
+  "ep_gw": [
+   0.0,
+   0.02,
+   0.06,
+   0.11,
+   0.18,
+   0.21
+  ],
+  "ep_total6": 0.58,
+  "ep_per_million": 0.12,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 296% of EP6; xG90 0.056/xA90 0.068, attack = 597% of EP6; no set-pieces; FLAG: Hamstring injury - Unknown return date; p_start 0.01<0.70 (C7); unavailable/returning; prior sample 0' <900; best fixture GW4 (FUL H, lam 2.06)",
+  "p_start_gw": [
+   0.0,
+   0.002,
+   0.006,
+   0.011,
+   0.017,
+   0.021
+  ]
+ },
+ {
+  "id": 49,
+  "name": "Iling Jr",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.056/xA90 0.068, attack = 26314% of EP6; no set-pieces; FLAG: Has joined Bolton Wanderers on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 0' <900; best fixture GW3 (HUL A, lam 1.58) \u00b1band"
+ },
+ {
+  "id": 122,
+  "name": "Minteh",
+  "team": "BHA",
+  "price": 6.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 26 starts, 90'/start; GW1 0' (sub/unused); dc90 7.09 (r=0.591, P(hit)=0.127), DefCon = 15241% of EP6; xG90 0.148/xA90 0.17, attack = 72489% of EP6; CK5; FLAG: Leg injury - Expected back 28 Nov; p_start 0.00<0.70 (C7); unavailable/returning; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 128,
+  "name": "Buonanotte",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.056/xA90 0.068, attack = 28599% of EP6; no set-pieces; FLAG: Has joined Elche on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 81' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 132,
+  "name": "Howell",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.046/xA90 0.056, attack = 23525% of EP6; no set-pieces; FLAG: Has joined Leicester City on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 92' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 133,
+  "name": "Watson",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.056/xA90 0.068, attack = 28599% of EP6; no set-pieces; FLAG: Has joined Leicester City on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 57' <900; best fixture GW4 (COV A, lam 1.65) \u00b1band"
+ },
+ {
+  "id": 293,
+  "name": "Kamara",
+  "team": "HUL",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.043/xA90 0.053, attack = 15288% of EP6; no set-pieces; FLAG: Has joined Portsmouth permanently; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW3 (AVL H, lam 1.10) \u00b1band"
+ },
+ {
+  "id": 311,
+  "name": "Burns",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.043/xA90 0.053, attack = 15992% of EP6; no set-pieces; FLAG: Has joined Leicester City permanently; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 319,
+  "name": "Szmodics",
+  "team": "IPS",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.043/xA90 0.053, attack = 15992% of EP6; no set-pieces; FLAG: Has joined Derby County on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 0' <900; promoted club (\u00b115pp band, C4); best fixture GW6 (FUL H, lam 1.28) \u00b1band"
+ },
+ {
+  "id": 342,
+  "name": "Harrison",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 1 starts, 90'/start; GW1 0' (sub/unused); dc90 8.35 (r=0.696, P(hit)=0.197), DefCon = 23645% of EP6; xG90 0.146/xA90 0.123, attack = 60522% of EP6; no set-pieces; FLAG: Has joined New England Revolution permanently; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 262' <900; best fixture GW4 (NEW H, lam 1.75)"
+ },
+ {
+  "id": 402,
+  "name": "Rodrigo",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 17 starts, 89'/start; GW1 0' (sub/unused); dc90 11.83 (r=0.986, P(hit)=0.532), DefCon = 63087% of EP6; xG90 0.109/xA90 0.139, attack = 70668% of EP6; no set-pieces; FLAG: Has joined Barcelona permanently; p_start 0.00<0.70 (C7); unavailable/returning; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 404,
+  "name": "Reijnders",
+  "team": "MCI",
+  "price": 6.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 19 starts, 85'/start; GW1 0' (sub/unused); dc90 5.87 (r=0.489, P(hit)=0.091), DefCon = 10467% of EP6; xG90 0.211/xA90 0.131, attack = 105704% of EP6; no set-pieces; FLAG: Has joined Al Qadsiah permanently; p_start 0.00<0.70 (C7); unavailable/returning; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 408,
+  "name": "Phillips",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "no meaningful PL record \u2014 price/ownership-implied prior; GW1 0' (sub/unused); dc90 8.06 (r=0.671, P(hit)=0.181), DefCon = 17154% of EP6; xG90 0.056/xA90 0.068, attack = 41773% of EP6; no set-pieces; FLAG: Has joined Sheffield United on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 0' <900; best fixture GW3 (COV H, lam 2.59) \u00b1band"
+ },
+ {
+  "id": 485,
+  "name": "Bakwa",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "25/26: 6 starts, 90'/start; GW1 0' (sub/unused); dc90 6.47 (r=0.539, P(hit)=0.098), DefCon = 11811% of EP6; xG90 0.136/xA90 0.142, attack = 58943% of EP6; no set-pieces; FLAG: Has joined Lille on loan for the rest of the season; p_start 0.00<0.70 (C7); unavailable/returning; prior sample 549' <900; best fixture GW5 (COV H, lam 1.60) \u00b1band"
+ }
+]

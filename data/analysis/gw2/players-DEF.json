@@ -1,0 +1,3913 @@
+[
+ {
+  "id": 4,
+  "name": "Gabriel",
+  "team": "ARS",
+  "price": 8.0,
+  "p_start": 0.923,
+  "ep_gw": [
+   4.453,
+   3.971,
+   4.773,
+   4.139,
+   4.558,
+   4.417
+  ],
+  "ep_total6": 26.31,
+  "ep_per_million": 3.289,
+  "uncertainty": "LOW",
+  "notes": "Position leader again and the only DEF in the top 12 with ZERO promoted-club exposure — ARS face no COV/HUL/IPS in the window, so none of his 26.31 sits inside the C4 ±15pp band. Saliba and Timber are both still 'i' with no return date, so the minutes are structural rather than form-based. | p_start 0.92 (GW1 90'); 2750' / 30 prior starts; CBIT/90 8.31 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.141; mean P(CS) 39%; fixture attack mult 0.84-1.06 (ATT_club 1.22 divided out); bonus/app 0.37; cards/90 0.13."
+ },
+ {
+  "id": 356,
+  "name": "Virgil",
+  "team": "LIV",
+  "price": 6.5,
+  "p_start": 0.923,
+  "ep_gw": [
+   4.581,
+   4.486,
+   4.85,
+   3.927,
+   3.563,
+   3.471
+  ],
+  "ep_total6": 24.88,
+  "ep_per_million": 3.828,
+  "uncertainty": "LOW",
+  "notes": "A three-gameweek asset, not a six-gameweek one: 14.0 of his 24.9 EP6 lands in GW2-4 (37/34/40% P(CS)) and the run collapses to 20% by GW5-7. Buy for the front half and plan the exit into GW5. | p_start 0.92 (GW1 90'); 3420' / 38 prior starts; CBIT/90 9.52 (ratio 0.95T) -> DefCon P(hit) 0.49; xG+xA/90 0.156; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.20; cards/90 0.10; ±promoted-club fixtures GW3 = 8% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 8,
+  "name": "Calafiori",
+  "team": "ARS",
+  "price": 5.6,
+  "p_start": 0.9,
+  "ep_gw": [
+   4.185,
+   3.709,
+   4.509,
+   3.804,
+   4.274,
+   4.075
+  ],
+  "ep_total6": 24.56,
+  "ep_per_million": 4.386,
+  "uncertainty": "LOW",
+  "notes": "41.6% owned and 9 points in GW1 — the market's ARS pick and the model still agrees. Attack-led (xG+xA/90 0.212, the best of any ARS defender) with essentially no DefCon floor, so his variance is higher than his EP6 suggests. | p_start 0.90 (GW1 80'); 1697' / 22 prior starts; CBIT/90 5.44 (ratio 0.54T) -> DefCon P(hit) 0.11; xG+xA/90 0.212; mean P(CS) 39%; fixture attack mult 0.84-1.06 (ATT_club 1.22 divided out); bonus/app 0.31; cards/90 0.27; GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 388,
+  "name": "Guéhi",
+  "team": "MCI",
+  "price": 6.0,
+  "p_start": 0.865,
+  "ep_gw": [
+   3.409,
+   4.886,
+   3.443,
+   4.669,
+   3.241,
+   4.543
+  ],
+  "ep_total6": 24.19,
+  "ep_per_million": 4.032,
+  "uncertainty": "MED",
+  "notes": "Nailed 90' in GW1 and MCI hold the 2nd-best clean-sheet ticker, but 22% of his EP6 comes from COV(H) GW3 and IPS(H) GW7 — the largest C4 band exposure of any top-10 defender. Discount him relative to Gabriel/Thiaw on that basis, not on the raw number. | p_start 0.86 (GW1 90'); 3150' / 35 prior starts; CBIT/90 7.30 (ratio 0.73T) -> DefCon P(hit) 0.23; xG+xA/90 0.205; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.26; cards/90 0.17; ±promoted-club fixtures GW3,GW7 = 22% of EP6 (C4 band); joined 2026-01-19 — prior shrunk 25% toward the positional mean; GW1 xg/xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 445,
+  "name": "Thiaw",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.885,
+  "ep_gw": [
+   3.946,
+   3.701,
+   3.388,
+   4.778,
+   4.289,
+   4.049
+  ],
+  "ep_total6": 24.15,
+  "ep_per_million": 4.83,
+  "uncertainty": "LOW",
+  "notes": "Joint-best EP per £m in the position at £5.0m and 1.7% owned. Nailed 90' in GW1 alongside a settled Botman/Hall/Dedić back line, a 0.52 DefCon floor, and NEW are the only club in the league improving at BOTH ends from GW5. Caveat: GW5 HUL(H) and GW6 COV(a) are ± fixtures carrying 17.6% of his EP6. | p_start 0.89 (GW1 90'); 2963' / 33 prior starts; CBIT/90 9.79 (ratio 0.98T) -> DefCon P(hit) 0.52; xG+xA/90 0.159; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.15; cards/90 0.12; ±promoted-club fixtures GW5,GW6 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 202,
+  "name": "Richards",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.885,
+  "ep_gw": [
+   3.428,
+   4.259,
+   4.577,
+   3.824,
+   4.342,
+   3.714
+  ],
+  "ep_total6": 24.14,
+  "ep_per_million": 4.828,
+  "uncertainty": "LOW",
+  "notes": "Joint-best EP per £m and 0.7% owned. The 0.67 DefCon hit probability is the highest of any sub-£5.5m defender who is genuinely nailed — 6.8 of his 24.1 EP6 is fixture-independent floor, which is exactly the profile that survives the promoted-club uncertainty band. | p_start 0.89 (GW1 90'); 2825' / 31 prior starts; CBIT/90 10.82 (ratio 1.08T) -> DefCon P(hit) 0.67; xG+xA/90 0.115; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.18; cards/90 0.13; ±promoted-club fixtures GW4 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 498,
+  "name": "Senesi",
+  "team": "TOT",
+  "price": 6.0,
+  "p_start": 0.9,
+  "ep_gw": [
+   3.914,
+   3.759,
+   4.061,
+   4.089,
+   3.287,
+   4.702
+  ],
+  "ep_total6": 23.81,
+  "ep_per_million": 3.968,
+  "uncertainty": "MED",
+  "notes": "Highest CBIT/90 of any nailed defender (11.35 -> 0.73 DefCon) and 90' in GW1, but Spurs took the window's joint-worst defensive downgrade (DEFW 0.98 -> 1.14, clipped at the guard band, meaning the raw GW1 data wanted them worse still). The floor is real; the clean sheets are not. | p_start 0.90 (GW1 90'); 3288' / 37 prior starts; CBIT/90 11.35 (ratio 1.14T) -> DefCon P(hit) 0.73; xG+xA/90 0.144; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.20; cards/90 0.22; ±promoted-club fixtures GW7 = 8% of EP6 (C4 band); joined 2026-07-01 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 387,
+  "name": "O'Reilly",
+  "team": "MCI",
+  "price": 6.5,
+  "p_start": 0.781,
+  "ep_gw": [
+   3.263,
+   4.772,
+   3.285,
+   4.549,
+   3.096,
+   4.414
+  ],
+  "ep_total6": 23.38,
+  "ep_per_million": 3.597,
+  "uncertainty": "MED",
+  "notes": "The highest xG+xA/90 of any defender in the file (0.302) — this is an attacking asset with no DefCon floor at all (0.11). He was withdrawn on 62' in GW1 while Guéhi, Rúben, Gvardiol and Khusanov all went 90, so at £6.5m and p_start 0.78 he is the most expensive minutes risk in the position. | p_start 0.78 (GW1 62'); 2643' / 29 prior starts; CBIT/90 5.55 (ratio 0.56T) -> DefCon P(hit) 0.11; xG+xA/90 0.302; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.28; cards/90 0.17; ±promoted-club fixtures GW3,GW7 = 25% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 203,
+  "name": "Canvot",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.829,
+  "ep_gw": [
+   3.215,
+   4.004,
+   4.312,
+   3.59,
+   4.081,
+   3.485
+  ],
+  "ep_total6": 22.69,
+  "ep_per_million": 4.538,
+  "uncertainty": "MED",
+  "notes": "0.3% owned at £5.0m with a 0.69 DefCon floor and a 90' GW1 start. The cheapest genuine DefCon magnet in the game; p_start 0.83 (14 prior starts) is the load-bearing assumption. | p_start 0.83 (GW1 90'); 1331' / 14 prior starts; CBIT/90 10.91 (ratio 1.09T) -> DefCon P(hit) 0.69; xG+xA/90 0.113; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.18; cards/90 0.20; ±promoted-club fixtures GW4 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 229,
+  "name": "Tarkowski",
+  "team": "EVE",
+  "price": 6.0,
+  "p_start": 0.923,
+  "ep_gw": [
+   3.366,
+   3.545,
+   3.961,
+   4.265,
+   4.378,
+   3.156
+  ],
+  "ep_total6": 22.67,
+  "ep_per_million": 3.778,
+  "uncertainty": "LOW",
+  "notes": "Held. The DefCon floor rose (ratio 1.00T -> P(hit) 0.55) under the C3 curve unification, but the fixture cliff arrived a gameweek earlier than GW1 planning assumed: GW7 CHE(H) at 14% P(CS) is his worst fixture of the window and his GW7 EP (3.16) is the lowest of his six. | p_start 0.92 (GW1 90'); 3330' / 37 prior starts; CBIT/90 9.99 (ratio 1.00T) -> DefCon P(hit) 0.55; xG+xA/90 0.117; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.21; cards/90 0.22; ±promoted-club fixtures GW5,GW6 = 16% of EP6 (C4 band)."
+ },
+ {
+  "id": 200,
+  "name": "Lacroix",
+  "team": "CHE",
+  "price": 6.0,
+  "p_start": 0.865,
+  "ep_gw": [
+   3.744,
+   3.071,
+   4.693,
+   3.057,
+   3.777,
+   3.735
+  ],
+  "ep_total6": 22.08,
+  "ep_per_million": 3.68,
+  "uncertainty": "MED",
+  "notes": "Sixth-highest DefCon floor among nailed defenders, and his single best gameweek is GW4 HUL(H) at 45% P(CS) — a ± fixture. Chelsea's own defence worsens 6.7pp over the same stretch, so the CS half of the case is fading while the floor half is not. | p_start 0.86 (GW1 90'); 3085' / 35 prior starts; CBIT/90 10.32 (ratio 1.03T) -> DefCon P(hit) 0.60; xG+xA/90 0.103; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.20; cards/90 0.12; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-07-30 — prior shrunk 25% toward the positional mean; GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 447,
+  "name": "Botman",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.794,
+  "ep_gw": [
+   3.519,
+   3.296,
+   3.063,
+   4.183,
+   3.812,
+   3.579
+  ],
+  "ep_total6": 21.45,
+  "ep_per_million": 4.29,
+  "uncertainty": "MED",
+  "notes": "Same NEW back line and swing as Thiaw at the same price, with a slightly better DefCon floor (0.63) and a slightly worse minutes read — he was rotated more than Thiaw last season. Thiaw is the better of the two by 2.7 EP6 on minutes alone. | p_start 0.79 (GW1 90'); 1834' / 21 prior starts; CBIT/90 10.51 (ratio 1.05T) -> DefCon P(hit) 0.63; xG+xA/90 0.116; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.22; cards/90 0.10; ±promoted-club fixtures GW5,GW6 = 15% of EP6 (C4 band)."
+ },
+ {
+  "id": 201,
+  "name": "Muñoz",
+  "team": "CRY",
+  "price": 5.5,
+  "p_start": 0.857,
+  "ep_gw": [
+   2.873,
+   3.752,
+   4.144,
+   3.282,
+   3.83,
+   3.165
+  ],
+  "ep_total6": 21.05,
+  "ep_per_million": 3.827,
+  "uncertainty": "LOW",
+  "notes": "Wing-back in the CRY back-3 with the best attacking rate of any Palace defender, but he was withdrawn on 54' in GW1 while Richards, Canvot and Mitchell all went 90. Note the fixture analyst's escalated Palace finishing flag: CRY have now produced 92.4 prior xGI for 70 G+A and 1.96 xG for 0 goals in GW1, so discount the attacking half of this number ~15%. | p_start 0.86 (GW1 54'); 2400' / 29 prior starts; CBIT/90 7.29 (ratio 0.73T) -> DefCon P(hit) 0.23; xG+xA/90 0.244; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.25; cards/90 0.26; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 10,
+  "name": "White",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.754,
+  "ep_gw": [
+   3.548,
+   3.154,
+   3.812,
+   3.284,
+   3.633,
+   3.511
+  ],
+  "ep_total6": 20.94,
+  "ep_per_million": 3.807,
+  "uncertainty": "MED",
+  "notes": "11 points in GW1 and a start that the model did not have him making (p_start was 0.65). The 0.02093 x bps90 bonus model rates him joint-top of the position at 0.37 bonus/appearance. Still MED under C7 at p_start 0.75 — Arsenal have five fit senior defenders for four slots and both Saliba and Timber will eventually return. | p_start 0.75 (GW1 90'); 699' / 9 prior starts; CBIT/90 6.55 (ratio 0.66T) -> DefCon P(hit) 0.17; xG+xA/90 0.178; mean P(CS) 39%; fixture attack mult 0.84-1.06 (ATT_club 1.22 divided out); bonus/app 0.37; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 84,
+  "name": "Collins",
+  "team": "BRE",
+  "price": 5.5,
+  "p_start": 0.885,
+  "ep_gw": [
+   3.375,
+   4.261,
+   3.305,
+   3.101,
+   3.576,
+   3.226
+  ],
+  "ep_total6": 20.84,
+  "ep_per_million": 3.789,
+  "uncertainty": "LOW",
+  "notes": "Nailed at £5.5m with a rising DefCon floor, but BRE's defensive run turns HARD from GW4 (CHE H, AVL a, LIV H to close) while their attack turns easy. The fixture analyst's rule applies literally: buy the Brentford attackers, not the Brentford defenders. | p_start 0.89 (GW1 90'); 2971' / 32 prior starts; CBIT/90 8.79 (ratio 0.88T) -> DefCon P(hit) 0.39; xG+xA/90 0.133; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.16; cards/90 0.21; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 60,
+  "name": "Hill",
+  "team": "BOU",
+  "price": 5.5,
+  "p_start": 0.865,
+  "ep_gw": [
+   3.748,
+   3.298,
+   3.106,
+   3.145,
+   2.704,
+   4.082
+  ],
+  "ep_total6": 20.08,
+  "ep_per_million": 3.651,
+  "uncertainty": "LOW",
+  "notes": "11.13 raw CBIT/90 gives him the position's 4th-best DefCon floor, and it is the only reason a Bournemouth defender ranks this high — BOU sit 15th on the 6-GW clean-sheet ticker at 23%. | p_start 0.86 (GW1 90'); 2102' / 22 prior starts; CBIT/90 10.36 (ratio 1.04T) -> DefCon P(hit) 0.60; xG+xA/90 0.080; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.22; cards/90 0.21."
+ },
+ {
+  "id": 327,
+  "name": "Bijol",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.815,
+  "ep_gw": [
+   3.158,
+   3.255,
+   3.622,
+   3.309,
+   2.891,
+   3.385
+  ],
+  "ep_total6": 19.62,
+  "ep_per_million": 3.924,
+  "uncertainty": "MED",
+  "notes": "10 points in GW1 and a 0.65 DefCon floor at £5.0m. LEE played a back five in GW1 (Bijol, Muharemović, Rodon, Bogle and Justin all 90'), which is what caps p_start at 0.81 — five defenders sharing five slots is not the same as four sharing four. | p_start 0.81 (GW1 90'); 1888' / 21 prior starts; CBIT/90 10.67 (ratio 1.07T) -> DefCon P(hit) 0.65; xG+xA/90 0.085; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.20; cards/90 0.19; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 469,
+  "name": "N.Williams",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.885,
+  "ep_gw": [
+   2.583,
+   3.856,
+   3.262,
+   4.19,
+   2.716,
+   2.844
+  ],
+  "ep_total6": 19.45,
+  "ep_per_million": 3.89,
+  "uncertainty": "LOW",
+  "notes": "fk2 + cor1 duty and the best assist rate among nailed sub-£5.5m defenders. His single biggest gameweek is GW5 COV(H) — a ± fixture — so under C4 he should not be bought FOR that fixture. | p_start 0.89 (GW1 90'); 3203' / 36 prior starts; CBIT/90 6.80 (ratio 0.68T) -> DefCon P(hit) 0.19; xG+xA/90 0.153; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.19; cards/90 0.17; set-piece fk2/cor1; ±promoted-club fixtures GW5 = 12% of EP6 (C4 band)."
+ },
+ {
+  "id": 253,
+  "name": "Andersen",
+  "team": "FUL",
+  "price": 5.0,
+  "p_start": 0.8,
+  "ep_gw": [
+   3.439,
+   2.925,
+   2.532,
+   2.971,
+   3.341,
+   4.002
+  ],
+  "ep_total6": 19.21,
+  "ep_per_million": 3.842,
+  "uncertainty": "MED",
+  "notes": "Reinstated. His GW1 zero was a SUSPENSION, not a benching, so the depth-chart demotion every other zero-minute defender takes this week does not apply to him; FPL now lists him 'a' at 100%. FUL's GW2 kick-off is 30 Aug 13:00, after the ban expires. A 0.59 DefCon floor at £5.0m and 0.1% ownership. | p_start 0.80 (GW1 0'); 2882' / 33 prior starts; CBIT/90 10.27 (ratio 1.03T) -> DefCon P(hit) 0.59; xG+xA/90 0.102; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.15; cards/90 0.22; ±promoted-club fixtures GW6,GW7 = 15% of EP6 (C4 band)."
+ },
+ {
+  "id": 449,
+  "name": "Hall",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.829,
+  "ep_gw": [
+   3.093,
+   2.86,
+   2.605,
+   3.807,
+   3.402,
+   3.163
+  ],
+  "ep_total6": 18.93,
+  "ep_per_million": 3.786,
+  "uncertainty": "MED",
+  "notes": "fk1 + cor1 at £5.0m into the NEW swing, but 18.5% of his EP6 is band-derived (HUL H, COV a) — the highest share of any Newcastle defender. | p_start 0.83 (GW1 90'); 2176' / 24 prior starts; CBIT/90 7.73 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.179; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.18; cards/90 0.17; set-piece fk1/cor1; ±promoted-club fixtures GW5,GW6 = 19% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 61,
+  "name": "Truffert",
+  "team": "BOU",
+  "price": 5.5,
+  "p_start": 0.915,
+  "ep_gw": [
+   3.56,
+   3.08,
+   2.87,
+   2.91,
+   2.438,
+   3.921
+  ],
+  "ep_total6": 18.78,
+  "ep_per_million": 3.415,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.92 (GW1 90'); 3378' / 38 prior starts; CBIT/90 7.87 (ratio 0.79T) -> DefCon P(hit) 0.29; xG+xA/90 0.107; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.22; cards/90 0.13."
+ },
+ {
+  "id": 472,
+  "name": "Murillo",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.786,
+  "ep_gw": [
+   2.587,
+   3.609,
+   3.133,
+   3.884,
+   2.695,
+   2.849
+  ],
+  "ep_total6": 18.76,
+  "ep_per_million": 3.411,
+  "uncertainty": "MED",
+  "notes": "p_start 0.79 (GW1 90'); 2130' / 25 prior starts; CBIT/90 10.11 (ratio 1.01T) -> DefCon P(hit) 0.57; xG+xA/90 0.060; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.17; cards/90 0.21; set-piece fk3; ±promoted-club fixtures GW5 = 9% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 471,
+  "name": "Milenković",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.9,
+  "ep_gw": [
+   2.474,
+   3.628,
+   3.09,
+   3.939,
+   2.596,
+   2.777
+  ],
+  "ep_total6": 18.5,
+  "ep_per_million": 3.364,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.90 (GW1 90'); 3375' / 37 prior starts; CBIT/90 8.10 (ratio 0.81T) -> DefCon P(hit) 0.31; xG+xA/90 0.045; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.10; cards/90 0.16; ±promoted-club fixtures GW5 = 10% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 204,
+  "name": "Mitchell",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.885,
+  "ep_gw": [
+   2.448,
+   3.26,
+   3.556,
+   2.838,
+   3.343,
+   2.73
+  ],
+  "ep_total6": 18.18,
+  "ep_per_million": 4.04,
+  "uncertainty": "LOW",
+  "notes": "The best £4.5m defender in the position: 90' in GW1, LOW uncertainty, a settled back-3 wing-back role, and 4.04 EP per £m. Beats Shaw by 0.5 EP6 for the same price with a better clean-sheet ticker. | p_start 0.89 (GW1 90'); 3253' / 36 prior starts; CBIT/90 6.51 (ratio 0.65T) -> DefCon P(hit) 0.17; xG+xA/90 0.104; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.17; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 391,
+  "name": "Gvardiol",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.632,
+  "ep_gw": [
+   2.526,
+   3.627,
+   2.55,
+   3.465,
+   2.402,
+   3.371
+  ],
+  "ep_total6": 17.94,
+  "ep_per_million": 3.262,
+  "uncertainty": "HIGH",
+  "notes": "The textbook rotating premium. He played 90' in GW1 and the model still only reaches p_start 0.63 on 16 prior starts — 13.5% of managers own him at £5.5m, and Thiaw at £5.0m beats him by 6.2 EP6. | p_start 0.63 (GW1 90'); 1370' / 16 prior starts; CBIT/90 6.80 (ratio 0.68T) -> DefCon P(hit) 0.19; xG+xA/90 0.201; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.29; cards/90 0.13; ±promoted-club fixtures GW3,GW7 = 22% of EP6 (C4 band)."
+ },
+ {
+  "id": 112,
+  "name": "Van Hecke",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.794,
+  "ep_gw": [
+   2.935,
+   2.786,
+   3.062,
+   3.088,
+   2.369,
+   3.632
+  ],
+  "ep_total6": 17.87,
+  "ep_per_million": 3.574,
+  "uncertainty": "MED",
+  "notes": "p_start 0.79 (GW1 90'); 3210' / 36 prior starts; CBIT/90 8.66 (ratio 0.87T) -> DefCon P(hit) 0.37; xG+xA/90 0.122; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.21; cards/90 0.25; ±promoted-club fixtures GW7 = 10% of EP6 (C4 band); joined 2026-06-18 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 423,
+  "name": "Shaw",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.9,
+  "ep_gw": [
+   3.375,
+   2.821,
+   2.299,
+   3.097,
+   3.388,
+   2.681
+  ],
+  "ep_total6": 17.66,
+  "ep_per_million": 3.924,
+  "uncertainty": "LOW",
+  "notes": "HELD, and the C4 warning from GW1 repeats verbatim: his single largest non-appearance term in the whole window is GW2 IPS(H) clean sheet (1.33), a ± fixture. That is the exact condition the retro blamed for his GW1 MODEL miss. MUN's ticker then decays to 19% by GW4. £4.5m and 19.7% owned keeps him defensible as an enabler, not as a starter to build around. | p_start 0.90 (GW1 90'); 3220' / 38 prior starts; CBIT/90 5.92 (ratio 0.59T) -> DefCon P(hit) 0.14; xG+xA/90 0.086; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.14; cards/90 0.25; set-piece cor3; ±promoted-club fixtures GW2 = 9% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 87,
+  "name": "Ajer",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.773,
+  "ep_gw": [
+   2.878,
+   3.569,
+   2.803,
+   2.604,
+   3.015,
+   2.729
+  ],
+  "ep_total6": 17.6,
+  "ep_per_million": 3.911,
+  "uncertainty": "MED",
+  "notes": "p_start 0.77 (GW1 90'); 1805' / 20 prior starts; CBIT/90 9.64 (ratio 0.96T) -> DefCon P(hit) 0.50; xG+xA/90 0.076; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.10; cards/90 0.20; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 88,
+  "name": "Kayode",
+  "team": "BRE",
+  "price": 4.6,
+  "p_start": 0.9,
+  "ep_gw": [
+   2.853,
+   3.697,
+   2.772,
+   2.55,
+   3.03,
+   2.688
+  ],
+  "ep_total6": 17.59,
+  "ep_per_million": 3.824,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.90 (GW1 75'); 3258' / 37 prior starts; CBIT/90 5.89 (ratio 0.59T) -> DefCon P(hit) 0.13; xG+xA/90 0.116; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.16; cards/90 0.22; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 418,
+  "name": "Maguire",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.759,
+  "ep_gw": [
+   3.287,
+   2.798,
+   2.341,
+   3.032,
+   3.302,
+   2.67
+  ],
+  "ep_total6": 17.43,
+  "ep_per_million": 3.486,
+  "uncertainty": "MED",
+  "notes": "p_start 0.76 (GW1 90'); 1649' / 19 prior starts; CBIT/90 7.61 (ratio 0.76T) -> DefCon P(hit) 0.26; xG+xA/90 0.091; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.24; cards/90 0.16; ±promoted-club fixtures GW2 = 9% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 332,
+  "name": "Justin",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.759,
+  "ep_gw": [
+   2.805,
+   2.875,
+   3.282,
+   2.949,
+   2.501,
+   3.017
+  ],
+  "ep_total6": 17.43,
+  "ep_per_million": 3.873,
+  "uncertainty": "MED",
+  "notes": "p_start 0.76 (GW1 90'); 1893' / 21 prior starts; CBIT/90 9.20 (ratio 0.92T) -> DefCon P(hit) 0.44; xG+xA/90 0.129; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.21; cards/90 0.19."
+ },
+ {
+  "id": 11,
+  "name": "Mosquera",
+  "team": "ARS",
+  "price": 5.5,
+  "p_start": 0.737,
+  "ep_gw": [
+   2.918,
+   2.539,
+   3.164,
+   2.737,
+   3.014,
+   2.959
+  ],
+  "ep_total6": 17.33,
+  "ep_per_million": 3.151,
+  "uncertainty": "MED",
+  "notes": "p_start 0.74 (GW1 90'); 986' / 9 prior starts; CBIT/90 8.27 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.061; mean P(CS) 39%; fixture attack mult 0.84-1.06 (ATT_club 1.22 divided out); bonus/app 0.25; cards/90 0.36."
+ },
+ {
+  "id": 257,
+  "name": "Bassey",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.885,
+  "ep_gw": [
+   3.112,
+   2.547,
+   2.123,
+   2.6,
+   3.007,
+   3.714
+  ],
+  "ep_total6": 17.1,
+  "ep_per_million": 3.8,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.89 (GW1 90'); 2532' / 28 prior starts; CBIT/90 6.79 (ratio 0.68T) -> DefCon P(hit) 0.19; xG+xA/90 0.069; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.17; cards/90 0.18; ±promoted-club fixtures GW6,GW7 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 329,
+  "name": "Rodon",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.862,
+  "ep_gw": [
+   2.721,
+   2.833,
+   3.187,
+   2.878,
+   2.467,
+   2.961
+  ],
+  "ep_total6": 17.05,
+  "ep_per_million": 3.789,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.86 (GW1 90'); 2952' / 33 prior starts; CBIT/90 8.15 (ratio 0.81T) -> DefCon P(hit) 0.32; xG+xA/90 0.064; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.12; cards/90 0.09; GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 115,
+  "name": "De Cuyper",
+  "team": "BHA",
+  "price": 4.6,
+  "p_start": 0.653,
+  "ep_gw": [
+   2.225,
+   2.999,
+   3.418,
+   2.439,
+   3.202,
+   2.756
+  ],
+  "ep_total6": 17.04,
+  "ep_per_million": 3.704,
+  "uncertainty": "HIGH",
+  "notes": "Read this one carefully: 1.47 xG in 77 GW1 minutes is the single largest attacking outlier of any defender in the round, and the [0.40x, 2.50x] single-match guard band is doing most of the work holding his number down. Without the clip his EP6 would read 21.2. p_start 0.65 and no DefCon floor at all (0.03). | p_start 0.65 (GW1 77'); 1404' / 17 prior starts; CBIT/90 4.18 (ratio 0.42T) -> DefCon P(hit) 0.03; xG+xA/90 0.386; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.30; cards/90 0.13; set-piece fk4/cor2; ±promoted-club fixtures GW4 = 12% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 36,
+  "name": "Maatsen",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.773,
+  "ep_gw": [
+   2.376,
+   3.416,
+   3.072,
+   3.039,
+   2.461,
+   2.678
+  ],
+  "ep_total6": 17.04,
+  "ep_per_million": 3.787,
+  "uncertainty": "MED",
+  "notes": "p_start 0.77 (GW1 81'); 1590' / 17 prior starts; CBIT/90 7.62 (ratio 0.76T) -> DefCon P(hit) 0.26; xG+xA/90 0.191; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.17; cards/90 0.11; ±promoted-club fixtures GW3 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 142,
+  "name": "James",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.759,
+  "ep_gw": [
+   2.866,
+   2.208,
+   3.778,
+   2.235,
+   2.912,
+   2.858
+  ],
+  "ep_total6": 16.86,
+  "ep_per_million": 3.065,
+  "uncertainty": "MED",
+  "notes": "Highest bonus per appearance in the position alongside White (0.37) on 22.7 prior bps/90, plus fk1 + cor1. 90' in GW1 lifted p_start from 0.70 to 0.76, but 20 prior starts is why he is still MED. | p_start 0.76 (GW1 90'); 1957' / 20 prior starts; CBIT/90 5.90 (ratio 0.59T) -> DefCon P(hit) 0.13; xG+xA/90 0.191; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.35; cards/90 0.18; set-piece fk1/cor1; ±promoted-club fixtures GW4 = 12% of EP6 (C4 band)."
+ },
+ {
+  "id": 358,
+  "name": "Kerkez",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.839,
+  "ep_gw": [
+   3.158,
+   3.057,
+   3.345,
+   2.58,
+   2.294,
+   2.199
+  ],
+  "ep_total6": 16.63,
+  "ep_per_million": 3.024,
+  "uncertainty": "MED",
+  "notes": "p_start 0.84 (GW1 90'); 2251' / 27 prior starts; CBIT/90 5.60 (ratio 0.56T) -> DefCon P(hit) 0.12; xG+xA/90 0.081; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.18; cards/90 0.16; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 328,
+  "name": "Struijk",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.7,
+  "ep_gw": [
+   2.165,
+   2.916,
+   3.285,
+   2.496,
+   3.089,
+   2.656
+  ],
+  "ep_total6": 16.61,
+  "ep_per_million": 3.322,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.70 (GW1 0'); 2935' / 33 prior starts; CBIT/90 8.76 (ratio 0.88T) -> DefCon P(hit) 0.39; xG+xA/90 0.117; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.15; cards/90 0.15; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-06-30 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 532,
+  "name": "Ballard",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.724,
+  "ep_gw": [
+   3.49,
+   2.412,
+   2.665,
+   2.256,
+   3.018,
+   2.765
+  ],
+  "ep_total6": 16.61,
+  "ep_per_million": 3.322,
+  "uncertainty": "MED",
+  "notes": "p_start 0.72 (GW1 90'); 2144' / 24 prior starts; CBIT/90 10.77 (ratio 1.08T) -> DefCon P(hit) 0.67; xG+xA/90 0.118; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.18; cards/90 0.17."
+ },
+ {
+  "id": 304,
+  "name": "O'Shea",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.71,
+  "ep_gw": [
+   2.528,
+   2.603,
+   2.477,
+   2.871,
+   3.299,
+   2.217
+  ],
+  "ep_total6": 16.0,
+  "ep_per_million": 4.0,
+  "uncertainty": "HIGH",
+  "notes": "The best true £4.0m enabler on EP, but read the tag: his prior is IPS's 2024/25 Premier League season (decayed 10%), his 0.72 DefCon floor rests on ONE observed match (18 DC in GW1), and IPS carry the ±15pp band with an 18% mean clean-sheet ticker. Bench fodder with a floor, not a starter. | p_start 0.71 (GW1 90'); 3122' / 35 prior starts; CBIT/90 11.28 (ratio 1.13T) -> DefCon P(hit) 0.72; xG+xA/90 0.065; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.05; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 26% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 254,
+  "name": "Robinson",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.702,
+  "ep_gw": [
+   2.855,
+   2.392,
+   2.012,
+   2.427,
+   2.761,
+   3.418
+  ],
+  "ep_total6": 15.87,
+  "ep_per_million": 3.527,
+  "uncertainty": "MED",
+  "notes": "p_start 0.70 (GW1 81'); 1487' / 17 prior starts; CBIT/90 8.17 (ratio 0.82T) -> DefCon P(hit) 0.32; xG+xA/90 0.164; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.23; cards/90 0.30; set-piece pen2; ±promoted-club fixtures GW6,GW7 = 19% of EP6 (C4 band)."
+ },
+ {
+  "id": 499,
+  "name": "Pedro Porro",
+  "team": "TOT",
+  "price": 5.5,
+  "p_start": 0.776,
+  "ep_gw": [
+   2.6,
+   2.445,
+   2.721,
+   2.748,
+   2.038,
+   3.282
+  ],
+  "ep_total6": 15.83,
+  "ep_per_million": 2.878,
+  "uncertainty": "MED",
+  "notes": "13.6% owned and did not play a minute in GW1 while Senesi, Van Hecke and Robertson went 90. His 100% fitness flag was cleared the day of the GW1 deadline, so the zero is confounded with injury management rather than a clean demotion — that is the only reason p_start is 0.78 and not 0.60. | p_start 0.78 (GW1 0'); 2793' / 32 prior starts; CBIT/90 7.02 (ratio 0.70T) -> DefCon P(hit) 0.20; xG+xA/90 0.175; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.22; cards/90 0.32; set-piece fk1/cor1; ±promoted-club fixtures GW7 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 258,
+  "name": "Castagne",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.724,
+  "ep_gw": [
+   2.818,
+   2.34,
+   1.949,
+   2.377,
+   2.721,
+   3.398
+  ],
+  "ep_total6": 15.6,
+  "ep_per_million": 3.467,
+  "uncertainty": "MED",
+  "notes": "p_start 0.72 (GW1 90'); 1838' / 20 prior starts; CBIT/90 6.98 (ratio 0.70T) -> DefCon P(hit) 0.20; xG+xA/90 0.164; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.18; cards/90 0.20; ±promoted-club fixtures GW6,GW7 = 20% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 535,
+  "name": "Alderete",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.787,
+  "ep_gw": [
+   3.327,
+   2.213,
+   2.509,
+   2.07,
+   2.843,
+   2.579
+  ],
+  "ep_total6": 15.54,
+  "ep_per_million": 3.108,
+  "uncertainty": "MED",
+  "notes": "p_start 0.79 (GW1 23'); 2797' / 32 prior starts; CBIT/90 9.81 (ratio 0.98T) -> DefCon P(hit) 0.52; xG+xA/90 0.081; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.15; cards/90 0.19."
+ },
+ {
+  "id": 233,
+  "name": "Mykolenko",
+  "team": "EVE",
+  "price": 4.5,
+  "p_start": 0.862,
+  "ep_gw": [
+   2.235,
+   2.391,
+   2.759,
+   3.013,
+   3.108,
+   2.017
+  ],
+  "ep_total6": 15.52,
+  "ep_per_million": 3.449,
+  "uncertainty": "LOW",
+  "notes": "The cheapest route into EVE's back three at £4.5m with 90' in GW1 and LOW uncertainty, though EVE's run now ends at GW7 CHE(H) rather than running clean. | p_start 0.86 (GW1 90'); 2959' / 33 prior starts; CBIT/90 6.57 (ratio 0.66T) -> DefCon P(hit) 0.17; xG+xA/90 0.079; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.10; cards/90 0.18; ±promoted-club fixtures GW5,GW6 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 113,
+  "name": "F.Kadıoğlu",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.751,
+  "ep_gw": [
+   1.91,
+   2.718,
+   3.117,
+   2.261,
+   2.906,
+   2.439
+  ],
+  "ep_total6": 15.35,
+  "ep_per_million": 3.411,
+  "uncertainty": "MED",
+  "notes": "p_start 0.75 (GW1 0'); 3130' / 34 prior starts; CBIT/90 4.89 (ratio 0.49T) -> DefCon P(hit) 0.07; xG+xA/90 0.154; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.19; cards/90 0.17; set-piece cor3; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 390,
+  "name": "Rúben",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.653,
+  "ep_gw": [
+   2.141,
+   3.042,
+   2.179,
+   2.91,
+   2.034,
+   2.842
+  ],
+  "ep_total6": 15.15,
+  "ep_per_million": 2.755,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.65 (GW1 90'); 2139' / 24 prior starts; CBIT/90 6.87 (ratio 0.69T) -> DefCon P(hit) 0.19; xG+xA/90 0.055; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.28; cards/90 0.13; ±promoted-club fixtures GW3,GW7 = 19% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 330,
+  "name": "Bogle",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.824,
+  "ep_gw": [
+   2.411,
+   2.486,
+   2.932,
+   2.568,
+   2.078,
+   2.642
+  ],
+  "ep_total6": 15.12,
+  "ep_per_million": 3.36,
+  "uncertainty": "MED",
+  "notes": "p_start 0.82 (GW1 90'); 2795' / 32 prior starts; CBIT/90 5.32 (ratio 0.53T) -> DefCon P(hit) 0.10; xG+xA/90 0.152; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.09; cards/90 0.19."
+ },
+ {
+  "id": 32,
+  "name": "Cash",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.862,
+  "ep_gw": [
+   2.078,
+   3.09,
+   2.777,
+   2.715,
+   2.098,
+   2.306
+  ],
+  "ep_total6": 15.06,
+  "ep_per_million": 3.347,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.86 (GW1 90'); 3016' / 34 prior starts; CBIT/90 5.77 (ratio 0.58T) -> DefCon P(hit) 0.13; xG+xA/90 0.111; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.16; cards/90 0.27; set-piece cor1; ±promoted-club fixtures GW3 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 334,
+  "name": "Muharemović",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.769,
+  "ep_gw": [
+   2.386,
+   2.474,
+   2.832,
+   2.529,
+   2.124,
+   2.6
+  ],
+  "ep_total6": 14.95,
+  "ep_per_million": 2.99,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.77 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 7.61 (ratio 0.76T) -> DefCon P(hit) 0.26; xG+xA/90 0.097; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.12; cards/90 0.17; joined 2026-07-17 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 175,
+  "name": "van Ewijk",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.783,
+  "ep_gw": [
+   3.231,
+   1.647,
+   2.414,
+   2.43,
+   2.512,
+   2.621
+  ],
+  "ep_total6": 14.86,
+  "ep_per_million": 3.715,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.78 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 8.59 (ratio 0.86T) -> DefCon P(hit) 0.36; xG+xA/90 0.065; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 35% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 173,
+  "name": "Thomas",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.754,
+  "ep_gw": [
+   3.202,
+   1.674,
+   2.414,
+   2.429,
+   2.509,
+   2.614
+  ],
+  "ep_total6": 14.84,
+  "ep_per_million": 3.71,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.75 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 9.04 (ratio 0.90T) -> DefCon P(hit) 0.42; xG+xA/90 0.066; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 33% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 116,
+  "name": "Dunk",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.763,
+  "ep_gw": [
+   1.801,
+   2.599,
+   2.98,
+   2.189,
+   2.776,
+   2.315
+  ],
+  "ep_total6": 14.66,
+  "ep_per_million": 3.258,
+  "uncertainty": "MED",
+  "notes": "p_start 0.76 (GW1 90'); 2837' / 31 prior starts; CBIT/90 6.67 (ratio 0.67T) -> DefCon P(hit) 0.18; xG+xA/90 0.074; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.17; cards/90 0.32; set-piece fk3; ±promoted-club fixtures GW4 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 357,
+  "name": "Frimpong",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.688,
+  "ep_gw": [
+   2.752,
+   2.675,
+   2.929,
+   2.271,
+   2.017,
+   1.944
+  ],
+  "ep_total6": 14.59,
+  "ep_per_million": 2.653,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.69 (GW1 90'); 1032' / 12 prior starts; CBIT/90 2.52 (ratio 0.25T) -> DefCon P(hit) 0.02; xG+xA/90 0.168; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.31; cards/90 0.09; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 9,
+  "name": "Hincapie",
+  "team": "ARS",
+  "price": 5.4,
+  "p_start": 0.556,
+  "ep_gw": [
+   2.447,
+   2.16,
+   2.636,
+   2.29,
+   2.516,
+   2.457
+  ],
+  "ep_total6": 14.51,
+  "ep_per_million": 2.687,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.56 (GW1 9'); 1787' / 20 prior starts; CBIT/90 8.31 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.105; mean P(CS) 39%; fixture attack mult 0.84-1.06 (ATT_club 1.22 divided out); bonus/app 0.22; cards/90 0.10; joined 2026-07-01 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 230,
+  "name": "Branthwaite",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.678,
+  "ep_gw": [
+   2.134,
+   2.257,
+   2.548,
+   2.751,
+   2.827,
+   1.964
+  ],
+  "ep_total6": 14.48,
+  "ep_per_million": 2.633,
+  "uncertainty": "HIGH",
+  "notes": "90' in GW1 is a real upgrade on a 678-minute prior, but 7 prior starts is thin evidence and EVE's back three of Tarkowski, Branthwaite and Mykolenko has only one gameweek behind it. | p_start 0.68 (GW1 90'); 678' / 7 prior starts; CBIT/90 8.76 (ratio 0.88T) -> DefCon P(hit) 0.39; xG+xA/90 0.055; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.18; cards/90 0.13; ±promoted-club fixtures GW5,GW6 = 15% of EP6 (C4 band)."
+ },
+ {
+  "id": 255,
+  "name": "J.Cuenca",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.667,
+  "ep_gw": [
+   2.606,
+   2.189,
+   1.893,
+   2.232,
+   2.533,
+   3.013
+  ],
+  "ep_total6": 14.47,
+  "ep_per_million": 3.216,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.67 (GW1 90'); 935' / 11 prior starts; CBIT/90 11.07 (ratio 1.11T) -> DefCon P(hit) 0.70; xG+xA/90 0.052; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.19; cards/90 0.58; ±promoted-club fixtures GW6,GW7 = 14% of EP6 (C4 band)."
+ },
+ {
+  "id": 417,
+  "name": "Dalot",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.637,
+  "ep_gw": [
+   2.755,
+   2.317,
+   1.91,
+   2.514,
+   2.773,
+   2.194
+  ],
+  "ep_total6": 14.46,
+  "ep_per_million": 2.892,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.64 (GW1 10'); 2609' / 29 prior starts; CBIT/90 6.36 (ratio 0.64T) -> DefCon P(hit) 0.16; xG+xA/90 0.154; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.18; cards/90 0.17; ±promoted-club fixtures GW2 = 10% of EP6 (C4 band); GW1 dc per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 502,
+  "name": "Robertson",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.65,
+  "ep_gw": [
+   2.371,
+   2.221,
+   2.467,
+   2.493,
+   1.88,
+   2.945
+  ],
+  "ep_total6": 14.38,
+  "ep_per_million": 3.196,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.65 (GW1 90'); 1165' / 11 prior starts; CBIT/90 6.00 (ratio 0.60T) -> DefCon P(hit) 0.14; xG+xA/90 0.162; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.22; set-piece cor3; ±promoted-club fixtures GW7 = 10% of EP6 (C4 band); joined 2026-07-01 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 259,
+  "name": "Diop",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.863,
+  "ep_gw": [
+   2.215,
+   2.326,
+   2.158,
+   2.656,
+   3.205,
+   1.813
+  ],
+  "ep_total6": 14.37,
+  "ep_per_million": 3.592,
+  "uncertainty": "HIGH",
+  "notes": "17.1% owned — the market's default cheap defender — and the model now rates him BEHIND his own team-mate O'Shea, whose GW1 DefCon count was 18 to Diop's 5. | p_start 0.86 (GW1 90'); 812' / 8 prior starts; CBIT/90 6.70 (ratio 0.67T) -> DefCon P(hit) 0.18; xG+xA/90 0.092; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.13; cards/90 0.22; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 41% of EP6 (C4 band); joined 2026-07-22 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 533,
+  "name": "Mukiele",
+  "team": "SUN",
+  "price": 5.5,
+  "p_start": 0.725,
+  "ep_gw": [
+   3.099,
+   2.032,
+   2.29,
+   1.882,
+   2.632,
+   2.382
+  ],
+  "ep_total6": 14.32,
+  "ep_per_million": 2.604,
+  "uncertainty": "MED",
+  "notes": "p_start 0.72 (GW1 0'); 2784' / 32 prior starts; CBIT/90 8.83 (ratio 0.88T) -> DefCon P(hit) 0.39; xG+xA/90 0.138; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.21; cards/90 0.16."
+ },
+ {
+  "id": 231,
+  "name": "Keane",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.54,
+  "ep_gw": [
+   2.116,
+   2.22,
+   2.462,
+   2.64,
+   2.705,
+   1.992
+  ],
+  "ep_total6": 14.14,
+  "ep_per_million": 2.828,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.54 (GW1 0'); 2588' / 29 prior starts; CBIT/90 10.50 (ratio 1.05T) -> DefCon P(hit) 0.62; xG+xA/90 0.097; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.17; cards/90 0.04; ±promoted-club fixtures GW5,GW6 = 15% of EP6 (C4 band)."
+ },
+ {
+  "id": 534,
+  "name": "Hume",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.885,
+  "ep_gw": [
+   3.196,
+   1.886,
+   2.197,
+   1.699,
+   2.622,
+   2.315
+  ],
+  "ep_total6": 13.91,
+  "ep_per_million": 3.091,
+  "uncertainty": "LOW",
+  "notes": "p_start 0.89 (GW1 79'); 3032' / 34 prior starts; CBIT/90 5.83 (ratio 0.58T) -> DefCon P(hit) 0.13; xG+xA/90 0.137; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.12; cards/90 0.27; set-piece cor3; GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 393,
+  "name": "Khusanov",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.561,
+  "ep_gw": [
+   1.959,
+   2.782,
+   1.989,
+   2.661,
+   1.863,
+   2.597
+  ],
+  "ep_total6": 13.85,
+  "ep_per_million": 2.518,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.56 (GW1 90'); 1427' / 15 prior starts; CBIT/90 7.19 (ratio 0.72T) -> DefCon P(hit) 0.22; xG+xA/90 0.107; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.27; cards/90 0.13; ±promoted-club fixtures GW3,GW7 = 19% of EP6 (C4 band)."
+ },
+ {
+  "id": 389,
+  "name": "Matheus N.",
+  "team": "MCI",
+  "price": 6.0,
+  "p_start": 0.602,
+  "ep_gw": [
+   1.945,
+   2.789,
+   1.98,
+   2.665,
+   1.846,
+   2.601
+  ],
+  "ep_total6": 13.83,
+  "ep_per_million": 2.305,
+  "uncertainty": "HIGH",
+  "notes": "75% chance of playing for GW2, and he managed only 33 minutes in GW1 while four MCI defenders played 90. | p_start 0.60 (GW1 33'); 2861' / 32 prior starts; CBIT/90 5.95 (ratio 0.59T) -> DefCon P(hit) 0.14; xG+xA/90 0.083; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.32; cards/90 0.16; set-piece pen5; ±promoted-club fixtures GW3,GW7 = 19% of EP6 (C4 band); FLAG: Unspecified injury - 75% chance of playing."
+ },
+ {
+  "id": 422,
+  "name": "Mazraoui",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.608,
+  "ep_gw": [
+   2.575,
+   2.205,
+   1.856,
+   2.392,
+   2.583,
+   2.113
+  ],
+  "ep_total6": 13.72,
+  "ep_per_million": 3.049,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.61 (GW1 79'); 977' / 11 prior starts; CBIT/90 8.27 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.064; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.33; cards/90 0.28; ±promoted-club fixtures GW2 = 8% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 34,
+  "name": "Pau",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.706,
+  "ep_gw": [
+   1.915,
+   2.755,
+   2.493,
+   2.445,
+   1.937,
+   2.11
+  ],
+  "ep_total6": 13.65,
+  "ep_per_million": 3.033,
+  "uncertainty": "MED",
+  "notes": "p_start 0.71 (GW1 73'); 1673' / 18 prior starts; CBIT/90 6.04 (ratio 0.60T) -> DefCon P(hit) 0.14; xG+xA/90 0.086; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.19; cards/90 0.05; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 130,
+  "name": "Wieffer",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.582,
+  "ep_gw": [
+   1.758,
+   2.397,
+   2.718,
+   2.015,
+   2.549,
+   2.18
+  ],
+  "ep_total6": 13.62,
+  "ep_per_million": 2.724,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.58 (GW1 77'); 1901' / 23 prior starts; CBIT/90 8.09 (ratio 0.81T) -> DefCon P(hit) 0.31; xG+xA/90 0.177; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.27; cards/90 0.38; ±promoted-club fixtures GW4 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 362,
+  "name": "Jacquet",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.66,
+  "ep_gw": [
+   2.571,
+   2.491,
+   2.717,
+   2.117,
+   1.892,
+   1.817
+  ],
+  "ep_total6": 13.61,
+  "ep_per_million": 2.722,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.66 (GW1 69'); no PL history — rates from the DEF positional prior; CBIT/90 7.28 (ratio 0.73T) -> DefCon P(hit) 0.23; xG+xA/90 0.089; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 8% of EP6 (C4 band); joined 2026-07-01 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 182,
+  "name": "Amenda",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.7,
+  "ep_gw": [
+   2.941,
+   1.525,
+   2.21,
+   2.225,
+   2.298,
+   2.395
+  ],
+  "ep_total6": 13.59,
+  "ep_per_million": 3.397,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.70 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 8.89 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.065; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); joined 2026-07-16 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 144,
+  "name": "Gusto",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.656,
+  "ep_gw": [
+   2.31,
+   1.757,
+   3.081,
+   1.772,
+   2.346,
+   2.304
+  ],
+  "ep_total6": 13.57,
+  "ep_per_million": 2.714,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.66 (GW1 75'); 2255' / 26 prior starts; CBIT/90 4.85 (ratio 0.48T) -> DefCon P(hit) 0.07; xG+xA/90 0.167; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.22; cards/90 0.12; ±promoted-club fixtures GW4 = 13% of EP6 (C4 band)."
+ },
+ {
+  "id": 149,
+  "name": "Colwill",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.667,
+  "ep_gw": [
+   2.246,
+   1.751,
+   2.947,
+   1.725,
+   2.264,
+   2.238
+  ],
+  "ep_total6": 13.17,
+  "ep_per_million": 2.634,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.67 (GW1 90'); 225' / 2 prior starts; CBIT/90 7.16 (ratio 0.72T) -> DefCon P(hit) 0.22; xG+xA/90 0.088; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 566,
+  "name": "Silva",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.65,
+  "ep_gw": [
+   2.494,
+   2.154,
+   2.007,
+   2.036,
+   1.702,
+   2.748
+  ],
+  "ep_total6": 13.14,
+  "ep_per_million": 2.628,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.65 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 8.51 (ratio 0.85T) -> DefCon P(hit) 0.35; xG+xA/90 0.086; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.12; cards/90 0.17; joined 2026-08-01 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 282,
+  "name": "Giles",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.725,
+  "ep_gw": [
+   2.612,
+   2.349,
+   1.466,
+   1.971,
+   2.362,
+   2.329
+  ],
+  "ep_total6": 13.09,
+  "ep_per_million": 3.272,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.72 (GW1 84'); no PL history — rates from the DEF positional prior; CBIT/90 8.53 (ratio 0.85T) -> DefCon P(hit) 0.35; xG+xA/90 0.075; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; set-piece fk1/cor1; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 232,
+  "name": "O'Brien",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.693,
+  "ep_gw": [
+   1.885,
+   2.014,
+   2.316,
+   2.53,
+   2.61,
+   1.717
+  ],
+  "ep_total6": 13.07,
+  "ep_per_million": 2.614,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.69 (GW1 0'); 3118' / 35 prior starts; CBIT/90 6.67 (ratio 0.67T) -> DefCon P(hit) 0.18; xG+xA/90 0.077; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.10; cards/90 0.17; ±promoted-club fixtures GW5,GW6 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 269,
+  "name": "Sessegnon",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.556,
+  "ep_gw": [
+   2.327,
+   1.959,
+   1.655,
+   1.987,
+   2.251,
+   2.779
+  ],
+  "ep_total6": 12.96,
+  "ep_per_million": 2.88,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.56 (GW1 17'); 1816' / 20 prior starts; CBIT/90 7.08 (ratio 0.71T) -> DefCon P(hit) 0.21; xG+xA/90 0.169; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.22; ±promoted-club fixtures GW6,GW7 = 19% of EP6 (C4 band)."
+ },
+ {
+  "id": 306,
+  "name": "Greaves",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.725,
+  "ep_gw": [
+   2.008,
+   2.084,
+   1.956,
+   2.358,
+   2.795,
+   1.691
+  ],
+  "ep_total6": 12.89,
+  "ep_per_million": 3.223,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.72 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 8.59 (ratio 0.86T) -> DefCon P(hit) 0.36; xG+xA/90 0.065; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 305,
+  "name": "Davis",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.748,
+  "ep_gw": [
+   1.963,
+   2.068,
+   1.916,
+   2.357,
+   2.845,
+   1.603
+  ],
+  "ep_total6": 12.75,
+  "ep_per_million": 3.188,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.75 (GW1 90'); 2742' / 32 prior starts; CBIT/90 5.23 (ratio 0.52T) -> DefCon P(hit) 0.09; xG+xA/90 0.171; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.05; set-piece fk2/cor2; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 44% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 593,
+  "name": "Dedić",
+  "team": "NEW",
+  "price": 4.5,
+  "p_start": 0.6,
+  "ep_gw": [
+   2.055,
+   1.885,
+   1.732,
+   2.519,
+   2.27,
+   2.086
+  ],
+  "ep_total6": 12.55,
+  "ep_per_million": 2.789,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.60 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 7.91 (ratio 0.79T) -> DefCon P(hit) 0.29; xG+xA/90 0.088; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5,GW6 = 17% of EP6 (C4 band); joined 2026-08-18 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 504,
+  "name": "Vuskovic",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.6,
+  "ep_gw": [
+   1.564,
+   2.198,
+   2.506,
+   1.859,
+   2.342,
+   1.976
+  ],
+  "ep_total6": 12.45,
+  "ep_per_million": 2.49,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.60 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 7.16 (ratio 0.72T) -> DefCon P(hit) 0.22; xG+xA/90 0.103; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 10% of EP6 (C4 band); joined 2026-07-14 — prior shrunk 25% toward the positional mean; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 421,
+  "name": "Heaven",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.55,
+  "ep_gw": [
+   2.331,
+   1.993,
+   1.674,
+   2.162,
+   2.338,
+   1.908
+  ],
+  "ep_total6": 12.41,
+  "ep_per_million": 2.758,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.55 (GW1 90'); 920' / 11 prior starts; CBIT/90 8.28 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.062; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.21; cards/90 0.20; ±promoted-club fixtures GW2 = 8% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 473,
+  "name": "Aina",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.6,
+  "ep_gw": [
+   1.614,
+   2.409,
+   2.039,
+   2.622,
+   1.698,
+   1.809
+  ],
+  "ep_total6": 12.19,
+  "ep_per_million": 2.709,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.60 (GW1 73'); 1587' / 18 prior starts; CBIT/90 6.83 (ratio 0.68T) -> DefCon P(hit) 0.19; xG+xA/90 0.083; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.19; cards/90 0.17; ±promoted-club fixtures GW5 = 11% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 31,
+  "name": "Konsa",
+  "team": "ARS",
+  "price": 4.5,
+  "p_start": 0.5,
+  "ep_gw": [
+   2.039,
+   1.781,
+   2.208,
+   1.903,
+   2.102,
+   2.054
+  ],
+  "ep_total6": 12.09,
+  "ep_per_million": 2.687,
+  "uncertainty": "HIGH",
+  "notes": "Moved to ARS since the GW1 file was written, and unused in GW1 while Gabriel, White, Mosquera and Calafiori played. 10.9% ownership is pricing an Arsenal starting job he does not currently hold; p_start is a manual 0.50 override because the mechanical update inherits his AVL base. Saliba and Timber returning makes this worse, not better. | p_start 0.50 (GW1 0'); 3035' / 34 prior starts; CBIT/90 6.29 (ratio 0.63T) -> DefCon P(hit) 0.16; xG+xA/90 0.071; mean P(CS) 39%; fixture attack mult 0.84-1.06 (ATT_club 1.22 divided out); bonus/app 0.19; joined 2026-08 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 176,
+  "name": "Dasilva",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.637,
+  "ep_gw": [
+   2.61,
+   1.32,
+   1.944,
+   1.957,
+   2.024,
+   2.113
+  ],
+  "ep_total6": 11.97,
+  "ep_per_million": 2.993,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.64 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 8.44 (ratio 0.84T) -> DefCon P(hit) 0.34; xG+xA/90 0.066; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 35% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 64,
+  "name": "Smith",
+  "team": "BOU",
+  "price": 4.5,
+  "p_start": 0.759,
+  "ep_gw": [
+   2.302,
+   1.919,
+   1.776,
+   1.814,
+   1.444,
+   2.574
+  ],
+  "ep_total6": 11.83,
+  "ep_per_million": 2.629,
+  "uncertainty": "MED",
+  "notes": "p_start 0.76 (GW1 90'); 1073' / 14 prior starts; CBIT/90 5.74 (ratio 0.57T) -> DefCon P(hit) 0.12; xG+xA/90 0.018; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.20; cards/90 0.25."
+ },
+ {
+  "id": 256,
+  "name": "Tete",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.523,
+  "ep_gw": [
+   2.112,
+   1.774,
+   1.512,
+   1.804,
+   2.047,
+   2.491
+  ],
+  "ep_total6": 11.74,
+  "ep_per_million": 2.609,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.52 (GW1 0'); 1791' / 21 prior starts; CBIT/90 8.29 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.120; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.21; cards/90 0.10; ±promoted-club fixtures GW6,GW7 = 17% of EP6 (C4 band)."
+ },
+ {
+  "id": 503,
+  "name": "Van de Ven",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.607,
+  "ep_gw": [
+   1.904,
+   1.805,
+   2.005,
+   2.023,
+   1.487,
+   2.436
+  ],
+  "ep_total6": 11.66,
+  "ep_per_million": 2.332,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.61 (GW1 0'); 3041' / 35 prior starts; CBIT/90 6.27 (ratio 0.63T) -> DefCon P(hit) 0.16; xG+xA/90 0.095; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.14; cards/90 0.27; ±promoted-club fixtures GW7 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 114,
+  "name": "Boscagli",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.55,
+  "ep_gw": [
+   1.479,
+   2.041,
+   2.303,
+   1.775,
+   2.161,
+   1.836
+  ],
+  "ep_total6": 11.6,
+  "ep_per_million": 2.578,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.55 (GW1 90'); 799' / 9 prior starts; CBIT/90 8.37 (ratio 0.84T) -> DefCon P(hit) 0.34; xG+xA/90 0.056; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.28; cards/90 0.23; ±promoted-club fixtures GW4 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 586,
+  "name": "Mendy",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.56,
+  "ep_gw": [
+   2.224,
+   2.022,
+   1.336,
+   1.729,
+   2.031,
+   2.004
+  ],
+  "ep_total6": 11.35,
+  "ep_per_million": 2.837,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.56 (GW1 63'); no PL history — rates from the DEF positional prior; CBIT/90 9.89 (ratio 0.99T) -> DefCon P(hit) 0.54; xG+xA/90 0.075; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 31% of EP6 (C4 band); joined 2026-08-12 — prior shrunk 25% toward the positional mean; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 474,
+  "name": "Jair Cunha",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.521,
+  "ep_gw": [
+   1.529,
+   2.211,
+   1.893,
+   2.394,
+   1.601,
+   1.701
+  ],
+  "ep_total6": 11.33,
+  "ep_per_million": 2.518,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.52 (GW1 90'); 514' / 6 prior starts; CBIT/90 8.20 (ratio 0.82T) -> DefCon P(hit) 0.32; xG+xA/90 0.053; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.05; ±promoted-club fixtures GW5 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 151,
+  "name": "Acheampong",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.521,
+  "ep_gw": [
+   1.907,
+   1.499,
+   2.483,
+   1.492,
+   1.928,
+   1.902
+  ],
+  "ep_total6": 11.21,
+  "ep_per_million": 2.491,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.52 (GW1 90'); 657' / 8 prior starts; CBIT/90 7.37 (ratio 0.74T) -> DefCon P(hit) 0.24; xG+xA/90 0.094; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.22; cards/90 0.14; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 420,
+  "name": "Yoro",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.473,
+  "ep_gw": [
+   2.109,
+   1.798,
+   1.508,
+   1.944,
+   2.119,
+   1.715
+  ],
+  "ep_total6": 11.19,
+  "ep_per_million": 2.238,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.47 (GW1 0'); 1730' / 18 prior starts; CBIT/90 8.12 (ratio 0.81T) -> DefCon P(hit) 0.31; xG+xA/90 0.100; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.09; cards/90 0.05; ±promoted-club fixtures GW2 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 446,
+  "name": "Schär",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.416,
+  "ep_gw": [
+   1.751,
+   1.634,
+   1.508,
+   2.105,
+   1.905,
+   1.785
+  ],
+  "ep_total6": 10.69,
+  "ep_per_million": 2.138,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.42 (GW1 1'); 1089' / 11 prior starts; CBIT/90 9.49 (ratio 0.95T) -> DefCon P(hit) 0.48; xG+xA/90 0.130; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.20; cards/90 0.08; set-piece fk2; ±promoted-club fixtures GW5,GW6 = 16% of EP6 (C4 band)."
+ },
+ {
+  "id": 277,
+  "name": "Egan",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.754,
+  "ep_gw": [
+   2.221,
+   1.939,
+   1.056,
+   1.559,
+   1.959,
+   1.942
+  ],
+  "ep_total6": 10.68,
+  "ep_per_million": 2.67,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.75 (GW1 90'); 482' / 6 prior starts; CBIT/90 0.01 (ratio 0.00T) -> DefCon P(hit) 0.02; xG+xA/90 0.029; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.09; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 37% of EP6 (C4 band); GW1 dc per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 62,
+  "name": "Diakité",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.555,
+  "ep_gw": [
+   1.947,
+   1.667,
+   1.563,
+   1.591,
+   1.32,
+   2.146
+  ],
+  "ep_total6": 10.23,
+  "ep_per_million": 2.046,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.56 (GW1 0'); 1275' / 15 prior starts; CBIT/90 8.26 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.015; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.12; cards/90 0.07."
+ },
+ {
+  "id": 395,
+  "name": "Lewis",
+  "team": "MCI",
+  "price": 4.5,
+  "p_start": 0.405,
+  "ep_gw": [
+   1.376,
+   2.101,
+   1.39,
+   1.994,
+   1.295,
+   1.931
+  ],
+  "ep_total6": 10.09,
+  "ep_per_million": 2.242,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.41 (GW1 56'); 401' / 4 prior starts; CBIT/90 4.17 (ratio 0.42T) -> DefCon P(hit) 0.03; xG+xA/90 0.343; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.22; cards/90 0.45; ±promoted-club fixtures GW3,GW7 = 27% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 419,
+  "name": "Martinez",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.444,
+  "ep_gw": [
+   1.877,
+   1.614,
+   1.365,
+   1.75,
+   1.881,
+   1.551
+  ],
+  "ep_total6": 10.04,
+  "ep_per_million": 2.008,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.44 (GW1 0'); 1229' / 13 prior starts; CBIT/90 7.69 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.055; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.25; ±promoted-club fixtures GW2 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 33,
+  "name": "Mings",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.485,
+  "ep_gw": [
+   1.401,
+   2.014,
+   1.817,
+   1.79,
+   1.434,
+   1.561
+  ],
+  "ep_total6": 10.02,
+  "ep_per_million": 2.227,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.48 (GW1 16'); 1322' / 15 prior starts; CBIT/90 7.24 (ratio 0.72T) -> DefCon P(hit) 0.22; xG+xA/90 0.115; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.12; cards/90 0.07; ±promoted-club fixtures GW3 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 579,
+  "name": "Araujo",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.45,
+  "ep_gw": [
+   1.832,
+   1.778,
+   1.934,
+   1.522,
+   1.367,
+   1.317
+  ],
+  "ep_total6": 9.75,
+  "ep_per_million": 1.773,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.45 (GW1 20'); no PL history — rates from the DEF positional prior; CBIT/90 8.06 (ratio 0.81T) -> DefCon P(hit) 0.31; xG+xA/90 0.097; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 8% of EP6 (C4 band); joined 2026-08-10 — prior shrunk 25% toward the positional mean; GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 541,
+  "name": "Meunier",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.58,
+  "ep_gw": [
+   2.156,
+   1.321,
+   1.534,
+   1.209,
+   1.792,
+   1.595
+  ],
+  "ep_total6": 9.61,
+  "ep_per_million": 2.136,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.58 (GW1 90'); no PL history — rates from the DEF positional prior; CBIT/90 7.16 (ratio 0.72T) -> DefCon P(hit) 0.22; xG+xA/90 0.105; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.12; cards/90 0.17; joined 2026-07-15 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 280,
+  "name": "Coyle",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.531,
+  "ep_gw": [
+   1.869,
+   1.675,
+   1.033,
+   1.4,
+   1.685,
+   1.664
+  ],
+  "ep_total6": 9.33,
+  "ep_per_million": 2.333,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.53 (GW1 69'); no PL history — rates from the DEF positional prior; CBIT/90 8.26 (ratio 0.83T) -> DefCon P(hit) 0.33; xG+xA/90 0.066; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 536,
+  "name": "Reinildo",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.632,
+  "ep_gw": [
+   2.088,
+   1.242,
+   1.498,
+   1.15,
+   1.724,
+   1.521
+  ],
+  "ep_total6": 9.22,
+  "ep_per_million": 2.049,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.63 (GW1 90'); 1966' / 23 prior starts; CBIT/90 7.58 (ratio 0.76T) -> DefCon P(hit) 0.26; xG+xA/90 0.040; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.15; cards/90 0.32; GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 37,
+  "name": "Lindelöf",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.55,
+  "ep_gw": [
+   1.298,
+   1.875,
+   1.708,
+   1.657,
+   1.276,
+   1.393
+  ],
+  "ep_total6": 9.21,
+  "ep_per_million": 2.047,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.55 (GW1 90'); 942' / 11 prior starts; CBIT/90 4.84 (ratio 0.48T) -> DefCon P(hit) 0.07; xG+xA/90 0.033; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.13; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 279,
+  "name": "Ajayi",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.636,
+  "ep_gw": [
+   1.808,
+   1.564,
+   0.842,
+   1.252,
+   1.586,
+   1.583
+  ],
+  "ep_total6": 8.63,
+  "ep_per_million": 2.158,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.64 (GW1 63'); 2779' / 0 prior starts; CBIT/90 0.01 (ratio 0.00T) -> DefCon P(hit) 0.02; xG+xA/90 0.011; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.11; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 33% of EP6 (C4 band); GW1 dc/xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 470,
+  "name": "Morato",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.346,
+  "ep_gw": [
+   1.132,
+   1.624,
+   1.395,
+   1.753,
+   1.184,
+   1.237
+  ],
+  "ep_total6": 8.32,
+  "ep_per_million": 1.664,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.35 (GW1 0'); 1340' / 14 prior starts; CBIT/90 9.67 (ratio 0.97T) -> DefCon P(hit) 0.51; xG+xA/90 0.099; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.14; cards/90 0.34; ±promoted-club fixtures GW5 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 392,
+  "name": "Aït-Nouri",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.302,
+  "ep_gw": [
+   1.13,
+   1.628,
+   1.143,
+   1.555,
+   1.073,
+   1.513
+  ],
+  "ep_total6": 8.04,
+  "ep_per_million": 1.462,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.30 (GW1 0'); 971' / 12 prior starts; CBIT/90 6.21 (ratio 0.62T) -> DefCon P(hit) 0.15; xG+xA/90 0.235; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.34; cards/90 0.18; ±promoted-club fixtures GW3,GW7 = 22% of EP6 (C4 band)."
+ },
+ {
+  "id": 577,
+  "name": "Tomiyasu",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.375,
+  "ep_gw": [
+   1.079,
+   1.423,
+   1.548,
+   1.244,
+   1.458,
+   1.199
+  ],
+  "ep_total6": 7.95,
+  "ep_per_million": 1.767,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.38 (GW1 18'); no PL history — rates from the DEF positional prior; CBIT/90 7.63 (ratio 0.76T) -> DefCon P(hit) 0.26; xG+xA/90 0.094; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-08-06 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 145,
+  "name": "Fofana",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.324,
+  "ep_gw": [
+   1.344,
+   1.112,
+   1.674,
+   1.094,
+   1.35,
+   1.34
+  ],
+  "ep_total6": 7.91,
+  "ep_per_million": 1.582,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.32 (GW1 0'); 1718' / 20 prior starts; CBIT/90 10.79 (ratio 1.08T) -> DefCon P(hit) 0.67; xG+xA/90 0.069; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.19; cards/90 0.26; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 588,
+  "name": "Khalaili",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.356,
+  "ep_gw": [
+   1.079,
+   1.406,
+   1.525,
+   1.236,
+   1.439,
+   1.192
+  ],
+  "ep_total6": 7.88,
+  "ep_per_million": 1.576,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.36 (GW1 35'); no PL history — rates from the DEF positional prior; CBIT/90 8.39 (ratio 0.84T) -> DefCon P(hit) 0.34; xG+xA/90 0.098; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-08-15 — prior shrunk 25% toward the positional mean; GW1 dc/xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 585,
+  "name": "Herrington",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.412,
+  "ep_gw": [
+   1.538,
+   1.389,
+   0.887,
+   1.174,
+   1.396,
+   1.378
+  ],
+  "ep_total6": 7.76,
+  "ep_per_million": 1.94,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.41 (GW1 26'); no PL history — rates from the DEF positional prior; CBIT/90 9.09 (ratio 0.91T) -> DefCon P(hit) 0.43; xG+xA/90 0.069; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); joined 2026-08-12 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 448,
+  "name": "Burn",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.325,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   2.299,
+   2.578,
+   2.504
+  ],
+  "ep_total6": 7.38,
+  "ep_per_million": 1.476,
+  "uncertainty": "HIGH",
+  "notes": "Ankle injury, expected back 14 September — after the GW4 deadline. Modelled at p_start 0 for GW2-4 and a ramp from GW5. | p_start 0.33 (GW1 0'); 2195' / 25 prior starts; CBIT/90 9.23 (ratio 0.92T) -> DefCon P(hit) 0.45; xG+xA/90 0.059; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.12; cards/90 0.37; ±promoted-club fixtures GW5,GW6 = 28% of EP6 (C4 band); FLAG: Ankle injury - Expected back 14 Sep.",
+  "p_start_gw": [
+   0,
+   0,
+   0,
+   0.55,
+   0.68,
+   0.72
+  ]
+ },
+ {
+  "id": 501,
+  "name": "Danso",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.321,
+  "ep_gw": [
+   1.196,
+   1.177,
+   1.259,
+   1.263,
+   1.009,
+   1.473
+  ],
+  "ep_total6": 7.38,
+  "ep_per_million": 1.476,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.32 (GW1 0'); 1489' / 17 prior starts; CBIT/90 11.61 (ratio 1.16T) -> DefCon P(hit) 0.74; xG+xA/90 0.054; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.15; cards/90 0.48; ±promoted-club fixtures GW7 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 89,
+  "name": "Henry",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.428,
+  "ep_gw": [
+   1.192,
+   1.548,
+   1.145,
+   1.028,
+   1.255,
+   1.103
+  ],
+  "ep_total6": 7.27,
+  "ep_per_million": 1.616,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.43 (GW1 0'); 1322' / 14 prior starts; CBIT/90 4.63 (ratio 0.46T) -> DefCon P(hit) 0.06; xG+xA/90 0.049; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.08; cards/90 0.14."
+ },
+ {
+  "id": 285,
+  "name": "McNair",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.394,
+  "ep_gw": [
+   1.439,
+   1.296,
+   0.817,
+   1.091,
+   1.302,
+   1.286
+  ],
+  "ep_total6": 7.23,
+  "ep_per_million": 1.808,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.39 (GW1 26'); no PL history — rates from the DEF positional prior; CBIT/90 8.79 (ratio 0.88T) -> DefCon P(hit) 0.39; xG+xA/90 0.069; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 33% of EP6 (C4 band); joined 2026-01-28 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 478,
+  "name": "Netz",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.338,
+  "ep_gw": [
+   0.945,
+   1.397,
+   1.186,
+   1.518,
+   0.993,
+   1.054
+  ],
+  "ep_total6": 7.09,
+  "ep_per_million": 1.576,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.34 (GW1 16'); 353' / 3 prior starts; CBIT/90 6.98 (ratio 0.70T) -> DefCon P(hit) 0.20; xG+xA/90 0.106; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.09; ±promoted-club fixtures GW5 = 11% of EP6 (C4 band); joined 2026-02-02 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 148,
+  "name": "Hato",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.424,
+  "ep_gw": [
+   1.213,
+   0.916,
+   1.638,
+   0.889,
+   1.22,
+   1.208
+  ],
+  "ep_total6": 7.08,
+  "ep_per_million": 1.573,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.42 (GW1 64'); 1139' / 12 prior starts; CBIT/90 7.44 (ratio 0.74T) -> DefCon P(hit) 0.24; xG+xA/90 0.070; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.05; cards/90 0.55; ±promoted-club fixtures GW4 = 13% of EP6 (C4 band)."
+ },
+ {
+  "id": 174,
+  "name": "Kitching",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.36,
+  "ep_gw": [
+   1.525,
+   0.79,
+   1.145,
+   1.151,
+   1.193,
+   1.241
+  ],
+  "ep_total6": 7.04,
+  "ep_per_million": 1.76,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.36 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 556,
+  "name": "Targett",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.38,
+  "ep_gw": [
+   1.395,
+   1.257,
+   0.795,
+   1.059,
+   1.264,
+   1.247
+  ],
+  "ep_total6": 7.02,
+  "ep_per_million": 1.755,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.38 (GW1 5'); no PL history — rates from the DEF positional prior; CBIT/90 8.83 (ratio 0.88T) -> DefCon P(hit) 0.39; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 33% of EP6 (C4 band); joined 2026-07-23 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 147,
+  "name": "Tosin",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.285,
+  "ep_gw": [
+   1.18,
+   0.987,
+   1.458,
+   0.965,
+   1.183,
+   1.177
+  ],
+  "ep_total6": 6.95,
+  "ep_per_million": 1.544,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.28 (GW1 0'); 788' / 8 prior starts; CBIT/90 11.08 (ratio 1.11T) -> DefCon P(hit) 0.71; xG+xA/90 0.058; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.19; cards/90 0.23; ±promoted-club fixtures GW4 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 611,
+  "name": "Wan-Bissaka",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.4,
+  "ep_gw": [
+   0.976,
+   1.387,
+   1.27,
+   1.231,
+   0.956,
+   1.039
+  ],
+  "ep_total6": 6.86,
+  "ep_per_million": 1.524,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.40 (GW1 0'); 2080' / 23 prior starts; CBIT/90 7.53 (ratio 0.75T) -> DefCon P(hit) 0.25; xG+xA/90 0.043; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.06; cards/90 0.17; ±promoted-club fixtures GW3 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 119,
+  "name": "Costinha",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.311,
+  "ep_gw": [
+   0.849,
+   1.176,
+   1.334,
+   1.004,
+   1.25,
+   1.061
+  ],
+  "ep_total6": 6.67,
+  "ep_per_million": 1.482,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.31 (GW1 26'); no PL history — rates from the DEF positional prior; CBIT/90 7.98 (ratio 0.80T) -> DefCon P(hit) 0.30; xG+xA/90 0.097; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-06-15 — prior shrunk 25% toward the positional mean; GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 283,
+  "name": "Jacob",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.375,
+  "ep_gw": [
+   0.0,
+   0.996,
+   0.947,
+   1.4,
+   1.669,
+   1.647
+  ],
+  "ep_total6": 6.66,
+  "ep_per_million": 1.665,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.38 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band; FLAG: Hip injury - Expected back 5 Sep.",
+  "p_start_gw": [
+   0,
+   0.3,
+   0.45,
+   0.5,
+   0.5,
+   0.5
+  ]
+ },
+ {
+  "id": 583,
+  "name": "Chavarria",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.326,
+  "ep_gw": [
+   1.13,
+   0.885,
+   1.477,
+   0.874,
+   1.14,
+   1.126
+  ],
+  "ep_total6": 6.63,
+  "ep_per_million": 1.326,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.33 (GW1 25'); no PL history — rates from the DEF positional prior; CBIT/90 7.54 (ratio 0.75T) -> DefCon P(hit) 0.25; xG+xA/90 0.093; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band); joined 2026-08-12 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 539,
+  "name": "O'Nien",
+  "team": "SUN",
+  "price": 4.0,
+  "p_start": 0.428,
+  "ep_gw": [
+   1.472,
+   0.891,
+   1.061,
+   0.824,
+   1.221,
+   1.082
+  ],
+  "ep_total6": 6.55,
+  "ep_per_million": 1.637,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.43 (GW1 66'); 565' / 5 prior starts; CBIT/90 6.85 (ratio 0.69T) -> DefCon P(hit) 0.19; xG+xA/90 0.043; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.18; cards/90 0.16."
+ },
+ {
+  "id": 90,
+  "name": "Hickey",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.31,
+  "ep_gw": [
+   1.023,
+   1.306,
+   0.994,
+   0.915,
+   1.081,
+   0.964
+  ],
+  "ep_total6": 6.28,
+  "ep_per_million": 1.396,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.31 (GW1 14'); 679' / 8 prior starts; CBIT/90 6.67 (ratio 0.67T) -> DefCon P(hit) 0.18; xG+xA/90 0.080; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.17; cards/90 0.13."
+ },
+ {
+  "id": 91,
+  "name": "Pinnock",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.26,
+  "ep_gw": [
+   1.038,
+   1.243,
+   1.008,
+   0.934,
+   1.071,
+   0.981
+  ],
+  "ep_total6": 6.28,
+  "ep_per_million": 1.396,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); 318' / 4 prior starts; CBIT/90 11.89 (ratio 1.19T) -> DefCon P(hit) 0.77; xG+xA/90 0.020; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.19; cards/90 0.28."
+ },
+ {
+  "id": 308,
+  "name": "Furlong",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.335,
+  "ep_gw": [
+   0.96,
+   0.996,
+   0.936,
+   1.123,
+   1.326,
+   0.812
+  ],
+  "ep_total6": 6.15,
+  "ep_per_million": 1.538,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.34 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 364,
+  "name": "Tsimikas",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.285,
+  "ep_gw": [
+   1.142,
+   1.107,
+   1.206,
+   0.945,
+   0.847,
+   0.815
+  ],
+  "ep_total6": 6.06,
+  "ep_per_million": 1.212,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.28 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 281,
+  "name": "Drameh",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.31,
+  "ep_gw": [
+   1.157,
+   1.045,
+   0.667,
+   0.883,
+   1.05,
+   1.036
+  ],
+  "ep_total6": 5.84,
+  "ep_per_million": 1.46,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.31 (GW1 20'); 70' / 1 prior starts; CBIT/90 9.03 (ratio 0.90T) -> DefCon P(hit) 0.42; xG+xA/90 0.072; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 33% of EP6 (C4 band); GW1 xg per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 303,
+  "name": "Kipré",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.304,
+  "ep_gw": [
+   0.871,
+   0.904,
+   0.849,
+   1.019,
+   1.204,
+   0.737
+  ],
+  "ep_total6": 5.58,
+  "ep_per_million": 1.395,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.30 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); joined 2026-07-01 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 205,
+  "name": "Sosa",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.26,
+  "ep_gw": [
+   0.753,
+   0.992,
+   1.079,
+   0.868,
+   1.016,
+   0.836
+  ],
+  "ep_total6": 5.54,
+  "ep_per_million": 1.231,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); 99' / 0 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 207,
+  "name": "Mingueza",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.75,
+   0.988,
+   1.074,
+   0.865,
+   1.012,
+   0.833
+  ],
+  "ep_total6": 5.52,
+  "ep_per_million": 1.227,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 29%; fixture attack mult 0.80-1.18 (ATT_club 1.18 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-07-09 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 614,
+  "name": "Hadjam",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.69,
+   0.962,
+   1.093,
+   0.82,
+   1.023,
+   0.866
+  ],
+  "ep_total6": 5.45,
+  "ep_per_million": 1.211,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 609,
+  "name": "Shahar",
+  "team": "NEW",
+  "price": 4.0,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.886,
+   0.812,
+   0.744,
+   1.088,
+   0.979,
+   0.9
+  ],
+  "ep_total6": 5.41,
+  "ep_per_million": 1.353,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 26%; fixture attack mult 0.87-1.41 (ATT_club 1.01 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5,GW6 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 234,
+  "name": "Patterson",
+  "team": "EVE",
+  "price": 4.5,
+  "p_start": 0.26,
+  "ep_gw": [
+   0.769,
+   0.818,
+   0.932,
+   1.014,
+   1.045,
+   0.707
+  ],
+  "ep_total6": 5.29,
+  "ep_per_million": 1.176,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); 238' / 3 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5,GW6 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 610,
+  "name": "De Fougerolles",
+  "team": "FUL",
+  "price": 4.0,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.954,
+   0.788,
+   0.661,
+   0.803,
+   0.923,
+   1.136
+  ],
+  "ep_total6": 5.26,
+  "ep_per_million": 1.315,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 25%; fixture attack mult 0.81-1.40 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW6,GW7 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 178,
+  "name": "Bidwell",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.26,
+  "ep_gw": [
+   1.102,
+   0.57,
+   0.827,
+   0.831,
+   0.861,
+   0.896
+  ],
+  "ep_total6": 5.09,
+  "ep_per_million": 1.272,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 592,
+  "name": "Ouattara",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.274,
+  "ep_gw": [
+   0.795,
+   0.824,
+   0.775,
+   0.928,
+   1.094,
+   0.674
+  ],
+  "ep_total6": 5.09,
+  "ep_per_million": 1.272,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.27 (GW1 10'); no PL history — rates from the DEF positional prior; CBIT/90 9.02 (ratio 0.90T) -> DefCon P(hit) 0.42; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); joined 2026-08-17 — prior shrunk 25% toward the positional mean; promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 606,
+  "name": "Rowe",
+  "team": "AVL",
+  "price": 4.0,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.71,
+   1.014,
+   0.92,
+   0.902,
+   0.716,
+   0.779
+  ],
+  "ep_total6": 5.04,
+  "ep_per_million": 1.26,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 603,
+  "name": "Lienou",
+  "team": "LEE",
+  "price": 4.0,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.803,
+   0.833,
+   0.951,
+   0.851,
+   0.717,
+   0.875
+  ],
+  "ep_total6": 5.03,
+  "ep_per_million": 1.258,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.12; cards/90 0.17."
+ },
+ {
+  "id": 152,
+  "name": "Palestra",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.244,
+  "ep_gw": [
+   0.856,
+   0.672,
+   1.116,
+   0.664,
+   0.863,
+   0.853
+  ],
+  "ep_total6": 5.02,
+  "ep_per_million": 0.913,
+  "uncertainty": "HIGH",
+  "notes": "75% chance of playing for GW2. | p_start 0.24 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band); joined 2026-07-01 — prior shrunk 25% toward the positional mean; FLAG: Unspecified injury - 75% chance of playing."
+ },
+ {
+  "id": 573,
+  "name": "Sanchez",
+  "team": "BOU",
+  "price": 4.5,
+  "p_start": 0.244,
+  "ep_gw": [
+   0.91,
+   0.782,
+   0.726,
+   0.736,
+   0.61,
+   1.006
+  ],
+  "ep_total6": 4.77,
+  "ep_per_million": 1.06,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.24 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.12; cards/90 0.17; joined 2026-08-06 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 598,
+  "name": "Elvedi",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.244,
+  "ep_gw": [
+   0.756,
+   0.785,
+   0.896,
+   0.801,
+   0.675,
+   0.824
+  ],
+  "ep_total6": 4.74,
+  "ep_per_million": 1.053,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.24 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 23%; fixture attack mult 0.62-1.24 (ATT_club 0.98 divided out); bonus/app 0.12; cards/90 0.17; joined 2026-08-19 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 581,
+  "name": "Diomande",
+  "team": "NFO",
+  "price": 5.5,
+  "p_start": 0.214,
+  "ep_gw": [
+   0.609,
+   0.902,
+   0.765,
+   0.979,
+   0.64,
+   0.677
+  ],
+  "ep_total6": 4.57,
+  "ep_per_million": 0.831,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.21 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5 = 11% of EP6 (C4 band); joined 2026-08-11 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 612,
+  "name": "Methalie",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.259,
+  "ep_gw": [
+   0.977,
+   0.608,
+   0.704,
+   0.56,
+   0.817,
+   0.729
+  ],
+  "ep_total6": 4.39,
+  "ep_per_million": 0.976,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.26 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.12; cards/90 0.17."
+ },
+ {
+  "id": 506,
+  "name": "Udogie",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.283,
+  "ep_gw": [
+   0.694,
+   0.684,
+   0.751,
+   0.754,
+   0.535,
+   0.938
+  ],
+  "ep_total6": 4.36,
+  "ep_per_million": 0.969,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.28 (GW1 4'); 1335' / 14 prior starts; CBIT/90 4.57 (ratio 0.46T) -> DefCon P(hit) 0.05; xG+xA/90 0.061; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.05; cards/90 0.27; ±promoted-club fixtures GW7 = 11% of EP6 (C4 band); GW1 xa per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 596,
+  "name": "Ruggeri",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.214,
+  "ep_gw": [
+   0.592,
+   0.844,
+   0.766,
+   0.751,
+   0.597,
+   0.649
+  ],
+  "ep_total6": 4.2,
+  "ep_per_million": 0.933,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.21 (GW1 8'); no PL history — rates from the DEF positional prior; CBIT/90 7.87 (ratio 0.79T) -> DefCon P(hit) 0.29; xG+xA/90 0.094; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band); joined 2026-08-19 — prior shrunk 25% toward the positional mean; GW1 dc per-90 was an outlier, clipped to 2.50x the prior by the single-match guard band."
+ },
+ {
+  "id": 179,
+  "name": "Latibeaudiere",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.21,
+  "ep_gw": [
+   0.89,
+   0.461,
+   0.668,
+   0.671,
+   0.696,
+   0.724
+  ],
+  "ep_total6": 4.11,
+  "ep_per_million": 1.028,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.21 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 396,
+  "name": "Vitor Reis",
+  "team": "MCI",
+  "price": 4.5,
+  "p_start": 0.17,
+  "ep_gw": [
+   0.576,
+   0.825,
+   0.585,
+   0.789,
+   0.547,
+   0.769
+  ],
+  "ep_total6": 4.09,
+  "ep_per_million": 0.909,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.17 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 37%; fixture attack mult 0.82-1.29 (ATT_club 1.39 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3,GW7 = 20% of EP6 (C4 band)."
+ },
+ {
+  "id": 117,
+  "name": "Coppola",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.185,
+  "ep_gw": [
+   0.493,
+   0.687,
+   0.781,
+   0.585,
+   0.731,
+   0.618
+  ],
+  "ep_total6": 3.9,
+  "ep_per_million": 0.867,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); 193' / 2 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 307,
+  "name": "Johnson",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.21,
+  "ep_gw": [
+   0.602,
+   0.624,
+   0.587,
+   0.704,
+   0.831,
+   0.509
+  ],
+  "ep_total6": 3.86,
+  "ep_per_million": 0.965,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.21 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.69-1.14 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 32% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 93,
+  "name": "Schuster",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.184,
+  "ep_gw": [
+   0.624,
+   0.794,
+   0.607,
+   0.561,
+   0.659,
+   0.59
+  ],
+  "ep_total6": 3.83,
+  "ep_per_million": 0.851,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.12; cards/90 0.17; joined 2026-06-15 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 235,
+  "name": "Aznou",
+  "team": "EVE",
+  "price": 4.0,
+  "p_start": 0.185,
+  "ep_gw": [
+   0.547,
+   0.582,
+   0.663,
+   0.722,
+   0.743,
+   0.503
+  ],
+  "ep_total6": 3.76,
+  "ep_per_million": 0.94,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 25%; fixture attack mult 0.92-1.21 (ATT_club 0.91 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5,GW6 = 18% of EP6 (C4 band)."
+ },
+ {
+  "id": 120,
+  "name": "Svoboda",
+  "team": "BHA",
+  "price": 5.0,
+  "p_start": 0.178,
+  "ep_gw": [
+   0.474,
+   0.661,
+   0.751,
+   0.563,
+   0.703,
+   0.595
+  ],
+  "ep_total6": 3.75,
+  "ep_per_million": 0.75,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band); joined 2026-07-02 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 181,
+  "name": "Brau",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.185,
+  "ep_gw": [
+   0.784,
+   0.406,
+   0.588,
+   0.591,
+   0.613,
+   0.638
+  ],
+  "ep_total6": 3.62,
+  "ep_per_million": 0.905,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 21%; fixture attack mult 0.68-1.40 (ATT_club 0.65 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 34% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 511,
+  "name": "Souza",
+  "team": "TOT",
+  "price": 4.0,
+  "p_start": 0.178,
+  "ep_gw": [
+   0.585,
+   0.563,
+   0.616,
+   0.62,
+   0.47,
+   0.74
+  ],
+  "ep_total6": 3.59,
+  "ep_per_million": 0.897,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); 142' / 2 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW7 = 10% of EP6 (C4 band); joined 2026-01-22 — prior shrunk 25% toward the positional mean."
+ },
+ {
+  "id": 424,
+  "name": "Amass",
+  "team": "MUN",
+  "price": 4.0,
+  "p_start": 0.16,
+  "ep_gw": [
+   0.672,
+   0.569,
+   0.473,
+   0.618,
+   0.674,
+   0.542
+  ],
+  "ep_total6": 3.55,
+  "ep_per_million": 0.887,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.16 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 31%; fixture attack mult 0.80-1.22 (ATT_club 1.13 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 284,
+  "name": "McCarthy",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.185,
+  "ep_gw": [
+   0.682,
+   0.614,
+   0.389,
+   0.518,
+   0.618,
+   0.609
+  ],
+  "ep_total6": 3.43,
+  "ep_per_million": 0.858,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.18 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 8.87 (ratio 0.89T) -> DefCon P(hit) 0.40; xG+xA/90 0.071; mean P(CS) 18%; fixture attack mult 0.88-1.19 (ATT_club 0.64 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW2,GW3,GW4,GW5,GW6,GW7 = 33% of EP6 (C4 band); promoted club — attacking rates discounted, P(CS) carries the ±15pp band."
+ },
+ {
+  "id": 508,
+  "name": "Davies",
+  "team": "TOT",
+  "price": 4.0,
+  "p_start": 0.17,
+  "ep_gw": [
+   0.558,
+   0.538,
+   0.589,
+   0.593,
+   0.449,
+   0.706
+  ],
+  "ep_total6": 3.43,
+  "ep_per_million": 0.858,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.17 (GW1 0'); 136' / 2 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW7 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 477,
+  "name": "Abbott",
+  "team": "NFO",
+  "price": 4.0,
+  "p_start": 0.16,
+  "ep_gw": [
+   0.456,
+   0.674,
+   0.572,
+   0.732,
+   0.479,
+   0.506
+  ],
+  "ep_total6": 3.42,
+  "ep_per_million": 0.855,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.16 (GW1 0'); 165' / 2 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 361,
+  "name": "Lucky",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.16,
+  "ep_gw": [
+   0.641,
+   0.622,
+   0.677,
+   0.53,
+   0.475,
+   0.457
+  ],
+  "ep_total6": 3.4,
+  "ep_per_million": 0.85,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.16 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 28%; fixture attack mult 0.80-1.14 (ATT_club 1.26 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 8% of EP6 (C4 band)."
+ },
+ {
+  "id": 118,
+  "name": "Igor",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.16,
+  "ep_gw": [
+   0.426,
+   0.594,
+   0.675,
+   0.506,
+   0.632,
+   0.535
+  ],
+  "ep_total6": 3.37,
+  "ep_per_million": 0.749,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.16 (GW1 0'); 103' / 1 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 28%; fixture attack mult 0.71-1.11 (ATT_club 1.03 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 92,
+  "name": "Ji-soo",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.16,
+  "ep_gw": [
+   0.543,
+   0.69,
+   0.528,
+   0.488,
+   0.573,
+   0.513
+  ],
+  "ep_total6": 3.33,
+  "ep_per_million": 0.74,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.16 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 27%; fixture attack mult 0.86-1.22 (ATT_club 1.29 divided out); bonus/app 0.12; cards/90 0.17."
+ },
+ {
+  "id": 66,
+  "name": "Soler",
+  "team": "BOU",
+  "price": 4.0,
+  "p_start": 0.17,
+  "ep_gw": [
+   0.634,
+   0.545,
+   0.506,
+   0.513,
+   0.425,
+   0.701
+  ],
+  "ep_total6": 3.32,
+  "ep_per_million": 0.83,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.17 (GW1 0'); 34' / 0 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 23%; fixture attack mult 0.87-1.23 (ATT_club 1.04 divided out); bonus/app 0.12; cards/90 0.17; FLAG: Hamstring injury - 75% chance of playing."
+ },
+ {
+  "id": 38,
+  "name": "A.García",
+  "team": "AVL",
+  "price": 4.0,
+  "p_start": 0.16,
+  "ep_gw": [
+   0.439,
+   0.627,
+   0.568,
+   0.557,
+   0.442,
+   0.481
+  ],
+  "ep_total6": 3.11,
+  "ep_per_million": 0.777,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.16 (GW1 0'); 83' / 1 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 23%; fixture attack mult 0.71-1.21 (ATT_club 0.91 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW3 = 9% of EP6 (C4 band)."
+ },
+ {
+  "id": 150,
+  "name": "M.Sarr",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.15,
+  "ep_gw": [
+   0.526,
+   0.413,
+   0.686,
+   0.408,
+   0.531,
+   0.524
+  ],
+  "ep_total6": 3.09,
+  "ep_per_million": 0.687,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.15 (GW1 0'); 100' / 1 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 561,
+  "name": "Anselmino",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.15,
+  "ep_gw": [
+   0.526,
+   0.413,
+   0.686,
+   0.408,
+   0.531,
+   0.524
+  ],
+  "ep_total6": 3.09,
+  "ep_per_million": 0.687,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.15 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW4 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 537,
+  "name": "Seelt",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.17,
+  "ep_gw": [
+   0.642,
+   0.399,
+   0.462,
+   0.367,
+   0.536,
+   0.479
+  ],
+  "ep_total6": 2.89,
+  "ep_per_million": 0.642,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.17 (GW1 0'); 133' / 1 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 17%; fixture attack mult 0.69-1.13 (ATT_club 0.75 divided out); bonus/app 0.12; cards/90 0.17."
+ },
+ {
+  "id": 476,
+  "name": "O.Richards",
+  "team": "NFO",
+  "price": 4.0,
+  "p_start": 0.135,
+  "ep_gw": [
+   0.384,
+   0.569,
+   0.483,
+   0.618,
+   0.404,
+   0.427
+  ],
+  "ep_total6": 2.88,
+  "ep_per_million": 0.72,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.14 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 479,
+  "name": "Bindon",
+  "team": "NFO",
+  "price": 4.0,
+  "p_start": 0.135,
+  "ep_gw": [
+   0.384,
+   0.569,
+   0.483,
+   0.618,
+   0.404,
+   0.427
+  ],
+  "ep_total6": 2.88,
+  "ep_per_million": 0.72,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.14 (GW1 0'); no PL history — rates from the DEF positional prior; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 29%; fixture attack mult 0.71-1.29 (ATT_club 0.86 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW5 = 11% of EP6 (C4 band)."
+ },
+ {
+  "id": 153,
+  "name": "Disasi",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.132,
+  "ep_gw": [
+   0.459,
+   0.357,
+   0.602,
+   0.354,
+   0.464,
+   0.457
+  ],
+  "ep_total6": 2.69,
+  "ep_per_million": 0.598,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.13 (GW1 0'); 1254' / 14 prior starts; CBIT/90 6.32 (ratio 0.63T) -> DefCon P(hit) 0.16; xG+xA/90 0.081; mean P(CS) 26%; fixture attack mult 0.62-1.40 (ATT_club 1.40 divided out); bonus/app 0.16; cards/90 0.07; ±promoted-club fixtures GW4 = 12% of EP6 (C4 band)."
+ },
+ {
+  "id": 509,
+  "name": "Byfield",
+  "team": "TOT",
+  "price": 4.0,
+  "p_start": 0.125,
+  "ep_gw": [
+   0.411,
+   0.396,
+   0.433,
+   0.436,
+   0.33,
+   0.519
+  ],
+  "ep_total6": 2.52,
+  "ep_per_million": 0.63,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.12 (GW1 0'); 1' / 0 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW7 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 510,
+  "name": "Rowswell",
+  "team": "TOT",
+  "price": 4.0,
+  "p_start": 0.125,
+  "ep_gw": [
+   0.411,
+   0.396,
+   0.433,
+   0.436,
+   0.33,
+   0.519
+  ],
+  "ep_total6": 2.52,
+  "ep_per_million": 0.63,
+  "uncertainty": "HIGH",
+  "notes": "p_start 0.12 (GW1 0'); 1' / 0 prior starts; CBIT/90 7.71 (ratio 0.77T) -> DefCon P(hit) 0.27; xG+xA/90 0.095; mean P(CS) 24%; fixture attack mult 0.84-1.29 (ATT_club 0.78 divided out); bonus/app 0.12; cards/90 0.17; ±promoted-club fixtures GW7 = 10% of EP6 (C4 band)."
+ },
+ {
+  "id": 5,
+  "name": "J.Timber",
+  "team": "ARS",
+  "price": 6.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Groin injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 6,
+  "name": "Saliba",
+  "team": "ARS",
+  "price": 6.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Back injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 143,
+  "name": "Chalobah",
+  "team": "CHE",
+  "price": 5.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Como permanently. Do not select."
+ },
+ {
+  "id": 63,
+  "name": "Milosavljević",
+  "team": "BOU",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Unspecified injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 85,
+  "name": "Van den Berg",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Groin injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 359,
+  "name": "Gomez",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Muscular injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 360,
+  "name": "Bradley",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Knee injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 394,
+  "name": "Alleyne",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Burnley on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 416,
+  "name": "De Ligt",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Back injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 450,
+  "name": "Livramento",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Calf injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 500,
+  "name": "Romero",
+  "team": "TOT",
+  "price": 5.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Atletico Madrid permanently. Do not select."
+ },
+ {
+  "id": 30,
+  "name": "Digne",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Paris Saint-Germain permanently. Do not select."
+ },
+ {
+  "id": 65,
+  "name": "J.Araujo",
+  "team": "BOU",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Thigh injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 146,
+  "name": "B.Badiashile",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Napoli on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 206,
+  "name": "Chadi Riad",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Knee injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 220,
+  "name": "Cardines",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Bristol City on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 331,
+  "name": "Gudmundsson",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Hamstring injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 333,
+  "name": "Bornauw",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Hamburg SV on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 475,
+  "name": "Savona",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Knee injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 505,
+  "name": "Spence",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Internazionale permanently. Do not select."
+ },
+ {
+  "id": 507,
+  "name": "Phillips",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Middlesbrough permanently. Do not select."
+ },
+ {
+  "id": 39,
+  "name": "Nedeljkovic",
+  "team": "AVL",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Rangers on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 177,
+  "name": "Kesler-Hayden",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Hamstring injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 180,
+  "name": "Woolfenden",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Knee injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 278,
+  "name": "Hughes",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Groin injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 363,
+  "name": "Leoni",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Knee injury - Unknown return date. Do not select."
+ },
+ {
+  "id": 365,
+  "name": "Ramsay",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined St Mirren on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 425,
+  "name": "Fredricson",
+  "team": "MUN",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Lausanne-Sport permanently. Do not select."
+ },
+ {
+  "id": 451,
+  "name": "A.Murphy",
+  "team": "NEW",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined FC Kaiserslautern on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 538,
+  "name": "Hjelde",
+  "team": "SUN",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined KV Mechelen on loan for the rest of the season. Do not select."
+ },
+ {
+  "id": 540,
+  "name": "Masuaku",
+  "team": "SUN",
+  "price": 4.0,
+  "p_start": 0.0,
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "Unavailable — Has joined Konyaspor permanently. Do not select."
+ }
+]

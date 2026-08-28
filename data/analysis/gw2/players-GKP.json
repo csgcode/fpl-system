@@ -1,0 +1,4612 @@
+[
+ {
+  "id": 1,
+  "name": "Raya",
+  "team": "ARS",
+  "price": 6.0,
+  "p_start": 0.942,
+  "p_start_gw": [
+   0.95,
+   0.95,
+   0.95,
+   0.94,
+   0.93,
+   0.93
+  ],
+  "ep_gw": [
+   3.77,
+   3.42,
+   4.03,
+   3.59,
+   3.8,
+   3.76
+  ],
+  "ep_total6": 22.37,
+  "ep_per_million": 3.728,
+  "uncertainty": "LOW",
+  "notes": "ARS #1, started GW1 (CS, 24 BPS). Window is the only top-6 run with ZERO promoted opposition — no C4 band anywhere, unlike GW1 where COV(H) carried it. Best P(CS) in the pool at 38.7%.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 38.3,
+  "transfers_net_event": 23533,
+  "fixtures": [
+   "AVL(A)",
+   "CHE(H)",
+   "SUN(A)",
+   "BHA(A)",
+   "LEE(H)",
+   "NFO(A)"
+  ],
+  "mean_lambda_def": 0.958,
+  "mean_p_cs": 0.387,
+  "ep_per_start_mean": 3.96,
+  "ep6_if_nailed": 22.1,
+  "ep6_band_defence": [
+   21.51,
+   23.43
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.144,
+   "bonus_per_start": 0.272,
+   "pen_saves_per_start": 0.012
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 1,
+   "goals_conceded": 0,
+   "clean_sheet": 1,
+   "bonus": 0,
+   "bps": 24,
+   "xgc": 0.2,
+   "points": 6
+  },
+  "prior_season": {
+   "minutes": 3330,
+   "starts": 37,
+   "clean_sheets": 19,
+   "goals_conceded": 26,
+   "expected_goals_conceded": "27.56",
+   "saves": 60,
+   "bonus": 11,
+   "bps": 633,
+   "penalties_saved": 0,
+   "total_points": 162
+  }
+ },
+ {
+  "id": 412,
+  "name": "Lammens",
+  "team": "MUN",
+  "price": 5.0,
+  "p_start": 0.923,
+  "p_start_gw": [
+   0.93,
+   0.93,
+   0.93,
+   0.92,
+   0.92,
+   0.91
+  ],
+  "ep_gw": [
+   3.7,
+   3.29,
+   2.99,
+   3.47,
+   3.66,
+   3.16
+  ],
+  "ep_total6": 20.27,
+  "ep_per_million": 4.054,
+  "uncertainty": "LOW",
+  "notes": "Started GW1; Darlow's 75% flag has cleared to 100 but he remains #2. MUN DEFW barely moved after Hull (1.83 xG created, 1.01 conceded) — fixtures.md relabels that defeat VARIANCE, not MODEL.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 15.6,
+  "transfers_net_event": -49946,
+  "fixtures": [
+   "IPS(H)±",
+   "EVE(A)",
+   "MCI(H)",
+   "FUL(A)",
+   "TOT(H)",
+   "LEE(A)"
+  ],
+  "mean_lambda_def": 1.208,
+  "mean_p_cs": 0.308,
+  "ep_per_start_mean": 3.66,
+  "ep6_if_nailed": 20.42,
+  "ep6_band_defence": [
+   19.43,
+   21.26
+  ],
+  "ep6_band_promoted": [
+   19.62,
+   20.92
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.011,
+   "bonus_per_start": 0.303,
+   "pen_saves_per_start": 0.0124
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 2,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 7,
+   "xgc": 1.01,
+   "points": 1
+  },
+  "prior_season": {
+   "minutes": 2880,
+   "starts": 32,
+   "clean_sheets": 8,
+   "goals_conceded": 39,
+   "expected_goals_conceded": "39.25",
+   "saves": 79,
+   "bonus": 11,
+   "bps": 413,
+   "penalties_saved": 0,
+   "total_points": 109
+  }
+ },
+ {
+  "id": 384,
+  "name": "Donnarumma",
+  "team": "MCI",
+  "price": 5.5,
+  "p_start": 0.895,
+  "p_start_gw": [
+   0.91,
+   0.9,
+   0.9,
+   0.89,
+   0.89,
+   0.88
+  ],
+  "ep_gw": [
+   3.05,
+   3.87,
+   3.04,
+   3.69,
+   2.89,
+   3.58
+  ],
+  "ep_total6": 20.13,
+  "ep_per_million": 3.66,
+  "uncertainty": "MED",
+  "notes": "Started GW1. C4 FLAG: GW3 COV(H) P(CS) 52% makes the clean-sheet term (2.08) his largest single component that week — the only C4 trip in the GKP pool. Conservative EP6 at the band floor is 18.97. Rulli £5.0 and cup load keep p_start under 0.90.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 8.3,
+  "transfers_net_event": -10568,
+  "fixtures": [
+   "CRY(A)",
+   "COV(H)±",
+   "MUN(A)",
+   "SUN(H)",
+   "LIV(A)",
+   "IPS(H)±"
+  ],
+  "mean_lambda_def": 1.045,
+  "mean_p_cs": 0.37,
+  "ep_per_start_mean": 3.75,
+  "ep6_if_nailed": 20.93,
+  "ep6_band_defence": [
+   19.41,
+   21.03
+  ],
+  "ep6_band_promoted": [
+   18.97,
+   21.3
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.051,
+   "bonus_per_start": 0.162,
+   "pen_saves_per_start": 0.0187
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 3,
+   "goals_conceded": 1,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 12,
+   "xgc": 0.65,
+   "points": 3
+  },
+  "prior_season": {
+   "minutes": 3060,
+   "starts": 34,
+   "clean_sheets": 15,
+   "goals_conceded": 29,
+   "expected_goals_conceded": "38.50",
+   "saves": 78,
+   "bonus": 5,
+   "bps": 567,
+   "penalties_saved": 1,
+   "total_points": 135
+  }
+ },
+ {
+  "id": 82,
+  "name": "Kelleher",
+  "team": "BRE",
+  "price": 5.0,
+  "p_start": 0.937,
+  "p_start_gw": [
+   0.94,
+   0.94,
+   0.94,
+   0.94,
+   0.93,
+   0.93
+  ],
+  "ep_gw": [
+   3.33,
+   3.84,
+   3.28,
+   3.13,
+   3.35,
+   3.17
+  ],
+  "ep_total6": 20.1,
+  "ep_per_million": 4.02,
+  "uncertainty": "LOW",
+  "notes": "Started GW1 (CS, 4 saves, 34 BPS — joint-best GK BPS of the round). Valdimarsson is fodder. BRE defensive run hardens GW4–7 per fixtures.md; his EP is front-loaded.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 6.5,
+  "transfers_net_event": 48862,
+  "fixtures": [
+   "LEE(A)",
+   "SUN(H)",
+   "BOU(A)",
+   "CHE(H)",
+   "AVL(A)",
+   "LIV(H)"
+  ],
+  "mean_lambda_def": 1.355,
+  "mean_p_cs": 0.267,
+  "ep_per_start_mean": 3.58,
+  "ep6_if_nailed": 19.96,
+  "ep6_band_defence": [
+   19.4,
+   20.95
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.068,
+   "bonus_per_start": 0.272,
+   "pen_saves_per_start": 0.031
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 4,
+   "goals_conceded": 0,
+   "clean_sheet": 1,
+   "bonus": 0,
+   "bps": 34,
+   "xgc": 0.57,
+   "points": 7
+  },
+  "prior_season": {
+   "minutes": 3330,
+   "starts": 37,
+   "clean_sheets": 10,
+   "goals_conceded": 49,
+   "expected_goals_conceded": "53.48",
+   "saves": 109,
+   "bonus": 11,
+   "bps": 570,
+   "penalties_saved": 3,
+   "total_points": 143
+  }
+ },
+ {
+  "id": 109,
+  "name": "Verbruggen",
+  "team": "BHA",
+  "price": 4.5,
+  "p_start": 0.947,
+  "p_start_gw": [
+   0.95,
+   0.95,
+   0.95,
+   0.95,
+   0.94,
+   0.94
+  ],
+  "ep_gw": [
+   2.88,
+   3.37,
+   3.67,
+   3.12,
+   3.47,
+   3.12
+  ],
+  "ep_total6": 19.64,
+  "ep_per_million": 4.364,
+  "uncertainty": "LOW",
+  "notes": "38+1 consecutive starts, the highest p_start in the pool. Cheapest genuinely nailed keeper. BHA DEFW improved to 0.91 after keeping AVL to 0.29 xG.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 21.5,
+  "transfers_net_event": 36201,
+  "fixtures": [
+   "CHE(A)",
+   "LEE(H)",
+   "COV(A)±",
+   "ARS(H)",
+   "SUN(A)",
+   "CRY(H)"
+  ],
+  "mean_lambda_def": 1.332,
+  "mean_p_cs": 0.278,
+  "ep_per_start_mean": 3.46,
+  "ep6_if_nailed": 19.29,
+  "ep6_band_defence": [
+   18.96,
+   20.49
+  ],
+  "ep6_band_promoted": [
+   19.01,
+   20.26
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.11,
+   "bonus_per_start": 0.169,
+   "pen_saves_per_start": 0.0182
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 1,
+   "bonus": 0,
+   "bps": 25,
+   "xgc": 0.29,
+   "points": 6
+  },
+  "prior_season": {
+   "minutes": 3420,
+   "starts": 38,
+   "clean_sheets": 10,
+   "goals_conceded": 46,
+   "expected_goals_conceded": "49.06",
+   "saves": 106,
+   "bonus": 6,
+   "bps": 616,
+   "penalties_saved": 1,
+   "total_points": 130
+  }
+ },
+ {
+  "id": 226,
+  "name": "Pickford",
+  "team": "EVE",
+  "price": 5.5,
+  "p_start": 0.953,
+  "p_start_gw": [
+   0.96,
+   0.96,
+   0.96,
+   0.95,
+   0.95,
+   0.94
+  ],
+  "ep_gw": [
+   2.96,
+   3.07,
+   3.32,
+   3.47,
+   3.55,
+   2.77
+  ],
+  "ep_total6": 19.14,
+  "ep_per_million": 3.48,
+  "uncertainty": "LOW",
+  "notes": "Started GW1 (CS, 34 BPS). EVE fixtures ease from GW5 (+5.2pp P(CS)). £5.5 buys 0.006 more p_start than Verbruggen at £4.5 — the price gap is not a minutes gap.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 8.8,
+  "transfers_net_event": 33413,
+  "fixtures": [
+   "BOU(A)",
+   "MUN(H)",
+   "TOT(A)",
+   "IPS(H)±",
+   "HUL(A)±",
+   "CHE(H)"
+  ],
+  "mean_lambda_def": 1.443,
+  "mean_p_cs": 0.248,
+  "ep_per_start_mean": 3.35,
+  "ep6_if_nailed": 18.67,
+  "ep6_band_defence": [
+   18.39,
+   20.12
+  ],
+  "ep6_band_promoted": [
+   17.83,
+   20.45
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.849,
+   "bonus_per_start": 0.267,
+   "pen_saves_per_start": 0.0182
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 4,
+   "goals_conceded": 0,
+   "clean_sheet": 1,
+   "bonus": 0,
+   "bps": 34,
+   "xgc": 1.96,
+   "points": 7
+  },
+  "prior_season": {
+   "minutes": 3420,
+   "starts": 38,
+   "clean_sheets": 11,
+   "goals_conceded": 50,
+   "expected_goals_conceded": "56.24",
+   "saves": 100,
+   "bonus": 11,
+   "bps": 545,
+   "penalties_saved": 1,
+   "total_points": 135
+  }
+ },
+ {
+  "id": 198,
+  "name": "Henderson",
+  "team": "CRY",
+  "price": 5.0,
+  "p_start": 0.912,
+  "p_start_gw": [
+   0.92,
+   0.92,
+   0.92,
+   0.91,
+   0.9,
+   0.9
+  ],
+  "ep_gw": [
+   2.88,
+   3.34,
+   3.51,
+   3.05,
+   3.33,
+   2.96
+  ],
+  "ep_total6": 19.08,
+  "ep_per_million": 3.815,
+  "uncertainty": "LOW",
+  "notes": "FLAG CLEARED: ankle 75% → chance_of_playing 100, and he started GW1 (90'). GW1's p_start ramp is retired for a flat nailed profile — the single largest p_start upgrade in the pool (+0.09).",
+  "status": "a",
+  "chance_of_playing": 100,
+  "news": null,
+  "selected_by_percent": 1.8,
+  "transfers_net_event": -7156,
+  "fixtures": [
+   "MCI(H)",
+   "FUL(A)",
+   "IPS(H)±",
+   "LEE(A)",
+   "NFO(H)",
+   "BHA(A)"
+  ],
+  "mean_lambda_def": 1.287,
+  "mean_p_cs": 0.287,
+  "ep_per_start_mean": 3.49,
+  "ep6_if_nailed": 19.46,
+  "ep6_band_defence": [
+   18.34,
+   19.91
+  ],
+  "ep6_band_promoted": [
+   18.47,
+   19.69
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.057,
+   "bonus_per_start": 0.192,
+   "pen_saves_per_start": 0.0184
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 3,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 14,
+   "xgc": 1.12,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 3330,
+   "starts": 37,
+   "clean_sheets": 11,
+   "goals_conceded": 51,
+   "expected_goals_conceded": "51.40",
+   "saves": 106,
+   "bonus": 7,
+   "bps": 538,
+   "penalties_saved": 1,
+   "total_points": 131
+  }
+ },
+ {
+  "id": 250,
+  "name": "Leno",
+  "team": "FUL",
+  "price": 4.5,
+  "p_start": 0.943,
+  "p_start_gw": [
+   0.95,
+   0.95,
+   0.95,
+   0.94,
+   0.94,
+   0.93
+  ],
+  "ep_gw": [
+   3.28,
+   2.89,
+   2.71,
+   2.89,
+   3.17,
+   3.61
+  ],
+  "ep_total6": 18.56,
+  "ep_per_million": 4.125,
+  "uncertainty": "LOW",
+  "notes": "38+1 starts. Nailed; the drag is fixtures, not minutes — though FUL improves +9.2pp from GW5, peaking HUL(H) 41% at GW7 (band-flagged).",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 3.0,
+  "transfers_net_event": 303,
+  "fixtures": [
+   "SUN(A)",
+   "CRY(H)",
+   "LIV(A)",
+   "MUN(H)",
+   "IPS(A)±",
+   "HUL(H)±"
+  ],
+  "mean_lambda_def": 1.452,
+  "mean_p_cs": 0.252,
+  "ep_per_start_mean": 3.28,
+  "ep6_if_nailed": 18.31,
+  "ep6_band_defence": [
+   17.79,
+   19.44
+  ],
+  "ep6_band_promoted": [
+   17.31,
+   19.81
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.885,
+   "bonus_per_start": 0.208,
+   "pen_saves_per_start": 0.012
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 3,
+   "goals_conceded": 3,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 11,
+   "xgc": 2.24,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 3420,
+   "starts": 38,
+   "clean_sheets": 9,
+   "goals_conceded": 51,
+   "expected_goals_conceded": "52.73",
+   "saves": 98,
+   "bonus": 8,
+   "bps": 556,
+   "penalties_saved": 0,
+   "total_points": 122
+  }
+ },
+ {
+  "id": 529,
+  "name": "Roefs",
+  "team": "SUN",
+  "price": 5.0,
+  "p_start": 0.933,
+  "p_start_gw": [
+   0.94,
+   0.94,
+   0.94,
+   0.93,
+   0.93,
+   0.92
+  ],
+  "ep_gw": [
+   3.49,
+   2.86,
+   3.02,
+   2.83,
+   3.13,
+   2.95
+  ],
+  "ep_total6": 18.28,
+  "ep_per_million": 3.655,
+  "uncertainty": "LOW",
+  "notes": "Started GW1. Best bonus rate of any GK (0.305/start after shrinkage). Behind the league's WORST 6-GW defensive ticker (17.2% mean P(CS)) — his EP is carried by saves and bonus, not clean sheets.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 4.0,
+  "transfers_net_event": -21600,
+  "fixtures": [
+   "FUL(H)",
+   "BRE(A)",
+   "ARS(H)",
+   "MCI(A)",
+   "BHA(H)",
+   "BOU(A)"
+  ],
+  "mean_lambda_def": 1.863,
+  "mean_p_cs": 0.172,
+  "ep_per_start_mean": 3.26,
+  "ep6_if_nailed": 18.21,
+  "ep6_band_defence": [
+   17.76,
+   18.88
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.089,
+   "bonus_per_start": 0.305,
+   "pen_saves_per_start": 0.0186
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 1,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 7,
+   "xgc": 1.8,
+   "points": 1
+  },
+  "prior_season": {
+   "minutes": 3150,
+   "starts": 35,
+   "clean_sheets": 10,
+   "goals_conceded": 46,
+   "expected_goals_conceded": "50.05",
+   "saves": 109,
+   "bonus": 12,
+   "bps": 573,
+   "penalties_saved": 1,
+   "total_points": 136
+  }
+ },
+ {
+  "id": 467,
+  "name": "Sels",
+  "team": "NFO",
+  "price": 5.0,
+  "p_start": 0.883,
+  "p_start_gw": [
+   0.89,
+   0.89,
+   0.89,
+   0.88,
+   0.88,
+   0.87
+  ],
+  "ep_gw": [
+   2.73,
+   3.36,
+   3.02,
+   3.55,
+   2.75,
+   2.82
+  ],
+  "ep_total6": 18.22,
+  "ep_per_million": 3.645,
+  "uncertainty": "MED",
+  "notes": "Started GW1. NFO holds the 4th-best defensive ticker. Lowest bonus rate of the established #1s (0.131) — he saves a lot and converts little of it to BPS.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.5,
+  "transfers_net_event": -6861,
+  "fixtures": [
+   "LIV(A)",
+   "TOT(H)",
+   "AVL(A)",
+   "COV(H)±",
+   "CRY(A)",
+   "ARS(H)"
+  ],
+  "mean_lambda_def": 1.312,
+  "mean_p_cs": 0.287,
+  "ep_per_start_mean": 3.44,
+  "ep6_if_nailed": 19.18,
+  "ep6_band_defence": [
+   17.61,
+   19.01
+  ],
+  "ep6_band_promoted": [
+   17.66,
+   18.79
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.089,
+   "bonus_per_start": 0.131,
+   "pen_saves_per_start": 0.0192
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 2,
+   "goals_conceded": 1,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 11,
+   "xgc": 0.47,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 2667,
+   "starts": 30,
+   "clean_sheets": 7,
+   "goals_conceded": 39,
+   "expected_goals_conceded": "45.12",
+   "saves": 95,
+   "bonus": 3,
+   "bps": 431,
+   "penalties_saved": 1,
+   "total_points": 105
+  }
+ },
+ {
+  "id": 140,
+  "name": "Sánchez",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.893,
+  "p_start_gw": [
+   0.91,
+   0.9,
+   0.9,
+   0.89,
+   0.88,
+   0.88
+  ],
+  "ep_gw": [
+   3.08,
+   2.76,
+   3.67,
+   2.67,
+   2.98,
+   2.99
+  ],
+  "ep_total6": 18.14,
+  "ep_per_million": 3.628,
+  "uncertainty": "MED",
+  "notes": "Started GW1 (2 conceded vs CRY). Penders is the only cover. CHE defence worsens 6.7pp over the window per fixtures.md.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 2.3,
+  "transfers_net_event": -11039,
+  "fixtures": [
+   "BHA(H)",
+   "ARS(A)",
+   "HUL(H)±",
+   "BRE(A)",
+   "BOU(H)",
+   "EVE(A)"
+  ],
+  "mean_lambda_def": 1.398,
+  "mean_p_cs": 0.263,
+  "ep_per_start_mean": 3.38,
+  "ep6_if_nailed": 18.88,
+  "ep6_band_defence": [
+   17.47,
+   18.96
+  ],
+  "ep6_band_promoted": [
+   17.54,
+   18.74
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.032,
+   "bonus_per_start": 0.201,
+   "pen_saves_per_start": 0.0122
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 4,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 6,
+   "xgc": 1.33,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 3040,
+   "starts": 35,
+   "clean_sheets": 9,
+   "goals_conceded": 49,
+   "expected_goals_conceded": "48.64",
+   "saves": 98,
+   "bonus": 7,
+   "bps": 509,
+   "penalties_saved": 0,
+   "total_points": 113
+  }
+ },
+ {
+  "id": 350,
+  "name": "A.Becker",
+  "team": "LIV",
+  "price": 5.5,
+  "p_start": 0.827,
+  "p_start_gw": [
+   0.84,
+   0.84,
+   0.83,
+   0.82,
+   0.82,
+   0.81
+  ],
+  "ep_gw": [
+   3.23,
+   3.12,
+   3.29,
+   2.73,
+   2.58,
+   2.5
+  ],
+  "ep_total6": 17.44,
+  "ep_per_million": 3.172,
+  "uncertainty": "MED",
+  "notes": "Started GW1. Mamardashvili at £5.0 remains a real deputy. LIV defence is a GW2–4 asset ONLY — fixtures.md logs a −16.7pp P(CS) collapse from GW5, the largest swing of any kind in the window. His ep_gw shows it.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 3.8,
+  "transfers_net_event": 2939,
+  "fixtures": [
+   "NFO(H)",
+   "IPS(A)±",
+   "FUL(H)",
+   "BOU(A)",
+   "MCI(H)",
+   "BRE(A)"
+  ],
+  "mean_lambda_def": 1.3,
+  "mean_p_cs": 0.285,
+  "ep_per_start_mean": 3.51,
+  "ep6_if_nailed": 19.6,
+  "ep6_band_defence": [
+   16.77,
+   18.34
+  ],
+  "ep6_band_promoted": [
+   16.86,
+   18.03
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.956,
+   "bonus_per_start": 0.272,
+   "pen_saves_per_start": 0.0129
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 3,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 7,
+   "xgc": 1.58,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 2340,
+   "starts": 26,
+   "clean_sheets": 8,
+   "goals_conceded": 31,
+   "expected_goals_conceded": "29.58",
+   "saves": 57,
+   "bonus": 8,
+   "bps": 389,
+   "penalties_saved": 0,
+   "total_points": 91
+  }
+ },
+ {
+  "id": 385,
+  "name": "Trafford",
+  "team": "LEE",
+  "price": 5.0,
+  "p_start": 0.853,
+  "p_start_gw": [
+   0.86,
+   0.86,
+   0.86,
+   0.85,
+   0.85,
+   0.84
+  ],
+  "ep_gw": [
+   2.85,
+   2.94,
+   3.08,
+   2.9,
+   2.74,
+   2.93
+  ],
+  "ep_total6": 17.43,
+  "ep_per_million": 3.486,
+  "uncertainty": "MED",
+  "notes": "RESOLVED IN HIS FAVOUR: started GW1, kept a clean sheet, 2 bonus, 9 pts. The GW1 price-vs-minutes contradiction is settled — price was right. Net +43.7k transfers in. Perri now #2.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 4.2,
+  "transfers_net_event": 43665,
+  "fixtures": [
+   "BRE(H)",
+   "BHA(A)",
+   "NEW(H)",
+   "CRY(H)",
+   "ARS(A)",
+   "MUN(H)"
+  ],
+  "mean_lambda_def": 1.488,
+  "mean_p_cs": 0.227,
+  "ep_per_start_mean": 3.4,
+  "ep6_if_nailed": 19.0,
+  "ep6_band_defence": [
+   16.88,
+   18.23
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.172,
+   "bonus_per_start": 0.272,
+   "pen_saves_per_start": 0.0152
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 3,
+   "goals_conceded": 0,
+   "clean_sheet": 1,
+   "bonus": 2,
+   "bps": 28,
+   "xgc": 0.66,
+   "points": 9
+  },
+  "prior_season": {
+   "minutes": 360,
+   "starts": 4,
+   "clean_sheets": 1,
+   "goals_conceded": 6,
+   "expected_goals_conceded": "5.74",
+   "saves": 14,
+   "bonus": 0,
+   "bps": 67,
+   "penalties_saved": 0,
+   "total_points": 13
+  }
+ },
+ {
+  "id": 572,
+  "name": "Tzolakis",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.857,
+  "p_start_gw": [
+   0.86,
+   0.86,
+   0.86,
+   0.86,
+   0.85,
+   0.85
+  ],
+  "ep_gw": [
+   2.99,
+   2.77,
+   2.49,
+   2.6,
+   2.78,
+   2.78
+  ],
+  "ep_total6": 16.42,
+  "ep_per_million": 3.649,
+  "uncertainty": "HIGH",
+  "notes": "RESOLVED: started GW1 and returned 10 pts (5 saves, CS, 3 bonus) with Butland out (arm, no return date). +77.9k net transfers in, the largest GK flow in the game. But HUL has the 2nd-worst defensive ticker (18% mean P(CS)) and every fixture carries the ±15pp band: EP6 range 13.42–19.93. Buying the 10-point spike is buying one match.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 2.7,
+  "transfers_net_event": 77944,
+  "fixtures": [
+   "COV(A)±",
+   "AVL(H)±",
+   "CHE(A)±",
+   "NEW(A)±",
+   "EVE(H)±",
+   "FUL(A)±"
+  ],
+  "mean_lambda_def": 1.82,
+  "mean_p_cs": 0.18,
+  "ep_per_start_mean": 3.19,
+  "ep6_if_nailed": 17.83,
+  "ep6_band_defence": [
+   15.95,
+   17.04
+  ],
+  "ep6_band_promoted": [
+   13.42,
+   19.93
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.055,
+   "bonus_per_start": 0.248,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 5,
+   "goals_conceded": 0,
+   "clean_sheet": 1,
+   "bonus": 3,
+   "bps": 41,
+   "xgc": 1.83,
+   "points": 10
+  },
+  "prior_season": null
+ },
+ {
+  "id": 496,
+  "name": "Kinsky",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.857,
+  "p_start_gw": [
+   0.86,
+   0.86,
+   0.86,
+   0.86,
+   0.85,
+   0.85
+  ],
+  "ep_gw": [
+   2.61,
+   2.64,
+   2.73,
+   2.73,
+   2.4,
+   3.07
+  ],
+  "ep_total6": 16.19,
+  "ep_per_million": 3.598,
+  "uncertainty": "MED",
+  "notes": "RESOLVED: started GW1 despite conceding 3 (TOT faced 3.87 xG at Brentford — the round's worst defensive display, not his error; he made 5 saves). Market is selling anyway, net −40.5k. TOT DEFW downgraded 0.98 → 1.14.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 22.7,
+  "transfers_net_event": -40496,
+  "fixtures": [
+   "NEW(H)",
+   "NFO(A)",
+   "EVE(H)",
+   "AVL(H)",
+   "MUN(A)",
+   "COV(H)±"
+  ],
+  "mean_lambda_def": 1.458,
+  "mean_p_cs": 0.24,
+  "ep_per_start_mean": 3.15,
+  "ep6_if_nailed": 17.58,
+  "ep6_band_defence": [
+   15.61,
+   17.04
+  ],
+  "ep6_band_promoted": [
+   15.64,
+   16.74
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.865,
+   "bonus_per_start": 0.131,
+   "pen_saves_per_start": 0.0149
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 5,
+   "goals_conceded": 3,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 15,
+   "xgc": 3.87,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 630,
+   "starts": 7,
+   "clean_sheets": 2,
+   "goals_conceded": 7,
+   "expected_goals_conceded": "5.55",
+   "saves": 10,
+   "bonus": 0,
+   "bps": 76,
+   "penalties_saved": 0,
+   "total_points": 20
+  }
+ },
+ {
+  "id": 567,
+  "name": "Horníček",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.747,
+  "p_start_gw": [
+   0.72,
+   0.74,
+   0.75,
+   0.76,
+   0.76,
+   0.75
+  ],
+  "ep_gw": [
+   2.39,
+   2.33,
+   2.29,
+   2.86,
+   2.68,
+   2.49
+  ],
+  "ep_total6": 15.05,
+  "ep_per_million": 3.01,
+  "uncertainty": "HIGH",
+  "notes": "ESCALATION REALISED: started GW1 ahead of Pope, who logged 0 minutes with no injury flag. The GW1 warning — 'FPL pricing a new-signing keeper level with the incumbent is a rotation warning' — was correct. No PL history, so capped per the new-signing rule; HIGH until two consecutive 60'+ starts. NEW is the only club improving at BOTH ends from GW5.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.7,
+  "transfers_net_event": 1220,
+  "fixtures": [
+   "TOT(A)",
+   "BOU(H)",
+   "LEE(A)",
+   "HUL(H)±",
+   "COV(A)±",
+   "AVL(H)"
+  ],
+  "mean_lambda_def": 1.388,
+  "mean_p_cs": 0.258,
+  "ep_per_start_mean": 3.36,
+  "ep6_if_nailed": 18.73,
+  "ep6_band_defence": [
+   14.47,
+   15.75
+  ],
+  "ep6_band_promoted": [
+   14.04,
+   16.07
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.989,
+   "bonus_per_start": 0.202,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 5,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 12,
+   "xgc": 2.98,
+   "points": 1
+  },
+  "prior_season": null
+ },
+ {
+  "id": 57,
+  "name": "Petrović",
+  "team": "BOU",
+  "price": 4.5,
+  "p_start": 0.778,
+  "p_start_gw": [
+   0.9,
+   0.83,
+   0.78,
+   0.74,
+   0.72,
+   0.7
+  ],
+  "ep_gw": [
+   3.06,
+   2.56,
+   2.33,
+   2.24,
+   2.03,
+   2.56
+  ],
+  "ep_total6": 14.77,
+  "ep_per_million": 3.282,
+  "uncertainty": "MED",
+  "notes": "NEW ESCALATION: Di Gregorio (£4.5, id 615) was added to the bootstrap AFTER the GW1 deadline — a starting-calibre keeper priced level with Petrović. This is structurally the Pope/Horníček setup that just resolved against the incumbent. Petrović started GW1 and has 39 straight starts, so p_start is a decay, not a cliff: .90 → .70. If Di Gregorio never takes the shirt his EP6 is 17.63.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 3.3,
+  "transfers_net_event": 9100,
+  "fixtures": [
+   "EVE(H)",
+   "NEW(A)",
+   "BRE(H)",
+   "LIV(H)",
+   "CHE(A)",
+   "SUN(H)"
+  ],
+  "mean_lambda_def": 1.548,
+  "mean_p_cs": 0.228,
+  "ep_per_start_mean": 3.16,
+  "ep6_if_nailed": 17.63,
+  "ep6_band_defence": [
+   14.22,
+   15.44
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 1.942,
+   "bonus_per_start": 0.149,
+   "pen_saves_per_start": 0.012
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 4,
+   "goals_conceded": 2,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 13,
+   "xgc": 2.25,
+   "points": 2
+  },
+  "prior_season": {
+   "minutes": 3420,
+   "starts": 38,
+   "clean_sheets": 11,
+   "goals_conceded": 54,
+   "expected_goals_conceded": "56.72",
+   "saves": 109,
+   "bonus": 5,
+   "bps": 512,
+   "penalties_saved": 0,
+   "total_points": 124
+  }
+ },
+ {
+  "id": 110,
+  "name": "Rushworth",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.773,
+  "p_start_gw": [
+   0.78,
+   0.78,
+   0.78,
+   0.77,
+   0.77,
+   0.76
+  ],
+  "ep_gw": [
+   2.89,
+   2.16,
+   2.41,
+   2.41,
+   2.41,
+   2.45
+  ],
+  "ep_total6": 14.74,
+  "ep_per_million": 3.276,
+  "uncertainty": "HIGH",
+  "notes": "RESOLVED: started GW1. COV's three-way is settled on one match; zero PL minutes before it. fixtures.md revises COV DEFW 1.30 → 1.21 (implied 0.95 vs ARS — near league-average, better than assumed). Every fixture band-flagged: EP6 range 11.96–17.84.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.2,
+  "transfers_net_event": 3917,
+  "fixtures": [
+   "HUL(H)±",
+   "MCI(A)±",
+   "BHA(H)±",
+   "NFO(A)±",
+   "NEW(H)±",
+   "TOT(A)±"
+  ],
+  "mean_lambda_def": 1.658,
+  "mean_p_cs": 0.208,
+  "ep_per_start_mean": 3.18,
+  "ep6_if_nailed": 17.73,
+  "ep6_band_defence": [
+   14.27,
+   15.41
+  ],
+  "ep6_band_promoted": [
+   11.96,
+   17.84
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.951,
+   "bonus_per_start": 0.202,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 2,
+   "goals_conceded": 3,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 1.88,
+   "points": 1
+  },
+  "prior_season": null
+ },
+ {
+  "id": 564,
+  "name": "Scherpen",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.713,
+  "p_start_gw": [
+   0.72,
+   0.72,
+   0.72,
+   0.71,
+   0.71,
+   0.7
+  ],
+  "ep_gw": [
+   2.2,
+   2.22,
+   2.18,
+   2.32,
+   2.56,
+   2.06
+  ],
+  "ep_total6": 13.54,
+  "ep_per_million": 3.008,
+  "uncertainty": "HIGH",
+  "notes": "RESOLVED AGAINST THE GW1 READ: Scherpen started, not Walton. The GW1 model ranked Walton ahead on age/experience — that tie-break was noise, exactly as flagged. Market has not followed (net −1.7k). IPS holds a hard defensive run GW2–5; all fixtures band-flagged.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.6,
+  "transfers_net_event": -1706,
+  "fixtures": [
+   "MUN(A)±",
+   "LIV(H)±",
+   "CRY(A)±",
+   "EVE(A)±",
+   "FUL(H)±",
+   "MCI(A)±"
+  ],
+  "mean_lambda_def": 1.793,
+  "mean_p_cs": 0.182,
+  "ep_per_start_mean": 3.16,
+  "ep6_if_nailed": 17.65,
+  "ep6_band_defence": [
+   13.13,
+   14.0
+  ],
+  "ep6_band_promoted": [
+   10.96,
+   16.39
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.074,
+   "bonus_per_start": 0.202,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 2,
+   "goals_conceded": 1,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 12,
+   "xgc": 0.66,
+   "points": 2
+  },
+  "prior_season": null
+ },
+ {
+  "id": 29,
+  "name": "M.Bizot",
+  "team": "AVL",
+  "price": 4.5,
+  "p_start": 0.513,
+  "p_start_gw": [
+   0.55,
+   0.53,
+   0.52,
+   0.5,
+   0.5,
+   0.48
+  ],
+  "ep_gw": [
+   1.58,
+   1.84,
+   1.71,
+   1.6,
+   1.42,
+   1.41
+  ],
+  "ep_total6": 9.55,
+  "ep_per_million": 2.123,
+  "uncertainty": "HIGH",
+  "notes": "UNRESOLVED, NEW: started GW1 (90') while Martinez logged 0 minutes with status 'a' and no news. A £4.5 deputy displacing a £5.0 incumbent with 32 prior starts. Market has NOT followed him (net +/-0, 0.1% owned), so this is one observation against a strong prior. Modelled as a genuine split, not a resolution.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -17,
+  "fixtures": [
+   "ARS(H)",
+   "HUL(A)±",
+   "NFO(H)",
+   "TOT(A)",
+   "BRE(H)",
+   "NEW(A)"
+  ],
+  "mean_lambda_def": 1.528,
+  "mean_p_cs": 0.227,
+  "ep_per_start_mean": 3.1,
+  "ep6_if_nailed": 17.3,
+  "ep6_band_defence": [
+   9.19,
+   10.03
+  ],
+  "ep6_band_promoted": [
+   9.21,
+   9.9
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.836,
+   "bonus_per_start": 0.138,
+   "pen_saves_per_start": 0.015
+  },
+  "gw1": {
+   "minutes": 90,
+   "saves": 3,
+   "goals_conceded": 4,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 1,
+   "xgc": 3.77,
+   "points": 1
+  },
+  "prior_season": {
+   "minutes": 585,
+   "starts": 6,
+   "clean_sheets": 1,
+   "goals_conceded": 10,
+   "expected_goals_conceded": "11.02",
+   "saves": 19,
+   "bonus": 0,
+   "bps": 75,
+   "penalties_saved": 0,
+   "total_points": 16
+  }
+ },
+ {
+  "id": 28,
+  "name": "Martinez",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.367,
+  "p_start_gw": [
+   0.33,
+   0.35,
+   0.36,
+   0.38,
+   0.38,
+   0.4
+  ],
+  "ep_gw": [
+   1.07,
+   1.34,
+   1.31,
+   1.35,
+   1.22,
+   1.32
+  ],
+  "ep_total6": 7.62,
+  "ep_per_million": 1.524,
+  "uncertainty": "HIGH",
+  "notes": "BENCHED IN GW1: 0 minutes, no injury flag, no news — and net −38.6k transfers out, the heaviest GK outflow in the game. Owners are acting on information the snapshot does not carry. Prior is far stronger than Bizot's (32 starts, 95 saves) so partial reversion is modelled, but he is unselectable until the shirt is confirmed.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 4.1,
+  "transfers_net_event": -38644,
+  "fixtures": [
+   "ARS(H)",
+   "HUL(A)±",
+   "NFO(H)",
+   "TOT(A)",
+   "BRE(H)",
+   "NEW(A)"
+  ],
+  "mean_lambda_def": 1.528,
+  "mean_p_cs": 0.227,
+  "ep_per_start_mean": 3.46,
+  "ep6_if_nailed": 19.33,
+  "ep6_band_defence": [
+   7.37,
+   7.94
+  ],
+  "ep6_band_promoted": [
+   7.37,
+   7.86
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.148,
+   "bonus_per_start": 0.31,
+   "pen_saves_per_start": 0.0191
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 2835,
+   "starts": 32,
+   "clean_sheets": 7,
+   "goals_conceded": 39,
+   "expected_goals_conceded": "42.92",
+   "saves": 95,
+   "bonus": 11,
+   "bps": 530,
+   "penalties_saved": 1,
+   "total_points": 120
+  }
+ },
+ {
+  "id": 442,
+  "name": "Pope",
+  "team": "NEW",
+  "price": 5.0,
+  "p_start": 0.223,
+  "p_start_gw": [
+   0.25,
+   0.23,
+   0.22,
+   0.21,
+   0.21,
+   0.22
+  ],
+  "ep_gw": [
+   0.87,
+   0.77,
+   0.72,
+   0.8,
+   0.76,
+   0.76
+  ],
+  "ep_total6": 4.67,
+  "ep_per_million": 0.935,
+  "uncertainty": "HIGH",
+  "notes": "LOST THE SHIRT: 0 minutes in GW1 while £5.0-equal signing Horníček played 90. Net −8.3k out. Best raw save rate in the pool (2.457/xGC) and it is now worth nothing without minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.3,
+  "transfers_net_event": -8297,
+  "fixtures": [
+   "TOT(A)",
+   "BOU(H)",
+   "LEE(A)",
+   "HUL(H)±",
+   "COV(A)±",
+   "AVL(H)"
+  ],
+  "mean_lambda_def": 1.388,
+  "mean_p_cs": 0.258,
+  "ep_per_start_mean": 3.49,
+  "ep6_if_nailed": 19.49,
+  "ep6_band_defence": [
+   4.54,
+   4.84
+  ],
+  "ep6_band_promoted": [
+   4.4,
+   4.94
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.457,
+   "bonus_per_start": 0.144,
+   "pen_saves_per_start": 0.0129
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 2416,
+   "starts": 27,
+   "clean_sheets": 7,
+   "goals_conceded": 38,
+   "expected_goals_conceded": "32.89",
+   "saves": 89,
+   "bonus": 3,
+   "bps": 414,
+   "penalties_saved": 0,
+   "total_points": 96
+  }
+ },
+ {
+  "id": 615,
+  "name": "Di Gregorio",
+  "team": "BOU",
+  "price": 4.5,
+  "p_start": 0.202,
+  "p_start_gw": [
+   0.08,
+   0.15,
+   0.2,
+   0.24,
+   0.26,
+   0.28
+  ],
+  "ep_gw": [
+   0.28,
+   0.48,
+   0.62,
+   0.76,
+   0.77,
+   1.06
+  ],
+  "ep_total6": 3.97,
+  "ep_per_million": 0.883,
+  "uncertainty": "HIGH",
+  "notes": "NEW ENTRY (not in the GW1 bootstrap): joined BOU after the GW1 deadline at £4.5, level with Petrović. Zero PL history → capped per the new-signing rule, HIGH. 0.0% owned and 113 transfers in — the market has not noticed. Ramping threat, not a GW2 starter.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": 102,
+  "fixtures": [
+   "EVE(H)",
+   "NEW(A)",
+   "BRE(H)",
+   "LIV(H)",
+   "CHE(A)",
+   "SUN(H)"
+  ],
+  "mean_lambda_def": 1.548,
+  "mean_p_cs": 0.228,
+  "ep_per_start_mean": 3.29,
+  "ep6_if_nailed": 18.37,
+  "ep6_band_defence": [
+   3.83,
+   4.14
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 351,
+  "name": "Mamardashvili",
+  "team": "LIV",
+  "price": 5.0,
+  "p_start": 0.163,
+  "p_start_gw": [
+   0.15,
+   0.15,
+   0.16,
+   0.17,
+   0.17,
+   0.18
+  ],
+  "ep_gw": [
+   0.58,
+   0.56,
+   0.64,
+   0.58,
+   0.56,
+   0.58
+  ],
+  "ep_total6": 3.51,
+  "ep_per_million": 0.701,
+  "uncertainty": "HIGH",
+  "notes": "0 minutes in GW1. Best save rate of any keeper with real minutes (2.225/xGC). A live differential only if Alisson misses time.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.2,
+  "transfers_net_event": -1278,
+  "fixtures": [
+   "NFO(H)",
+   "IPS(A)±",
+   "FUL(H)",
+   "BOU(A)",
+   "MCI(H)",
+   "BRE(A)"
+  ],
+  "mean_lambda_def": 1.3,
+  "mean_p_cs": 0.285,
+  "ep_per_start_mean": 3.59,
+  "ep6_if_nailed": 20.06,
+  "ep6_band_defence": [
+   3.4,
+   3.66
+  ],
+  "ep6_band_promoted": [
+   3.41,
+   3.61
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.225,
+   "bonus_per_start": 0.21,
+   "pen_saves_per_start": 0.0223
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 867,
+   "starts": 10,
+   "clean_sheets": 2,
+   "goals_conceded": 18,
+   "expected_goals_conceded": "13.29",
+   "saves": 34,
+   "bonus": 2,
+   "bps": 139,
+   "penalties_saved": 1,
+   "total_points": 34
+  }
+ },
+ {
+  "id": 300,
+  "name": "Walton",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.165,
+  "p_start_gw": [
+   0.16,
+   0.16,
+   0.16,
+   0.17,
+   0.17,
+   0.17
+  ],
+  "ep_gw": [
+   0.48,
+   0.49,
+   0.48,
+   0.55,
+   0.61,
+   0.49
+  ],
+  "ep_total6": 3.11,
+  "ep_per_million": 0.692,
+  "uncertainty": "HIGH",
+  "notes": "Lost the IPS job to Scherpen in GW1 (0 minutes). Retains a claim only because IPS priced three keepers identically.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.5,
+  "transfers_net_event": -3649,
+  "fixtures": [
+   "MUN(A)±",
+   "LIV(H)±",
+   "CRY(A)±",
+   "EVE(A)±",
+   "FUL(H)±",
+   "MCI(A)±"
+  ],
+  "mean_lambda_def": 1.793,
+  "mean_p_cs": 0.182,
+  "ep_per_start_mean": 3.14,
+  "ep6_if_nailed": 17.53,
+  "ep6_band_defence": [
+   3.01,
+   3.23
+  ],
+  "ep6_band_promoted": [
+   2.51,
+   3.78
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 172,
+  "name": "Wilson",
+  "team": "COV",
+  "price": 4.5,
+  "p_start": 0.145,
+  "p_start_gw": [
+   0.14,
+   0.14,
+   0.14,
+   0.15,
+   0.15,
+   0.15
+  ],
+  "ep_gw": [
+   0.53,
+   0.4,
+   0.44,
+   0.48,
+   0.48,
+   0.49
+  ],
+  "ep_total6": 2.81,
+  "ep_per_million": 0.624,
+  "uncertainty": "HIGH",
+  "notes": "COV #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.5,
+  "transfers_net_event": -2749,
+  "fixtures": [
+   "HUL(H)±",
+   "MCI(A)±",
+   "BHA(H)±",
+   "NFO(A)±",
+   "NEW(H)±",
+   "TOT(A)±"
+  ],
+  "mean_lambda_def": 1.658,
+  "mean_p_cs": 0.208,
+  "ep_per_start_mean": 3.23,
+  "ep6_if_nailed": 18.01,
+  "ep6_band_defence": [
+   2.72,
+   2.93
+  ],
+  "ep6_band_promoted": [
+   2.28,
+   3.39
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 326,
+  "name": "Perri",
+  "team": "LEE",
+  "price": 4.5,
+  "p_start": 0.137,
+  "p_start_gw": [
+   0.13,
+   0.13,
+   0.13,
+   0.14,
+   0.14,
+   0.15
+  ],
+  "ep_gw": [
+   0.39,
+   0.4,
+   0.43,
+   0.43,
+   0.4,
+   0.48
+  ],
+  "ep_total6": 2.54,
+  "ep_per_million": 0.564,
+  "uncertainty": "HIGH",
+  "notes": "Lost the LEE job to Trafford in GW1 (0 minutes). 16 prior starts keep a residual claim.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.6,
+  "transfers_net_event": -4213,
+  "fixtures": [
+   "BRE(H)",
+   "BHA(A)",
+   "NEW(H)",
+   "CRY(H)",
+   "ARS(A)",
+   "MUN(H)"
+  ],
+  "mean_lambda_def": 1.488,
+  "mean_p_cs": 0.227,
+  "ep_per_start_mean": 3.09,
+  "ep6_if_nailed": 17.26,
+  "ep6_band_defence": [
+   2.43,
+   2.68
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 1.708,
+   "bonus_per_start": 0.201,
+   "pen_saves_per_start": 0.014
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 1440,
+   "starts": 16,
+   "clean_sheets": 3,
+   "goals_conceded": 29,
+   "expected_goals_conceded": "26.68",
+   "saves": 38,
+   "bonus": 3,
+   "bps": 153,
+   "penalties_saved": 0,
+   "total_points": 43
+  }
+ },
+ {
+  "id": 273,
+  "name": "Phillips",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.133,
+  "p_start_gw": [
+   0.13,
+   0.13,
+   0.13,
+   0.13,
+   0.14,
+   0.14
+  ],
+  "ep_gw": [
+   0.44,
+   0.41,
+   0.37,
+   0.39,
+   0.45,
+   0.45
+  ],
+  "ep_total6": 2.51,
+  "ep_per_million": 0.628,
+  "uncertainty": "HIGH",
+  "notes": "Joint-best £4.0 body with Dubravka (2.51 vs 2.38 — inside noise). Behind a worse defence but a marginally more open depth chart with Butland injured.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.5,
+  "transfers_net_event": -3291,
+  "fixtures": [
+   "COV(A)±",
+   "AVL(H)±",
+   "CHE(A)±",
+   "NEW(A)±",
+   "EVE(H)±",
+   "FUL(A)±"
+  ],
+  "mean_lambda_def": 1.82,
+  "mean_p_cs": 0.18,
+  "ep_per_start_mean": 3.14,
+  "ep6_if_nailed": 17.52,
+  "ep6_band_defence": [
+   2.44,
+   2.61
+  ],
+  "ep6_band_promoted": [
+   2.05,
+   3.05
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 497,
+  "name": "Dubravka",
+  "team": "TOT",
+  "price": 4.0,
+  "p_start": 0.123,
+  "p_start_gw": [
+   0.12,
+   0.12,
+   0.12,
+   0.12,
+   0.13,
+   0.13
+  ],
+  "ep_gw": [
+   0.37,
+   0.38,
+   0.39,
+   0.39,
+   0.37,
+   0.48
+  ],
+  "ep_total6": 2.38,
+  "ep_per_million": 0.595,
+  "uncertainty": "HIGH",
+  "notes": "COLLAPSED: our GK2. Kinsky started GW1 and Dubravka logged 0 minutes, so the TOT two-way is resolved against him. EP6 falls 7.10 → 2.38 (−4.72), the largest single downgrade in the GKP pool. Net −25.2k out. Still the joint-best £4.0 body in the game, but the slot is now near-dead — this is the GK half of the retro's MED-2 dead-bench finding.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 18.6,
+  "transfers_net_event": -25247,
+  "fixtures": [
+   "NEW(H)",
+   "NFO(A)",
+   "EVE(H)",
+   "AVL(H)",
+   "MUN(A)",
+   "COV(H)±"
+  ],
+  "mean_lambda_def": 1.458,
+  "mean_p_cs": 0.24,
+  "ep_per_start_mean": 3.21,
+  "ep6_if_nailed": 17.93,
+  "ep6_band_defence": [
+   2.29,
+   2.51
+  ],
+  "ep6_band_promoted": [
+   2.29,
+   2.47
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.851,
+   "bonus_per_start": 0.205,
+   "pen_saves_per_start": 0.0123
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 3150,
+   "starts": 35,
+   "clean_sheets": 4,
+   "goals_conceded": 71,
+   "expected_goals_conceded": "71.26",
+   "saves": 127,
+   "bonus": 7,
+   "bps": 436,
+   "penalties_saved": 0,
+   "total_points": 96
+  }
+ },
+ {
+  "id": 560,
+  "name": "Penders",
+  "team": "CHE",
+  "price": 4.5,
+  "p_start": 0.107,
+  "p_start_gw": [
+   0.09,
+   0.1,
+   0.1,
+   0.11,
+   0.12,
+   0.12
+  ],
+  "ep_gw": [
+   0.31,
+   0.31,
+   0.41,
+   0.33,
+   0.41,
+   0.41
+  ],
+  "ep_total6": 2.18,
+  "ep_per_million": 0.485,
+  "uncertainty": "HIGH",
+  "notes": "CHE #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -346,
+  "fixtures": [
+   "BHA(H)",
+   "ARS(A)",
+   "HUL(H)±",
+   "BRE(A)",
+   "BOU(H)",
+   "EVE(A)"
+  ],
+  "mean_lambda_def": 1.398,
+  "mean_p_cs": 0.263,
+  "ep_per_start_mean": 3.41,
+  "ep6_if_nailed": 19.04,
+  "ep6_band_defence": [
+   2.1,
+   2.28
+  ],
+  "ep6_band_promoted": [
+   2.11,
+   2.25
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 587,
+  "name": "Rulli",
+  "team": "MCI",
+  "price": 5.0,
+  "p_start": 0.095,
+  "p_start_gw": [
+   0.08,
+   0.09,
+   0.09,
+   0.1,
+   0.1,
+   0.11
+  ],
+  "ep_gw": [
+   0.27,
+   0.39,
+   0.31,
+   0.42,
+   0.33,
+   0.46
+  ],
+  "ep_total6": 2.18,
+  "ep_per_million": 0.436,
+  "uncertainty": "HIGH",
+  "notes": "MCI #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -116,
+  "fixtures": [
+   "CRY(A)",
+   "COV(H)±",
+   "MUN(A)",
+   "SUN(H)",
+   "LIV(A)",
+   "IPS(H)±"
+  ],
+  "mean_lambda_def": 1.045,
+  "mean_p_cs": 0.37,
+  "ep_per_start_mean": 3.81,
+  "ep6_if_nailed": 21.24,
+  "ep6_band_defence": [
+   2.1,
+   2.28
+  ],
+  "ep6_band_promoted": [
+   2.05,
+   2.31
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 597,
+  "name": "Suzuki",
+  "team": "AVL",
+  "price": 5.0,
+  "p_start": 0.1,
+  "p_start_gw": [
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "ep_gw": [
+   0.31,
+   0.36,
+   0.35,
+   0.34,
+   0.3,
+   0.31
+  ],
+  "ep_total6": 1.97,
+  "ep_per_million": 0.394,
+  "uncertainty": "HIGH",
+  "notes": "0 minutes in GW1 — Bizot, not Suzuki, deputised for Martinez. That demotes him to third in a three-way, below where the GW1 price signal put him.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.8,
+  "transfers_net_event": -2103,
+  "fixtures": [
+   "ARS(H)",
+   "HUL(A)±",
+   "NFO(H)",
+   "TOT(A)",
+   "BRE(H)",
+   "NEW(A)"
+  ],
+  "mean_lambda_def": 1.528,
+  "mean_p_cs": 0.227,
+  "ep_per_start_mean": 3.28,
+  "ep6_if_nailed": 18.3,
+  "ep6_band_defence": [
+   1.9,
+   2.06
+  ],
+  "ep6_band_promoted": [
+   1.9,
+   2.03
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 468,
+  "name": "John",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.087,
+  "p_start_gw": [
+   0.08,
+   0.08,
+   0.08,
+   0.09,
+   0.09,
+   0.1
+  ],
+  "ep_gw": [
+   0.23,
+   0.3,
+   0.26,
+   0.36,
+   0.26,
+   0.31
+  ],
+  "ep_total6": 1.72,
+  "ep_per_million": 0.382,
+  "uncertainty": "HIGH",
+  "notes": "NFO #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -257,
+  "fixtures": [
+   "LIV(A)",
+   "TOT(H)",
+   "AVL(A)",
+   "COV(H)±",
+   "CRY(A)",
+   "ARS(H)"
+  ],
+  "mean_lambda_def": 1.312,
+  "mean_p_cs": 0.287,
+  "ep_per_start_mean": 3.31,
+  "ep6_if_nailed": 18.46,
+  "ep6_band_defence": [
+   1.65,
+   1.81
+  ],
+  "ep6_band_promoted": [
+   1.66,
+   1.78
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.758,
+   "bonus_per_start": 0.154,
+   "pen_saves_per_start": 0.0152
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 437,
+   "starts": 5,
+   "clean_sheets": 1,
+   "goals_conceded": 8,
+   "expected_goals_conceded": "6.13",
+   "saves": 6,
+   "bonus": 0,
+   "bps": 32,
+   "penalties_saved": 0,
+   "total_points": 11
+  }
+ },
+ {
+  "id": 199,
+  "name": "Benitez",
+  "team": "CRY",
+  "price": 4.5,
+  "p_start": 0.078,
+  "p_start_gw": [
+   0.07,
+   0.07,
+   0.07,
+   0.08,
+   0.09,
+   0.09
+  ],
+  "ep_gw": [
+   0.22,
+   0.25,
+   0.27,
+   0.27,
+   0.33,
+   0.3
+  ],
+  "ep_total6": 1.64,
+  "ep_per_million": 0.364,
+  "uncertainty": "HIGH",
+  "notes": "CRY #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -704,
+  "fixtures": [
+   "MCI(H)",
+   "FUL(A)",
+   "IPS(H)±",
+   "LEE(A)",
+   "NFO(H)",
+   "BHA(A)"
+  ],
+  "mean_lambda_def": 1.287,
+  "mean_p_cs": 0.287,
+  "ep_per_start_mean": 3.49,
+  "ep6_if_nailed": 19.45,
+  "ep6_band_defence": [
+   1.57,
+   1.71
+  ],
+  "ep6_band_promoted": [
+   1.59,
+   1.68
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.052,
+   "bonus_per_start": 0.202,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 90,
+   "starts": 1,
+   "clean_sheets": 1,
+   "goals_conceded": 0,
+   "expected_goals_conceded": "1.12",
+   "saves": 3,
+   "bonus": 0,
+   "bps": 29,
+   "penalties_saved": 0,
+   "total_points": 7
+  }
+ },
+ {
+  "id": 171,
+  "name": "Dovin",
+  "team": "COV",
+  "price": 4.0,
+  "p_start": 0.082,
+  "p_start_gw": [
+   0.08,
+   0.08,
+   0.08,
+   0.08,
+   0.08,
+   0.09
+  ],
+  "ep_gw": [
+   0.3,
+   0.23,
+   0.25,
+   0.25,
+   0.25,
+   0.29
+  ],
+  "ep_total6": 1.58,
+  "ep_per_million": 0.396,
+  "uncertainty": "HIGH",
+  "notes": "COV #2; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.5,
+  "transfers_net_event": -3327,
+  "fixtures": [
+   "HUL(H)±",
+   "MCI(A)±",
+   "BHA(H)±",
+   "NFO(A)±",
+   "NEW(H)±",
+   "TOT(A)±"
+  ],
+  "mean_lambda_def": 1.658,
+  "mean_p_cs": 0.208,
+  "ep_per_start_mean": 3.23,
+  "ep6_if_nailed": 18.01,
+  "ep6_band_defence": [
+   1.53,
+   1.65
+  ],
+  "ep6_band_promoted": [
+   1.28,
+   1.91
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 301,
+  "name": "Palmer",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.082,
+  "p_start_gw": [
+   0.08,
+   0.08,
+   0.08,
+   0.08,
+   0.08,
+   0.09
+  ],
+  "ep_gw": [
+   0.24,
+   0.24,
+   0.24,
+   0.26,
+   0.29,
+   0.26
+  ],
+  "ep_total6": 1.54,
+  "ep_per_million": 0.384,
+  "uncertainty": "HIGH",
+  "notes": "IPS #2; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 4.5,
+  "transfers_net_event": -8382,
+  "fixtures": [
+   "MUN(A)±",
+   "LIV(H)±",
+   "CRY(A)±",
+   "EVE(A)±",
+   "FUL(H)±",
+   "MCI(A)±"
+  ],
+  "mean_lambda_def": 1.793,
+  "mean_p_cs": 0.182,
+  "ep_per_start_mean": 3.14,
+  "ep6_if_nailed": 17.53,
+  "ep6_band_defence": [
+   1.49,
+   1.59
+  ],
+  "ep6_band_promoted": [
+   1.24,
+   1.87
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 325,
+  "name": "Darlow",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.067,
+  "p_start_gw": [
+   0.06,
+   0.06,
+   0.06,
+   0.07,
+   0.07,
+   0.08
+  ],
+  "ep_gw": [
+   0.23,
+   0.21,
+   0.19,
+   0.25,
+   0.27,
+   0.27
+  ],
+  "ep_total6": 1.42,
+  "ep_per_million": 0.315,
+  "uncertainty": "HIGH",
+  "notes": "MUN #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": 100,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -20,
+  "fixtures": [
+   "IPS(H)±",
+   "EVE(A)",
+   "MCI(H)",
+   "FUL(A)",
+   "TOT(H)",
+   "LEE(A)"
+  ],
+  "mean_lambda_def": 1.208,
+  "mean_p_cs": 0.308,
+  "ep_per_start_mean": 3.54,
+  "ep6_if_nailed": 19.74,
+  "ep6_band_defence": [
+   1.36,
+   1.48
+  ],
+  "ep6_band_promoted": [
+   1.38,
+   1.45
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.136,
+   "bonus_per_start": 0.165,
+   "pen_saves_per_start": 0.0134
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 1980,
+   "starts": 22,
+   "clean_sheets": 5,
+   "goals_conceded": 27,
+   "expected_goals_conceded": "28.36",
+   "saves": 63,
+   "bonus": 3,
+   "bps": 334,
+   "penalties_saved": 0,
+   "total_points": 71
+  }
+ },
+ {
+  "id": 531,
+  "name": "Ellborg",
+  "team": "SUN",
+  "price": 4.5,
+  "p_start": 0.067,
+  "p_start_gw": [
+   0.06,
+   0.06,
+   0.06,
+   0.07,
+   0.07,
+   0.08
+  ],
+  "ep_gw": [
+   0.22,
+   0.18,
+   0.19,
+   0.21,
+   0.23,
+   0.25
+  ],
+  "ep_total6": 1.29,
+  "ep_per_million": 0.286,
+  "uncertainty": "HIGH",
+  "notes": "SUN #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -564,
+  "fixtures": [
+   "FUL(H)",
+   "BRE(A)",
+   "ARS(H)",
+   "MCI(A)",
+   "BHA(H)",
+   "BOU(A)"
+  ],
+  "mean_lambda_def": 1.863,
+  "mean_p_cs": 0.172,
+  "ep_per_start_mean": 3.23,
+  "ep6_if_nailed": 18.02,
+  "ep6_band_defence": [
+   1.25,
+   1.33
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.082,
+   "bonus_per_start": 0.295,
+   "pen_saves_per_start": 0.0155
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 270,
+   "starts": 3,
+   "clean_sheets": 1,
+   "goals_conceded": 2,
+   "expected_goals_conceded": "4.10",
+   "saves": 10,
+   "bonus": 3,
+   "bps": 62,
+   "penalties_saved": 0,
+   "total_points": 16
+  }
+ },
+ {
+  "id": 83,
+  "name": "Valdimarsson",
+  "team": "BRE",
+  "price": 4.5,
+  "p_start": 0.063,
+  "p_start_gw": [
+   0.06,
+   0.06,
+   0.06,
+   0.06,
+   0.07,
+   0.07
+  ],
+  "ep_gw": [
+   0.2,
+   0.23,
+   0.2,
+   0.19,
+   0.24,
+   0.22
+  ],
+  "ep_total6": 1.28,
+  "ep_per_million": 0.284,
+  "uncertainty": "HIGH",
+  "notes": "BRE #2; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -198,
+  "fixtures": [
+   "LEE(A)",
+   "SUN(H)",
+   "BOU(A)",
+   "CHE(H)",
+   "AVL(A)",
+   "LIV(H)"
+  ],
+  "mean_lambda_def": 1.355,
+  "mean_p_cs": 0.267,
+  "ep_per_start_mean": 3.37,
+  "ep6_if_nailed": 18.8,
+  "ep6_band_defence": [
+   1.23,
+   1.34
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 1.949,
+   "bonus_per_start": 0.202,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 90,
+   "starts": 1,
+   "clean_sheets": 0,
+   "goals_conceded": 3,
+   "expected_goals_conceded": "0.97",
+   "saves": 1,
+   "bonus": 0,
+   "bps": 1,
+   "penalties_saved": 0,
+   "total_points": 1
+  }
+ },
+ {
+  "id": 2,
+  "name": "Arrizabalaga",
+  "team": "ARS",
+  "price": 5.0,
+  "p_start": 0.048,
+  "p_start_gw": [
+   0.04,
+   0.04,
+   0.04,
+   0.05,
+   0.06,
+   0.06
+  ],
+  "ep_gw": [
+   0.15,
+   0.14,
+   0.16,
+   0.18,
+   0.24,
+   0.24
+  ],
+  "ep_total6": 1.11,
+  "ep_per_million": 0.223,
+  "uncertainty": "HIGH",
+  "notes": "ARS #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -937,
+  "fixtures": [
+   "AVL(A)",
+   "CHE(H)",
+   "SUN(A)",
+   "BHA(A)",
+   "LEE(H)",
+   "NFO(A)"
+  ],
+  "mean_lambda_def": 0.958,
+  "mean_p_cs": 0.387,
+  "ep_per_start_mean": 3.83,
+  "ep6_if_nailed": 21.39,
+  "ep6_band_defence": [
+   1.07,
+   1.17
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.012,
+   "bonus_per_start": 0.202,
+   "pen_saves_per_start": 0.0157
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 90,
+   "starts": 1,
+   "clean_sheets": 0,
+   "goals_conceded": 1,
+   "expected_goals_conceded": "0.98",
+   "saves": 2,
+   "bonus": 0,
+   "bps": 11,
+   "penalties_saved": 0,
+   "total_points": 2
+  }
+ },
+ {
+  "id": 111,
+  "name": "Steele",
+  "team": "BHA",
+  "price": 4.0,
+  "p_start": 0.053,
+  "p_start_gw": [
+   0.05,
+   0.05,
+   0.05,
+   0.05,
+   0.06,
+   0.06
+  ],
+  "ep_gw": [
+   0.15,
+   0.18,
+   0.2,
+   0.16,
+   0.22,
+   0.2
+  ],
+  "ep_total6": 1.11,
+  "ep_per_million": 0.277,
+  "uncertainty": "HIGH",
+  "notes": "BHA #2; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 4.0,
+  "transfers_net_event": -2953,
+  "fixtures": [
+   "CHE(A)",
+   "LEE(H)",
+   "COV(A)±",
+   "ARS(H)",
+   "SUN(A)",
+   "CRY(H)"
+  ],
+  "mean_lambda_def": 1.332,
+  "mean_p_cs": 0.278,
+  "ep_per_start_mean": 3.46,
+  "ep6_if_nailed": 19.32,
+  "ep6_band_defence": [
+   1.07,
+   1.16
+  ],
+  "ep6_band_promoted": [
+   1.08,
+   1.14
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 251,
+  "name": "Lecomte",
+  "team": "FUL",
+  "price": 4.0,
+  "p_start": 0.047,
+  "p_start_gw": [
+   0.04,
+   0.04,
+   0.04,
+   0.05,
+   0.05,
+   0.06
+  ],
+  "ep_gw": [
+   0.14,
+   0.13,
+   0.12,
+   0.16,
+   0.17,
+   0.24
+  ],
+  "ep_total6": 0.95,
+  "ep_per_million": 0.239,
+  "uncertainty": "HIGH",
+  "notes": "FUL #3; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.2,
+  "transfers_net_event": -2197,
+  "fixtures": [
+   "SUN(A)",
+   "CRY(H)",
+   "LIV(A)",
+   "MUN(H)",
+   "IPS(A)±",
+   "HUL(H)±"
+  ],
+  "mean_lambda_def": 1.452,
+  "mean_p_cs": 0.252,
+  "ep_per_start_mean": 3.37,
+  "ep6_if_nailed": 18.82,
+  "ep6_band_defence": [
+   0.92,
+   1.0
+  ],
+  "ep6_band_promoted": [
+   0.88,
+   1.03
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 227,
+  "name": "Travers",
+  "team": "EVE",
+  "price": 5.0,
+  "p_start": 0.037,
+  "p_start_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.04,
+   0.04,
+   0.05
+  ],
+  "ep_gw": [
+   0.09,
+   0.1,
+   0.1,
+   0.15,
+   0.15,
+   0.15
+  ],
+  "ep_total6": 0.74,
+  "ep_per_million": 0.147,
+  "uncertainty": "HIGH",
+  "notes": "EVE #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -104,
+  "fixtures": [
+   "BOU(A)",
+   "MUN(H)",
+   "TOT(A)",
+   "IPS(H)±",
+   "HUL(A)±",
+   "CHE(H)"
+  ],
+  "mean_lambda_def": 1.443,
+  "mean_p_cs": 0.248,
+  "ep_per_start_mean": 3.36,
+  "ep6_if_nailed": 18.72,
+  "ep6_band_defence": [
+   0.71,
+   0.77
+  ],
+  "ep6_band_promoted": [
+   0.68,
+   0.79
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 590,
+  "name": "Benda",
+  "team": "NFO",
+  "price": 4.5,
+  "p_start": 0.03,
+  "p_start_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03
+  ],
+  "ep_gw": [
+   0.09,
+   0.12,
+   0.1,
+   0.12,
+   0.09,
+   0.1
+  ],
+  "ep_total6": 0.63,
+  "ep_per_million": 0.14,
+  "uncertainty": "HIGH",
+  "notes": "NFO #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": 80,
+  "fixtures": [
+   "LIV(A)",
+   "TOT(H)",
+   "AVL(A)",
+   "COV(H)±",
+   "CRY(A)",
+   "ARS(H)"
+  ],
+  "mean_lambda_def": 1.312,
+  "mean_p_cs": 0.287,
+  "ep_per_start_mean": 3.5,
+  "ep6_if_nailed": 19.51,
+  "ep6_band_defence": [
+   0.61,
+   0.66
+  ],
+  "ep6_band_promoted": [
+   0.61,
+   0.65
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 302,
+  "name": "Button",
+  "team": "IPS",
+  "price": 4.0,
+  "p_start": 0.03,
+  "p_start_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03
+  ],
+  "ep_gw": [
+   0.09,
+   0.09,
+   0.09,
+   0.1,
+   0.11,
+   0.09
+  ],
+  "ep_total6": 0.57,
+  "ep_per_million": 0.141,
+  "uncertainty": "HIGH",
+  "notes": "IPS #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.4,
+  "transfers_net_event": 59,
+  "fixtures": [
+   "MUN(A)±",
+   "LIV(H)±",
+   "CRY(A)±",
+   "EVE(A)±",
+   "FUL(H)±",
+   "MCI(A)±"
+  ],
+  "mean_lambda_def": 1.793,
+  "mean_p_cs": 0.182,
+  "ep_per_start_mean": 3.14,
+  "ep6_if_nailed": 17.53,
+  "ep6_band_defence": [
+   0.55,
+   0.59
+  ],
+  "ep6_band_promoted": [
+   0.46,
+   0.69
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 443,
+  "name": "Gillespie",
+  "team": "NEW",
+  "price": 4.5,
+  "p_start": 0.02,
+  "p_start_gw": [
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02
+  ],
+  "ep_gw": [
+   0.07,
+   0.06,
+   0.06,
+   0.08,
+   0.07,
+   0.07
+  ],
+  "ep_total6": 0.41,
+  "ep_per_million": 0.09,
+  "uncertainty": "HIGH",
+  "notes": "NEW #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -52,
+  "fixtures": [
+   "TOT(A)",
+   "BOU(H)",
+   "LEE(A)",
+   "HUL(H)±",
+   "COV(A)±",
+   "AVL(H)"
+  ],
+  "mean_lambda_def": 1.388,
+  "mean_p_cs": 0.258,
+  "ep_per_start_mean": 3.39,
+  "ep6_if_nailed": 18.9,
+  "ep6_band_defence": [
+   0.39,
+   0.43
+  ],
+  "ep6_band_promoted": [
+   0.38,
+   0.43
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 495,
+  "name": "Austin",
+  "team": "TOT",
+  "price": 4.0,
+  "p_start": 0.02,
+  "p_start_gw": [
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02
+  ],
+  "ep_gw": [
+   0.06,
+   0.06,
+   0.07,
+   0.07,
+   0.06,
+   0.08
+  ],
+  "ep_total6": 0.4,
+  "ep_per_million": 0.1,
+  "uncertainty": "HIGH",
+  "notes": "TOT #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.9,
+  "transfers_net_event": -467,
+  "fixtures": [
+   "NEW(H)",
+   "NFO(A)",
+   "EVE(H)",
+   "AVL(H)",
+   "MUN(A)",
+   "COV(H)±"
+  ],
+  "mean_lambda_def": 1.458,
+  "mean_p_cs": 0.24,
+  "ep_per_start_mean": 3.32,
+  "ep6_if_nailed": 18.54,
+  "ep6_band_defence": [
+   0.39,
+   0.42
+  ],
+  "ep6_band_promoted": [
+   0.39,
+   0.41
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 58,
+  "name": "Forster",
+  "team": "BOU",
+  "price": 4.0,
+  "p_start": 0.02,
+  "p_start_gw": [
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02,
+   0.02
+  ],
+  "ep_gw": [
+   0.07,
+   0.06,
+   0.06,
+   0.06,
+   0.06,
+   0.08
+  ],
+  "ep_total6": 0.39,
+  "ep_per_million": 0.099,
+  "uncertainty": "HIGH",
+  "notes": "BOU #3; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 3.2,
+  "transfers_net_event": -1014,
+  "fixtures": [
+   "EVE(H)",
+   "NEW(A)",
+   "BRE(H)",
+   "LIV(H)",
+   "CHE(A)",
+   "SUN(H)"
+  ],
+  "mean_lambda_def": 1.548,
+  "mean_p_cs": 0.228,
+  "ep_per_start_mean": 3.29,
+  "ep6_if_nailed": 18.37,
+  "ep6_band_defence": [
+   0.38,
+   0.41
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 3,
+  "name": "Meslier",
+  "team": "ARS",
+  "price": 5.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.04,
+   0.03,
+   0.04,
+   0.04,
+   0.04,
+   0.04
+  ],
+  "ep_total6": 0.23,
+  "ep_per_million": 0.046,
+  "uncertainty": "HIGH",
+  "notes": "ARS #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -349,
+  "fixtures": [
+   "AVL(A)",
+   "CHE(H)",
+   "SUN(A)",
+   "BHA(A)",
+   "LEE(H)",
+   "NFO(A)"
+  ],
+  "mean_lambda_def": 0.958,
+  "mean_p_cs": 0.387,
+  "ep_per_start_mean": 3.86,
+  "ep6_if_nailed": 21.52,
+  "ep6_band_defence": [
+   0.22,
+   0.24
+  ],
+  "ep6_band_promoted": null,
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 386,
+  "name": "Bettinelli",
+  "team": "MCI",
+  "price": 4.5,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.03,
+   0.04,
+   0.03,
+   0.04,
+   0.03,
+   0.04
+  ],
+  "ep_total6": 0.23,
+  "ep_per_million": 0.051,
+  "uncertainty": "HIGH",
+  "notes": "MCI #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -87,
+  "fixtures": [
+   "CRY(A)",
+   "COV(H)±",
+   "MUN(A)",
+   "SUN(H)",
+   "LIV(A)",
+   "IPS(H)±"
+  ],
+  "mean_lambda_def": 1.045,
+  "mean_p_cs": 0.37,
+  "ep_per_start_mean": 3.81,
+  "ep6_if_nailed": 21.24,
+  "ep6_band_defence": [
+   0.22,
+   0.24
+  ],
+  "ep6_band_promoted": [
+   0.21,
+   0.24
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 555,
+  "name": "Matthews",
+  "team": "CRY",
+  "price": 4.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.03,
+   0.04,
+   0.04,
+   0.03,
+   0.04,
+   0.03
+  ],
+  "ep_total6": 0.21,
+  "ep_per_million": 0.052,
+  "uncertainty": "HIGH",
+  "notes": "CRY #3; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.8,
+  "transfers_net_event": -301,
+  "fixtures": [
+   "MCI(H)",
+   "FUL(A)",
+   "IPS(H)±",
+   "LEE(A)",
+   "NFO(H)",
+   "BHA(A)"
+  ],
+  "mean_lambda_def": 1.287,
+  "mean_p_cs": 0.287,
+  "ep_per_start_mean": 3.49,
+  "ep6_if_nailed": 19.47,
+  "ep6_band_defence": [
+   0.2,
+   0.22
+  ],
+  "ep6_band_promoted": [
+   0.2,
+   0.22
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 352,
+  "name": "Woodman",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.04,
+   0.04,
+   0.04,
+   0.03,
+   0.03,
+   0.03
+  ],
+  "ep_total6": 0.21,
+  "ep_per_million": 0.052,
+  "uncertainty": "HIGH",
+  "notes": "LIV #3; 0' in GW1. Bench-fodder demand, not a start signal.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 1.1,
+  "transfers_net_event": -2113,
+  "fixtures": [
+   "NFO(H)",
+   "IPS(A)±",
+   "FUL(H)",
+   "BOU(A)",
+   "MCI(H)",
+   "BRE(A)"
+  ],
+  "mean_lambda_def": 1.3,
+  "mean_p_cs": 0.285,
+  "ep_per_start_mean": 3.44,
+  "ep6_if_nailed": 19.19,
+  "ep6_band_defence": [
+   0.2,
+   0.22
+  ],
+  "ep6_band_promoted": [
+   0.2,
+   0.21
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 1.994,
+   "bonus_per_start": 0.187,
+   "pen_saves_per_start": 0.0156
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": {
+   "minutes": 212,
+   "starts": 2,
+   "clean_sheets": 0,
+   "goals_conceded": 4,
+   "expected_goals_conceded": "4.76",
+   "saves": 9,
+   "bonus": 0,
+   "bps": 34,
+   "penalties_saved": 0,
+   "total_points": 6
+  }
+ },
+ {
+  "id": 228,
+  "name": "King",
+  "team": "EVE",
+  "price": 4.5,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.04,
+   0.04,
+   0.03
+  ],
+  "ep_total6": 0.2,
+  "ep_per_million": 0.045,
+  "uncertainty": "HIGH",
+  "notes": "EVE #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -108,
+  "fixtures": [
+   "BOU(A)",
+   "MUN(H)",
+   "TOT(A)",
+   "IPS(H)±",
+   "HUL(A)±",
+   "CHE(H)"
+  ],
+  "mean_lambda_def": 1.443,
+  "mean_p_cs": 0.248,
+  "ep_per_start_mean": 3.36,
+  "ep6_if_nailed": 18.72,
+  "ep6_band_defence": [
+   0.19,
+   0.21
+  ],
+  "ep6_band_promoted": [
+   0.19,
+   0.21
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 252,
+  "name": "McNally",
+  "team": "FUL",
+  "price": 4.0,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.04,
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.04
+  ],
+  "ep_total6": 0.2,
+  "ep_per_million": 0.051,
+  "uncertainty": "HIGH",
+  "notes": "FUL #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.2,
+  "transfers_net_event": 148,
+  "fixtures": [
+   "SUN(A)",
+   "CRY(H)",
+   "LIV(A)",
+   "MUN(H)",
+   "IPS(A)±",
+   "HUL(H)±"
+  ],
+  "mean_lambda_def": 1.452,
+  "mean_p_cs": 0.252,
+  "ep_per_start_mean": 3.37,
+  "ep6_if_nailed": 18.82,
+  "ep6_band_defence": [
+   0.19,
+   0.21
+  ],
+  "ep6_band_promoted": [
+   0.19,
+   0.22
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 444,
+  "name": "Jaouen",
+  "team": "NEW",
+  "price": 4.5,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.04,
+   0.04,
+   0.03
+  ],
+  "ep_total6": 0.2,
+  "ep_per_million": 0.045,
+  "uncertainty": "HIGH",
+  "notes": "NEW #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -211,
+  "fixtures": [
+   "TOT(A)",
+   "BOU(H)",
+   "LEE(A)",
+   "HUL(H)±",
+   "COV(A)±",
+   "AVL(H)"
+  ],
+  "mean_lambda_def": 1.388,
+  "mean_p_cs": 0.258,
+  "ep_per_start_mean": 3.39,
+  "ep6_if_nailed": 18.9,
+  "ep6_band_defence": [
+   0.2,
+   0.21
+  ],
+  "ep6_band_promoted": [
+   0.19,
+   0.22
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 274,
+  "name": "Butland",
+  "team": "HUL",
+  "price": 4.5,
+  "p_start": 0.01,
+  "p_start_gw": [
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01,
+   0.01
+  ],
+  "ep_gw": [
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03,
+   0.03
+  ],
+  "ep_total6": 0.19,
+  "ep_per_million": 0.042,
+  "uncertainty": "HIGH",
+  "notes": "HUL #3; 0' in GW1. No route to minutes.",
+  "status": "i",
+  "chance_of_playing": 0,
+  "news": "Arm injury - Unknown return date",
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -1479,
+  "fixtures": [
+   "COV(A)±",
+   "AVL(H)±",
+   "CHE(A)±",
+   "NEW(A)±",
+   "EVE(H)±",
+   "FUL(A)±"
+  ],
+  "mean_lambda_def": 1.82,
+  "mean_p_cs": 0.18,
+  "ep_per_start_mean": 3.14,
+  "ep6_if_nailed": 17.52,
+  "ep6_band_defence": [
+   0.18,
+   0.2
+  ],
+  "ep6_band_promoted": [
+   0.15,
+   0.23
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 355,
+  "name": "Davies",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "HIGH",
+  "notes": "LIV #3; 0' in GW1. No route to minutes.",
+  "status": "a",
+  "chance_of_playing": null,
+  "news": null,
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -55,
+  "fixtures": [
+   "NFO(H)",
+   "IPS(A)±",
+   "FUL(H)",
+   "BOU(A)",
+   "MCI(H)",
+   "BRE(A)"
+  ],
+  "mean_lambda_def": 1.3,
+  "mean_p_cs": 0.285,
+  "ep_per_start_mean": 3.48,
+  "ep6_if_nailed": 19.45,
+  "ep6_band_defence": [
+   0.0,
+   0.0
+  ],
+  "ep6_band_promoted": [
+   0.0,
+   0.0
+  ],
+  "model_inputs": {
+   "saves_per_xgc": 2.01,
+   "bonus_per_start": 0.219,
+   "pen_saves_per_start": 0.0158
+  },
+  "gw1": {
+   "minutes": 0,
+   "saves": 0,
+   "goals_conceded": 0,
+   "clean_sheet": 0,
+   "bonus": 0,
+   "bps": 0,
+   "xgc": 0.0,
+   "points": 0
+  },
+  "prior_season": null
+ },
+ {
+  "id": 59,
+  "name": "Dennis",
+  "team": "BOU",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "Joined MK Dons permanently (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined MK Dons permanently",
+  "selected_by_percent": 0.2,
+  "transfers_net_event": -48,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 141,
+  "name": "Jörgensen",
+  "team": "CHE",
+  "price": 5.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at RC Strasbourg (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined RC Strasbourg on loan for the rest of the season",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -485,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 275,
+  "name": "Cartwright",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at Grimsby Town (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined Grimsby Town on loan for the rest of the season",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -108,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 276,
+  "name": "Lo-Tutala",
+  "team": "HUL",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at Colchester United (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined Colchester United on loan for the rest of the season",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -355,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 554,
+  "name": "Van Oevelen",
+  "team": "IPS",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at Valencia (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined Valencia on loan for the rest of the season",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -497,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 353,
+  "name": "Pecsi",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at TSV Hartberg (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined TSV Hartberg on loan for the rest of the season",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -425,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 354,
+  "name": "Jaros",
+  "team": "LIV",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "Knee injury, no return date (status i).",
+  "status": "i",
+  "chance_of_playing": 0,
+  "news": "Knee injury - Unknown return date",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -27,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 413,
+  "name": "Bayindir",
+  "team": "MUN",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at Celta Vigo (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined Celta Vigo on loan for the rest of the season",
+  "selected_by_percent": 0.0,
+  "transfers_net_event": -557,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 414,
+  "name": "Heaton",
+  "team": "MUN",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "Hamstring injury, no return date (status i).",
+  "status": "i",
+  "chance_of_playing": 0,
+  "news": "Hamstring injury - Unknown return date",
+  "selected_by_percent": 0.1,
+  "transfers_net_event": -758,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 494,
+  "name": "Vicario",
+  "team": "TOT",
+  "price": 4.5,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "On loan at Juventus (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined Juventus on loan for the rest of the season",
+  "selected_by_percent": 0.2,
+  "transfers_net_event": -10840,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ },
+ {
+  "id": 530,
+  "name": "Patterson",
+  "team": "SUN",
+  "price": 4.0,
+  "p_start": 0.0,
+  "p_start_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_gw": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ep_total6": 0.0,
+  "ep_per_million": 0.0,
+  "uncertainty": "LOW",
+  "notes": "Joined Wrexham permanently (status u).",
+  "status": "u",
+  "chance_of_playing": 0,
+  "news": "Has joined Wrexham permanently",
+  "selected_by_percent": 0.2,
+  "transfers_net_event": -2185,
+  "fixtures": null,
+  "mean_lambda_def": null,
+  "mean_p_cs": null,
+  "ep_per_start_mean": null,
+  "ep6_if_nailed": null,
+  "ep6_band_defence": null,
+  "ep6_band_promoted": null,
+  "model_inputs": null,
+  "gw1": null,
+  "prior_season": null
+ }
+]
