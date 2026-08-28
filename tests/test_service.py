@@ -470,3 +470,17 @@ def test_prior_season_reports_empty_result(tmp_path):
     service.bootstrap(gw=2)
     result = service.build_prior_season(gw=2)
     assert (result.players, result.missing_summaries) == (0, 0)
+
+
+def test_event_live_fetches_once_then_serves_from_cache(tmp_path):
+    from tests.factories import event_live_payload, live_element_payload
+
+    url = f"{BASE_URL}/event/1/live/"
+    service, gateway, store, _ = make_service(
+        tmp_path, {url: event_live_payload([live_element_payload(element_id=7)])}
+    )
+    live = service.event_live(gw=2, event=1)
+    assert live.by_id()[7].total_points == 6
+    service.event_live(gw=2, event=1)
+    assert gateway.calls == [url]
+    assert store.exists(2, "event-live-e1")

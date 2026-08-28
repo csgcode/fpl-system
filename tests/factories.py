@@ -290,3 +290,54 @@ def event_picks_payload(
         "entry_history": {"event": 1, "points": 61},
         "picks": picks if picks is not None else [pick_payload()],
     }
+
+
+def live_stats_payload(**overrides: Any) -> dict[str, Any]:
+    payload = {
+        "minutes": 90,
+        "goals_scored": 0,
+        "assists": 0,
+        "clean_sheets": 1,
+        "goals_conceded": 0,
+        "own_goals": 0,
+        "penalties_saved": 0,
+        "penalties_missed": 0,
+        "yellow_cards": 0,
+        "red_cards": 0,
+        "saves": 1,
+        "bonus": 0,
+        "bps": 24,
+        "influence": "11.8",
+        "creativity": "0.0",
+        "threat": "0.0",
+        "ict_index": "1.2",
+        "clearances_blocks_interceptions": 1,
+        "recoveries": 8,
+        "tackles": 0,
+        "defensive_contribution": 0,
+        "starts": 1,
+        "expected_goals": "0.00",
+        "expected_assists": "0.00",
+        "expected_goal_involvements": "0.00",
+        "expected_goals_conceded": "0.20",
+        "total_points": 6,
+        "in_dreamteam": False,
+        "played": True,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def live_element_payload(element_id: int = 1, **stat_overrides: Any) -> dict[str, Any]:
+    return {
+        "id": element_id,
+        "stats": live_stats_payload(**stat_overrides),
+        "explain": [],
+        "modified": False,
+    }
+
+
+def event_live_payload(elements: list[dict] | None = None) -> dict[str, Any]:
+    return {
+        "elements": elements if elements is not None else [live_element_payload()],
+    }

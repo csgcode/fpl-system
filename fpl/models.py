@@ -203,6 +203,39 @@ class ElementSummary(_FrozenModel):
     history_past: tuple[PastSeason, ...]
 
 
+class LiveStats(_FrozenModel):
+    """Per-player totals for one event from event/{id}/live/ — a double
+    gameweek's fixtures arrive already summed."""
+
+    minutes: int = Field(ge=0)
+    total_points: int
+    goals_scored: int = Field(ge=0)
+    assists: int = Field(ge=0)
+    clean_sheets: int = Field(ge=0)
+    goals_conceded: int = Field(ge=0)
+    saves: int = Field(ge=0)
+    bonus: int = Field(ge=0)
+    bps: int
+    starts: int = Field(ge=0)
+    defensive_contribution: float | None = None
+
+    @property
+    def started(self) -> bool:
+        return self.starts >= 1
+
+
+class LiveElement(_FrozenModel):
+    id: int
+    stats: LiveStats
+
+
+class EventLive(_FrozenModel):
+    elements: tuple[LiveElement, ...]
+
+    def by_id(self) -> dict[int, LiveStats]:
+        return {e.id: e.stats for e in self.elements}
+
+
 class EntrySummary(_FrozenModel):
     id: int
     name: str

@@ -38,5 +38,8 @@ class FplApi:
     def event_picks(self, team_id: int, event: int) -> Fetched:
         return self._get(f"{BASE_URL}/entry/{team_id}/event/{event}/picks/")
 
+    def event_live(self, event: int) -> Fetched:
+        return self._get(f"{BASE_URL}/event/{event}/live/")
+
     def _get(self, url: str) -> Fetched:
         return Fetched(url=url, payload=self._gateway.get_json(url))

@@ -21,6 +21,7 @@ from fpl.models import (
     ElementSummary,
     EntryHistory,
     EntrySummary,
+    EventLive,
     EventPicks,
     Fixture,
     MatchRecord,
@@ -208,6 +209,23 @@ class FplDataService:
             f"picks-{team_id}-e{event}",
             lambda: self._api.event_picks(team_id, event),
             EventPicks.model_validate,
+            max_age_hours,
+            force,
+        )
+
+    def event_live(
+        self,
+        gw: int,
+        *,
+        event: int,
+        max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
+        force: bool = False,
+    ) -> EventLive:
+        return self._load_or_fetch(
+            gw,
+            f"event-live-e{event}",
+            lambda: self._api.event_live(event),
+            EventLive.model_validate,
             max_age_hours,
             force,
         )

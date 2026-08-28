@@ -290,3 +290,28 @@ def test_event_picks_tolerates_missing_chip_and_sparse_pick():
     assert picks.picks[0].position is None
     assert picks.picks[0].multiplier is None
     assert picks.picks[0].is_captain is False
+
+
+def test_event_live_parses_and_indexes_by_id():
+    from fpl.models import EventLive
+    from tests.factories import event_live_payload, live_element_payload
+
+    live = EventLive.model_validate(
+        event_live_payload(
+            elements=[
+                live_element_payload(element_id=7, total_points=6, starts=1),
+                live_element_payload(element_id=9, total_points=2, minutes=25, starts=0),
+            ]
+        )
+    )
+    stats = live.by_id()
+    assert stats[7].total_points == 6
+    assert stats[9].minutes == 25
+    assert stats[9].starts == 0
+
+
+def test_event_live_rejects_element_without_stats():
+    from fpl.models import EventLive
+
+    with pytest.raises(ValidationError):
+        EventLive.model_validate({"elements": [{"id": 1}]})

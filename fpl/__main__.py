@@ -29,6 +29,13 @@ from fpl.auth import (
     redacted_summary,
     save_auth,
 )
+from fpl.calibrate import (
+    Aggregate,
+    CalibrationReport,
+    build_report,
+    load_predictions,
+    load_report,
+)
 from fpl.capture import is_git_ignored, parse_curl
 from fpl.http import RequestsGateway
 from fpl.models import POSITION_ALIASES, MyTeam, PlayerStatus, Position
@@ -252,6 +259,25 @@ def build_parser() -> argparse.ArgumentParser:
     plan_cmd.add_argument(
         "--out", type=Path, help="also write the JSON document to this path"
     )
+
+    calibrate = add("calibrate", "join EP predictions vs a completed round's actuals")
+    calibrate.add_argument(
+        "--round", type=_gameweek, required=True,
+        help="completed, data-checked gameweek to calibrate",
+    )
+    calibrate.add_argument(
+        "--analysis-root", type=Path, default=Path("data/analysis"),
+        help="root holding gw{M}/players-*.json prediction files",
+    )
+    calibrate.add_argument(
+        "--decisions-root", type=Path, default=DECISIONS_ROOT,
+        help=f"root holding gw{{M}}/{FINAL_FILENAME} (squad section source)",
+    )
+    calibrate.add_argument(
+        "--retro-root", type=Path, default=Path("data/retro"),
+        help="where gw{M}-calibration.json ledgers live",
+    )
+    calibrate.add_argument("--format", choices=("table", "json"), default="table")
 
     players = add("players", "filtered view over the cached bootstrap", cached=False)
     players.add_argument(
@@ -480,6 +506,8 @@ def run_command(
                   f"{chance:>6}  {added:<25} {p.news}")
     elif args.command == "plan":
         return run_plan(store, gw, args)
+    elif args.command == "calibrate":
+        return run_calibrate(service, store, gw, args)
     elif args.command == "players":
         player_filter = PlayerFilter(
             positions=args.position,
@@ -493,6 +521,130 @@ def run_command(
         rows = PlayerRepository(store).query(gw, player_filter, args.sort, args.limit)
         print_players(rows, args.format)
     return EXIT_OK
+
+
+def run_calibrate(
+    service: FplDataService, store: SnapshotStore, gw: int, args: argparse.Namespace
+) -> int:
+    bootstrap = load_cached_bootstrap(store, gw)
+    event = next((e for e in bootstrap.events if e.id == args.round), None)
+    if event is None:
+        raise ValueError(f"cached bootstrap has no event {args.round}")
+    if not event.data_checked:
+        raise ValueError(
+            f"round {args.round} is not data-checked yet — bonus points are not "
+            f"final. Refetch once FPL marks it checked: "
+            f"python -m fpl bootstrap --gw {gw} --force"
+        )
+    predictions = load_predictions(args.analysis_root / f"gw{args.round}")
+    live = service.event_live(
+        gw, event=args.round, max_age_hours=args.max_age, force=args.force
+    )
+    cache_note = _cache_note(service)
+    report = build_report(
+        predictions,
+        live,
+        match_round=args.round,
+        picks=_calibration_picks(
+            args.decisions_root / f"gw{args.round}" / FINAL_FILENAME, args.round
+        ),
+        prior_reports=_prior_reports(args.retro_root, args.round),
+    )
+    document = report.model_dump_json(indent=1)
+    # The ledger is derived — a pure function of the analysis files, final.md
+    # and the live snapshot — so overwriting it is safe, like plan.json.
+    ledger_path = args.retro_root / f"gw{args.round}-calibration.json"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(document + "\n", encoding="utf-8")
+    if args.format == "json":
+        print(document)
+    else:
+        print_calibration(report, cache_note)
+    print(f"wrote {ledger_path}")
+    for warning in report.warnings:
+        _stderr(f"WARNING: {warning}")
+    return EXIT_OK
+
+
+def _calibration_picks(final_path: Path, match_round: int) -> PlannedPicks | None:
+    if not final_path.is_file():
+        _stderr(f"note: no final.md at {final_path} — squad section skipped")
+        return None
+    state = parse_state(
+        final_path.read_text(encoding="utf-8"), expected_gw=match_round
+    )
+    if state.picks is None:
+        _stderr(f"note: {final_path} has no picks: block — squad section skipped")
+    return state.picks
+
+
+def _prior_reports(retro_root: Path, match_round: int) -> tuple[CalibrationReport, ...]:
+    if not retro_root.is_dir():
+        return ()
+    reports = [
+        load_report(path)
+        for path in sorted(retro_root.glob("gw*-calibration.json"))
+    ]
+    return tuple(report for report in reports if report.round != match_round)
+
+
+def print_calibration(report: CalibrationReport, cache_note: str) -> None:
+    print(
+        f"round {report.round} calibration — {report.overall.n} players "
+        f"matched, {len(report.unmatched_prediction_ids)} unmatched "
+        f"{cache_note}".rstrip()
+    )
+
+    def agg_line(name: str, agg: Aggregate) -> None:
+        print(f"{name:<14} {agg.n:>4} {agg.bias:>7.2f} {agg.mae:>6.2f}")
+
+    print(f"{'group':<14} {'n':>4} {'bias':>7} {'mae':>6}")
+    agg_line("overall", report.overall)
+    for group in (report.by_position, report.by_uncertainty, report.by_price_band):
+        for name, agg in sorted(group.items()):
+            agg_line(name, agg)
+    minutes = report.minutes
+    print(
+        f"minutes: brier {minutes.brier:.4f}, expected starts "
+        f"{minutes.expected_starts:.1f}, actual {minutes.actual_starts}"
+    )
+    if report.defcon:
+        hits = sum(1 for line in report.defcon if line.hit)
+        print(f"defcon: {hits}/{len(report.defcon)} hits (players with 60'+)")
+    squad = report.squad
+    if squad is not None:
+        print(
+            f"squad XI (captain doubled): predicted "
+            f"{squad.predicted_xi_total:.2f}, actual {squad.actual_xi_total}; "
+            f"bench stranded {squad.bench_points_stranded}"
+        )
+        captain = squad.captain
+        print(
+            f"captain: {captain.chosen_name} {captain.chosen_actual} pts; "
+            f"hindsight best in XI: {captain.hindsight_best_name} "
+            f"{captain.hindsight_best_actual} (forgone {captain.forgone})"
+        )
+    cumulative = report.cumulative
+    if cumulative is not None and len(cumulative.rounds) > 1:
+        rounds = ",".join(str(r) for r in cumulative.rounds)
+        print(
+            f"cumulative (rounds {rounds}): n={cumulative.overall.n} "
+            f"bias={cumulative.overall.bias:.2f} mae={cumulative.overall.mae:.2f} "
+            f"brier={cumulative.minutes_brier:.4f}"
+        )
+    misses = sorted(
+        (line for line in report.players if abs(line.error) > 3),
+        key=lambda line: abs(line.error),
+        reverse=True,
+    )[:15]
+    if misses:
+        print("misses (|error| > 3):")
+        for line in misses:
+            print(
+                f"  {line.id:>4}  {line.name:<20.20} {line.position:<3} "
+                f"pred {line.predicted:>5.2f}  act {line.actual:>3}  "
+                f"err {line.error:>+6.2f}  min {line.minutes:>3}"
+            )
 
 
 def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:

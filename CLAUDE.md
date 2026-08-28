@@ -51,6 +51,9 @@ Scoring context that changes valuation this season:
 ### Weekly cycle (GW2 onward)
 0. Run `agents/retro-analyst.md` on the completed GW
                                      → data/retro/gw{N-1}.md
+   It runs `fpl calibrate` first; the resulting ledger
+   (data/retro/gw{N-1}-calibration.json) is its arithmetic ground truth —
+   the agent attributes errors, it never recomputes stats.
 1–6. As above, but squad-optimizer proposes TRANSFERS plus captain and bench
    order, scored on the 6-GW EP horizon. It reads the current squad from the
    STATE block of the latest data/decisions/*/final.md and any correction
@@ -187,6 +190,7 @@ All FPL API access goes through the deterministic CLI
 | `picks --team-id <id> --event M` | our actual picks, captain, active chip for GW M | cached |
 | `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
 | `actuals --round R --ids <ids>` | per-player ACTUAL points for a completed round; sums double-gameweek rows | always refreshes |
+| `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json | cached |
 | `flags --ids <ids>` | injury/news flags — the pre-deadline freshness gate | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
@@ -254,8 +258,10 @@ Mechanics:
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
-- plan.json is the exception: it is derived, a pure function of final.md plus
-  the cached bootstrap, so regenerating it is safe and expected after a REOPEN.
+- plan.json and data/retro/gw{M}-calibration.json are the exceptions: both are
+  derived (plan.json from final.md + cached bootstrap, the calibration ledger
+  from the analysis files + final.md + the round's event-live snapshot), so
+  regenerating either is safe and expected.
 - Every prediction must be written down BEFORE the deadline. No prediction,
   no calibration.
 - Commit to git after every GW cycle: `git commit -m "gw{N}: <summary>"`.

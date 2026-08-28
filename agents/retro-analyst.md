@@ -17,21 +17,34 @@ data/retro/gwM.md.
 `<id>` is `team_id` from data/entry.json; skip the API inputs and note it if
 that value is null.
 
+FIRST run `uv run python -m fpl calibrate --gw N --round M`. It joins every
+analyst prediction (all positions, ~600 players) against the round's
+finalized actuals and writes data/retro/gwM-calibration.json: per-player
+errors, bias/MAE by position, uncertainty tier and price band, the minutes
+Brier score, the DefCon hit sample, the squad section (XI totals, captain
+hindsight delta, bench points stranded), and cumulative stats pooled across
+all prior rounds. The ledger is ARITHMETIC GROUND TRUTH — never recompute
+any of its numbers by hand, and never compute a stat it already carries.
+Your job is attribution and corrections, not arithmetic.
+
 | Input | Source |
 |---|---|
-| our predictions, per player | data/decisions/gw{M}/final.md |
+| calibration ledger (errors, aggregates, squad, cumulative) | `uv run python -m fpl calibrate --gw N --round M` → data/retro/gwM-calibration.json |
+| our predictions, per player (rationale, accepted risks) | data/decisions/gw{M}/final.md |
 | our actual picks, captain, active chip | `uv run python -m fpl picks --gw N --team-id <id> --event M` |
-| per-player actual points | `uv run python -m fpl actuals --gw N --round M --ids <squad ids>` (sums double-gameweek rows) |
+| detail on big misses only (goals, assists, bonus, bps, xG) | `uv run python -m fpl actuals --gw N --round M --ids <miss ids>` |
 | squad total, rank, bank, team value | `uv run python -m fpl entry-history --gw N --team-id <id>` |
 | prior corrections | all prior data/retro/*.md |
 
-Run only once the GW's final fixture has `data_checked: true` in bootstrap
-`events` — bonus points are finalized then, and not before.
+`calibrate` refuses mechanically until the round has `data_checked: true` in
+bootstrap `events` — bonus points are finalized then, and not before. If it
+refuses, stop and report; do not work around the gate.
 
 ## Analysis
-1. Per-player: predicted EP vs actual points. Absolute error + direction.
-2. Squad-level: predicted GW total vs actual; rank movement; captain delta vs
-   the hindsight-best captain within the squad we owned.
+1. Per-player errors and squad-level totals: read from the ledger (players,
+   squad, captain sections). Note the pool-level aggregates too — squad-only
+   stats are selection-biased; the 600-player pool is the calibration signal.
+2. Rank movement from entry-history; team-value delta.
 3. Attribution — classify each big miss (|error| > 3):
    - MINUTES miss (benched/subbed early — our P(start) was wrong)
    - VARIANCE (good process, xG didn't convert — do NOT overcorrect)
@@ -49,12 +62,13 @@ Run only once the GW's final fixture has `data_checked: true` in bootstrap
 - Calibration over 6+ GWs: are our EPs biased high/low overall? By position?
 
 ## Output → data/retro/gwM.md
-- Prediction-vs-actual table
+- Prediction-vs-actual table for the squad (values cited from the ledger)
 - Miss attribution, including the captain delta and any BENCH-ORDER loss
 - CORRECTIONS section: numbered, imperative rules for A2/A3/A4
   (e.g. "C7: cap P(start) at 0.7 for signings until 2 consecutive 60'+ starts")
-- Running calibration stats: mean error, MAE, by position, and team-value
-  delta this GW plus cumulative
+- Calibration stats: cite the ledger's per-round and cumulative numbers
+  (bias, MAE by position/uncertainty/price band, minutes Brier, DefCon hit
+  rate); add team-value delta this GW plus cumulative. Do not recompute.
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
