@@ -20,9 +20,26 @@ import requests
 from pydantic import ValidationError
 
 from fpl.api import FplApi
-from fpl.auth import AuthCredentials, AuthMissingError, load_auth
+from fpl.auth import (
+    DEFAULT_AUTH_PATH,
+    AuthCredentials,
+    AuthMissingError,
+    has_auth_bearing_header,
+    load_auth,
+    redacted_summary,
+    save_auth,
+)
+from fpl.capture import is_git_ignored, parse_curl
 from fpl.http import RequestsGateway
 from fpl.models import POSITION_ALIASES, MyTeam, PlayerStatus, Position
+from fpl.plan import (
+    LINEUP_TARGET,
+    TRANSFERS_TARGET,
+    ExecutionPlan,
+    build_plan,
+    parse_plan,
+    route_chip,
+)
 from fpl.repository import (
     PLAYERS_SLIM_COLUMNS,
     SORT_KEYS,
@@ -38,7 +55,15 @@ from fpl.service import (
     FplDataService,
     load_cached_bootstrap,
 )
-from fpl.state import PlannedPicks, parse_state_picks, picks_from_ids
+from fpl.state import (
+    MAX_GW,
+    MIN_GW,
+    DecisionState,
+    PlannedPicks,
+    parse_state,
+    parse_state_picks,
+    picks_from_ids,
+)
 from fpl.store import ArchiveCollisionError, SnapshotMissingError, SnapshotStore
 from fpl.write import (
     AuthenticatedRequestsGateway,
@@ -50,13 +75,14 @@ from fpl.write import (
     WriteService,
 )
 
-MIN_GW = 1
-MAX_GW = 38
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_EMPTY = 2
 
-WRITE_COMMANDS = ("my-team", "set-lineup", "make-transfers")
+WRITE_COMMANDS = ("auth-check", "my-team", "set-lineup", "make-transfers")
+DECISIONS_ROOT = Path("data/decisions")
+FINAL_FILENAME = "final.md"
+PLAN_FILENAME = "plan.json"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -138,7 +164,7 @@ def build_parser() -> argparse.ArgumentParser:
             help="our FPL entry id (default: team_id from data/entry.json)",
         )
         p.add_argument(
-            "--auth", type=Path, default=Path("data/auth.json"),
+            "--auth", type=Path, default=DEFAULT_AUTH_PATH,
             help="credentials file (git-ignored; see docs/api-write.md)",
         )
         p.add_argument(
@@ -152,11 +178,19 @@ def build_parser() -> argparse.ArgumentParser:
         return p
 
     def add_apply_gates(p: argparse.ArgumentParser) -> None:
-        p.add_argument(
+        payload_source = p.add_mutually_exclusive_group()
+        payload_source.add_argument(
+            "--from-plan", type=Path,
+            help=f"{PLAN_FILENAME} from `fpl plan` — the preferred payload source",
+        )
+        payload_source.add_argument(
             "--from-final", type=Path,
             help="final.md whose STATE picks: block is the payload source",
         )
-        p.add_argument("--chip", help="chip to play with this request")
+        p.add_argument(
+            "--chip",
+            help="chip to play with this request (must agree with --from-plan)",
+        )
         p.add_argument(
             "--apply", action="store_true",
             help="send the POST; without it the command is a dry run",
@@ -166,6 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
             help="override the 30-minute deadline margin (never a passed deadline)",
         )
 
+    add_write("auth-check", "pre-flight: prove the stored session still works")
     add_write("my-team", "authenticated read: squad, sell prices, chips, transfers")
     set_lineup = add_write("set-lineup", "set XI, captain, vice and bench order")
     add_apply_gates(set_lineup)
@@ -183,6 +218,39 @@ def build_parser() -> argparse.ArgumentParser:
     make_transfers.add_argument(
         "--in", dest="transfers_in", type=_id_list,
         help="comma-separated player ids to transfer in",
+    )
+
+    # Local-only, and the one command with no --gw: it rebuilds credentials,
+    # which are not gameweek-scoped.
+    auth_import = sub.add_parser(
+        "auth-import",
+        help="convert a browser 'Copy as cURL' capture into a credentials file",
+    )
+    auth_import.add_argument(
+        "--curl-file", type=Path, required=True,
+        help="file holding a browser 'Copy as cURL' capture of a my-team request",
+    )
+    auth_import.add_argument(
+        "--out", type=Path, default=DEFAULT_AUTH_PATH,
+        help=f"credentials file to write (default: {DEFAULT_AUTH_PATH})",
+    )
+
+    # Local-only: the plan is a pure function of final.md plus the cached
+    # bootstrap, so it needs neither the network nor credentials.
+    plan_cmd = add(
+        "plan", "build the deterministic execution-plan JSON", cached=False
+    )
+    plan_cmd.add_argument(
+        "--from-final", type=Path,
+        help=f"final.md to plan from (default: {DECISIONS_ROOT}/gw{{N}}/{FINAL_FILENAME})",
+    )
+    plan_cmd.add_argument(
+        "--prev-final", type=Path,
+        help="previous gameweek's final.md (default: the gw{N-1} sibling)",
+    )
+    plan_cmd.add_argument("--format", choices=("table", "json"), default="table")
+    plan_cmd.add_argument(
+        "--out", type=Path, help="also write the JSON document to this path"
     )
 
     players = add("players", "filtered view over the cached bootstrap", cached=False)
@@ -272,6 +340,8 @@ def main(
     args = build_parser().parse_args(argv)
     store = SnapshotStore(args.data_root)
     try:
+        if args.command == "auth-import":
+            return run_auth_import(args)
         if args.command in WRITE_COMMANDS:
             return run_write_command(
                 store, args, write_gateway_factory or _default_write_gateway
@@ -408,6 +478,8 @@ def run_command(
             added = p.news_added.isoformat() if p.news_added else ""
             print(f"{p.id:>4}  {p.web_name:<20.20} {p.status.value:<2} "
                   f"{chance:>6}  {added:<25} {p.news}")
+    elif args.command == "plan":
+        return run_plan(store, gw, args)
     elif args.command == "players":
         player_filter = PlayerFilter(
             positions=args.position,
@@ -423,11 +495,196 @@ def run_command(
     return EXIT_OK
 
 
+def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
+    final_path = args.from_final or _final_path(gw)
+    state = parse_state(_read_final(final_path), expected_gw=gw)
+    previous_path, previous_state = _previous_decision(gw, final_path, args.prev_final)
+    plan = build_plan(
+        gw=gw,
+        state=state,
+        bootstrap=load_cached_bootstrap(store, gw),
+        source=str(final_path),
+        bootstrap_source=str(store.path(gw, "bootstrap")),
+        previous_state=previous_state,
+        previous_source=str(previous_path) if previous_path is not None else None,
+        bootstrap_age_hours=_rounded(store.age_hours(gw, "bootstrap")),
+    )
+    # ensure_ascii=False: plan.json is read by people, and player names carry
+    # accents that would otherwise land as escapes.
+    document = json.dumps(plan.to_json_dict(), indent=1, ensure_ascii=False)
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(document + "\n", encoding="utf-8")
+        print(f"wrote {args.out}")
+    if args.format == "json":
+        print(document)
+    else:
+        print_plan(plan)
+    return EXIT_OK
+
+
+def _final_path(gw: int) -> Path:
+    return DECISIONS_ROOT / f"gw{gw}" / FINAL_FILENAME
+
+
+def _rounded(age_hours: float | None) -> float | None:
+    return None if age_hours is None else round(age_hours, 2)
+
+
+def _previous_decision(
+    gw: int, final_path: Path, explicit: Path | None
+) -> tuple[Path | None, DecisionState | None]:
+    """The previous gameweek's decision, when there is one: its picks are the
+    name-free source for this gameweek's transfers."""
+    if gw <= MIN_GW and explicit is None:
+        return None, None
+    path = explicit or final_path.parent.parent / f"gw{gw - 1}" / final_path.name
+    if not path.is_file():
+        if explicit is not None:
+            raise ValueError(f"no final.md at {path}")
+        return None, None
+    return path, parse_state(path.read_text(encoding="utf-8"), expected_gw=gw - 1)
+
+
+def print_plan(plan: ExecutionPlan) -> None:
+    entry = "unset" if plan.team_id is None else str(plan.team_id)
+    print(
+        f"gw{plan.gw} plan (schema {plan.schema_version}) — entry {entry}, "
+        f"deadline {plan.deadline.isoformat()}"
+    )
+    print(
+        f"formation {plan.formation}, chip: {plan.chip or 'none'}, "
+        f"bank {plan.bank:.1f}, value {plan.team_value:.1f}, "
+        f"free transfers {plan.free_transfers_banked}"
+    )
+    print(f"{'slot':>4}  {'id':>4}  {'name':<20} {'club':<4} {'pos':<3} "
+          f"{'price':>5}  role")
+    for pick in plan.picks:
+        role = "(C)" if pick.is_captain else ("(VC)" if pick.is_vice_captain else "")
+        note = " ".join(part for part in (role, "" if pick.starts else "bench") if part)
+        print(f"{pick.slot:>4}  {pick.element:>4}  {pick.name:<20.20} "
+              f"{pick.club:<4} {pick.position:<3} {pick.now_cost:>5.1f}  "
+              f"{note}".rstrip())
+    print(f"bench order: {', '.join(str(element) for element in plan.bench)}")
+    print(f"transfers ({plan.transfer_source}):")
+    for transfer in plan.transfers:
+        print(f"  {transfer.out.name} ({transfer.out.id}) -> "
+              f"{transfer.into.name} ({transfer.into.id}), "
+              f"buy £{transfer.purchase_price_at_plan:.1f}m at plan time, "
+              f"cost {transfer.cost}")
+    if not plan.transfers:
+        print("  none")
+    for earmark in plan.chip_plan:
+        window = (
+            f"window {earmark.start_event}-{earmark.stop_event}"
+            if earmark.start_event is not None
+            else "no matching window"
+        )
+        print(f"chip plan: {earmark.chip} gw{earmark.gw} ({earmark.status}, {window})")
+    available = ", ".join(
+        f"{chip.name} {chip.start_event}-{chip.stop_event}"
+        for chip in plan.chips_available
+    )
+    print(f"chips available: {available or 'none'}")
+    print(f"prices: {plan.price_resolution} — {plan.price_resolution_note}")
+    for warning in plan.warnings:
+        print(f"WARNING: {warning}")
+
+
+def run_auth_import(args: argparse.Namespace) -> int:
+    if not args.curl_file.is_file():
+        raise ValueError(f"no curl capture at {args.curl_file}")
+    capture = parse_curl(args.curl_file.read_text(encoding="utf-8"))
+    save_auth(args.out, capture.credentials)
+    print(f"source URL: {capture.url}")
+    for line in redacted_summary(capture.credentials):
+        print(line)
+    print(f"wrote {args.out} (mode 0600)")
+    if not has_auth_bearing_header(capture.credentials):
+        _stderr(
+            "WARNING: no authorization-like header in the capture — it may not "
+            "authenticate; verify with: python -m fpl auth-check --gw N"
+        )
+    _warn_unless_ignored(args.curl_file)
+    return EXIT_OK
+
+
+def _warn_unless_ignored(capture_file: Path) -> None:
+    ignored = is_git_ignored(capture_file)
+    if ignored is True:
+        return
+    if ignored is False:
+        _stderr(
+            f"WARNING: {capture_file} is not git-ignored and holds a plaintext "
+            "bearer token — add it to .gitignore, then delete it"
+        )
+        return
+    _stderr(
+        f"note: could not determine whether {capture_file} is git-ignored — "
+        "it holds a plaintext bearer token; delete it once you are done"
+    )
+
+
+def run_auth_check(
+    store: SnapshotStore,
+    args: argparse.Namespace,
+    gateway_factory: Callable[[AuthCredentials], WriteGateway],
+) -> int:
+    credentials = load_auth(args.auth)
+    print(f"auth file: {args.auth}")
+    for line in redacted_summary(credentials):
+        print(line)
+    if not has_auth_bearing_header(credentials):
+        _stderr(
+            "WARNING: no authorization-like header in the credentials — the "
+            "session may not authenticate (advice only: the schema is "
+            "data-driven, so an unfamiliar header name is fine)"
+        )
+    team_id = _resolve_team_id(args.team_id, args.entry_file)
+    service = WriteService(
+        WriteApi(gateway_factory(credentials)),
+        store,
+        SnapshotStore(args.executor_root),
+    )
+    try:
+        team = service.my_team(team_id)
+    except SessionExpiredError as exc:
+        _stderr(f"FAIL — {exc}")
+        return EXIT_ERROR
+    except requests.RequestException as exc:
+        _stderr(f"FAIL — my-team request failed: {_failure_reason(exc)}")
+        return EXIT_ERROR
+    transfers = team.transfers
+    print("PASS — authenticated session works")
+    print(
+        f"entry {team_id} — squad {len(team.picks)}, "
+        f"bank {_tenths(transfers.bank)}, value {_tenths(transfers.value)}, "
+        f"free transfers {_blank(transfers.limit)}"
+    )
+    chips = ", ".join(
+        f"{chip.name} ({chip.status_for_entry or 'unknown'})" for chip in team.chips
+    )
+    print(f"chips: {chips or 'none'}")
+    return EXIT_OK
+
+
+def _failure_reason(exc: requests.RequestException) -> str:
+    # Status and reason when the server answered; the exception's own text
+    # only when it did not.
+    response = getattr(exc, "response", None)
+    status = getattr(response, "status_code", None)
+    if status is not None:
+        return f"HTTP {status} {getattr(response, 'reason', '') or ''}".strip()
+    return f"{type(exc).__name__}: {exc}"
+
+
 def run_write_command(
     store: SnapshotStore,
     args: argparse.Namespace,
     gateway_factory: Callable[[AuthCredentials], WriteGateway],
 ) -> int:
+    if args.command == "auth-check":
+        return run_auth_check(store, args, gateway_factory)
     gw = args.gw
     team_id = _resolve_team_id(args.team_id, args.entry_file)
     credentials = load_auth(args.auth)
@@ -440,26 +697,40 @@ def run_write_command(
         _print_my_team(service.my_team(team_id), team_id, _player_names(store, gw))
         return EXIT_OK
     service.ensure_deadline_open(gw, override_margin=args.force_deadline)
+    execution = _load_execution_plan(gw, args)
+    chip = _resolve_chip(args, execution)
     if args.command == "set-lineup":
-        picks = _resolve_lineup_picks(args)
+        picks = (
+            execution.planned_picks()
+            if execution is not None
+            else _resolve_lineup_picks(args)
+        )
         service.validate_formation(gw, picks)
-        plan = service.plan_lineup(team_id=team_id, picks=picks, chip=args.chip)
+        routed = route_chip(chip, LINEUP_TARGET)
+        notes = _chip_routing_notes(chip, routed, "make-transfers")
+        plan = service.plan_lineup(team_id=team_id, picks=picks, chip=routed)
         if plan.already_applied:
             print("already applied — current lineup matches; no request sent")
+            _print_notes(notes)
             return EXIT_OK
         if not args.apply:
-            _print_dry_run(plan.url, plan.payload, ())
+            _print_dry_run(plan.url, plan.payload, notes)
             return EXIT_OK
         print(f"applied and verified — audit: {service.apply_lineup(gw, plan)}")
+        _print_notes(notes)
         return EXIT_OK
-    plan = _transfer_plan(service, gw, team_id, args)
+    routed = route_chip(chip, TRANSFERS_TARGET)
+    notes = _chip_routing_notes(chip, routed, "set-lineup")
+    plan = _transfer_plan(service, gw, team_id, args, execution, routed)
     if plan.already_applied:
         print("already applied — requested transfers are in place; no request sent")
+        _print_notes(notes)
         return EXIT_OK
     if not args.apply:
-        _print_dry_run(plan.url, plan.payload, plan.notes)
+        _print_dry_run(plan.url, plan.payload, [*plan.notes, *notes])
         return EXIT_OK
     print(f"applied and verified — audit: {service.apply_transfers(gw, plan)}")
+    _print_notes(notes)
     return EXIT_OK
 
 
@@ -486,39 +757,92 @@ def _read_final(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _load_execution_plan(
+    gw: int, args: argparse.Namespace
+) -> ExecutionPlan | None:
+    if args.from_plan is None:
+        return None
+    if not args.from_plan.is_file():
+        raise ValueError(f"no plan at {args.from_plan}")
+    return parse_plan(
+        json.loads(args.from_plan.read_text(encoding="utf-8")), gw=gw
+    )
+
+
+def _resolve_chip(
+    args: argparse.Namespace, execution: ExecutionPlan | None
+) -> str | None:
+    if execution is None:
+        return args.chip
+    if args.chip is not None and args.chip != execution.chip:
+        raise ValueError(
+            f"--chip {args.chip!r} contradicts the plan, which activates "
+            f"{execution.chip or 'no chip'} — fix one of them"
+        )
+    return execution.chip
+
+
 def _resolve_lineup_picks(args: argparse.Namespace) -> PlannedPicks:
     if args.from_final is not None:
         return parse_state_picks(_read_final(args.from_final), expected_gw=args.gw)
     if args.picks and args.captain is not None and args.vice is not None:
         return picks_from_ids(args.picks, captain=args.captain, vice=args.vice)
     raise ValueError(
-        "provide --from-final, or --picks (15 ids in position order) with "
-        "--captain and --vice"
+        "provide --from-plan, --from-final, or --picks (15 ids in position "
+        "order) with --captain and --vice"
     )
 
 
 def _transfer_plan(
-    service: WriteService, gw: int, team_id: int, args: argparse.Namespace
+    service: WriteService,
+    gw: int,
+    team_id: int,
+    args: argparse.Namespace,
+    execution: ExecutionPlan | None,
+    chip: str | None,
 ) -> TransferPlan:
+    if execution is not None:
+        return service.plan_transfers(
+            gw=gw,
+            team_id=team_id,
+            chip=chip,
+            target_ids=execution.planned_picks().ids(),
+            planned_prices=execution.planned_prices(),
+        )
     if args.from_final is not None:
         picks = parse_state_picks(_read_final(args.from_final), expected_gw=gw)
         return service.plan_transfers(
-            gw=gw, team_id=team_id, chip=args.chip, target_ids=picks.ids()
+            gw=gw, team_id=team_id, chip=chip, target_ids=picks.ids()
         )
     if args.transfers_out and args.transfers_in:
         return service.plan_transfers(
-            gw=gw, team_id=team_id, chip=args.chip,
+            gw=gw, team_id=team_id, chip=chip,
             out_ids=args.transfers_out, in_ids=args.transfers_in,
         )
-    raise ValueError("provide --from-final, or --out and --in id lists")
+    raise ValueError("provide --from-plan, --from-final, or --out and --in id lists")
+
+
+def _chip_routing_notes(
+    chip: str | None, routed: str | None, owner_command: str
+) -> list[str]:
+    if chip is None or routed is not None:
+        return []
+    return [
+        f"note: chip {chip} is activated by {owner_command}, not this command — "
+        "sending chip: null here"
+    ]
+
+
+def _print_notes(notes: Sequence[str]) -> None:
+    for note in notes:
+        print(note)
 
 
 def _print_dry_run(url: str, payload: dict, notes: Sequence[str]) -> None:
     print("DRY RUN — no request sent; re-run with --apply to execute")
     print(f"POST {url}")
     print(json.dumps(payload, indent=1))
-    for note in notes:
-        print(note)
+    _print_notes(notes)
 
 
 def _print_my_team(team: MyTeam, team_id: int, names: dict[int, str]) -> None:
@@ -560,6 +884,9 @@ def _blank(value: object) -> str:
 
 
 def _stderr(message: str) -> None:
+    # Flush first: stdout is block-buffered when piped, so an unflushed report
+    # would surface after the warning that refers to it.
+    sys.stdout.flush()
     print(message, file=sys.stderr)
 
 

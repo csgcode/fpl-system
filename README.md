@@ -15,7 +15,8 @@ agents/
   red-team-reviewer.md A5  adversarial review
   retro-analyst.md     A6  predicted-vs-actual calibration
   finalizer.md         A7  freshness gate + final.md assembly
-  team-executor.md     A8  applies final.md to the real team (write API)
+  plan-builder.md      A8  compiles final.md into plan.json (deterministic)
+  team-executor.md     A9  applies plan.json to the real team (write API)
 docs/
   api-write.md         authenticated write path: credential capture, gates
 fpl/                   deterministic data CLI package
@@ -23,8 +24,10 @@ fpl/                   deterministic data CLI package
   http.py              HTTP gateway (swappable for tests)
   api.py               FPL API endpoint calls; raw payload + source URL
   auth.py              git-ignored session credentials (data-driven schema)
+  capture.py           browser "Copy as cURL" capture → credentials
   write.py             authenticated gateway + lineup/transfer write service
-  state.py             final.md STATE picks parsing + validation
+  state.py             final.md STATE block parsing + validation
+  plan.py              execution-plan model, squad legality, transfer ids
   store.py             snapshot persistence: cache, archive-on-refresh
   service.py           fetch-if-stale orchestration, validate-before-persist
   repository.py        filtered player queries over cached snapshots
@@ -38,7 +41,8 @@ data/
   auth.example.json    credentials template (fill into git-ignored data/auth.json)
   raw/gw{N}/           immutable API snapshots
   analysis/gw{N}/      fixture + player EP outputs
-  decisions/gw{N}/     proposal, review, final (with predictions + STATE block)
+  decisions/gw{N}/     proposal, review, final (with predictions + STATE
+                       block), plan.json (the POST source)
   executor/gw{N}/      audit records for applied lineup/transfer writes
   retro/gw{M}.md       calibration + correction rules for completed GW M
 ```
@@ -61,10 +65,26 @@ subagent tier.
   `--data-root` goes before the subcommand)
 - `picks`, `entry-history`, and `actuals` back the retro loop: our actual
   picks for a GW, our per-GW results, and per-player actual points
+- `plan` compiles a gameweek's final.md STATE block plus the cached bootstrap
+  into `data/decisions/gw{N}/plan.json` — the deterministic, machine-readable
+  description of what to POST (picks, formation, bench, chip, id-resolved
+  transfers, deadline, warnings). Local-only: no network, no credentials.
+  Transfers resolve from the previous gameweek's id diff where possible, and
+  an ambiguous player name is a hard error, never a guess
 - `my-team`, `set-lineup`, `make-transfers` are the authenticated write path
-  (setup: docs/api-write.md). Writes are dry-run by default; `--apply`
-  executes, and for transfers it is the user-confirmation gate — never
-  automated
+  (setup: docs/api-write.md). They take `--from-plan plan.json`; writes are
+  dry-run by default; `--apply` executes, and for transfers it is the
+  user-confirmation gate — never automated. Selling prices always come from
+  the authenticated read and purchase prices from the live bootstrap, never
+  from plan.json — see docs/api-write.md § 4b
+- `uv run python -m fpl auth-import --curl-file curl-request` — turn a browser
+  "Copy as cURL" capture of a `my-team` request into git-ignored
+  `data/auth.json` (mode 0600). The only command with no `--gw`
+- `uv run python -m fpl auth-check --gw N` — session pre-flight. Exit 0 prints
+  PASS plus entry id, squad size, bank, value, free transfers and chips; exit
+  1 means the credentials need re-capturing, so it gates a shell cycle:
+  `uv run python -m fpl auth-check --gw N || echo "re-capture"`. Credential
+  values never reach the terminal — reports are key names and `<N chars>`
 
 ## Usage (Claude Code)
 - GW1/wildcard: "Run the initial squad workflow in CLAUDE.md."

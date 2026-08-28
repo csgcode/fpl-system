@@ -8,3 +8,7 @@ data/raw/**/.archive/
 
 # session credentials — secrets, never committed (data/auth.example.json is the template)
 data/auth.json
+
+# raw browser captures used to build auth.json — bearer tokens in plaintext
+curl-request
+*.curl

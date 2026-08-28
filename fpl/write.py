@@ -9,8 +9,7 @@ results, never credentials.
 
 from __future__ import annotations
 
-from collections import Counter
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -22,17 +21,20 @@ from urllib3.util.retry import Retry
 
 from fpl.api import BASE_URL, Fetched
 from fpl.auth import AuthCredentials
-from fpl.models import MyTeam, MyTeamTransfersState, Position
+from fpl.models import MyTeam, MyTeamTransfersState
+from fpl.plan import (
+    DEFAULT_TRANSFER_HIT,
+    NO_HIT_CHIPS,
+    TRANSFER_CHIPS,
+    pair_by_position,
+    validate_formation,
+)
 from fpl.service import load_cached_bootstrap
 from fpl.state import PlannedPicks
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore, utcnow
 
 TRANSFERS_URL = f"{BASE_URL}/transfers/"
 DEADLINE_MARGIN = timedelta(minutes=30)
-DEFAULT_TRANSFER_HIT = 4
-NO_HIT_CHIPS = frozenset({"wildcard", "freehit"})
-
-SQUAD_SHAPE = {Position.GKP: 2, Position.DEF: 5, Position.MID: 5, Position.FWD: 3}
 
 
 def my_team_url(team_id: int) -> str:
@@ -152,6 +154,7 @@ class TransferPlan:
     outs: tuple[int, ...]
     ins: tuple[int, ...]
     notes: tuple[str, ...]
+    chip: str | None = None
 
 
 class WriteService:
@@ -195,35 +198,13 @@ class WriteService:
         return deadline
 
     def validate_formation(self, gw: int, picks: PlannedPicks) -> None:
-        bootstrap = load_cached_bootstrap(self._store, gw)
-        by_id = bootstrap.player_by_id()
-        unknown = sorted(p.id for p in picks.picks if p.id not in by_id)
-        if unknown:
-            raise ValueError(f"picks reference unknown player ids: {unknown}")
-        role_of = {p.id: by_id[p.id].element_type for p in picks.picks}
-        slot_role = {p.position: role_of[p.id] for p in picks.picks}
-        if slot_role[1] is not Position.GKP:
-            raise ValueError("position 1 must be a goalkeeper")
-        if slot_role[12] is not Position.GKP:
-            raise ValueError("position 12 must be a goalkeeper (first bench slot)")
-        squad = Counter(role_of.values())
-        if squad != Counter(SQUAD_SHAPE):
-            shape = ", ".join(f"{count} {pos.name}" for pos, count in squad.items())
-            raise ValueError(f"squad must be 2 GKP / 5 DEF / 5 MID / 3 FWD, got {shape}")
-        xi = Counter(slot_role[slot] for slot in range(1, 12))
-        if xi[Position.GKP] != 1:
-            raise ValueError("the XI must contain exactly 1 GKP")
-        if xi[Position.DEF] < 3:
-            raise ValueError("the XI must contain at least 3 DEF")
-        if xi[Position.MID] < 2:
-            raise ValueError("the XI must contain at least 2 MID")
-        if xi[Position.FWD] < 1:
-            raise ValueError("the XI must contain at least 1 FWD")
+        validate_formation(load_cached_bootstrap(self._store, gw), picks)
 
     def plan_lineup(
         self, *, team_id: int, picks: PlannedPicks, chip: str | None = None
     ) -> LineupPlan:
         current = self.my_team(team_id)
+        _ensure_squad_owns(current, picks)
         payload = {
             "picks": [
                 {
@@ -261,6 +242,7 @@ class WriteService:
         out_ids: Sequence[int] | None = None,
         in_ids: Sequence[int] | None = None,
         target_ids: Iterable[int] | None = None,
+        planned_prices: Mapping[int, int] | None = None,
     ) -> TransferPlan:
         current = self.my_team(team_id)
         squad = current.squad_ids()
@@ -271,12 +253,17 @@ class WriteService:
         else:
             outs, ins = _pending_transfers(list(out_ids or ()), list(in_ids or ()), squad)
         if not outs and not ins:
+            _ensure_chip_not_stranded(current, chip)
             payload = {"entry": team_id, "event": gw, "transfers": [], "chip": chip}
             return TransferPlan(
                 team_id=team_id, url=TRANSFERS_URL, payload=payload,
-                already_applied=True, outs=(), ins=(), notes=(),
+                already_applied=True, outs=(), ins=(), notes=(), chip=chip,
             )
         rows = self._transfer_rows(gw, current, outs, ins)
+        notes = list(_price_notes(rows, planned_prices))
+        if planned_prices is not None:
+            _ensure_bank_covers(rows, current.transfers, planned_prices)
+        notes += _hit_notes(len(rows), current.transfers, chip)
         payload = {"entry": team_id, "event": gw, "transfers": rows, "chip": chip}
         return TransferPlan(
             team_id=team_id,
@@ -285,7 +272,8 @@ class WriteService:
             already_applied=False,
             outs=tuple(sorted(outs)),
             ins=tuple(sorted(ins)),
-            notes=tuple(_hit_notes(len(rows), current.transfers, chip)),
+            notes=tuple(notes),
+            chip=chip,
         )
 
     def apply_transfers(self, gw: int, plan: TransferPlan) -> Path:
@@ -301,6 +289,8 @@ class WriteService:
             for incoming in plan.ins
             if incoming not in squad
         ]
+        if plan.chip is not None and not _chip_active(after, plan.chip):
+            problems.append(f"chip {plan.chip} is not active")
         return self._record_and_verify(
             "make-transfers", gw, plan.team_id, plan, problems
         )
@@ -313,36 +303,18 @@ class WriteService:
         unknown = sorted(pid for pid in [*outs, *ins] if pid not in by_id)
         if unknown:
             raise ValueError(f"transfers reference unknown player ids: {unknown}")
-        outs_by_role: dict[Position, list[int]] = {}
-        ins_by_role: dict[Position, list[int]] = {}
-        for out in outs:
-            outs_by_role.setdefault(by_id[out].element_type, []).append(out)
-        for incoming in ins:
-            ins_by_role.setdefault(by_id[incoming].element_type, []).append(incoming)
-        if {r: len(v) for r, v in outs_by_role.items()} != {
-            r: len(v) for r, v in ins_by_role.items()
-        }:
-            out_shape = _role_shape(outs_by_role)
-            in_shape = _role_shape(ins_by_role)
-            raise ValueError(
-                "transfers must swap position-for-position — "
-                f"out: {out_shape}, in: {in_shape}"
-            )
+        # Selling prices come from the authenticated read, never the bootstrap
+        # and never a plan file: they encode each player's own profit rule.
         selling = {p.element: p.selling_price for p in current.picks}
-        rows = []
-        for role in sorted(outs_by_role):
-            for out, incoming in zip(
-                sorted(outs_by_role[role]), sorted(ins_by_role[role])
-            ):
-                rows.append(
-                    {
-                        "element_in": incoming,
-                        "element_out": out,
-                        "purchase_price": by_id[incoming].now_cost,
-                        "selling_price": selling[out],
-                    }
-                )
-        return rows
+        return [
+            {
+                "element_in": incoming,
+                "element_out": out,
+                "purchase_price": by_id[incoming].now_cost,
+                "selling_price": selling[out],
+            }
+            for out, incoming in pair_by_position(list(outs), list(ins), by_id)
+        ]
 
     def _record_and_verify(
         self,
@@ -403,6 +375,34 @@ def _chip_active(current: MyTeam, chip: str) -> bool:
     )
 
 
+def _ensure_squad_owns(current: MyTeam, picks: PlannedPicks) -> None:
+    """A lineup may only name players the entry owns. While a plan's transfers
+    are unapplied its incoming players are still unowned, and the server
+    rejects the whole payload — refuse first, naming the reason."""
+    squad = current.squad_ids()
+    missing = [p for p in picks.in_position_order() if p.id not in squad]
+    if not missing:
+        return
+    described = ", ".join(f"{p.name} ({p.id})" for p in missing)
+    raise ValueError(
+        f"lineup names {len(missing)} player(s) not in the squad: {described}. "
+        "Apply the plan's transfers first, then set the lineup"
+    )
+
+
+def _ensure_chip_not_stranded(current: MyTeam, chip: str | None) -> None:
+    """Wildcard and free hit are activated by the transfers POST. With no
+    transfers left to make there is no POST, so the chip would be dropped in
+    silence — unless it is already active, which is what a re-run looks like."""
+    if chip not in TRANSFER_CHIPS or _chip_active(current, chip):
+        return
+    raise ValueError(
+        f"the plan plays {chip}, but no transfers remain to be made and {chip} "
+        "is not active on the entry. The transfers POST is what activates it, "
+        "so it would be silently skipped — play it on the site, or re-plan"
+    )
+
+
 def _pending_transfers(
     outs: list[int], ins: list[int], squad: frozenset[int]
 ) -> tuple[list[int], list[int]]:
@@ -425,10 +425,46 @@ def _pending_transfers(
     return outs, ins
 
 
-def _role_shape(by_role: dict[Position, list[int]]) -> str:
-    if not by_role:
-        return "none"
-    return ", ".join(f"{len(ids)} {role.name}" for role, ids in sorted(by_role.items()))
+def _price_notes(
+    rows: Sequence[dict], planned_prices: Mapping[int, int] | None
+) -> list[str]:
+    if not planned_prices:
+        return []
+    return [
+        f"price drift: element {row['element_in']} planned at "
+        f"£{planned_prices[row['element_in']] / 10:.1f}m, now "
+        f"£{row['purchase_price'] / 10:.1f}m"
+        for row in rows
+        if row["element_in"] in planned_prices
+        and planned_prices[row["element_in"]] != row["purchase_price"]
+    ]
+
+
+def _ensure_bank_covers(
+    rows: Sequence[dict],
+    transfers: MyTeamTransfersState,
+    planned_prices: Mapping[int, int],
+) -> None:
+    """Guards the plan path only. Prices move daily, so a plan that balanced
+    when written can be unaffordable by the deadline; the FPL server would
+    reject it opaquely."""
+    if transfers.bank is None:
+        return
+    proceeds = sum(row["selling_price"] for row in rows)
+    live_spend = sum(row["purchase_price"] for row in rows)
+    remaining = transfers.bank + proceeds - live_spend
+    if remaining >= 0:
+        return
+    planned_spend = sum(
+        planned_prices.get(row["element_in"], row["purchase_price"]) for row in rows
+    )
+    raise ValueError(
+        f"transfers need £{(live_spend - proceeds) / 10:.1f}m but the bank holds "
+        f"£{transfers.bank / 10:.1f}m — short by £{-remaining / 10:.1f}m. "
+        f"Live prices total £{live_spend / 10:.1f}m against £"
+        f"{planned_spend / 10:.1f}m at plan time; re-plan against a fresh "
+        "bootstrap rather than posting this"
+    )
 
 
 def _hit_notes(

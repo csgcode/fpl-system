@@ -319,6 +319,47 @@ def test_lineup_plan_with_active_chip_is_already_applied(tmp_path):
     assert plan.already_applied is True
 
 
+def planned_squad_swapping(out_id: int, in_id: int) -> PlannedPicks:
+    """The plan's 15 slots after a transfer the entry has not made yet."""
+    return PlannedPicks(
+        picks=tuple(
+            PlannedPick(
+                id=in_id if player_id == out_id else player_id,
+                name=f"E{in_id if player_id == out_id else player_id}",
+                position=slot,
+                captain=player_id == 14,
+                vice=player_id == 13,
+            )
+            for player_id, (_, slot) in SQUAD.items()
+        )
+    )
+
+
+def test_lineup_naming_a_player_the_entry_does_not_own_refuses(tmp_path):
+    service, gateway, _, _ = make_write_service(tmp_path, [current_my_team()])
+    with pytest.raises(ValueError, match=r"not in the squad: E20 \(20\)"):
+        service.plan_lineup(team_id=42, picks=planned_squad_swapping(12, 20))
+    assert gateway.posts == []
+
+
+def test_lineup_refusal_names_every_unowned_player(tmp_path):
+    service, _, _, _ = make_write_service(tmp_path, [current_my_team()])
+    picks = PlannedPicks(
+        picks=tuple(
+            PlannedPick(
+                id={12: 20, 6: 21}.get(player_id, player_id),
+                name=f"E{ {12: 20, 6: 21}.get(player_id, player_id)}",
+                position=slot,
+                captain=player_id == 14,
+                vice=player_id == 13,
+            )
+            for player_id, (_, slot) in SQUAD.items()
+        )
+    )
+    with pytest.raises(ValueError, match="2 player"):
+        service.plan_lineup(team_id=42, picks=picks)
+
+
 def test_apply_lineup_posts_verifies_and_writes_an_audit_record(tmp_path):
     changed = current_my_team()
     for pick in changed["picks"]:
@@ -513,6 +554,59 @@ def test_transfer_plan_with_wildcard_has_no_hit(tmp_path):
     assert any("no hit" in note for note in plan.notes)
 
 
+def test_transfer_chip_with_nothing_left_to_transfer_refuses(tmp_path):
+    service, gateway, _, _ = make_write_service(tmp_path, [current_my_team()])
+    with pytest.raises(ValueError, match="silently skipped"):
+        service.plan_transfers(
+            gw=2, team_id=42, target_ids=set(SQUAD), chip="freehit"
+        )
+    assert gateway.posts == []
+
+
+def test_transfer_chip_already_active_with_no_transfers_is_already_applied(tmp_path):
+    payload = my_team_payload(
+        picks=squad_my_team_picks(),
+        chips=[my_team_chip_payload(name="wildcard", status_for_entry="active")],
+    )
+    service, _, _, _ = make_write_service(tmp_path, [payload])
+    plan = service.plan_transfers(
+        gw=2, team_id=42, target_ids=set(SQUAD), chip="wildcard"
+    )
+    assert plan.already_applied is True
+
+
+def test_a_lineup_chip_is_never_stranded_by_an_empty_transfer_diff(tmp_path):
+    service, _, _, _ = make_write_service(tmp_path, [current_my_team()])
+    plan = service.plan_transfers(gw=2, team_id=42, target_ids=set(SQUAD), chip="3xc")
+    assert plan.already_applied is True
+
+
+def test_apply_transfers_verifies_the_chip_activated(tmp_path):
+    swapped = dict(SQUAD)
+    swapped[20] = swapped.pop(12)
+    after = my_team_payload(picks=squad_my_team_picks(swapped))
+    service, _, _, _ = make_write_service(tmp_path, [current_my_team(), after])
+    plan = service.plan_transfers(
+        gw=2, team_id=42, out_ids=[12], in_ids=[20], chip="wildcard"
+    )
+    with pytest.raises(VerifyMismatchError, match="chip wildcard is not active"):
+        service.apply_transfers(2, plan)
+
+
+def test_apply_transfers_passes_when_the_chip_came_back_active(tmp_path):
+    swapped = dict(SQUAD)
+    swapped[20] = swapped.pop(12)
+    after = my_team_payload(
+        picks=squad_my_team_picks(swapped),
+        chips=[my_team_chip_payload(name="wildcard", status_for_entry="active")],
+    )
+    service, _, _, _ = make_write_service(tmp_path, [current_my_team(), after])
+    plan = service.plan_transfers(
+        gw=2, team_id=42, out_ids=[12], in_ids=[20], chip="wildcard"
+    )
+    assert service.apply_transfers(2, plan).is_file()
+
+
 def test_apply_transfers_posts_verifies_and_writes_an_audit_record(tmp_path):
     swapped = dict(SQUAD)
     swapped[20] = swapped.pop(12)
@@ -535,3 +629,62 @@ def test_apply_transfers_mismatch_raises(tmp_path):
     plan = service.plan_transfers(gw=2, team_id=42, out_ids=[12], in_ids=[20])
     with pytest.raises(VerifyMismatchError, match="12"):
         service.apply_transfers(2, plan)
+
+
+# --- price drift and the bank ------------------------------------------------
+
+
+def planned_prices_for(in_id: int, price_tenths: int) -> dict[int, int]:
+    return {in_id: price_tenths}
+
+
+def funded_my_team(bank: int) -> dict:
+    return my_team_payload(
+        picks=squad_my_team_picks(), transfers=my_team_transfers_payload(bank=bank)
+    )
+
+
+def test_planned_price_matching_the_live_price_adds_no_note(tmp_path):
+    service, _, _, _ = make_write_service(tmp_path, [funded_my_team(20)])
+    plan = service.plan_transfers(
+        gw=2, team_id=42, out_ids=[12], in_ids=[20],
+        planned_prices=planned_prices_for(20, 70),
+    )
+    assert not any("drift" in note for note in plan.notes)
+
+
+def test_price_drift_since_planning_is_reported(tmp_path):
+    service, _, _, _ = make_write_service(tmp_path, [funded_my_team(20)])
+    plan = service.plan_transfers(
+        gw=2, team_id=42, out_ids=[12], in_ids=[20],
+        planned_prices=planned_prices_for(20, 68),
+    )
+    drift = next(note for note in plan.notes if "drift" in note)
+    assert "element 20" in drift
+    assert "6.8" in drift and "7.0" in drift
+
+
+def test_drift_that_breaks_the_bank_refuses(tmp_path):
+    service, _, _, _ = make_write_service(tmp_path, [funded_my_team(0)])
+    with pytest.raises(ValueError, match="bank"):
+        service.plan_transfers(
+            gw=2, team_id=42, out_ids=[12], in_ids=[20],
+            planned_prices=planned_prices_for(20, 52),
+        )
+
+
+def test_an_affordable_transfer_is_allowed_against_the_live_bank(tmp_path):
+    service, _, _, _ = make_write_service(tmp_path, [funded_my_team(20)])
+    plan = service.plan_transfers(
+        gw=2, team_id=42, out_ids=[12], in_ids=[20],
+        planned_prices=planned_prices_for(20, 70),
+    )
+    assert plan.payload["transfers"][0]["element_in"] == 20
+
+
+def test_the_bank_is_only_gated_when_planned_prices_are_supplied(tmp_path):
+    """Explicit --out/--in stays the operator's call; the FPL server is the
+    authority. The gate exists to catch drift against a plan."""
+    service, _, _, _ = make_write_service(tmp_path, [funded_my_team(0)])
+    plan = service.plan_transfers(gw=2, team_id=42, out_ids=[12], in_ids=[20])
+    assert plan.payload["transfers"][0]["element_in"] == 20

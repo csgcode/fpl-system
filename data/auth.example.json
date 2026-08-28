@@ -1,9 +1,27 @@
 {
  "headers": {
-  "X-Api-Authorization": "Bearer <paste from a my-team request in devtools>"
+  "x-api-authorization": "Bearer <paste from a my-team request in devtools>",
+  "x-api-language": "en",
+  "accept": "application/json",
+  "accept-language": "en-GB,en;q=0.9",
+  "user-agent": "<paste from devtools>",
+  "referer": "https://fantasy.premierleague.com/my-team",
+  "origin": "https://fantasy.premierleague.com",
+  "priority": "u=1, i",
+  "cache-control": "no-cache",
+  "pragma": "no-cache",
+  "sec-ch-ua": "<paste from devtools>",
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": "<paste from devtools>",
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "same-origin"
  },
  "cookies": {
-  "pl_profile": "<paste from devtools>",
-  "datadome": "<paste from devtools>"
+  "datadome": "<paste from devtools>",
+  "cf_clearance": "<paste from devtools>",
+  "global_sso_id": "<paste from devtools>",
+  "pl_guest_id": "<paste from devtools>",
+  "req_language": "en"
  }
 }

@@ -9,9 +9,11 @@ from datetime import timedelta
 from pathlib import Path
 
 from fpl.__main__ import main
+from fpl.models import Position
+from fpl.plan import SCHEMA_VERSION
 from fpl.store import SnapshotStore, utcnow
 from fpl.write import SessionExpiredError
-from tests.factories import my_team_payload
+from tests.factories import my_team_payload, my_team_transfers_payload
 from tests.test_write import (
     MY_TEAM_URL,
     SECRET,
@@ -394,3 +396,321 @@ def test_secrets_never_appear_in_any_output(tmp_path, capsys):
     captured = capsys.readouterr()
     assert SECRET not in captured.out
     assert SECRET not in captured.err
+
+
+# --- --from-plan --------------------------------------------------------------
+
+
+def plan_document(
+    *,
+    gw: int = 2,
+    chip: str | None = None,
+    transfers: list[dict] | None = None,
+    schema_version: int = SCHEMA_VERSION,
+    captain: int = 13,
+    vice: int = 14,
+) -> dict:
+    ordered = sorted(SQUAD.items(), key=lambda item: item[1][1])
+    return {
+        "schema_version": schema_version,
+        "gw": gw,
+        "team_id": 42,
+        "deadline": "2026-08-22T12:00:00Z",
+        "chip": chip,
+        "chip_plan": [],
+        "chips_used": [],
+        "chips_available": [{"name": "bboost", "start_event": 1, "stop_event": 19}],
+        "formation": "3-4-3",
+        "picks": [
+            {
+                "element": pid,
+                "name": f"E{pid}",
+                "club": "TST",
+                "position": Position(element_type).name,
+                "slot": slot,
+                "is_captain": pid == captain,
+                "is_vice_captain": pid == vice,
+                "now_cost": (50 + pid) / 10,
+                "starts": slot <= 11,
+            }
+            for pid, (element_type, slot) in ordered
+        ],
+        "bench": [pid for pid, (_, slot) in ordered if slot > 11],
+        "captain": {"id": captain, "name": f"E{captain}"},
+        "vice": {"id": vice, "name": f"E{vice}"},
+        "transfers": transfers or [],
+        "transfer_source": "picks-diff" if transfers else "none",
+        "price_resolution": "live",
+        "price_resolution_note": "prices are re-resolved at POST time",
+        "bank": 0.5,
+        "team_value": 100.3,
+        "free_transfers_banked": 1,
+        "source": "data/decisions/gw2/final.md",
+        "generated_from": {
+            "final": "data/decisions/gw2/final.md",
+            "previous_final": None,
+            "bootstrap": "data/raw/gw2/bootstrap.json",
+        },
+        "bootstrap_snapshot_age_hours": 1.0,
+        "warnings": [],
+    }
+
+
+def plan_file(tmp_path: Path, **kwargs) -> Path:
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps(plan_document(**kwargs)), encoding="utf-8")
+    return path
+
+
+def transfer_row(purchase_price_at_plan: float) -> dict:
+    return {
+        "out": {"id": 20, "name": "E20"},
+        "in": {"id": 12, "name": "E12"},
+        "cost": 0,
+        "purchase_price_at_plan": purchase_price_at_plan,
+        "selling_price": None,
+    }
+
+
+def swapped_my_team_with_bank(bank: int) -> dict:
+    swapped = dict(SQUAD)
+    swapped[20] = swapped.pop(12)
+    return my_team_payload(
+        picks=squad_my_team_picks(swapped),
+        transfers=my_team_transfers_payload(bank=bank),
+    )
+
+
+def test_set_lineup_from_plan_builds_the_payload(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = [
+        "set-lineup", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path)),
+    ]
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    assert "DRY RUN" in out
+    payload = json.loads(out[out.index("{") :])
+    assert len(payload["picks"]) == 15
+    assert [p["element"] for p in payload["picks"] if p["is_captain"]] == [13]
+    assert payload["chip"] is None
+    assert gateway.posts == []
+
+
+def test_set_lineup_from_plan_carries_the_chip(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = [
+        "set-lineup", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, chip="bboost")),
+    ]
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    assert '"chip": "bboost"' in out
+
+
+def test_chip_flag_contradicting_the_plan_refuses(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = [
+        "set-lineup", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, chip="bboost")), "--chip", "3xc",
+    ]
+    assert run(argv, tmp_path, gateway) == 1
+    assert "contradicts the plan" in capsys.readouterr().err
+    assert gateway.posts == []
+
+
+def test_plan_for_another_gameweek_refuses(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = [
+        "set-lineup", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, gw=3)),
+    ]
+    assert run(argv, tmp_path, gateway) == 1
+    assert "gw3" in capsys.readouterr().err
+
+
+def test_unsupported_plan_schema_version_refuses(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = [
+        "set-lineup", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, schema_version=SCHEMA_VERSION + 1)),
+    ]
+    assert run(argv, tmp_path, gateway) == 1
+    err = capsys.readouterr().err
+    assert "schema_version" in err and "fpl plan --gw 2" in err
+
+
+def test_missing_plan_file_refuses_with_the_path(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    missing = tmp_path / "nowhere" / "plan.json"
+    argv = [
+        "set-lineup", "--gw", "2", "--team-id", "42", "--from-plan", str(missing),
+    ]
+    assert run(argv, tmp_path, gateway) == 1
+    err = capsys.readouterr().err
+    assert "no plan at" in err and str(missing) in err
+
+
+def test_make_transfers_from_plan_diffs_against_the_live_squad(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = [
+        "make-transfers", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, transfers=[transfer_row(6.2)])),
+    ]
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    payload = json.loads(out[out.index("{") : out.rindex("}") + 1])
+    assert payload["transfers"] == [
+        {"element_in": 12, "element_out": 20, "purchase_price": 62,
+         "selling_price": 60}
+    ]
+    assert "drift" not in out
+    assert gateway.posts == []
+
+
+def test_make_transfers_from_plan_warns_on_purchase_price_drift(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = [
+        "make-transfers", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, transfers=[transfer_row(6.0)])),
+    ]
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    assert "price drift: element 12 planned at £6.0m, now £6.2m" in out
+    assert gateway.posts == []
+
+
+def test_make_transfers_from_plan_refuses_when_drift_breaks_the_bank(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(0)]})
+    argv = [
+        "make-transfers", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, transfers=[transfer_row(6.0)])),
+        "--apply",
+    ]
+    assert run(argv, tmp_path, gateway) == 1
+    err = capsys.readouterr().err
+    assert "bank" in err and "short by" in err
+    assert gateway.posts == []
+
+
+def test_selling_prices_always_come_from_the_authenticated_read(tmp_path, capsys):
+    """The plan never carries one, so the payload can only have got it live."""
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = [
+        "make-transfers", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, transfers=[transfer_row(6.2)])),
+    ]
+    run(argv, tmp_path, gateway)
+    out = capsys.readouterr().out
+    payload = json.loads(out[out.index("{") : out.rindex("}") + 1])
+    assert payload["transfers"][0]["selling_price"] == 60
+
+
+# --- ordering and chip routing -------------------------------------------------
+
+
+def transfer_argv(tmp_path: Path, **plan_kwargs) -> list[str]:
+    return [
+        "make-transfers", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, **plan_kwargs)),
+    ]
+
+
+def lineup_argv(tmp_path: Path, **plan_kwargs) -> list[str]:
+    return [
+        "set-lineup", "--gw", "2", "--team-id", "42",
+        "--from-plan", str(plan_file(tmp_path, **plan_kwargs)),
+    ]
+
+
+def test_set_lineup_refuses_while_the_plan_transfers_are_unapplied(tmp_path, capsys):
+    """F1: the lineup names the incoming player, who is not owned until the
+    transfer lands — so transfers must be applied first."""
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = lineup_argv(tmp_path, transfers=[transfer_row(6.2)])
+    assert run(argv, tmp_path, gateway) == 1
+    err = capsys.readouterr().err
+    assert "not in the squad: E12 (12)" in err
+    assert "transfers first" in err
+    assert gateway.posts == []
+
+
+def test_set_lineup_succeeds_once_the_transfers_have_landed(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = lineup_argv(tmp_path, transfers=[transfer_row(6.2)])
+    assert run(argv, tmp_path, gateway) == 0
+    assert "DRY RUN" in capsys.readouterr().out
+
+
+def test_make_transfers_routes_a_lineup_chip_away(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = transfer_argv(tmp_path, chip="3xc", transfers=[transfer_row(6.2)])
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    payload = json.loads(out[out.index("{") : out.rindex("}") + 1])
+    assert payload["chip"] is None
+    assert "chip 3xc is activated by set-lineup" in out
+
+
+def test_set_lineup_routes_a_transfer_chip_away(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = lineup_argv(tmp_path, chip="freehit")
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    assert '"chip": null' in out
+    assert "chip freehit is activated by make-transfers" in out
+
+
+def test_make_transfers_carries_a_transfer_chip(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = transfer_argv(tmp_path, chip="wildcard", transfers=[transfer_row(6.2)])
+    assert run(argv, tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    payload = json.loads(out[out.index("{") : out.rindex("}") + 1])
+    assert payload["chip"] == "wildcard"
+    assert "no hit" in out
+
+
+def test_a_gameweek_with_no_transfers_is_a_no_op_not_a_failure(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(transfer_argv(tmp_path), tmp_path, gateway) == 0
+    assert "already applied" in capsys.readouterr().out
+    assert gateway.posts == []
+
+
+def test_a_lineup_chip_survives_a_gameweek_with_no_transfers(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(transfer_argv(tmp_path, chip="bboost"), tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    assert "already applied" in out
+    assert gateway.posts == []
+    lineup = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(lineup_argv(tmp_path, chip="bboost"), tmp_path, lineup) == 0
+    assert '"chip": "bboost"' in capsys.readouterr().out
+
+
+def test_a_transfer_chip_with_no_transfers_refuses_rather_than_dropping_it(
+    tmp_path, capsys
+):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(transfer_argv(tmp_path, chip="wildcard"), tmp_path, gateway) == 1
+    assert "silently skipped" in capsys.readouterr().err
+    assert gateway.posts == []

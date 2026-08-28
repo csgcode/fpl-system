@@ -33,10 +33,30 @@ Only when the gate passes. Contents:
   `- {id: <element id>, name: <web_name>, position: <1-15>, captain: <true|false>, vice: <true|false>}`
   15 lines, no omissions. Positions 1–11 are the XI, 12–15 the bench in
   auto-sub order (position 12 = backup GK); exactly one captain and one vice,
-  both in the XI. Element ids and web_names come from bootstrap.json. The
-  team-executor applies this block verbatim via `set-lineup --from-final`,
-  and it is strict-parsed: any format deviation makes the executor refuse.
+  both in the XI. Element ids and web_names come from bootstrap.json.
+  `fpl plan` compiles this block into plan.json, and it is strict-parsed: any
+  format deviation makes the plan refuse.
 
-## 3. Rules
+## 3. The chip fields
+Three separate things. Emit all three, every gameweek.
+
+| Field | Emit | Meaning |
+|---|---|---|
+| `chip:` | ALWAYS — `chip: null` when no chip is played | The chip to ACTIVATE this GW. The only field that plays one. |
+| `chips_used:` | always (`[]` when none) | History of chips already played. |
+| `chip_plan:` | always (`[]` when none) | Forward earmarks: `- {chip: <name>, gw: <N>, status: provisional}` |
+
+`chip:` must be a name from bootstrap.json's `chips` array (`bboost`, `3xc`,
+`wildcard`, `freehit` in 2026/27), inside its window for this GW, and absent
+from `chips_used` for that window. Never hardcode a window — read it from
+bootstrap.json.
+
+The prose chip narrative in your rationale is a FORECAST and is read by nobody
+but a human. `chip:` is the only field that activates a chip, and `chip_plan:`
+the only machine-readable version of the forward plan. If the prose says "TC
+GW3, WC GW10", those earmarks must also appear in `chip_plan:` or they do not
+exist as far as the system is concerned.
+
+## 4. Rules
 - Never overwrite an existing final.md. If one exists, stop and report.
 - Committing to git is the orchestrator's job, not yours.

@@ -46,6 +46,7 @@ Scoring context that changes valuation this season:
 4. Run `agents/squad-optimizer.md`  → data/decisions/gw{N}/squad-proposal.md
 5. Run `agents/red-team-reviewer.md`→ data/decisions/gw{N}/review.md
 6. Run `agents/finalizer.md`        → data/decisions/gw{N}/final.md
+7. Run `agents/plan-builder.md`     → data/decisions/gw{N}/plan.json
 
 ### Weekly cycle (GW2 onward)
 0. Run `agents/retro-analyst.md` on the completed GW
@@ -54,15 +55,32 @@ Scoring context that changes valuation this season:
    order, scored on the 6-GW EP horizon. It reads the current squad from the
    STATE block of the latest data/decisions/*/final.md and any correction
    notes from data/retro/.
-7. OPTIONAL: run `agents/team-executor.md` → data/executor/gw{N}/
+7. Run `agents/plan-builder.md`      → data/decisions/gw{N}/plan.json
+   Compiles final.md's STATE block plus the cached bootstrap into the
+   deterministic execution plan. Local-only: no network, no credentials. The
+   parsing is CODE (`fpl plan`), never an LLM reading prose — a
+   non-deterministic reading must never drive an irreversible POST.
+8. OPTIONAL: run `agents/team-executor.md` → data/executor/gw{N}/
    Runs only when data/auth.json exists, team_id is non-null, and the user
-   has not opted out for the GW. When skipped, the user applies final.md on
-   the website manually — the cycle is complete at step 6 either way.
-   The executor applies the lineup (set-lineup dry-run, then --apply) and
-   produces the make-transfers DRY-RUN payload only. Relay that payload to
-   the user; transfers are POSTed only after the user confirms and `--apply`
-   is run with their approval. Declining API transfers and applying them
-   manually (or not at all) is a valid outcome, not an error.
+   has not opted out for the GW. When skipped, the user applies plan.json on
+   the website manually — the cycle is complete at step 7 either way.
+   Transfers go FIRST, then the lineup — a lineup may only name players the
+   entry owns, so the incoming players must land before the XI referencing
+   them can be set. `set-lineup` refuses while they have not. A gameweek with
+   no transfers still runs the transfer step: it prints "already applied" and
+   sends nothing.
+   The executor produces the make-transfers DRY-RUN payload only. Relay that
+   payload to the user; transfers are POSTed only after the user confirms and
+   `--apply` is run with their approval. Declining API transfers and applying
+   them manually (or not at all) is a valid outcome, not an error — but a
+   declined transfer also blocks the lineup step, which the executor reports
+   rather than working around. Only once transfers are settled does the
+   executor dry-run and `--apply` the lineup.
+   Chips route by kind: `bboost`/`3xc` ride the set-lineup POST,
+   `wildcard`/`freehit` the make-transfers POST. Each command sends the plan's
+   `chip` only if it owns it and prints a note otherwise; an unknown chip name
+   refuses rather than being dropped. A transfer chip with no transfers left to
+   make refuses — there would be no POST to carry it.
 
 ### Revision mechanics
 On a REVISE verdict, re-invoke squad-optimizer with review.md as additional
@@ -80,7 +98,7 @@ the data collector first.
 
 ### final.md STATE block
 final.md ends with a machine-readable yaml block. The weekly cycle reads it as
-the current squad state.
+the current squad state, and `plan` compiles it into the execution plan.
 
 ```yaml
 gw: 12
@@ -88,10 +106,13 @@ team_id: 1234567
 team_value: 101.4
 bank: 0.3
 free_transfers_banked: 1
+chip: null
 chips_used:
   - {chip: bboost, gw: 7}
 transfers_made:
   - {out: Player A, in: Player B, cost: 0}
+chip_plan:
+  - {chip: wildcard, gw: 16, status: provisional}
 picks:
   - {id: 17, name: Raya, position: 1, captain: false, vice: false}
   - {id: 233, name: Haaland, position: 10, captain: true, vice: false}
@@ -101,9 +122,23 @@ picks:
   # captain and one vice, both in the XI. Ids/names from bootstrap.json.
 ```
 
-The `picks:` list is the executable lineup: `set-lineup --from-final` and
-`make-transfers --from-final` strict-parse it, so the finalizer must emit
-every line in exactly this format.
+| Key | Meaning |
+|---|---|
+| `chip` | the chip to ACTIVATE this gameweek, or `null`. The only field that plays a chip. Must be a name from the bootstrap `chips` array, inside its window for this GW, and not already used in that window. |
+| `chips_used` | history — chips already played, and when. Never triggers anything. |
+| `chip_plan` | forward-looking earmarks. A forecast: it never activates a chip, and a GW it names is a plan, not a commitment. `status` defaults to `provisional` when omitted. |
+| `transfers_made` | names as written, for the human reader. Ambiguous by construction (two players can share a `web_name`), so it never drives a POST on its own. |
+| `picks` | the executable 15-slot lineup. |
+
+The block is strict-parsed. Unknown keys, malformed lines and missing required
+keys refuse with the offending line rather than being guessed at. `chip` and
+`chip_plan` are optional and default to `null` / empty, so pre-existing
+final.md files still parse — but the finalizer must emit `chip:` explicitly
+every gameweek, `chip: null` included.
+
+The prose chip narrative in final.md is commentary. `chip` is the only field
+that activates one, and `chip_plan` the only machine-readable forecast; no
+tool ever reads chip intentions out of prose.
 
 ### team_id
 Lives in committed data/entry.json (`{"team_id": null}` until the user fills
@@ -132,11 +167,12 @@ per GW cycle. Every subagent prompt must restate this.
 | squad-optimizer | fable | constrained decision-making |
 | red-team-reviewer | fable | adversarial decision review |
 | finalizer | opus | gate enforcement + final.md assembly |
+| plan-builder | haiku | mechanical CLI invocation, no judgment |
 | team-executor | haiku | mechanical CLI invocation, no judgment |
 
 Decision-making agents (optimizer, red-team) run on Fable-tier; analysis and
 gate-enforcement agents (fixture, player, retro, finalizer) run on Opus;
-mechanical agents (data-collector, team-executor) run on Haiku.
+mechanical agents (data-collector, plan-builder, team-executor) run on Haiku.
 
 ## Data tooling
 All FPL API access goes through the deterministic CLI
@@ -155,9 +191,12 @@ All FPL API access goes through the deterministic CLI
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
 | `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json` | filtered read over the cached bootstrap | local only |
+| `plan [--from-final <path>] [--prev-final <path>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON | local only |
+| `auth-check [--team-id <id>]` | session pre-flight: redacted credential-key report + one `my-team` read. PASS → exit 0; FAIL (expired/HTTP/missing auth/null team_id) → exit 1 | always (auth) |
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
-| `set-lineup --team-id <id> --from-final <final.md> [--apply]` | XI/captain/vice/bench POST; dry-run without `--apply`; verifies after write | write (auth) |
-| `make-transfers --team-id <id> --from-final <final.md> [--apply]` | transfer POST; dry-run without `--apply` — `--apply` is the USER confirmation gate, never automated | write (auth) |
+| `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
+| `make-transfers --team-id <id> --from-plan <plan.json> [--apply]` | transfer POST; dry-run without `--apply` — `--apply` is the USER confirmation gate, never automated | write (auth) |
+| `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). The only command with no `--gw` | local only |
 
 Authenticated write mechanics (details: docs/api-write.md):
 - Credentials live in git-ignored data/auth.json (template:
@@ -165,14 +204,44 @@ Authenticated write mechanics (details: docs/api-write.md):
   team_id is null, when the GW deadline has passed, or when it is < 30 min
   away (`--force-deadline` overrides the margin only, never a passed
   deadline).
+- The auth shape is expected to drift between seasons; nothing hardcodes
+  header or cookie names. `auth-check` is the pre-flight that detects drift,
+  `auth-import` the fast re-capture path. Run `auth-check` before any
+  authenticated step and treat exit 1 as "credentials need re-capturing".
+- Credential values are never printed, logged, or persisted: every report is
+  key names plus `<N chars>`.
 - If current state already matches, commands print "already applied" and send
   nothing. Selling prices come from `my-team`, never bootstrap.
 - Authenticated responses are never cached into data/raw/; every `--apply`
   leaves a timestamped audit record under data/executor/gw{N}/.
+- `--from-plan data/decisions/gw{N}/plan.json` is the payload source.
+  `--from-final` remains as a fallback for a GW with no plan. The two are
+  mutually exclusive, and `--chip` may only repeat what the plan already says.
+- The plan's prices are audit snapshots. At POST time the selling price comes
+  from `my-team` and the purchase price from the live bootstrap; drift against
+  `purchase_price_at_plan` prints a note, and drift that breaks the bank
+  refuses.
+
+### Execution plan (data/decisions/gw{N}/plan.json)
+The single machine-readable description of what to POST for a gameweek:
+enriched picks (element, name, club, position, slot, price, captain flags),
+`formation`, `bench` order, `chip`, `chip_plan` with bootstrap windows,
+`chips_used`, `chips_available`, id-resolved `transfers`, `deadline`, `bank`,
+provenance, and `warnings`. `schema_version` is 1.
+
+Transfer ids resolve in this order, recorded in `transfer_source`:
+1. `picks-diff` — the id-level diff against the previous GW's `picks:` block.
+   Name-free and authoritative.
+2. `state-names` — `transfers_made` names resolved against the bootstrap, used
+   only when the previous final.md has no `picks:`. A name matching zero or
+   more than one player is a hard error listing the candidates; the tool never
+   guesses which player was meant.
+3. When both readings exist and disagree, `plan` refuses and shows both.
 
 Mechanics:
-- Every command takes `--gw N`, validated 1–38. The global `--data-root` must
-  come BEFORE the subcommand. Run from the repo root.
+- Every command takes `--gw N`, validated 1–38 — except `auth-import`, whose
+  output is not gameweek-scoped. The global `--data-root` must come BEFORE the
+  subcommand. Run from the repo root.
 - Cached commands refetch only when the snapshot is older than `--max-age`
   (default 24h) or `--force` is given, and print `(fetched)` or
   `(cached, age Xh)` so staleness is never silent.
@@ -185,6 +254,8 @@ Mechanics:
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
+- plan.json is the exception: it is derived, a pure function of final.md plus
+  the cached bootstrap, so regenerating it is safe and expected after a REOPEN.
 - Every prediction must be written down BEFORE the deadline. No prediction,
   no calibration.
 - Commit to git after every GW cycle: `git commit -m "gw{N}: <summary>"`.
