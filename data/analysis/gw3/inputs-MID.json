@@ -1,0 +1,1656 @@
+{
+  "schema_version": 1,
+  "gw": 3,
+  "position": "MID",
+  "players": [
+    {
+      "id": 426,
+      "name": "B.Fernandes",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "90,90; 35 st 25/26; pens+FK+corners #1"
+    },
+    {
+      "id": 154,
+      "name": "Palmer",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "82,90 after Aug-24 flag cleared, cop 100; was 0.60 at GW2"
+    },
+    {
+      "id": 12,
+      "name": "Saka",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "67,90; ramp complete, 2 starts; was 0.68 at GW2"
+    },
+    {
+      "id": 397,
+      "name": "Semenyo",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "90,90; 37 st 25/26; xG only 0.12 in 180'"
+    },
+    {
+      "id": 427,
+      "name": "Mbeumo",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,90; xG 2.26 in 180'; was 0.86 at GW2"
+    },
+    {
+      "id": 428,
+      "name": "Cunha",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "79,79 - consistent 79' hook, both starts"
+    },
+    {
+      "id": 627,
+      "name": "Barcola",
+      "p_start": 0.2,
+      "p_start_gw": [
+        0.2,
+        0.3,
+        0.4,
+        0.45,
+        0.5,
+        0.5
+      ],
+      "uncertainty": "HIGH",
+      "notes": "new LIV signing, zero PL history, no minutes yet; bedding-in ramp"
+    },
+    {
+      "id": 480,
+      "name": "Gibbs-White",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "90,90; cop 100; 35 st 25/26; pens+corners #1"
+    },
+    {
+      "id": 399,
+      "name": "Cherki",
+      "p_start": 0.75,
+      "p_start_gw": [
+        0.75,
+        0.8,
+        0.82,
+        0.82,
+        0.82,
+        0.82
+      ],
+      "uncertainty": "MED",
+      "notes": "27,81 rising; 22 pts in 108'; +0.2 price; was 0.44 at GW2"
+    },
+    {
+      "id": 13,
+      "name": "Rice",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "67,84; 35 st 25/26; DefCon 18 in 151'"
+    },
+    {
+      "id": 40,
+      "name": "Rogers",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "81,90; 37 st 25/26"
+    },
+    {
+      "id": 366,
+      "name": "Wirtz",
+      "p_start": 0.89,
+      "uncertainty": "LOW",
+      "notes": "62,90; 2 starts; was 0.75 at GW2"
+    },
+    {
+      "id": 367,
+      "name": "Gakpo",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "90,70; 32 st 25/26"
+    },
+    {
+      "id": 368,
+      "name": "Szoboszlai",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "90,90; pens+FK+corners #1; DefCon 20"
+    },
+    {
+      "id": 398,
+      "name": "Foden",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "81,90; 2 starts; MCI rotation risk remains; was 0.71 at GW2"
+    },
+    {
+      "id": 429,
+      "name": "Rashford",
+      "p_start": 0.7,
+      "uncertainty": "HIGH",
+      "notes": "45,79 rising; 0 PL minutes 25/26; MUN front line crowded"
+    },
+    {
+      "id": 155,
+      "name": "Enzo",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "25,0 - out of the MCI XI; 35 st 25/26 no longer predictive; realised -3.00 at GW2"
+    },
+    {
+      "id": 452,
+      "name": "Bruno G.",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "0,19; cop 100; bedding in at ARS behind Rice/Odegaard"
+    },
+    {
+      "id": 15,
+      "name": "Ødegaard",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "75,70 both starts; 16 st 25/26 injury-hit season caps confidence; was 0.41 at GW2"
+    },
+    {
+      "id": 67,
+      "name": "Rayan",
+      "p_start": 0.9,
+      "uncertainty": "MED",
+      "notes": "88,90; nailed BOU wide role; was 0.57 at GW2"
+    },
+    {
+      "id": 95,
+      "name": "O.Dango",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "66,29 falling; BRE front line rotating"
+    },
+    {
+      "id": 156,
+      "name": "Neto",
+      "p_start": 0.7,
+      "p_start_gw": [
+        0.7,
+        0.78,
+        0.82,
+        0.82,
+        0.82,
+        0.82
+      ],
+      "uncertainty": "MED",
+      "notes": "14,67 rising; 30 st 25/26"
+    },
+    {
+      "id": 236,
+      "name": "Dewsbury-Hall",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 18; 30 st 25/26"
+    },
+    {
+      "id": 238,
+      "name": "Grealish",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "8,0; cop 100 but not in the EVE plans; was 0.42 at GW2"
+    },
+    {
+      "id": 377,
+      "name": "Munoz",
+      "p_start": 0.7,
+      "uncertainty": "HIGH",
+      "notes": "27,90; no PL history - capped at 0.70 until 2 consecutive 60'+ starts",
+      "overrides": {
+        "attack_mult": 0.9
+      },
+      "reason": "no PL history: code defaults to MID league mean at LIV's 1.223 att; 117' of evidence only"
+    },
+    {
+      "id": 403,
+      "name": "Sávio",
+      "p_start": 0.35,
+      "p_start_gw": [
+        0.35,
+        0.55,
+        0.65,
+        0.68,
+        0.68,
+        0.68
+      ],
+      "uncertainty": "HIGH",
+      "notes": "muscular injury, cop 75, 0 minutes; ramp"
+    },
+    {
+      "id": 512,
+      "name": "Kudus",
+      "p_start": 0.4,
+      "uncertainty": "HIGH",
+      "notes": "0,22; cop 100; bedding in at TOT; 19 st 25/26"
+    },
+    {
+      "id": 557,
+      "name": "Tzolis",
+      "p_start": 0.72,
+      "uncertainty": "HIGH",
+      "notes": "75,45 both starts but hooked at 45' in GW2; 0 st 25/26"
+    },
+    {
+      "id": 14,
+      "name": "Eze",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "14,45; 0 starts; ARS wide rotation"
+    },
+    {
+      "id": 16,
+      "name": "Madueke",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "22,0 falling"
+    },
+    {
+      "id": 157,
+      "name": "Estêvão",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "7,0; not in the CHE XI"
+    },
+    {
+      "id": 260,
+      "name": "Wilson",
+      "p_start": 0.72,
+      "uncertainty": "MED",
+      "notes": "65,45; 1 start of 2; 32 st 25/26"
+    },
+    {
+      "id": 481,
+      "name": "Anderson",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "62,81 both starts; DefCon 20 in 143' (12.6/90); cop 100; 37 st 25/26"
+    },
+    {
+      "id": 515,
+      "name": "Maddison",
+      "p_start": 0.3,
+      "p_start_gw": [
+        0.3,
+        0.42,
+        0.5,
+        0.55,
+        0.55,
+        0.55
+      ],
+      "uncertainty": "HIGH",
+      "notes": "shoulder injury, cop 75; 34 PL minutes 25/26"
+    },
+    {
+      "id": 18,
+      "name": "Martinelli",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0,0; unused"
+    },
+    {
+      "id": 454,
+      "name": "Elanga",
+      "p_start": 0.87,
+      "uncertainty": "LOW",
+      "notes": "75,81 both starts; 17 pts; was 0.57 at GW2"
+    },
+    {
+      "id": 41,
+      "name": "Buendía",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "85,90; 21 st 25/26; corners #1"
+    },
+    {
+      "id": 68,
+      "name": "Tavernier",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 19; FK+corners #1"
+    },
+    {
+      "id": 69,
+      "name": "Scott",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,86; DefCon 26 in 176' (13/90)"
+    },
+    {
+      "id": 70,
+      "name": "Kluivert",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "74,80 both starts; only 10 st 25/26; was 0.53 at GW2"
+    },
+    {
+      "id": 94,
+      "name": "Schade",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,87; DefCon 18; 32 st 25/26"
+    },
+    {
+      "id": 105,
+      "name": "Anthony",
+      "p_start": 0.62,
+      "uncertainty": "HIGH",
+      "notes": "23,60 rising; 1 start of 2"
+    },
+    {
+      "id": 123,
+      "name": "Hinshelwood",
+      "p_start": 0.3,
+      "p_start_gw": [
+        0.3,
+        0.5,
+        0.6,
+        0.62,
+        0.62,
+        0.62
+      ],
+      "uncertainty": "HIGH",
+      "notes": "unspecified injury, cop 50; 16 pts and xG 1.41 in 63' before it"
+    },
+    {
+      "id": 237,
+      "name": "Ndiaye",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 25; 32 st 25/26"
+    },
+    {
+      "id": 239,
+      "name": "Garner",
+      "p_start": 0.78,
+      "p_start_gw": [
+        0.78,
+        0.85,
+        0.88,
+        0.88,
+        0.88,
+        0.88
+      ],
+      "uncertainty": "MED",
+      "notes": "11,61 rising back; 38 st 25/26; cop 100"
+    },
+    {
+      "id": 335,
+      "name": "Stach",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 32 in 180' (16/90); was 0.80 at GW2"
+    },
+    {
+      "id": 371,
+      "name": "Gravenberch",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "77,19 falling; LIV midfield crowded (Szoboszlai/Wirtz/Mac Allister); was 0.92 at GW2 - wrong"
+    },
+    {
+      "id": 453,
+      "name": "Barnes",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "90,90; was 0.66 at GW2"
+    },
+    {
+      "id": 618,
+      "name": "Goretzka",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, 0 minutes; late AVL addition"
+    },
+    {
+      "id": 628,
+      "name": "Allan",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 631,
+      "name": "Mbaye",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 17,
+      "name": "Merino",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "14,19; 0 starts"
+    },
+    {
+      "id": 43,
+      "name": "Tielemans",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "66,90 both starts; DefCon 18; cop 100; was 0.59 at GW2"
+    },
+    {
+      "id": 158,
+      "name": "Gittens",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 160,
+      "name": "Garnacho",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "4,12"
+    },
+    {
+      "id": 209,
+      "name": "Johnson",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "6,28"
+    },
+    {
+      "id": 336,
+      "name": "Okafor",
+      "p_start": 0.6,
+      "uncertainty": "HIGH",
+      "notes": "24,68 rising; 1 start of 2"
+    },
+    {
+      "id": 369,
+      "name": "Ngumoha",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "62,19 falling"
+    },
+    {
+      "id": 415,
+      "name": "Dorgu",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "45,10 falling"
+    },
+    {
+      "id": 457,
+      "name": "J.Murphy",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "14,8"
+    },
+    {
+      "id": 461,
+      "name": "Touré",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "no PL history; 0,1"
+    },
+    {
+      "id": 482,
+      "name": "Hudson-Odoi",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0,1 despite cop 100; 21 st 25/26 not predictive"
+    },
+    {
+      "id": 514,
+      "name": "Tel",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "90,67 both starts; 13 st 25/26; was 0.49 at GW2"
+    },
+    {
+      "id": 525,
+      "name": "Fernandes",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "45,90 rising; 35 st 25/26"
+    },
+    {
+      "id": 542,
+      "name": "E.Le Fée",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "79,89; FK #1; 33 st 25/26"
+    },
+    {
+      "id": 565,
+      "name": "M.Sangaré",
+      "p_start": 0.88,
+      "uncertainty": "HIGH",
+      "notes": "75,90 - two consecutive 60'+ starts, cap lifted; 18 pts; DefCon 27",
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "no PL history: league-mean default flatters; realised xG90 0.14 / xA90 0.20 over 165' is below it"
+    },
+    {
+      "id": 7,
+      "name": "Lewis-Skelly",
+      "p_start": 0.86,
+      "uncertainty": "MED",
+      "notes": "90,70 both starts; only 5 st 25/26; was 0.22 at GW2"
+    },
+    {
+      "id": 42,
+      "name": "Guessand",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "27,27; 0 starts"
+    },
+    {
+      "id": 45,
+      "name": "McGinn",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "81,90; 28 st 25/26; 2 pts return so far"
+    },
+    {
+      "id": 86,
+      "name": "Lewis-Potter",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,87; 16 pts; DefCon 21; was 0.59 at GW2"
+    },
+    {
+      "id": 96,
+      "name": "Damsgaard",
+      "p_start": 0.68,
+      "uncertainty": "HIGH",
+      "notes": "14,68 rising; 24 st 25/26"
+    },
+    {
+      "id": 97,
+      "name": "Jensen",
+      "p_start": 0.55,
+      "p_start_gw": [
+        0.55,
+        0.7,
+        0.75,
+        0.78,
+        0.78,
+        0.78
+      ],
+      "uncertainty": "HIGH",
+      "notes": "unspecified injury, cop 75; pens #3 FK #1"
+    },
+    {
+      "id": 124,
+      "name": "Groß",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,90; pens+FK+corners #1; 15 pts"
+    },
+    {
+      "id": 126,
+      "name": "O'Riley",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,0; pens #3 but unused"
+    },
+    {
+      "id": 129,
+      "name": "Ayari",
+      "p_start": 0.55,
+      "p_start_gw": [
+        0.55,
+        0.72,
+        0.8,
+        0.82,
+        0.82,
+        0.82
+      ],
+      "uncertainty": "HIGH",
+      "notes": "ankle injury, cop 75; 20 st 25/26"
+    },
+    {
+      "id": 186,
+      "name": "Mason-Clark",
+      "p_start": 0.5,
+      "uncertainty": "HIGH",
+      "notes": "0,57; cop 100; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV (att 0.632) and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 188,
+      "name": "Torp",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "28,19; 0 starts; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 190,
+      "name": "Tchaouna",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "81,58 both starts; own PL prior (1259') carries the rate"
+    },
+    {
+      "id": 210,
+      "name": "Wharton",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 21; cop 100; 29 st 25/26"
+    },
+    {
+      "id": 211,
+      "name": "Yeremy",
+      "p_start": 0.68,
+      "uncertainty": "HIGH",
+      "notes": "35,67 rising; 26 st 25/26"
+    },
+    {
+      "id": 241,
+      "name": "McNeil",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "62,22 falling"
+    },
+    {
+      "id": 242,
+      "name": "George",
+      "p_start": 0.8,
+      "uncertainty": "HIGH",
+      "notes": "83,61 both starts; only 351 PL minutes 25/26"
+    },
+    {
+      "id": 247,
+      "name": "Hackney",
+      "p_start": 0.5,
+      "uncertainty": "HIGH",
+      "notes": "78,28 falling; cop 100; no PL history"
+    },
+    {
+      "id": 261,
+      "name": "Iwobi",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; FK+corners #1; 29 st 25/26"
+    },
+    {
+      "id": 262,
+      "name": "Smith Rowe",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "0,14"
+    },
+    {
+      "id": 264,
+      "name": "Bobb",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "66,67 both starts; 11 st 25/26"
+    },
+    {
+      "id": 268,
+      "name": "King",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "90,90; xG 0.64 in 180'"
+    },
+    {
+      "id": 313,
+      "name": "Clarke",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "19,0; pens #1 at IPS and 7 pts in 19' - upside if the role comes"
+    },
+    {
+      "id": 315,
+      "name": "Fatawu",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "65,82 both starts; only 576 PL minutes 25/26; was 0.74 at GW2"
+    },
+    {
+      "id": 337,
+      "name": "Aaronson",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "81,45 - started both but hooked at half-time in GW2; 30 st 25/26"
+    },
+    {
+      "id": 338,
+      "name": "Ampadu",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 23; 35 st 25/26"
+    },
+    {
+      "id": 372,
+      "name": "Mac Allister",
+      "p_start": 0.62,
+      "uncertainty": "HIGH",
+      "notes": "27,76 rising but LIV midfield crowded"
+    },
+    {
+      "id": 405,
+      "name": "N.Gonzalez",
+      "p_start": 0.65,
+      "uncertainty": "HIGH",
+      "notes": "0,70 rising; 17 st 25/26"
+    },
+    {
+      "id": 406,
+      "name": "Kovačić",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "27,15; 125 PL minutes 25/26"
+    },
+    {
+      "id": 430,
+      "name": "Mount",
+      "p_start": 0.25,
+      "p_start_gw": [
+        0.25,
+        0.35,
+        0.42,
+        0.45,
+        0.45,
+        0.45
+      ],
+      "uncertainty": "HIGH",
+      "notes": "foot injury, cop 75; 0 minutes"
+    },
+    {
+      "id": 432,
+      "name": "Mainoo",
+      "p_start": 0.62,
+      "uncertainty": "HIGH",
+      "notes": "23,79 rising"
+    },
+    {
+      "id": 459,
+      "name": "L.Miley",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "75,90; DefCon 22; cop 100; was 0.57 at GW2"
+    },
+    {
+      "id": 483,
+      "name": "Ndoye",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "61,65 both starts; 12 pts; 14 st 25/26"
+    },
+    {
+      "id": 486,
+      "name": "McAtee",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "73,90 both starts; only 288 PL minutes 25/26; was 0.61 at GW2"
+    },
+    {
+      "id": 516,
+      "name": "Bentancur",
+      "p_start": 0.75,
+      "uncertainty": "MED",
+      "notes": "45,90 rising; DefCon 16; 23 st 25/26"
+    },
+    {
+      "id": 520,
+      "name": "Bergvall",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "45,0 falling"
+    },
+    {
+      "id": 544,
+      "name": "Xhaka",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "90,90; 15 pts; DefCon 20; corners #1"
+    },
+    {
+      "id": 562,
+      "name": "Maeda",
+      "p_start": 0.86,
+      "uncertainty": "HIGH",
+      "notes": "79,72 - two consecutive 60'+ starts, cap lifted; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted IPS and no PL history - league-mean default overstates the attacking rate"
+    },
+    {
+      "id": 568,
+      "name": "Barco",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0,8; 0 PL minutes 25/26"
+    },
+    {
+      "id": 570,
+      "name": "Palacios",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "72,75 - two consecutive 60'+ starts, cap lifted; no PL history",
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "no PL history at FUL (att 0.755) - league-mean default overstates"
+    },
+    {
+      "id": 584,
+      "name": "Hamer",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "8,19 despite 34 st in the prior season - out of the COV XI"
+    },
+    {
+      "id": 591,
+      "name": "Enciso",
+      "p_start": 0.87,
+      "uncertainty": "HIGH",
+      "notes": "70,90 both starts; 10 pts; cop 100",
+      "overrides": {
+        "attack_mult": 0.75
+      },
+      "reason": "zero prior PL minutes so the prior is league-mean; promoted IPS discount"
+    },
+    {
+      "id": 616,
+      "name": "Bouaddi",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "8'; no PL history"
+    },
+    {
+      "id": 639,
+      "name": "Andrés",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 642,
+      "name": "Thomas",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL (att 0.624) and no PL history"
+    },
+    {
+      "id": 646,
+      "name": "Fofana",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 647,
+      "name": "Osorio",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 652,
+      "name": "Azeez",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 19,
+      "name": "Zubimendi",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "22,5 - collapsed from 34 st 25/26; was 0.64 at GW2"
+    },
+    {
+      "id": 20,
+      "name": "Dowman",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 44,
+      "name": "Bailey",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 159,
+      "name": "Caicedo",
+      "p_start": 0.45,
+      "p_start_gw": [
+        0.45,
+        0.65,
+        0.75,
+        0.8,
+        0.8,
+        0.8
+      ],
+      "uncertainty": "HIGH",
+      "notes": "unspecified injury, cop 75; 32 st 25/26"
+    },
+    {
+      "id": 164,
+      "name": "Quenda",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "8,0; cop 100; no PL history"
+    },
+    {
+      "id": 245,
+      "name": "Dibling",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 263,
+      "name": "Kevin",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "17,7"
+    },
+    {
+      "id": 455,
+      "name": "Tonali",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "90,74; 31 st 25/26"
+    },
+    {
+      "id": 519,
+      "name": "Gallagher",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "45,0 falling"
+    },
+    {
+      "id": 549,
+      "name": "Talbi",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "31,0"
+    },
+    {
+      "id": 578,
+      "name": "Mudryk",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0; 0 PL minutes 25/26"
+    },
+    {
+      "id": 35,
+      "name": "Bogarde",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "16,0"
+    },
+    {
+      "id": 46,
+      "name": "Barkley",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "73,77 both starts; only 7 st 25/26"
+    },
+    {
+      "id": 47,
+      "name": "Kamara",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 15; cop 100"
+    },
+    {
+      "id": 52,
+      "name": "Alysson",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "8,19"
+    },
+    {
+      "id": 71,
+      "name": "Cook",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "75,68 both starts; only 8 st 25/26"
+    },
+    {
+      "id": 72,
+      "name": "Gannon-Doak",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "1,0"
+    },
+    {
+      "id": 73,
+      "name": "Adams",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "15,21; cop 100"
+    },
+    {
+      "id": 74,
+      "name": "Brooks",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "0,9; cop 100"
+    },
+    {
+      "id": 75,
+      "name": "Christie",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,3; cop 100"
+    },
+    {
+      "id": 76,
+      "name": "Tóth.A",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "15,0"
+    },
+    {
+      "id": 98,
+      "name": "Janelt",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 23; 10 pts"
+    },
+    {
+      "id": 100,
+      "name": "Carvalho",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0,0; cop 100"
+    },
+    {
+      "id": 101,
+      "name": "Henderson",
+      "p_start": 0.3,
+      "p_start_gw": [
+        0.3,
+        0.45,
+        0.55,
+        0.58,
+        0.58,
+        0.58
+      ],
+      "uncertainty": "HIGH",
+      "notes": "wrist injury, cop 75; 22 st 25/26"
+    },
+    {
+      "id": 102,
+      "name": "Yarmoliuk",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "23,21; 0 starts despite 30 st 25/26"
+    },
+    {
+      "id": 103,
+      "name": "Dasilva",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 104,
+      "name": "Onyeka",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "90,0; 88 PL minutes 25/26",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV and a near-empty PL prior - league-mean default overstates"
+    },
+    {
+      "id": 127,
+      "name": "Gomez",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "85,90; xG 0.56 xA 0.65 in 175'"
+    },
+    {
+      "id": 135,
+      "name": "Yohanna",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "12,0; no PL history"
+    },
+    {
+      "id": 161,
+      "name": "Lavia",
+      "p_start": 0.82,
+      "uncertainty": "HIGH",
+      "notes": "64,67 both starts; only 374 PL minutes 25/26; was 0.19 at GW2"
+    },
+    {
+      "id": 183,
+      "name": "Rudoni",
+      "p_start": 0.6,
+      "uncertainty": "HIGH",
+      "notes": "20,70 rising; cop 100; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 184,
+      "name": "Grimes",
+      "p_start": 0.9,
+      "uncertainty": "HIGH",
+      "notes": "90,90; DefCon 17; FK #1; 90 PL minutes prior",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV with a 90-minute PL prior - rate falls back to league mean"
+    },
+    {
+      "id": 214,
+      "name": "Kamada",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "90,90; DefCon 23; was 0.67 at GW2"
+    },
+    {
+      "id": 219,
+      "name": "J.Rak-Sakyi",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 240,
+      "name": "Iroegbunam",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "0,4; cop 100; own PL prior (1477') carries the rate"
+    },
+    {
+      "id": 243,
+      "name": "Alcaraz",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "1,4"
+    },
+    {
+      "id": 244,
+      "name": "Armstrong",
+      "p_start": 0.9,
+      "uncertainty": "HIGH",
+      "notes": "90,86; DefCon 25; only 524 PL minutes 25/26"
+    },
+    {
+      "id": 246,
+      "name": "Röhl",
+      "p_start": 0.9,
+      "uncertainty": "MED",
+      "notes": "90,85; DefCon 18"
+    },
+    {
+      "id": 265,
+      "name": "Berge",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "72,82; 34 st 25/26"
+    },
+    {
+      "id": 267,
+      "name": "Lukić",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "90,72; DefCon 17; 20 st 25/26"
+    },
+    {
+      "id": 286,
+      "name": "Belloumi",
+      "p_start": 0.88,
+      "uncertainty": "HIGH",
+      "notes": "90,82 - two consecutive 60'+ starts, cap lifted; DefCon 20; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL (att 0.624) and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 292,
+      "name": "Ömür",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,0; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 296,
+      "name": "Akintola",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,0; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 309,
+      "name": "Núñez",
+      "p_start": 0.87,
+      "uncertainty": "HIGH",
+      "notes": "79,61 both starts; DefCon 21; FK+corners #1; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted IPS and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 339,
+      "name": "Longstaff",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "8,0"
+    },
+    {
+      "id": 340,
+      "name": "Gelhardt",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,0; cop 100; 0 PL minutes prior",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL with no usable PL prior"
+    },
+    {
+      "id": 343,
+      "name": "James",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0,22"
+    },
+    {
+      "id": 344,
+      "name": "Gruev",
+      "p_start": 0.1,
+      "p_start_gw": [
+        0.1,
+        0.25,
+        0.4,
+        0.5,
+        0.55,
+        0.55
+      ],
+      "uncertainty": "HIGH",
+      "notes": "knee injury, cop 25; longest ramp in the position"
+    },
+    {
+      "id": 374,
+      "name": "Endo",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0,0; cop 100"
+    },
+    {
+      "id": 375,
+      "name": "Nyoni",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0,13"
+    },
+    {
+      "id": 381,
+      "name": "Koumas",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "12,0"
+    },
+    {
+      "id": 434,
+      "name": "J.Fletcher",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 435,
+      "name": "Lacey",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "10,0"
+    },
+    {
+      "id": 456,
+      "name": "J.Ramsey",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "34,8"
+    },
+    {
+      "id": 460,
+      "name": "Willock",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "34,70 rising; 9 pts"
+    },
+    {
+      "id": 462,
+      "name": "Steur",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "55,19 falling; no PL history",
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "no PL history - league-mean default is unearned"
+    },
+    {
+      "id": 487,
+      "name": "Dominguez",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,1"
+    },
+    {
+      "id": 522,
+      "name": "Gray",
+      "p_start": 0.87,
+      "uncertainty": "LOW",
+      "notes": "85,67 both starts; 18 st 25/26"
+    },
+    {
+      "id": 523,
+      "name": "Moore",
+      "p_start": 0.4,
+      "uncertainty": "HIGH",
+      "notes": "67,22 falling; 0 PL minutes prior"
+    },
+    {
+      "id": 545,
+      "name": "Sadiki",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "90,90; 33 st 25/26"
+    },
+    {
+      "id": 547,
+      "name": "Mundle",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0,1"
+    },
+    {
+      "id": 548,
+      "name": "Rigg",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "10,7"
+    },
+    {
+      "id": 550,
+      "name": "Jocelin.T",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 551,
+      "name": "N.Angulo",
+      "p_start": 0.8,
+      "uncertainty": "HIGH",
+      "notes": "58,64 both starts; only 401 PL minutes 25/26"
+    },
+    {
+      "id": 558,
+      "name": "Schlager",
+      "p_start": 0.65,
+      "uncertainty": "HIGH",
+      "notes": "16,90 rising; no PL history",
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "no PL history - league-mean default is unearned"
+    },
+    {
+      "id": 559,
+      "name": "Bamba",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "14,0; no PL history"
+    },
+    {
+      "id": 563,
+      "name": "Morita",
+      "p_start": 0.4,
+      "uncertainty": "HIGH",
+      "notes": "0,45; cop 100; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 571,
+      "name": "Florentino",
+      "p_start": 0.45,
+      "p_start_gw": [
+        0.45,
+        0.65,
+        0.75,
+        0.78,
+        0.78,
+        0.78
+      ],
+      "uncertainty": "HIGH",
+      "notes": "calf injury, cop 75; 25 st 25/26"
+    },
+    {
+      "id": 574,
+      "name": "Hjertø-Dahl",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0,0; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 575,
+      "name": "Yirenkyi",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "61,70 both starts; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 576,
+      "name": "Stroud",
+      "p_start": 0.84,
+      "uncertainty": "HIGH",
+      "notes": "70,58 both starts; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history - league-mean default overstates"
+    },
+    {
+      "id": 580,
+      "name": "Charles",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "23,22; 0 PL minutes prior"
+    },
+    {
+      "id": 589,
+      "name": "Gourna-Douath",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "0,45; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 595,
+      "name": "Gozo",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0,22; no PL history"
+    },
+    {
+      "id": 600,
+      "name": "Osman",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "12,16; 0 PL minutes prior"
+    },
+    {
+      "id": 617,
+      "name": "Cho",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "7'; no PL history",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 619,
+      "name": "Palacios",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "28'; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted IPS and no PL history"
+    },
+    {
+      "id": 635,
+      "name": "Larsson",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 636,
+      "name": "Ángel",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 644,
+      "name": "Timber",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 645,
+      "name": "Mouzakitis",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "promoted HUL and no PL history"
+    },
+    {
+      "id": 648,
+      "name": "Bahoya",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "no PL history, no appearances"
+    },
+    {
+      "id": 162,
+      "name": "Andrey Santos",
+      "p_start": 0.4,
+      "uncertainty": "HIGH",
+      "notes": "66,10 falling"
+    },
+    {
+      "id": 185,
+      "name": "Sakamoto",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "0,31; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV and no PL history"
+    },
+    {
+      "id": 187,
+      "name": "Eccles",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0,0; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV and no PL history"
+    },
+    {
+      "id": 213,
+      "name": "Lerma",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0,0 despite 18 st 25/26"
+    },
+    {
+      "id": 217,
+      "name": "M.França",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 218,
+      "name": "Doucouré",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0,0"
+    },
+    {
+      "id": 324,
+      "name": "Mehmeti",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0,0; no PL history",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted IPS and no PL history"
+    },
+    {
+      "id": 345,
+      "name": "Tanaka",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "0,45"
+    }
+  ]
+}

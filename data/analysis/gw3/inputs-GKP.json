@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "gw": 3,
+  "position": "GKP",
+  "players": [
+    {
+      "id": 1,
+      "name": "Raya",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3330' 25/26, 2x90' r1-r2, 2 CS; Arrizabalaga/Meslier no threat; ARS best CS6 (2.41) and lowest defw (0.632)"
+    },
+    {
+      "id": 226,
+      "name": "Pickford",
+      "p_start": 0.96,
+      "uncertainty": "LOW",
+      "notes": "3420' in each of last three seasons - every available minute; 2x90' r1-r2; hardest-nailed keeper in the pool"
+    },
+    {
+      "id": 350,
+      "name": "A.Becker",
+      "p_start": 0.88,
+      "p_start_gw": [
+        0.9,
+        0.89,
+        0.88,
+        0.87,
+        0.86,
+        0.85
+      ],
+      "uncertainty": "MED",
+      "notes": "2x90' r1-r2 and Mamardashvili benched, but 2340/2508/2520' priors = ~26 starts of 38; declining p_start_gw prices the cumulative injury hazard, not a rotation call"
+    },
+    {
+      "id": 384,
+      "name": "Donnarumma",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "3060' debut PL season, 2x90' r1-r2; Rulli/Bettinelli nowhere; MCI CS6 2.40, defw 0.697"
+    },
+    {
+      "id": 2,
+      "name": "Arrizabalaga",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "ARS #2; 90' all of 25/26 behind Raya"
+    },
+    {
+      "id": 3,
+      "name": "Meslier",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "ARS #3; 0' in 25/26"
+    },
+    {
+      "id": 28,
+      "name": "Martinez",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "ROLE CHANGE: Sanchez to Como on loan 2026-09-02, so Martinez is CHE #1 uncontested (Penders the only cover); 90' r2 after r1 out; 2835/3195/3015' PL priors"
+    },
+    {
+      "id": 82,
+      "name": "Kelleher",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3330' 25/26 at BRE, 2x90' r1-r2, 1 CS; Valdimarsson no threat"
+    },
+    {
+      "id": 198,
+      "name": "Henderson",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "3330' 25/26, 2x90'; chance_of_playing 100 dated 2026-08-20 - resolved, not a live flag; 6 conceded in 2 is the fixture profile, not minutes risk"
+    },
+    {
+      "id": 227,
+      "name": "Travers",
+      "p_start": 0.03,
+      "uncertainty": "HIGH",
+      "notes": "EVE #2 behind a keeper who never misses; 0' in 25/26"
+    },
+    {
+      "id": 385,
+      "name": "Trafford",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "ROLE CHANGE: Perri to Torino on loan 2026-09-01; Trafford 2x90', 12 pts, 1 CS, and Cairns/Zetterer at 4.0 are not competition; up from 0.853 MED at GW2"
+    },
+    {
+      "id": 412,
+      "name": "Lammens",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "2880' 25/26, 2x90'; Bayindir loaned to Celta, Heaton hamstrung, Darlow the only cover"
+    },
+    {
+      "id": 442,
+      "name": "Pope",
+      "p_start": 0.18,
+      "p_start_gw": [
+        0.15,
+        0.16,
+        0.18,
+        0.19,
+        0.2,
+        0.2
+      ],
+      "uncertainty": "HIGH",
+      "notes": "0' across r1-r2 with status a and NO news - benched on merit, not injured; 2416' 25/26 means one Hornicek error restores him, so p_start rises across the window"
+    },
+    {
+      "id": 467,
+      "name": "Sels",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "2667' 25/26, 2x90'; John/Benda no threat; NFO CS6 1.95, third best in the window"
+    },
+    {
+      "id": 529,
+      "name": "Roefs",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "3150' debut season, 2x90', 1 CS; Ellborg no threat; SUN CS6 1.06 is the problem, not minutes"
+    },
+    {
+      "id": 567,
+      "name": "Horníček",
+      "p_start": 0.82,
+      "p_start_gw": [
+        0.84,
+        0.83,
+        0.82,
+        0.81,
+        0.8,
+        0.8
+      ],
+      "uncertainty": "MED",
+      "notes": "no PL history but two consecutive 90s lift the 0.70 new-signing cap; 9 saves, 1 CS. Held back from LOW because a fit, unflagged Pope (5.0, 2416' prior) is on the bench - that is live rotation risk, so MED per C7"
+    },
+    {
+      "id": 587,
+      "name": "Rulli",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "MCI #2; 0' r1-r2"
+    },
+    {
+      "id": 597,
+      "name": "Suzuki",
+      "p_start": 0.6,
+      "p_start_gw": [
+        0.58,
+        0.6,
+        0.62,
+        0.64,
+        0.66,
+        0.68
+      ],
+      "uncertainty": "HIGH",
+      "notes": "AVL split: Bizot 90' r1, Suzuki 90' r2. No PL history and only ONE 60'+ start, so the 0.70 new-signing cap still binds; rising p_start_gw prices the trend toward the more expensive signing without pretending it is settled"
+    },
+    {
+      "id": 351,
+      "name": "Mamardashvili",
+      "p_start": 0.12,
+      "p_start_gw": [
+        0.1,
+        0.11,
+        0.12,
+        0.13,
+        0.14,
+        0.15
+      ],
+      "uncertainty": "HIGH",
+      "notes": "867' 25/26, 0' r1-r2; the value here is Alisson's injury record, hence the rising ramp mirroring his decline"
+    },
+    {
+      "id": 572,
+      "name": "Tzolakis",
+      "p_start": 0.94,
+      "p_start_gw": [
+        0.95,
+        0.95,
+        0.94,
+        0.93,
+        0.92,
+        0.91
+      ],
+      "uncertainty": "MED",
+      "notes": "2x90', 20 pts, 2 CS, 8 saves; Butland (arm, unknown return) is the only credible rival and his return threatens GW7-8, hence the taper. MED is rate uncertainty (zero PL history, HUL defw 1.265, CS6 1.02 = worst in the league), not minutes doubt",
+      "overrides": {
+        "bonus_per_start": 0.35
+      },
+      "reason": "two-game bonus haul (~3.2/start) blends to 0.86/start, roughly double any keeper in the league; a keeper at the weakest defence in the window (HUL CS6 1.02, defw 1.265) does not sustain it - 0.35 is the top-keeper band"
+    },
+    {
+      "id": 57,
+      "name": "Petrović",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "3420' 25/26 - every minute - plus 2x90' and 9 saves; Di Gregorio arrived and has not displaced him. Up from 0.778 MED at GW2"
+    },
+    {
+      "id": 109,
+      "name": "Verbruggen",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3420' 25/26, 2x90', 1 CS; Steele no threat"
+    },
+    {
+      "id": 110,
+      "name": "Rushworth",
+      "p_start": 0.92,
+      "uncertainty": "MED",
+      "notes": "2x90' with Dovin loaned out and Wilson/Bentley behind him - minutes are secure. MED is rate uncertainty: zero PL minutes, so the prior is the league mean, and only 3 saves in 180' argues COV's volume is not yet readable"
+    },
+    {
+      "id": 250,
+      "name": "Leno",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3420' in each of last three seasons, 2x90'; Lecomte no threat"
+    },
+    {
+      "id": 496,
+      "name": "Kinsky",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "ROLE CHANGE: Vicario to Juventus on loan 2026-08-19; Kinsky 2x90' with only Austin/Dubravka at 4.0 behind. Thin 540+630' prior, but the competition left the club - up from 0.857 MED at GW2"
+    },
+    {
+      "id": 564,
+      "name": "Scherpen",
+      "p_start": 0.91,
+      "uncertainty": "MED",
+      "notes": "2x90' with Van Oevelen loaned out; Walton/Palmer/Button are cover, not rivals. MED is rate uncertainty: zero PL minutes, IPS xGC 5.43 over two games and CS6 1.03 = second worst"
+    },
+    {
+      "id": 29,
+      "name": "M.Bizot",
+      "p_start": 0.35,
+      "p_start_gw": [
+        0.37,
+        0.35,
+        0.33,
+        0.31,
+        0.29,
+        0.27
+      ],
+      "uncertainty": "HIGH",
+      "notes": "90' r1 then dropped for Suzuki in r2; 585' 25/26 as backup. Falling ramp is the mirror of Suzuki's - the pair sums to ~0.95 in every window gameweek"
+    },
+    {
+      "id": 615,
+      "name": "Di Gregorio",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "BOU signing with no PL history, 0' behind a keeper who played all 3420' last season"
+    },
+    {
+      "id": 560,
+      "name": "Penders",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "sole CHE cover after the Sanchez loan, but 0' career PL minutes"
+    },
+    {
+      "id": 325,
+      "name": "Darlow",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "MUN #2 by attrition (Bayindir loaned, Heaton injured); 1980' 25/26 elsewhere, 0' this season"
+    },
+    {
+      "id": 83,
+      "name": "Valdimarsson",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "BRE #2; 90' in 25/26"
+    },
+    {
+      "id": 199,
+      "name": "Benitez",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "CRY #2; 90' in 25/26"
+    },
+    {
+      "id": 228,
+      "name": "King",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "EVE #3; 1' in 24/25"
+    },
+    {
+      "id": 111,
+      "name": "Steele",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "BHA #2; 0' in 25/26"
+    },
+    {
+      "id": 58,
+      "name": "Forster",
+      "p_start": 0.03,
+      "uncertainty": "HIGH",
+      "notes": "BOU #3 at 4.0; 0' in 25/26"
+    },
+    {
+      "id": 497,
+      "name": "Dubravka",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "our current bench GK; 3150' 25/26 but now behind Kinsky and Austin at TOT, 0' r1-r2. 4.0 bench fodder, priced as such"
+    }
+  ]
+}

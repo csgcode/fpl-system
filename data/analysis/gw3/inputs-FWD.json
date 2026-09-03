@@ -1,0 +1,484 @@
+{
+  "schema_version": 1,
+  "gw": 3,
+  "position": "FWD",
+  "players": [
+    {
+      "id": 411,
+      "name": "Haaland",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "2x90' GW1-2; MCI sole 9; pens; MCI att 1.408, COV(H) lambda 2.42"
+    },
+    {
+      "id": 106,
+      "name": "Thiago",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "82'+90'; 37 starts/22g in 25/26; BRE sole 9; SUN(H) lambda 2.10"
+    },
+    {
+      "id": 379,
+      "name": "Isak",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "2x90'; Ekitike (Achilles, no return date) removes the only rival; 24/25 34 starts"
+    },
+    {
+      "id": 464,
+      "name": "Wissa",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "90'+81'; NEW depth collapsed - Woltemade to Juve loan 2 Sep, Osula foot injury; dc90 high for a FWD"
+    },
+    {
+      "id": 165,
+      "name": "João Pedro",
+      "p_start": 0.89,
+      "uncertainty": "LOW",
+      "notes": "2x90', 20 pts, form 10.0; CHE rivals are Welbeck 0' and Emegha 0'; UCL rotation is the only doubt"
+    },
+    {
+      "id": 346,
+      "name": "Calvert-Lewin",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2x90'; 30 starts/14g 25/26; Nmecha 21' is the only cover"
+    },
+    {
+      "id": 249,
+      "name": "Barry",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "78'+69', 10 pts, 1.93 xG; Beto to Fiorentina 2 Sep leaves him EVE's only senior 9"
+    },
+    {
+      "id": 569,
+      "name": "Gonzalo",
+      "p_start": 0.88,
+      "uncertainty": "MED",
+      "notes": "2x90' clears the new-signing 0.7 cap; no PL history so rates are league-mean-shrunk",
+      "overrides": {
+        "attack_mult": 0.82
+      },
+      "reason": "league-mean prior assumes an average-attack club; formula divides FUL's att 0.755 back out, inflating him"
+    },
+    {
+      "id": 295,
+      "name": "McBurnie",
+      "p_start": 0.88,
+      "uncertainty": "HIGH",
+      "notes": "2x90', HUL's only starting 9 (Ansah/Vaz 0', Destan+Burstow gone); 0.16 xG in 180' is the worry, not minutes",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted HUL att 0.624 is divided out of the multiplier while his prior comes from 15-start PL seasons - double-counts in his favour"
+    },
+    {
+      "id": 79,
+      "name": "Evanilson",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "74'+80' - managed, not rotated; Unal gone, Jebbison 15', Rodriguez 9'"
+    },
+    {
+      "id": 491,
+      "name": "Igor Jesus",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2x90'; Delap's arrival from CHE (24' GW2) is a live threat to the role"
+    },
+    {
+      "id": 26,
+      "name": "Havertz",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "2x90' as ARS's 9 with Gyokeres benched twice and G.Jesus sold; 0.28 xG in 180' is thin"
+    },
+    {
+      "id": 166,
+      "name": "N.Jackson",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "Watkins to Al Hilal 1 Sep vacates the AVL 9; Jackson started GW2 70'. players view shows minutes 0 - loan-return artefact, prior is 24/25 CHE 2220'",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "24/25 xG rate was earned at CHE (att 1.425); dividing out AVL's 0.847 inflates a stronger-club rate"
+    },
+    {
+      "id": 552,
+      "name": "Brobbey",
+      "p_start": 0.75,
+      "uncertainty": "MED",
+      "notes": "66'+63' both starts, but Isidor's 9 pts in 49' off the bench pressures him"
+    },
+    {
+      "id": 316,
+      "name": "Emersonn",
+      "p_start": 0.7,
+      "uncertainty": "HIGH",
+      "notes": "65' then 45' - second start under 60' so the new-signing 0.7 cap still binds; no PL history",
+      "overrides": {
+        "attack_mult": 0.75,
+        "bonus_per_start": 0.45
+      },
+      "reason": "league-mean prior at promoted IPS; no PL sample to justify a mid-table rate; promoted-club forward with no PL sample: the pooled league mean bonus_per_start (0.68, from 33 premium-skewed cached summaries) is ~2x the v1 fallback and far above BPS accrual in a bottom-third attack"
+    },
+    {
+      "id": 492,
+      "name": "Awoniyi",
+      "p_start": 0.62,
+      "uncertainty": "HIGH",
+      "notes": "20' then 90' - won the COV start in GW2; only 878 prior PL minutes so rates are near league mean",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "promoted COV att 0.632 divided out of an all-but-league-mean prior"
+    },
+    {
+      "id": 138,
+      "name": "Kostoulas",
+      "p_start": 0.6,
+      "uncertainty": "HIGH",
+      "notes": "26' then 79' start; BHA field is empty - Georginio doubtful, Tzimas and Ferguson injured, David 10'"
+    },
+    {
+      "id": 401,
+      "name": "Marmoush",
+      "p_start": 0.6,
+      "uncertainty": "HIGH",
+      "notes": "0' then 90' start; TOT rivals Richarlison 0' GW2 and Solanke 37' total; pens order 2",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "prior earned at MCI (att 1.408); dividing out TOT's 0.761 inflates it"
+    },
+    {
+      "id": 224,
+      "name": "Nketiah",
+      "p_start": 0.58,
+      "uncertainty": "HIGH",
+      "notes": "55'+67'; Mateta out to 11 Oct opens GW3-6, shares with Strand Larsen; 0.96 xG + 0.58 xA in 122'",
+      "p_start_gw": [
+        0.58,
+        0.58,
+        0.58,
+        0.58,
+        0.4,
+        0.35
+      ]
+    },
+    {
+      "id": 222,
+      "name": "Strand Larsen",
+      "p_start": 0.52,
+      "uncertainty": "HIGH",
+      "notes": "27' then 62'; the other half of the CRY split while Mateta is out",
+      "p_start_gw": [
+        0.52,
+        0.52,
+        0.52,
+        0.52,
+        0.35,
+        0.3
+      ]
+    },
+    {
+      "id": 125,
+      "name": "Georginio",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "status d, 75%; 90' GW1 then 0' GW2. Ramp as the knock clears",
+      "p_start_gw": [
+        0.45,
+        0.6,
+        0.65,
+        0.65,
+        0.65,
+        0.65
+      ]
+    },
+    {
+      "id": 194,
+      "name": "Thomas-Asante",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "69' then 32' - lost the start to Awoniyi; no PL history",
+      "overrides": {
+        "attack_mult": 0.65,
+        "bonus_per_start": 0.35
+      },
+      "reason": "league-mean prior at promoted COV (att 0.632), the weakest attack in the window; promoted-club forward with no PL sample: the pooled league mean bonus_per_start (0.68, from 33 premium-skewed cached summaries) is ~2x the v1 fallback and far above BPS accrual in a bottom-third attack"
+    },
+    {
+      "id": 167,
+      "name": "Delap",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "new at NFO, 24' GW2; bedding-in ramp under the 0.7 cap, Igor Jesus incumbent",
+      "p_start_gw": [
+        0.35,
+        0.45,
+        0.5,
+        0.55,
+        0.55,
+        0.55
+      ]
+    },
+    {
+      "id": 553,
+      "name": "Isidor",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "9 pts, 1.39 xG in 49' but 0 starts - v1 ignores sub appearances, so EP understates him if he keeps this"
+    },
+    {
+      "id": 527,
+      "name": "Richarlison",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "67' GW1 then 0' - Marmoush ahead of him"
+    },
+    {
+      "id": 320,
+      "name": "Akpom",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "24' then 45'; past PL rows are 0-minute so rates are league mean",
+      "overrides": {
+        "attack_mult": 0.75,
+        "bonus_per_start": 0.4
+      },
+      "reason": "league-mean prior at promoted IPS; promoted-club forward with no PL sample: the pooled league mean bonus_per_start (0.68, from 33 premium-skewed cached summaries) is ~2x the v1 fallback and far above BPS accrual in a bottom-third attack"
+    },
+    {
+      "id": 526,
+      "name": "Solanke",
+      "p_start": 0.32,
+      "uncertainty": "HIGH",
+      "notes": "22'+15' - minutes ramp, not a starter's load"
+    },
+    {
+      "id": 594,
+      "name": "David",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "10' in two GWs; no PL history so the 0.7 cap is moot at this usage"
+    },
+    {
+      "id": 439,
+      "name": "Šeško",
+      "p_start": 0.28,
+      "uncertainty": "HIGH",
+      "notes": "23'+10'; MUN are fielding MID-listed forwards ahead of both him and Zirkzee"
+    },
+    {
+      "id": 25,
+      "name": "Gyökeres",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0' in both GWs, status a, no news, price -0.2. Havertz took the ARS 9. G.Jesus sale gives him a route back - ramp, not a write-off",
+      "p_start_gw": [
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.35,
+        0.35
+      ]
+    },
+    {
+      "id": 490,
+      "name": "Wood",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "28' then 0'; Delap's arrival pushes him third at NFO"
+    },
+    {
+      "id": 195,
+      "name": "Simms",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "69' then 0' - benched for Awoniyi",
+      "overrides": {
+        "attack_mult": 0.65
+      },
+      "reason": "219 prior PL minutes shrink him to league mean; promoted COV att 0.632 divided out"
+    },
+    {
+      "id": 56,
+      "name": "Abraham",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "19' GW2; Watkins' exit makes him N.Jackson's only cover"
+    },
+    {
+      "id": 347,
+      "name": "Nmecha",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "21' GW2 behind a nailed Calvert-Lewin"
+    },
+    {
+      "id": 136,
+      "name": "Welbeck",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0' in both GWs at CHE despite chance_of_playing 100"
+    },
+    {
+      "id": 81,
+      "name": "Rodríguez",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "9' GW2; no PL history"
+    },
+    {
+      "id": 440,
+      "name": "Zirkzee",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0' in both GWs"
+    },
+    {
+      "id": 608,
+      "name": "Jebbison",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "15' then 0'"
+    },
+    {
+      "id": 271,
+      "name": "Muniz",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "8' then 0' behind Gonzalo"
+    },
+    {
+      "id": 640,
+      "name": "Flemming",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "no history rows at all this season - late registration; 1764 PL minutes of prior",
+      "p_start_gw": [
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "prior earned outside promoted IPS; att 0.93 divided back out"
+    },
+    {
+      "id": 170,
+      "name": "Emegha",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0' in both GWs; no PL history"
+    },
+    {
+      "id": 493,
+      "name": "Kalimuendo",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "1' then 0'; fourth-choice at NFO"
+    },
+    {
+      "id": 632,
+      "name": "Ansah",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "no minutes and no history rows; McBurnie nailed ahead",
+      "overrides": {
+        "attack_mult": 0.65,
+        "bonus_per_start": 0.35
+      },
+      "reason": "league-mean prior at promoted HUL (att 0.624); promoted-club forward with no PL sample: the pooled league mean bonus_per_start (0.68, from 33 premium-skewed cached summaries) is ~2x the v1 fallback and far above BPS accrual in a bottom-third attack"
+    },
+    {
+      "id": 108,
+      "name": "Wilson",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "7'+2' behind a nailed Thiago"
+    },
+    {
+      "id": 599,
+      "name": "Cherif",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "0' in both GWs",
+      "overrides": {
+        "attack_mult": 0.65,
+        "bonus_per_start": 0.35
+      },
+      "reason": "league-mean prior at promoted COV; promoted-club forward with no PL sample: the pooled league mean bonus_per_start (0.68, from 33 premium-skewed cached summaries) is ~2x the v1 fallback and far above BPS accrual in a bottom-third attack"
+    },
+    {
+      "id": 637,
+      "name": "Vaz",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "no minutes and no history rows",
+      "overrides": {
+        "attack_mult": 0.65,
+        "bonus_per_start": 0.35
+      },
+      "reason": "league-mean prior at promoted HUL; promoted-club forward with no PL sample: the pooled league mean bonus_per_start (0.68, from 33 premium-skewed cached summaries) is ~2x the v1 fallback and far above BPS accrual in a bottom-third attack"
+    },
+    {
+      "id": 634,
+      "name": "Fernandez-Pardo",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "no minutes; Wissa nailed, but Woltemade+Osula gone leaves him next in line",
+      "p_start_gw": [
+        0.08,
+        0.1,
+        0.12,
+        0.15,
+        0.15,
+        0.15
+      ],
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "league-mean prior; NEW att 0.938 divided back out"
+    },
+    {
+      "id": 223,
+      "name": "Mateta",
+      "p_start": 0.0,
+      "uncertainty": "HIGH",
+      "notes": "hamstring, expected back 11 Oct - GW6 deadline is 10 Oct, so GW7-8 only. 33 starts 24/25, CRY pens order 1",
+      "p_start_gw": [
+        0.0,
+        0.0,
+        0.0,
+        0.05,
+        0.65,
+        0.75
+      ]
+    },
+    {
+      "id": 139,
+      "name": "Ferguson",
+      "p_start": 0.0,
+      "uncertainty": "HIGH",
+      "notes": "ankle, expected back 10 Oct = the GW6 deadline; returns behind Kostoulas",
+      "p_start_gw": [
+        0.0,
+        0.0,
+        0.0,
+        0.15,
+        0.3,
+        0.35
+      ]
+    }
+  ]
+}

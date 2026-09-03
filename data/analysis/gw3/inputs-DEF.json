@@ -1,0 +1,1101 @@
+{
+  "schema_version": 1,
+  "gw": 3,
+  "position": "DEF",
+  "players": [
+    {
+      "id": 4,
+      "name": "Gabriel",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; Saliba+Timber out, undisputed CB"
+    },
+    {
+      "id": 10,
+      "name": "White",
+      "p_start": 0.87,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 18 pts, RB nailed while Timber out"
+    },
+    {
+      "id": 8,
+      "name": "Calafiori",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "80'+90'; xA 0.55, 43.9% owned, +0.1"
+    },
+    {
+      "id": 11,
+      "name": "Mosquera",
+      "p_start": 0.87,
+      "uncertainty": "MED",
+      "p_start_gw": [
+        0.87,
+        0.87,
+        0.85,
+        0.82,
+        0.8,
+        0.78
+      ],
+      "notes": "2 starts (90,78) as third CB; loses out if Saliba or Timber returns mid-window"
+    },
+    {
+      "id": 9,
+      "name": "Hincapie",
+      "p_start": 0.32,
+      "uncertainty": "HIGH",
+      "notes": "9 mins in 2 GWs; fifth-choice even with 2 CBs out"
+    },
+    {
+      "id": 31,
+      "name": "Konsa",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "11 mins since ARS move; 10.6% ownership is a stale artefact"
+    },
+    {
+      "id": 356,
+      "name": "Virgil",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 4 conceded, xGC 3.88 — CS floor is the risk, not minutes"
+    },
+    {
+      "id": 357,
+      "name": "Frimpong",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "90+70; Bradley injured leaves RB to him"
+    },
+    {
+      "id": 358,
+      "name": "Kerkez",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "90+70; no LB competition (Tsimikas 19 mins)"
+    },
+    {
+      "id": 362,
+      "name": "Jacquet",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "69+76; starts by default with Gomez/Leoni/Bradley out"
+    },
+    {
+      "id": 364,
+      "name": "Tsimikas",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "19 mins; behind Kerkez"
+    },
+    {
+      "id": 579,
+      "name": "Araujo",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "20+13 off the bench; -0.1"
+    },
+    {
+      "id": 388,
+      "name": "Guéhi",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; xG 0.89 from set pieces, 12 pts"
+    },
+    {
+      "id": 390,
+      "name": "Rúben",
+      "p_start": 0.86,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; xA 0.71 — City rotate a back five, so not fully nailed"
+    },
+    {
+      "id": 393,
+      "name": "Khusanov",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "90+88 but sixth in a six-man rotation"
+    },
+    {
+      "id": 391,
+      "name": "Gvardiol",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "90+74; Aït-Nouri returning is the threat"
+    },
+    {
+      "id": 387,
+      "name": "O'Reilly",
+      "p_start": 0.78,
+      "uncertainty": "MED",
+      "notes": "62+88 — subbed in both, most rotated of the City six at 6.5"
+    },
+    {
+      "id": 389,
+      "name": "Matheus N.",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "p_start_gw": [
+        0.2,
+        0.35,
+        0.45,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "notes": "33 mins GW1 then flagged 27 Aug, 75%; pens order 4 if he ever starts"
+    },
+    {
+      "id": 392,
+      "name": "Aït-Nouri",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "0 mins in 2 GWs at 5.4; -0.1"
+    },
+    {
+      "id": 395,
+      "name": "Lewis",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "56 mins; utility cover"
+    },
+    {
+      "id": 396,
+      "name": "Vitor Reis",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "1 min"
+    },
+    {
+      "id": 200,
+      "name": "Lacroix",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 21 DefCon but 5 conceded"
+    },
+    {
+      "id": 144,
+      "name": "Gusto",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "75+90; RB ahead of James while he is managed"
+    },
+    {
+      "id": 149,
+      "name": "Colwill",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "90+71; rotates with Hato/Acheampong"
+    },
+    {
+      "id": 148,
+      "name": "Hato",
+      "p_start": 0.75,
+      "uncertainty": "MED",
+      "notes": "154 mins across 2 GWs"
+    },
+    {
+      "id": 142,
+      "name": "James",
+      "p_start": 0.6,
+      "uncertainty": "HIGH",
+      "p_start_gw": [
+        0.6,
+        0.62,
+        0.65,
+        0.65,
+        0.65,
+        0.65
+      ],
+      "notes": "90 then 22 — load-managed with no news; set-piece duty wasted at these minutes"
+    },
+    {
+      "id": 145,
+      "name": "Fofana",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "0 then 67; in the rotation, not ahead of it"
+    },
+    {
+      "id": 151,
+      "name": "Acheampong",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "90 then 22"
+    },
+    {
+      "id": 152,
+      "name": "Palestra",
+      "p_start": 0.22,
+      "uncertainty": "HIGH",
+      "p_start_gw": [
+        0.22,
+        0.28,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "notes": "0 mins, flagged 24 Aug 75%; -0.1"
+    },
+    {
+      "id": 583,
+      "name": "Chavarria",
+      "p_start": 0.28,
+      "uncertainty": "HIGH",
+      "notes": "25+18 off the bench"
+    },
+    {
+      "id": 561,
+      "name": "Anselmino",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 229,
+      "name": "Tarkowski",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 18 pts, 19 DefCon"
+    },
+    {
+      "id": 230,
+      "name": "Branthwaite",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 20 DefCon — raised from 0.68, the GW2 doubt is settled"
+    },
+    {
+      "id": 233,
+      "name": "Mykolenko",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 16 DefCon at 4.5"
+    },
+    {
+      "id": 231,
+      "name": "Keane",
+      "p_start": 0.22,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; -0.1"
+    },
+    {
+      "id": 232,
+      "name": "O'Brien",
+      "p_start": 0.22,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; -0.1"
+    },
+    {
+      "id": 112,
+      "name": "Van Hecke",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; only Spurs defender to survive the GW1->GW2 reshuffle"
+    },
+    {
+      "id": 499,
+      "name": "Pedro Porro",
+      "p_start": 0.75,
+      "uncertainty": "MED",
+      "p_start_gw": [
+        0.75,
+        0.78,
+        0.8,
+        0.8,
+        0.8,
+        0.8
+      ],
+      "notes": "0 then 90 after a 21 Aug flag cleared; ramping back"
+    },
+    {
+      "id": 503,
+      "name": "Van de Ven",
+      "p_start": 0.7,
+      "uncertainty": "MED",
+      "p_start_gw": [
+        0.7,
+        0.74,
+        0.76,
+        0.78,
+        0.78,
+        0.78
+      ],
+      "notes": "0 then 90 after 21 Aug flag; displaced Senesi"
+    },
+    {
+      "id": 502,
+      "name": "Robertson",
+      "p_start": 0.7,
+      "uncertainty": "MED",
+      "notes": "90 then 67; back-three shape means ~3.5 DEF slots per XI"
+    },
+    {
+      "id": 498,
+      "name": "Senesi",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "90 in GW1 then unused in GW2 with no news, -0.1 — benched for Van de Ven, not injured as far as the feed shows"
+    },
+    {
+      "id": 506,
+      "name": "Udogie",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "26 mins"
+    },
+    {
+      "id": 147,
+      "name": "Tosin",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 449,
+      "name": "Hall",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 24 DefCon, direct-FK and corner taker, 14 pts, +0.1",
+      "overrides": {
+        "attack_mult": 1.15
+      },
+      "reason": "primary direct-FK and corner duty this season, absent from his prior-season rates"
+    },
+    {
+      "id": 445,
+      "name": "Thiaw",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; Burn out to 14 Sep removes the CB competition"
+    },
+    {
+      "id": 447,
+      "name": "Botman",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; raised from 0.79"
+    },
+    {
+      "id": 593,
+      "name": "Dedić",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90' at 4.5; raised from 0.60"
+    },
+    {
+      "id": 446,
+      "name": "Schär",
+      "p_start": 0.32,
+      "uncertainty": "HIGH",
+      "p_start_gw": [
+        0.32,
+        0.3,
+        0.25,
+        0.22,
+        0.22,
+        0.22
+      ],
+      "notes": "1 min; cover only, and Burn returns ~14 Sep"
+    },
+    {
+      "id": 471,
+      "name": "Milenković",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 20 DefCon in a back five"
+    },
+    {
+      "id": 472,
+      "name": "Murillo",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 20 DefCon, direct-FK order 3"
+    },
+    {
+      "id": 469,
+      "name": "N.Williams",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; pens order 2, FK order 2"
+    },
+    {
+      "id": 474,
+      "name": "Jair Cunha",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "2/2 90' at 4.5 but fifth in a five-man line"
+    },
+    {
+      "id": 473,
+      "name": "Aina",
+      "p_start": 0.78,
+      "uncertainty": "MED",
+      "notes": "73+85; shares the flank with Muñoz"
+    },
+    {
+      "id": 201,
+      "name": "Muñoz",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "54 mins GW1, 0 GW2, -0.1 — behind Aina after the move; was 0.86 last GW, that was wrong"
+    },
+    {
+      "id": 581,
+      "name": "Diomande",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0 mins at 5.5"
+    },
+    {
+      "id": 478,
+      "name": "Netz",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "20 mins"
+    },
+    {
+      "id": 60,
+      "name": "Hill",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; xA 0.74, 18 DefCon"
+    },
+    {
+      "id": 61,
+      "name": "Truffert",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'"
+    },
+    {
+      "id": 566,
+      "name": "Silva",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 23 DefCon at 5.0"
+    },
+    {
+      "id": 64,
+      "name": "Smith",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90' at 4.5"
+    },
+    {
+      "id": 62,
+      "name": "Diakité",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 84,
+      "name": "Collins",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; xG 0.51, 1 CS"
+    },
+    {
+      "id": 87,
+      "name": "Ajer",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 27 DefCon — highest in the pool per start at 4.5"
+    },
+    {
+      "id": 88,
+      "name": "Kayode",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "75+87; 15 pts, +0.1"
+    },
+    {
+      "id": 90,
+      "name": "Hickey",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "16 mins"
+    },
+    {
+      "id": 89,
+      "name": "Henry",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "2 mins"
+    },
+    {
+      "id": 504,
+      "name": "Vuskovic",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90' in a back five"
+    },
+    {
+      "id": 115,
+      "name": "De Cuyper",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "77+90; 17 pts, xG 1.5, corners order 2 — hot start, the blend will shrink it and should"
+    },
+    {
+      "id": 114,
+      "name": "Boscagli",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90' at 4.5"
+    },
+    {
+      "id": 116,
+      "name": "Dunk",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; corners order 3"
+    },
+    {
+      "id": 130,
+      "name": "Wieffer",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "77+79; converted midfielder holding a DEF slot"
+    },
+    {
+      "id": 113,
+      "name": "F.Kadıoğlu",
+      "p_start": 0.6,
+      "uncertainty": "HIGH",
+      "notes": "0 then 90 after a 23 Aug flag; -0.1"
+    },
+    {
+      "id": 328,
+      "name": "Struijk",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "0 mins in 2 GWs at 5.0 despite a cleared 15 Aug flag; was 0.70 last GW"
+    },
+    {
+      "id": 120,
+      "name": "Svoboda",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 119,
+      "name": "Costinha",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "26+10"
+    },
+    {
+      "id": 334,
+      "name": "Muharemović",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 26 DefCon at 5.0"
+    },
+    {
+      "id": 332,
+      "name": "Justin",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 20 DefCon, 12 pts at 4.5"
+    },
+    {
+      "id": 330,
+      "name": "Bogle",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2 starts, 157 mins"
+    },
+    {
+      "id": 327,
+      "name": "Bijol",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "90 then 45 — half-time change, no flag; 11 pts"
+    },
+    {
+      "id": 598,
+      "name": "Elvedi",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "0 then 56; first cover with Rodon out to 21 Nov"
+    },
+    {
+      "id": 331,
+      "name": "Gudmundsson",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "0 mins, cleared 8 Aug flag"
+    },
+    {
+      "id": 532,
+      "name": "Ballard",
+      "p_start": 0.88,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 19 DefCon"
+    },
+    {
+      "id": 534,
+      "name": "Hume",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "79+90; FK order 3"
+    },
+    {
+      "id": 536,
+      "name": "Reinildo",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; xA 0.30"
+    },
+    {
+      "id": 541,
+      "name": "Meunier",
+      "p_start": 0.82,
+      "uncertainty": "MED",
+      "notes": "2/2 90' but Mukiele is the direct threat"
+    },
+    {
+      "id": 533,
+      "name": "Mukiele",
+      "p_start": 0.7,
+      "uncertainty": "MED",
+      "p_start_gw": [
+        0.7,
+        0.72,
+        0.75,
+        0.75,
+        0.75,
+        0.75
+      ],
+      "notes": "one 90' start (GW2) after an 9 Aug arrival — capped at 0.70 until two consecutive 60'+ starts"
+    },
+    {
+      "id": 535,
+      "name": "Alderete",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "23 mins"
+    },
+    {
+      "id": 539,
+      "name": "O'Nien",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "66 mins GW1, 0 GW2"
+    },
+    {
+      "id": 501,
+      "name": "Danso",
+      "p_start": 0.22,
+      "uncertainty": "HIGH",
+      "notes": "0 mins at 5.0"
+    },
+    {
+      "id": 612,
+      "name": "Methalie",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 257,
+      "name": "Bassey",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90'"
+    },
+    {
+      "id": 254,
+      "name": "Robinson",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "81+90; pens order 2"
+    },
+    {
+      "id": 258,
+      "name": "Castagne",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "157 mins, 1 CS, 12 pts"
+    },
+    {
+      "id": 253,
+      "name": "Andersen",
+      "p_start": 0.78,
+      "uncertainty": "MED",
+      "notes": "0 then 90 after a cleared July flag"
+    },
+    {
+      "id": 255,
+      "name": "J.Cuenca",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "notes": "90 then 0"
+    },
+    {
+      "id": 269,
+      "name": "Sessegnon",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "39 mins"
+    },
+    {
+      "id": 256,
+      "name": "Tete",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 202,
+      "name": "Richards",
+      "p_start": 0.9,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; 22 DefCon but 6 conceded"
+    },
+    {
+      "id": 203,
+      "name": "Canvot",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "2/2 90' at 4.9; -0.1"
+    },
+    {
+      "id": 204,
+      "name": "Mitchell",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "2/2 90' at 4.5"
+    },
+    {
+      "id": 588,
+      "name": "Khalaili",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "35+74; rotating wing-back"
+    },
+    {
+      "id": 577,
+      "name": "Tomiyasu",
+      "p_start": 0.5,
+      "uncertainty": "HIGH",
+      "notes": "18+73"
+    },
+    {
+      "id": 153,
+      "name": "Disasi",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "16 mins"
+    },
+    {
+      "id": 207,
+      "name": "Mingueza",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "15 mins; -0.1"
+    },
+    {
+      "id": 418,
+      "name": "Maguire",
+      "p_start": 0.86,
+      "uncertainty": "LOW",
+      "notes": "2/2 90'; xA 0.41"
+    },
+    {
+      "id": 423,
+      "name": "Shaw",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "90+72; FK order 3"
+    },
+    {
+      "id": 417,
+      "name": "Dalot",
+      "p_start": 0.62,
+      "uncertainty": "HIGH",
+      "notes": "10 then 73 — in the rotation, not ahead of it"
+    },
+    {
+      "id": 419,
+      "name": "Martinez",
+      "p_start": 0.55,
+      "uncertainty": "HIGH",
+      "notes": "0 then 90"
+    },
+    {
+      "id": 422,
+      "name": "Mazraoui",
+      "p_start": 0.48,
+      "uncertainty": "HIGH",
+      "notes": "96 mins across 2 GWs"
+    },
+    {
+      "id": 421,
+      "name": "Heaven",
+      "p_start": 0.4,
+      "uncertainty": "HIGH",
+      "notes": "one 90' start then dropped"
+    },
+    {
+      "id": 420,
+      "name": "Yoro",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "16 mins; -0.1"
+    },
+    {
+      "id": 32,
+      "name": "Cash",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "167 mins, 2 starts; 5 conceded, xGC 4.81"
+    },
+    {
+      "id": 36,
+      "name": "Maatsen",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "81+90"
+    },
+    {
+      "id": 34,
+      "name": "Pau",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "163 mins, 2 starts"
+    },
+    {
+      "id": 37,
+      "name": "Lindelöf",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "2/2 90' but 0 pts from them"
+    },
+    {
+      "id": 33,
+      "name": "Mings",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "16 mins"
+    },
+    {
+      "id": 611,
+      "name": "Wan-Bissaka",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "12 mins"
+    },
+    {
+      "id": 596,
+      "name": "Ruggeri",
+      "p_start": 0.2,
+      "uncertainty": "HIGH",
+      "notes": "8 mins"
+    },
+    {
+      "id": 630,
+      "name": "Harwood-Bellis",
+      "p_start": 0.18,
+      "uncertainty": "HIGH",
+      "notes": "0 mins"
+    },
+    {
+      "id": 277,
+      "name": "Egan",
+      "p_start": 0.88,
+      "uncertainty": "HIGH",
+      "notes": "2/2 90'; 34 DefCon and 2 CS from 2 games — minutes are certain, the rate is not",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 279,
+      "name": "Ajayi",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "63+90; 20 pts, 2 CS, +0.1",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 282,
+      "name": "Giles",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "174 mins; pens order 1 and FK order 1 offset the promoted-club discount",
+      "overrides": {
+        "attack_mult": 1.0
+      },
+      "reason": "promoted-club 0.80 discount cancelled by primary penalty and direct-FK duty"
+    },
+    {
+      "id": 586,
+      "name": "Mendy",
+      "p_start": 0.7,
+      "uncertainty": "MED",
+      "notes": "63+58; 16 pts, 22 DefCon but never a full 90",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 280,
+      "name": "Coyle",
+      "p_start": 0.45,
+      "uncertainty": "HIGH",
+      "p_start_gw": [
+        0.45,
+        0.55,
+        0.55,
+        0.55,
+        0.55,
+        0.55
+      ],
+      "notes": "114 mins, flagged 29 Aug 75%",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 585,
+      "name": "Herrington",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "57 mins",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 285,
+      "name": "McNair",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "26 mins",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 556,
+      "name": "Targett",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "5 mins",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 173,
+      "name": "Thomas",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "90+77; 19 DefCon, 11 pts at 4.0",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 175,
+      "name": "van Ewijk",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "2/2 90'; xA 0.20",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 176,
+      "name": "Dasilva",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "2/2 90'",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 182,
+      "name": "Amenda",
+      "p_start": 0.85,
+      "uncertainty": "HIGH",
+      "notes": "2/2 90'",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 91,
+      "name": "Pinnock",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "12 mins",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "promoted club: fixture attack multiplier divides ATT_club out, so the attack term carries no team-level penalty for a 0.62 attack"
+    },
+    {
+      "id": 259,
+      "name": "Diop",
+      "p_start": 0.86,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; 17 DefCon, 15.8% owned — 6 conceded, xGC 5.43"
+    },
+    {
+      "id": 304,
+      "name": "O'Shea",
+      "p_start": 0.86,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; 19 DefCon"
+    },
+    {
+      "id": 305,
+      "name": "Davis",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; xG 0.54, pens order 2"
+    },
+    {
+      "id": 306,
+      "name": "Greaves",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "2/2 90'; 17 DefCon"
+    },
+    {
+      "id": 308,
+      "name": "Furlong",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "17 mins"
+    },
+    {
+      "id": 592,
+      "name": "Ouattara",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "notes": "27 mins"
+    }
+  ]
+}
