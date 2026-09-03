@@ -32,6 +32,7 @@ from fpl.auth import (
 from fpl.calibrate import (
     Aggregate,
     CalibrationReport,
+    PlayerLine,
     build_report,
     load_predictions,
     load_report,
@@ -476,11 +477,13 @@ def run_command(
         lines = service.actuals(gw, player_ids=args.ids, match_round=args.round)
         print(f"round {args.round} actuals ({len(lines)} players)")
         print(f"{'id':>4}  {'min':>4}  {'pts':>4}  {'gls':>4}  {'ast':>4}  "
-              f"{'bon':>4}  {'bps':>5}  note")
+              f"{'bon':>4}  {'bps':>5}  {'xG':>5}  {'xA':>5}  {'dc':>3}  note")
         for line in lines:
             print(f"{line.player_id:>4}  {line.minutes:>4}  {line.total_points:>4}  "
                   f"{line.goals_scored:>4}  {line.assists:>4}  {line.bonus:>4}  "
-                  f"{line.bps:>5}  {'' if line.matched else 'no match'}")
+                  f"{line.bps:>5}  {line.expected_goals:>5.2f}  "
+                  f"{line.expected_assists:>5.2f}  {line.defensive_contribution:>3.0f}  "
+                  f"{'' if line.matched else 'no match'}")
     elif args.command == "slim-csv":
         print(f"wrote {service.export_players_csv(gw)}")
     elif args.command == "prior-season":
@@ -624,6 +627,16 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
             f"hindsight best in XI: {captain.hindsight_best_name} "
             f"{captain.hindsight_best_actual} (forgone {captain.forgone})"
         )
+        print("squad rows (slot role id name pred act min):")
+        for line in squad.players:
+            flag = "C" if line.captain else ("VC" if line.vice else "")
+            pred = "-" if line.predicted is None else f"{line.predicted:.2f}"
+            act = "-" if line.actual is None else str(line.actual)
+            mins = "-" if line.minutes is None else str(line.minutes)
+            print(
+                f"  {line.slot:>3} {line.role:<5} {line.id:>4}  {line.name:<20.20} "
+                f"pred {pred:>6}  act {act:>3}  min {mins:>3}  {flag}".rstrip()
+            )
     cumulative = report.cumulative
     if cumulative is not None and len(cumulative.rounds) > 1:
         rounds = ",".join(str(r) for r in cumulative.rounds)
@@ -632,19 +645,34 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
             f"bias={cumulative.overall.bias:.2f} mae={cumulative.overall.mae:.2f} "
             f"brier={cumulative.minutes_brier:.4f}"
         )
-    misses = sorted(
-        (line for line in report.players if abs(line.error) > 3),
-        key=lambda line: abs(line.error),
+    under = sorted(
+        (line for line in report.players if line.error > 3),
+        key=lambda line: line.error,
         reverse=True,
-    )[:15]
-    if misses:
-        print("misses (|error| > 3):")
-        for line in misses:
-            print(
-                f"  {line.id:>4}  {line.name:<20.20} {line.position:<3} "
-                f"pred {line.predicted:>5.2f}  act {line.actual:>3}  "
-                f"err {line.error:>+6.2f}  min {line.minutes:>3}"
-            )
+    )
+    over = sorted(
+        (line for line in report.players if line.error < -3),
+        key=lambda line: line.error,
+    )
+    _print_misses("under-predicted (err > +3)", under)
+    _print_misses("over-predicted (err < -3)", over)
+
+
+MISS_ROWS_SHOWN = 8
+
+
+def _print_misses(label: str, misses: Sequence[PlayerLine]) -> None:
+    if not misses:
+        print(f"{label}: none")
+        return
+    shown = misses[:MISS_ROWS_SHOWN]
+    print(f"{label}: {len(misses)} players, top {len(shown)}")
+    for line in shown:
+        print(
+            f"  {line.id:>4}  {line.name:<20.20} {line.position:<3} "
+            f"pred {line.predicted:>5.2f}  act {line.actual:>3}  "
+            f"err {line.error:>+6.2f}  min {line.minutes:>3}  p_start {line.p_start:.2f}"
+        )
 
 
 def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:

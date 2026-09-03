@@ -189,8 +189,8 @@ All FPL API access goes through the deterministic CLI
 | `entry --team-id <id>` | bank + team value only — squad comes from `picks` | cached |
 | `picks --team-id <id> --event M` | our actual picks, captain, active chip for GW M | cached |
 | `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
-| `actuals --round R --ids <ids>` | per-player ACTUAL points for a completed round; sums double-gameweek rows | always refreshes |
-| `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json | cached |
+| `actuals --round R --ids <ids>` | per-player ACTUAL points, goals, assists, bonus, BPS, xG, xA and DefCon count for a completed round; sums double-gameweek rows | always refreshes |
+| `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON | cached |
 | `flags --ids <ids>` | injury/news flags — the pre-deadline freshness gate | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |

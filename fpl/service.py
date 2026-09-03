@@ -93,6 +93,9 @@ class ActualLine:
     assists: int = 0
     bonus: int = 0
     bps: int = 0
+    expected_goals: float = 0.0
+    expected_assists: float = 0.0
+    defensive_contribution: float = 0.0
 
 
 @dataclass
@@ -392,4 +395,7 @@ def _aggregate_round(
         assists=sum(row.assists for row in rows),
         bonus=sum(row.bonus or 0 for row in rows),
         bps=sum(row.bps or 0 for row in rows),
+        expected_goals=round(sum(row.expected_goals or 0.0 for row in rows), 2),
+        expected_assists=round(sum(row.expected_assists or 0.0 for row in rows), 2),
+        defensive_contribution=sum(row.defensive_contribution or 0.0 for row in rows),
     )

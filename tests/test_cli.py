@@ -334,8 +334,8 @@ def test_actuals_sums_double_gameweek_and_marks_absences(tmp_path, capsys):
     ) == 0
     out = capsys.readouterr().out
     rows = [line.split() for line in out.splitlines()[2:]]
-    assert rows[0] == ["1", "152", "13", "1", "2", "3", "52"]
-    assert rows[1] == ["2", "0", "0", "0", "0", "0", "0", "no", "match"]
+    assert rows[0] == ["1", "152", "13", "1", "2", "3", "52", "0.88", "0.20", "6"]
+    assert rows[1] == ["2", "0", "0", "0", "0", "0", "0", "0.00", "0.00", "0", "no", "match"]
 
 
 def test_actuals_always_refetches(tmp_path):

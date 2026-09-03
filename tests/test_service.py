@@ -390,6 +390,9 @@ def test_actuals_sums_double_gameweek_rows_and_flags_absences(tmp_path):
     assert (played.minutes, played.total_points) == (165, 13)
     assert (played.goals_scored, played.assists) == (1, 2)
     assert (played.bonus, played.bps) == (3, 52)
+    assert played.expected_goals == pytest.approx(0.88)
+    assert played.expected_assists == pytest.approx(0.20)
+    assert played.defensive_contribution == 6.0
     assert absent.matched is False
     assert (absent.minutes, absent.total_points, absent.bps) == (0, 0, 0)
 
@@ -406,6 +409,7 @@ def test_actuals_treats_missing_bonus_as_zero(tmp_path):
     service, _, _, _ = make_service(tmp_path, responses)
     (line,) = service.actuals(gw=5, player_ids=[1], match_round=5)
     assert (line.matched, line.bonus, line.bps) == (True, 0, 0)
+    assert (line.expected_goals, line.expected_assists, line.defensive_contribution) == (0.0, 0.0, 0.0)
 
 
 def test_shortlist_summaries_and_prior_season(tmp_path):

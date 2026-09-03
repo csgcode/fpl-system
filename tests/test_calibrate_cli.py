@@ -69,7 +69,8 @@ def write_final(root, gw):
     )
 
 
-def setup_round(tmp_path, *, with_final=True, checked=True):
+def setup_round(tmp_path, *, with_final=True, checked=True, points=None):
+    points = points or (lambda i: i % 5)
     data_root = tmp_path / "raw"
     seed_bootstrap(data_root, checked_rounds=(1,) if checked else ())
     write_analysis(
@@ -82,7 +83,7 @@ def setup_round(tmp_path, *, with_final=True, checked=True):
     gateway = FakeGateway(
         {
             LIVE_1_URL: event_live_payload(
-                [live_element_payload(element_id=i, total_points=i % 5) for i in range(1, 16)]
+                [live_element_payload(element_id=i, total_points=points(i)) for i in range(1, 16)]
             )
         }
     )
@@ -106,6 +107,55 @@ def test_calibrate_writes_ledger_and_prints_summary(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "overall" in out
     assert str(ledger_path) in out
+
+
+def block_after(out, header):
+    lines = out.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.startswith(header)) + 1
+    block = []
+    for line in lines[start:]:
+        if not line.startswith(" "):
+            break
+        block.append(line)
+    return block
+
+
+def test_calibrate_prints_one_row_per_squad_slot(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path)
+    assert run(argv, data_root, gateway) == 0
+    rows = block_after(capsys.readouterr().out, "squad rows")
+    assert len(rows) == 15
+    captain_row = next(row for row in rows if " P1 " in row)
+    tokens = captain_row.split()
+    assert tokens[-1] == "C" and tokens[1] == "XI"
+    assert (tokens[5], tokens[7], tokens[9]) == ("3.50", "1", "90")
+    vice_row = next(row for row in rows if " P2 " in row)
+    assert vice_row.endswith("VC")
+    bench_row = next(row for row in rows if " P12 " in row)
+    assert "bench" in bench_row
+
+
+def test_calibrate_splits_misses_by_sign(tmp_path, capsys):
+    # predicted 3.50 everywhere: id 3 scores 12 (err +8.5), ids 5/10/15 score 0 (err -3.5)
+    data_root, gateway, argv = setup_round(
+        tmp_path, points=lambda i: 12 if i == 3 else i % 5
+    )
+    assert run(argv, data_root, gateway) == 0
+    out = capsys.readouterr().out
+    assert "under-predicted (err > +3): 1 players" in out
+    under = block_after(out, "under-predicted")
+    assert len(under) == 1 and " P3 " in under[0] and "+8.50" in under[0]
+    assert "over-predicted (err < -3): 3 players" in out
+    over = block_after(out, "over-predicted")
+    assert [row.split()[1] for row in over] == ["P5", "P10", "P15"]
+
+
+def test_calibrate_reports_no_misses_explicitly(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path, points=lambda i: 3)
+    assert run(argv, data_root, gateway) == 0
+    out = capsys.readouterr().out
+    assert "under-predicted (err > +3): none" in out
+    assert "over-predicted (err < -3): none" in out
 
 
 def test_calibrate_refuses_unchecked_round(tmp_path, capsys):
