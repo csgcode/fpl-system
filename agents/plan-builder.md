@@ -54,3 +54,7 @@ mean for the orchestrator:
   credentials and touches no network — if you find yourself needing either,
   you are running the wrong command.
 - Never commit to git — the orchestrator owns the cycle commit.
+- Findings outside your remit (model arithmetic, CLI or ledger, agent specs,
+  data quirks) → one row appended to docs/backlog.md with a shell `>>`
+  (format at the top of that file). Never act on them; never edit
+  existing rows.

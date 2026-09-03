@@ -114,3 +114,7 @@ class, the new C# list, any gaps.
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
+- Mirror every CODE correction you issue as a docs/backlog.md row (kind
+  CODE, evidence data/retro/gwM.md §Corrections) — one Bash `>>` after
+  Call 3. Findings outside your remit go there the same way. Never edit
+  existing rows.

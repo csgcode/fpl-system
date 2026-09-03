@@ -113,8 +113,9 @@ Written by `fpl ep`, never by you.
 ## Overrides                — one line each: player, override, reason
 ## Nailed cheap beats rotating premium   — ≤ 5 cases
 ## Retro compliance         — one line per active A3 correction
-## Escalations              — freshness-gate candidates (flags added in the last
-                              48h, unresolved doubts), ≤ 5
+## Escalations              — freshness-gate candidates only (flags added in the
+                              last 48h, unresolved doubts), ≤ 5. Model or code
+                              gaps go to docs/backlog.md, not here
 ```
 
 Return to the orchestrator, ≤ 15 lines: both file paths, top 5 by EP6,
@@ -122,3 +123,7 @@ override count, escalations.
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
+- Findings outside your remit (model arithmetic, CLI or ledger, agent specs,
+  data quirks) → one row appended to docs/backlog.md with a shell `>>`
+  (format at the top of that file). Never act on them; never edit
+  existing rows.

@@ -275,6 +275,25 @@ Mechanics:
   no calibration.
 - Commit to git after every GW cycle: `git commit -m "gw{N}: <summary>"`.
 
+## Improvement backlog (docs/backlog.md)
+Findings outside an agent's remit — a model-arithmetic gap, a CLI or ledger
+shortfall, an agent-spec or orchestration defect, an API data quirk — are
+appended to docs/backlog.md as one table row and never acted on in-cycle.
+Retro corrections stay the authoritative rules; the retro-analyst mirrors every
+CODE C# into the backlog so it is the single triage list.
+
+- Append-only during a cycle, with a shell `>>` — never a whole-file write,
+  because the player analysts run in parallel. Existing rows are edited only
+  in a triage session.
+- Row: `| GW | date | agent | kind | finding | evidence path | status |`,
+  kind ∈ CODE / TOOL / WORKFLOW / DATA, status starts `open`. Format and
+  agent codes are at the top of the file.
+- The orchestrator includes the file in the cycle commit and lists the new
+  rows in its report to the user.
+- Triage runs in its own session with the prompt kept at the top of the file:
+  it groups open rows, proposes, the user picks, changes ship with tests, and
+  the status column moves to `shipped <sha>` or `rejected: <why>`.
+
 ## Phase 2 backlog (do not build yet, design around it)
 - MILP optimizer (PuLP) replacing heuristic squad selection
 - Chip-strategy agent (DGW/BGW detection from fixture data)

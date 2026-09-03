@@ -113,3 +113,7 @@ use `--from-final` only when the orchestrator says plan.json does not exist.
   user instruction to.
 - Never read, print, or copy data/auth.json contents anywhere.
 - Never commit to git — the orchestrator owns the cycle commit.
+- Findings outside your remit (model arithmetic, CLI or ledger, agent specs,
+  data quirks) → one row appended to docs/backlog.md with a shell `>>`
+  (format at the top of that file). Never act on them; never edit
+  existing rows.

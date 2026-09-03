@@ -49,3 +49,7 @@ unresolved in final.md as an accepted risk.
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
+- Findings outside your remit (model arithmetic, CLI or ledger, agent specs,
+  data quirks) → one row appended to docs/backlog.md with a shell `>>`
+  (format at the top of that file). Never act on them; never edit
+  existing rows.

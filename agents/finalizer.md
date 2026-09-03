@@ -60,3 +60,7 @@ exist as far as the system is concerned.
 ## 4. Rules
 - Never overwrite an existing final.md. If one exists, stop and report.
 - Committing to git is the orchestrator's job, not yours.
+- Findings outside your remit (model arithmetic, CLI or ledger, agent specs,
+  data quirks) → one row appended to docs/backlog.md with a shell `>>`
+  (format at the top of that file). Never act on them; never edit
+  existing rows.
