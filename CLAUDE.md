@@ -40,9 +40,12 @@ Scoring context that changes valuation this season:
 
 ### Initial squad (GW1) / Wildcard
 1. Run `agents/data-collector.md`   → data/raw/gw{N}/
-2. Run `agents/fixture-analyst.md`  → data/analysis/gw{N}/fixtures.md
+2. Run `agents/fixture-analyst.md`  → data/analysis/gw{N}/fixtures.md + fixtures.json
 3. Run `agents/player-analyst.md` (once per position: GKP, DEF, MID, FWD)
-                                     → data/analysis/gw{N}/players-{pos}.json
+                                     → data/analysis/gw{N}/inputs-{pos}.json, then the
+                                       agent runs `fpl ep` → players-{pos}.json (+ .md).
+                                       The EP arithmetic is CODE (docs/ep-model.md);
+                                       the agent supplies p_start, overrides, notes.
 4. Run `agents/squad-optimizer.md`  → data/decisions/gw{N}/squad-proposal.md
 5. Run `agents/red-team-reviewer.md`→ data/decisions/gw{N}/review.md
 6. Run `agents/finalizer.md`        → data/decisions/gw{N}/final.md
@@ -54,6 +57,9 @@ Scoring context that changes valuation this season:
    It runs `fpl calibrate` first; the resulting ledger
    (data/retro/gw{N-1}-calibration.json) is its arithmetic ground truth —
    the agent attributes errors, it never recomputes stats.
+   A `**C<n> — CODE (fpl/ep.py): …**` correction in the retro is outside the
+   GW cycle: the orchestrator surfaces it to the user, who ships it as a code
+   change with tests (docs/ep-model.md §5). No agent acts on it.
 1–6. As above, but squad-optimizer proposes TRANSFERS plus captain and bench
    order, scored on the 6-GW EP horizon. It reads the current squad from the
    STATE block of the latest data/decisions/*/final.md and any correction
@@ -165,7 +171,7 @@ per GW cycle. Every subagent prompt must restate this.
 |---|---|---|
 | data-collector | haiku | mechanical CLI invocation, no judgment |
 | fixture-analyst | opus | fixture/strength analysis |
-| player-analyst | opus | EP modeling, judgment-heavy analysis |
+| player-analyst | opus | minutes model + rate overrides, judgment-heavy analysis |
 | retro-analyst | opus | prediction-error attribution, analysis |
 | squad-optimizer | fable | constrained decision-making |
 | red-team-reviewer | fable | adversarial decision review |
@@ -194,7 +200,8 @@ All FPL API access goes through the deterministic CLI
 | `flags --ids <ids>` | injury/news flags — the pre-deadline freshness gate | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
-| `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json` | filtered read over the cached bootstrap | local only |
+| `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--minutes]` | filtered read over the cached bootstrap; `--minutes` appends this season's minutes per round from cached summaries | local only |
+| `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
 | `plan [--from-final <path>] [--prev-final <path>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON | local only |
 | `auth-check [--team-id <id>]` | session pre-flight: redacted credential-key report + one `my-team` read. PASS → exit 0; FAIL (expired/HTTP/missing auth/null team_id) → exit 1 | always (auth) |
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
@@ -258,10 +265,12 @@ Mechanics:
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
-- plan.json and data/retro/gw{M}-calibration.json are the exceptions: both are
-  derived (plan.json from final.md + cached bootstrap, the calibration ledger
-  from the analysis files + final.md + the round's event-live snapshot), so
-  regenerating either is safe and expected.
+- plan.json, data/retro/gw{M}-calibration.json and
+  data/analysis/gw{N}/players-{pos}.json are the exceptions: all derived
+  (plan.json from final.md + cached bootstrap, the calibration ledger from the
+  analysis files + final.md + the round's event-live snapshot, players-{pos}.json
+  from inputs-{pos}.json + fixtures.json + cached snapshots via `fpl ep`), so
+  regenerating any of them is safe and expected.
 - Every prediction must be written down BEFORE the deadline. No prediction,
   no calibration.
 - Commit to git after every GW cycle: `git commit -m "gw{N}: <summary>"`.
@@ -270,5 +279,5 @@ Mechanics:
 - MILP optimizer (PuLP) replacing heuristic squad selection
 - Chip-strategy agent (DGW/BGW detection from fixture data)
 - Price-change prediction (protect team value)
-- Bayesian updating of player priors from retro data
+- Bayesian updating of player priors from retro data (lands in fpl/ep.py constants)
 - Backtesting harness against past seasons

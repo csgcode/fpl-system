@@ -47,6 +47,19 @@ def load_cached_bootstrap(store: SnapshotStore, gw: int) -> Bootstrap:
     return Bootstrap.model_validate(raw)
 
 
+def load_cached_summaries(
+    store: SnapshotStore, gw: int, player_ids: Iterable[int]
+) -> dict[int, ElementSummary]:
+    """Cached element summaries only — ids without a snapshot are simply
+    absent, so callers can report them rather than fetch."""
+    summaries: dict[int, ElementSummary] = {}
+    for player_id in _dedupe(player_ids):
+        name = _summary_name(player_id)
+        if store.exists(gw, name):
+            summaries[player_id] = ElementSummary.model_validate(store.load(gw, name))
+    return summaries
+
+
 def _dedupe(ids: Iterable[int]) -> list[int]:
     """Order-preserving: callers pass shortlists that may repeat an id, and a
     repeated fetch would archive the snapshot it just wrote."""

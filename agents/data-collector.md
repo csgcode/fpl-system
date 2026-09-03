@@ -54,7 +54,10 @@ A player is shortlisted when they hold a playing position, `status` is not in
 
 ## Tooling
 Run from the repo root. `bootstrap` must run first; every other command
-depends on its snapshot.
+depends on its snapshot. `summaries --shortlist` takes 3–4 minutes: run it
+with the Bash tool's `timeout` parameter set to 600000 so it is not
+backgrounded, and only run `prior-season` after it has finished —
+prior-season reads the summaries cache and reports empty coverage otherwise.
 
 | Output | Command | Network |
 |---|---|---|
@@ -62,7 +65,7 @@ depends on its snapshot.
 | fixtures.json | `uv run python -m fpl fixtures --gw N` | cached |
 | players/summary-{id}.json | `uv run python -m fpl summaries --gw N --shortlist` | cached |
 | entry-{id}.json | `uv run python -m fpl entry --gw N --team-id X` | cached — bank + team value only, not the squad |
-| picks-{id}-e{M}.json | `uv run python -m fpl picks --gw N --team-id X --event M` | cached — our actual picks, captain, active chip |
+| picks-{id}-e{M}.json | `uv run python -m fpl picks --gw N --team-id X --event M` with M = N−1, the last completed GW | cached — our actual picks, captain, active chip; a future event 404s |
 | entry-history-{id}.json | `uv run python -m fpl entry-history --gw N --team-id X` | cached — per-GW points, rank, bank, value |
 | per-player actual points | `uv run python -m fpl actuals --gw N --round M --ids ...` | always refreshes — A6 calls this, not you |
 | players-slim.csv | `uv run python -m fpl slim-csv --gw N` | local only |

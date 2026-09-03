@@ -38,6 +38,14 @@ from fpl.calibrate import (
     load_report,
 )
 from fpl.capture import is_git_ignored, parse_curl
+from fpl.ep import (
+    EpResult,
+    build_predictions,
+    inspect_fixtures,
+    load_fixtures,
+    load_inputs,
+    write_predictions,
+)
 from fpl.http import RequestsGateway
 from fpl.models import POSITION_ALIASES, MyTeam, PlayerStatus, Position
 from fpl.plan import (
@@ -62,6 +70,7 @@ from fpl.service import (
     FetchEvent,
     FplDataService,
     load_cached_bootstrap,
+    load_cached_summaries,
 )
 from fpl.state import (
     MAX_GW,
@@ -89,6 +98,7 @@ EXIT_EMPTY = 2
 
 WRITE_COMMANDS = ("auth-check", "my-team", "set-lineup", "make-transfers")
 DECISIONS_ROOT = Path("data/decisions")
+ANALYSIS_ROOT = Path("data/analysis")
 FINAL_FILENAME = "final.md"
 PLAN_FILENAME = "plan.json"
 
@@ -267,7 +277,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="completed, data-checked gameweek to calibrate",
     )
     calibrate.add_argument(
-        "--analysis-root", type=Path, default=Path("data/analysis"),
+        "--analysis-root", type=Path, default=ANALYSIS_ROOT,
         help="root holding gw{M}/players-*.json prediction files",
     )
     calibrate.add_argument(
@@ -279,6 +289,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="where gw{M}-calibration.json ledgers live",
     )
     calibrate.add_argument("--format", choices=("table", "json"), default="table")
+
+    # Local-only: expected points are a pure function of the analysts'
+    # judgment files plus cached snapshots (docs/ep-model.md).
+    ep = add(
+        "ep", "compute expected points from inputs-{pos}.json and fixtures.json",
+        cached=False,
+    )
+    ep.add_argument(
+        "--position", type=_position_one,
+        help="GKP (or GK), DEF, MID or FWD (required unless --check)",
+    )
+    ep.add_argument(
+        "--check", action="store_true",
+        help="validate fixtures.json (and inputs, when --position is given) — write nothing",
+    )
+    ep.add_argument(
+        "--analysis-root", type=Path, default=ANALYSIS_ROOT,
+        help="root holding gw{N}/inputs-*.json, fixtures.json and the output",
+    )
+    ep.add_argument("--inputs", type=Path, help="default: <analysis-root>/gw{N}/inputs-{POS}.json")
+    ep.add_argument("--fixtures", type=Path, help="default: <analysis-root>/gw{N}/fixtures.json")
+    ep.add_argument("--out", type=Path, help="default: <analysis-root>/gw{N}/players-{POS}.json")
+    ep.add_argument("--format", choices=("table", "json"), default="table")
+    ep.add_argument("--limit", type=int, default=15, help="rows shown in the table")
 
     players = add("players", "filtered view over the cached bootstrap", cached=False)
     players.add_argument(
@@ -300,6 +334,10 @@ def build_parser() -> argparse.ArgumentParser:
     players.add_argument("--sort", choices=sorted(SORT_KEYS), default="price")
     players.add_argument("--limit", type=int, help="return at most this many players")
     players.add_argument("--format", choices=("table", "csv", "json"), default="table")
+    players.add_argument(
+        "--minutes", action="store_true",
+        help="append this season's minutes per round from cached element summaries",
+    )
     return parser
 
 
@@ -336,6 +374,13 @@ def _position_set(raw: str) -> frozenset[Position]:
         except KeyError as exc:
             raise argparse.ArgumentTypeError(f"invalid position in: {raw!r}") from exc
     return frozenset(positions)
+
+
+def _position_one(raw: str) -> Position:
+    positions = _position_set(raw)
+    if len(positions) != 1:
+        raise argparse.ArgumentTypeError(f"exactly one position expected, got {raw!r}")
+    return next(iter(positions))
 
 
 def _status_set(raw: str) -> frozenset[PlayerStatus]:
@@ -511,6 +556,8 @@ def run_command(
         return run_plan(store, gw, args)
     elif args.command == "calibrate":
         return run_calibrate(service, store, gw, args)
+    elif args.command == "ep":
+        return run_ep(store, gw, args)
     elif args.command == "players":
         player_filter = PlayerFilter(
             positions=args.position,
@@ -522,7 +569,8 @@ def run_command(
             shortlisted_only=args.shortlist,
         )
         rows = PlayerRepository(store).query(gw, player_filter, args.sort, args.limit)
-        print_players(rows, args.format)
+        minutes = _minutes_by_round(store, gw, rows) if args.minutes else None
+        print_players(rows, args.format, minutes)
     return EXIT_OK
 
 
@@ -567,6 +615,123 @@ def run_calibrate(
     for warning in report.warnings:
         _stderr(f"WARNING: {warning}")
     return EXIT_OK
+
+
+def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
+    position: Position | None = args.position
+    analysis_dir = args.analysis_root / f"gw{gw}"
+    fixtures_path = args.fixtures or analysis_dir / "fixtures.json"
+    if args.check:
+        return run_ep_check(store, gw, args, fixtures_path)
+    if position is None:
+        raise ValueError("--position is required unless --check is given")
+    inputs_path = args.inputs or analysis_dir / f"inputs-{position.name}.json"
+    out_path = args.out or analysis_dir / f"players-{position.name}.json"
+    inputs = load_inputs(inputs_path)
+    if inputs.position != position:
+        raise ValueError(
+            f"{inputs_path} is for {inputs.position.name}, not --position {position.name}"
+        )
+    fixtures = load_fixtures(fixtures_path)
+    bootstrap = load_cached_bootstrap(store, gw)
+    wanted = [p.id for p in bootstrap.elements if p.element_type == position]
+    wanted += [entry.id for entry in inputs.players]
+    summaries = load_cached_summaries(store, gw, wanted)
+    result = build_predictions(bootstrap, summaries, fixtures, inputs, gw=gw)
+    # players-{pos}.json is derived from inputs + fixtures.json + cached
+    # snapshots, so overwriting it is safe, like plan.json.
+    write_predictions(out_path, result)
+    if args.format == "json":
+        print(json.dumps(result.to_documents(), indent=1))
+    else:
+        print_ep(result, args.limit)
+    print(f"wrote {out_path}")
+    if result.missing_summaries:
+        ids = ",".join(str(i) for i in result.missing_summaries)
+        _stderr(
+            f"WARNING: missing summaries ({len(result.missing_summaries)}) scored on "
+            f"league-mean priors — fetch with: uv run python -m fpl summaries --gw {gw} --ids {ids}"
+        )
+    for warning in result.warnings:
+        _stderr(f"WARNING: {warning}")
+    return EXIT_OK
+
+
+def run_ep_check(
+    store: SnapshotStore, gw: int, args: argparse.Namespace, fixtures_path: Path
+) -> int:
+    bootstrap = load_cached_bootstrap(store, gw)
+    check = inspect_fixtures(bootstrap, load_fixtures(fixtures_path), gw=gw)
+    blanks = ", ".join(check.blanks) if check.blanks else "none"
+    print(
+        f"{fixtures_path} OK: {check.clubs} clubs rated, {check.rows_in_window} rows in "
+        f"gw{check.window[0]}–{check.window[-1]}, blanks: {blanks}"
+    )
+    position: Position | None = args.position
+    if position is None:
+        return EXIT_OK
+    inputs_path = args.inputs or args.analysis_root / f"gw{gw}" / f"inputs-{position.name}.json"
+    inputs = load_inputs(inputs_path)
+    if inputs.position != position:
+        raise ValueError(
+            f"{inputs_path} is for {inputs.position.name}, not --position {position.name}"
+        )
+    wanted = [p.id for p in bootstrap.elements if p.element_type == position]
+    wanted += [entry.id for entry in inputs.players]
+    result = build_predictions(
+        bootstrap, load_cached_summaries(store, gw, wanted), load_fixtures(fixtures_path),
+        inputs, gw=gw,
+    )
+    print(
+        f"{inputs_path} OK: {len(result.rows)} players scored, "
+        f"{len(result.missing_summaries)} without cached summary — nothing written"
+    )
+    for warning in result.warnings:
+        _stderr(f"WARNING: {warning}")
+    return EXIT_OK
+
+
+def _minutes_by_round(store: SnapshotStore, gw: int, rows: list[PlayerRow]) -> dict[int, str]:
+    summaries = load_cached_summaries(store, gw, [row.player.id for row in rows])
+    result = {}
+    for row in rows:
+        summary = summaries.get(row.player.id)
+        if summary is None:
+            result[row.player.id] = "no summary"
+            continue
+        history = sorted(summary.history, key=lambda m: (m.round or 0, m.fixture))
+        result[row.player.id] = ",".join(str(m.minutes) for m in history) or "-"
+    return result
+
+
+def print_ep(result: EpResult, limit: int) -> None:
+    print(
+        f"gw{result.gw} {result.position.name}: {len(result.rows)} scored, "
+        f"{result.not_scored} not scored (≤£4.5m or unavailable, absent from inputs), "
+        f"{len(result.missing_summaries)} without cached summary"
+    )
+    source = (
+        f"pooled from {result.league_pool} summaries"
+        if result.league_source == "pooled"
+        else "v1 fallback table (see warnings)"
+    )
+    print(f"league mean: {source}")
+    print(
+        f"{'id':>4}  {'name':<18} {'team':<4} {'price':>5} {'p_st':>5} {'ep6':>6} "
+        f"{'ep/£m':>5} {'unc':<4} {'app':>5} {'att':>5} {'cs':>5} {'gc':>5} "
+        f"{'dc':>5} {'sv':>5} {'bon':>5} {'crd':>5}  fixtures"
+    )
+    for row in result.rows[:limit]:
+        t = row.terms
+        print(
+            f"{row.id:>4}  {row.name:<18.18} {row.team:<4} {row.price:>5.1f} "
+            f"{row.p_start:>5.2f} {row.ep_total6:>6.2f} {row.ep_per_million:>5.2f} "
+            f"{row.uncertainty.value:<4} {t.appearance:>5.1f} {t.attack:>5.1f} "
+            f"{t.clean_sheet:>5.1f} {t.goals_conceded:>5.1f} {t.defcon:>5.1f} "
+            f"{t.saves:>5.1f} {t.bonus:>5.1f} {t.cards:>5.1f}  {' '.join(row.fixtures)}"
+        )
+    if len(result.rows) > limit:
+        print(f"({len(result.rows) - limit} more rows in the file)")
 
 
 def _calibration_picks(final_path: Path, match_round: int) -> PlannedPicks | None:
@@ -1088,23 +1253,40 @@ def _format_fetch_log(events: Sequence[FetchEvent]) -> str:
     return f"({fetched} fetched, {len(events) - fetched} cached)"
 
 
-def print_players(rows: list[PlayerRow], fmt: str) -> None:
+MINUTES_COLUMN = "minutes_by_round"
+
+
+def print_players(
+    rows: list[PlayerRow], fmt: str, minutes: dict[int, str] | None = None
+) -> None:
     if fmt == "json":
-        print(json.dumps([slim_record(row) for row in rows], indent=1))
+        records = [slim_record(row) for row in rows]
+        if minutes is not None:
+            for record in records:
+                record[MINUTES_COLUMN] = minutes[record["id"]]
+        print(json.dumps(records, indent=1))
     elif fmt == "csv":
         writer = csv.writer(sys.stdout)
-        writer.writerow(PLAYERS_SLIM_COLUMNS)
+        header = list(PLAYERS_SLIM_COLUMNS)
+        if minutes is not None:
+            header.append(MINUTES_COLUMN)
+        writer.writerow(header)
         for row in rows:
-            writer.writerow(slim_values(row))
+            values = slim_values(row)
+            if minutes is not None:
+                values.append(minutes[row.player.id])
+            writer.writerow(values)
     else:
+        tail = f"  {MINUTES_COLUMN}" if minutes is not None else ""
         print(f"{'id':>4}  {'name':<20} {'team':<4} {'pos':<3} {'price':>5} "
-              f"{'st':<2} {'own%':>5} {'form':>5} {'pts':>4} {'pen':>3}")
+              f"{'st':<2} {'own%':>5} {'form':>5} {'pts':>4} {'pen':>3}{tail}")
         for row in rows:
             p = row.player
             pen = p.penalties_order if p.penalties_order is not None else ""
+            extra = f"  {minutes[p.id]}" if minutes is not None else ""
             print(f"{p.id:>4}  {p.web_name:<20.20} {row.team_short_name:<4} "
                   f"{p.element_type.name:<3} {p.price_m:>5.1f} {p.status.value:<2} "
-                  f"{p.selected_by_percent:>5.1f} {p.form:>5.1f} {p.total_points:>4} {pen:>3}")
+                  f"{p.selected_by_percent:>5.1f} {p.form:>5.1f} {p.total_points:>4} {pen:>3}{extra}")
         print(f"({len(rows)} players)")
 
 

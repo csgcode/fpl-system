@@ -54,5 +54,34 @@ Plus: ranked 6-GW ticker table (best attacking, best defensive), top 5
 fixture-swing notes, and uncertainty flags (promoted clubs, ASSUMPTION-sourced
 ratings, congested schedules, cup involvement).
 
+## Output → data/analysis/gw{N}/fixtures.json (MANDATORY, same numbers)
+The machine-readable companion `fpl ep` consumes; the .md stays the human
+record. Contract in docs/ep-model.md §3:
+
+```json
+{"schema_version": 1, "gw": N,
+ "base_lambda": {"home": 1.54, "away": 1.33},
+ "ratings": {"ARS": {"att": 1.22, "defw": 0.67}},
+ "fixtures": [{"club": "ARS", "gw": N, "opp": "CHE", "venue": "H", "fdr": 4,
+               "lambda_att": 1.78, "lambda_def": 1.24, "p_cs": 0.29, "band": false}]}
+```
+
+`ratings` holds one entry per bootstrap short name — all 20 clubs. One row
+per club-fixture in GW N..N+5 (stopping at GW38) — two rows for a double
+gameweek, none for a blank. `att`/`defw` are the ATT and DEFW indices centred on 1.00;
+`base_lambda` the home/away base you multiply them by; `band` marks the
+promoted-club ±15pp band. Unknown keys, a missing club, an unknown club, a
+club playing itself, a third or repeated fixture in one gameweek, a `p_cs`
+outside [0, 1], a λ above 6, a base outside [0.5, 5] or a rating outside
+[0.3, 3] refuse — a refusal
+naming a number is a unit slip, fix the number. Validate before you return:
+
+```
+uv run python -m fpl ep --gw N --check
+```
+
+It prints the club count, rows in the window and any blanks, and writes
+nothing.
+
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.

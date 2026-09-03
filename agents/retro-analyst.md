@@ -101,11 +101,11 @@ file, so nothing after that header may be narrative.
 | `## Misses` | table: id, name, pred, act, err, class, cause (one clause) | 10 rows |
 | `## Captain and bench` | hindsight delta, stranded points, bench-order verdict | 4 lines |
 | `## Findings` | anything that fits nowhere else; every `gap:` line | 20 lines |
-| `## Corrections` | status table for prior corrections (C#, agent, status, evidence), then new rules: `**C<n> — A<k> (<agent>): <imperative rule>.** <one evidence sentence>`. Numbering continues from the last prior C | as needed |
+| `## Corrections` | status table for prior corrections (C#, agent, status, evidence), then new rules: `**C<n> — A<k> (<agent>): <imperative rule>.** <one evidence sentence>`. A correction to the EP arithmetic — a coefficient, anchor, blend constant or points value — targets the code instead: `**C<n> — CODE (fpl/ep.py): <rule>.**`; the orchestrator escalates it to the user, who ships it as a code change with tests (docs/ep-model.md §5) before the next cycle — until then it stays in `## Carried into GWN`. An earlier A3 correction that is arithmetic in substance is retired in the status table (`moved to C<new>`) and re-issued as a CODE correction. A3 is never asked to emulate arithmetic through inputs. Numbering continues from the last prior C | as needed |
 | `## Running calibration stats` | calibrate's aggregate block (from `group` to `cumulative`) pasted verbatim in a fence; add team-value delta this GW and cumulative | verbatim + 2 lines |
 | `## Carried into GWN` | open risk-register items, each with the C# that binds it | 8 lines |
 
-Agents: A2 fixture-analyst, A3 player-analyst, A4 squad-optimizer, A5
+Agents: CODE fpl/ep.py, A2 fixture-analyst, A3 player-analyst, A4 squad-optimizer, A5
 finalizer. Paste numbers, never retype them.
 
 ## Return to the orchestrator

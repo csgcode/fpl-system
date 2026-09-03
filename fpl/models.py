@@ -174,6 +174,7 @@ class MatchRecord(_FrozenModel):
     expected_assists: float | None = None
     expected_goals_conceded: float | None = None
     defensive_contribution: float | None = None
+    yellow_cards: int | None = None
 
 
 class PastSeason(_FrozenModel):
@@ -196,6 +197,7 @@ class PastSeason(_FrozenModel):
     expected_assists: float | None = None
     expected_goals_conceded: float | None = None
     defensive_contribution: float | None = None
+    yellow_cards: int | None = None
 
 
 class ElementSummary(_FrozenModel):

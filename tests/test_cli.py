@@ -580,3 +580,30 @@ def test_non_json_payload_is_reported_without_a_traceback(tmp_path, capsys):
 
     assert run(["bootstrap", "--gw", "1"], tmp_path, ScalarGateway()) == 1
     assert "expected a JSON object or array" in capsys.readouterr().err
+
+
+def test_players_minutes_appends_this_seasons_minutes_per_round(tmp_path, capsys):
+    store = SnapshotStore(tmp_path)
+    store.save(
+        1, "bootstrap",
+        bootstrap_payload(elements=[
+            player_payload(id=1, web_name="Alpha", element_type=3),
+            player_payload(id=2, web_name="Beta", element_type=3),
+        ]),
+        "seed://test",
+    )
+    store.save(
+        1, "players/summary-1",
+        element_summary_payload(history=[
+            match_record_payload(round=2, minutes=0, fixture=12),
+            match_record_payload(round=1, minutes=90, fixture=3),
+        ]),
+        "seed://test",
+    )
+    assert run(["players", "--gw", "1", "--position", "MID", "--minutes", "--format", "csv"],
+               tmp_path, FakeGateway({})) == 0
+    rows = list(csv.reader(io.StringIO(capsys.readouterr().out)))
+    assert rows[0][-1] == "minutes_by_round"
+    by_name = {row[1]: row[-1] for row in rows[1:]}
+    assert by_name["Alpha"] == "90,0"
+    assert by_name["Beta"] == "no summary"
