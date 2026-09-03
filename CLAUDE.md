@@ -282,17 +282,31 @@ appended to docs/backlog.md as one table row and never acted on in-cycle.
 Retro corrections stay the authoritative rules; the retro-analyst mirrors every
 CODE C# into the backlog so it is the single triage list.
 
-- Append-only during a cycle, with a shell `>>` — never a whole-file write,
-  because the player analysts run in parallel. Existing rows are edited only
-  in a triage session.
-- Row: `| GW | date | agent | kind | finding | evidence path | status |`,
-  kind ∈ CODE / TOOL / WORKFLOW / DATA, status starts `open`. Format and
-  agent codes are at the top of the file.
-- The orchestrator includes the file in the cycle commit and lists the new
-  rows in its report to the user.
-- Triage runs in its own session with the prompt kept at the top of the file:
-  it groups open rows, proposes, the user picks, changes ship with tests, and
-  the status column moves to `shipped <sha>` or `rejected: <why>`.
+Row format, agent codes, kind and status vocabulary, and the append snippet
+live at the top of docs/backlog.md. Mirrors, changed together with that file:
+agents/retro-analyst.md Call 4 and agents/player-analyst.md Call 5 carry the
+snippet verbatim and restate the kind list, because those agents may not read
+the file; the `## Corrections` legend in agents/retro-analyst.md restates the
+agent codes.
+
+- During a cycle the file is append-only via shell append (`>>`) — never a
+  whole-file write. Existing rows change only in a triage session.
+- Before the cycle commit the orchestrator checks the ledger's shape, then
+  reads the new rows from `git diff HEAD -- docs/backlog.md` for its report
+  to the user. Agents append without reading the file, and a malformed heredoc
+  still exits 0: under zsh an indented `EOF` leaves a phantom `  EOF` line
+  with no trailing newline, and the next agent's correct row is glued onto
+  it. The agent specs prevent; this detects:
+
+  ```
+  tail -c1 docs/backlog.md | od -An -c                       # must print \n
+  awk '/^## Rows/{p=1} p && NF && !/^\|/' docs/backlog.md    # must print only "## Rows"
+  ```
+
+  On failure: repair by hand — delete the stray line or restore the
+  newline — re-read the responsible agent's return for the row it meant to
+  write, then commit. The orchestrator never rewrites rows.
+- Triage is its own session, driven by the prompt kept at the top of the file.
 
 ## Phase 2 backlog (do not build yet, design around it)
 - MILP optimizer (PuLP) replacing heuristic squad selection

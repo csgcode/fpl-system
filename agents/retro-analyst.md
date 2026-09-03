@@ -16,7 +16,7 @@ data/retro/gwM.md. `<id>` is `team_id` from data/entry.json; the orchestrator
 passes it. If it is null, drop the `picks` and `entry-history` lines from
 Call 1 and say so in Findings.
 
-## Procedure — three tool calls, in this order
+## Procedure — four tool calls, in this order
 Every tool call re-sends the whole conversation, so the budget is calls, not
 bytes. Do not explore: no `ls`, no `--help`, no orientation reads, no
 intermediate scripts. Everything you need arrives in Calls 1 and 2.
@@ -37,7 +37,42 @@ Call 2 — ONE Bash invocation:
 plus the pool players from the under-/over-predicted blocks you intend to
 attribute. Comma-separated, one call.
 
-Call 3 — Write data/retro/gwM.md. Then return.
+Call 3 — Write data/retro/gwM.md.
+
+Call 4 — ONE Bash invocation, only if this retro issues a CODE C#, revises one
+in place under its own number so its rule text changes, retires one or
+re-issues one under a new number, writes a `gap:` line, or finds anything
+outside its remit; with none of those, return after Call 3. Append to
+docs/backlog.md in this exact form — a quoted heredoc, never `printf`/`echo`
+(apostrophes and backticks break them); one heredoc, one line per row:
+
+```
+cat <<'EOF' >> docs/backlog.md
+| <GW> | <YYYY-MM-DD> | <agent> | <kind> | <finding> | <evidence path> | open |
+EOF
+```
+
+The closing `EOF` starts at column 0, no leading spaces — indented, it is not
+a terminator: the shell appends it as a row and exits 0.
+
+`<GW>` is GWN, `<YYYY-MM-DD>` today, `<agent>` is A6. Rows:
+- every CODE C# issued in this retro, or revised in place under its own number
+  so its rule text changes → one row, kind CODE, finding = the C# and its rule,
+  evidence `data/retro/gwM.md §Corrections`. `active` rows carried in the
+  prior-corrections status table never re-mirror.
+- every CODE C# retired in this retro, or re-issued under a new number (the
+  status table's `retired — moved to C<new>` and `revised — see C<new>` are the
+  same case: it stops being active under its own number) → one row, kind CODE,
+  finding `C<n> retired: <one clause, naming C<new> if any>`, evidence
+  `data/retro/gwM.md §Corrections` — the append-only counterpart of triage's
+  `superseded by`. C<new> itself falls under the bullet above.
+- every `gap:` line → kind TOOL, evidence `data/retro/gwM.md §Findings`
+- anything else outside your remit → kind CODE (fpl/ep.py or fpl/calibrate.py
+  arithmetic), TOOL (CLI, schemas, ledger fields), WORKFLOW (agent specs,
+  CLAUDE.md, orchestration) or DATA (API quirks, snapshot quality)
+
+A cell never contains `|` or a newline. Never read docs/backlog.md — the form
+above is the whole format — and never edit existing rows. Then return.
 
 If a number you need is in none of the outputs above, write a `gap:` line in
 Findings naming it. Never fetch or compute it yourself — a gap is a
@@ -64,6 +99,7 @@ squad numbers then describe the plan, not the fielded team.
 - data/analysis/** and data/raw/** — bootstrap, event-live, player summaries,
   prior-season, analysis JSONs
 - Recomputing any statistic the ledger already carries
+- docs/backlog.md — any read; Call 4 carries the row format and is append-only
 - Any fetch or file read not listed in Calls 1–2
 
 ## Attribution
@@ -79,7 +115,9 @@ squad numbers then describe the plan, not the fielded team.
    The pool blocks are the calibration signal; squad-only stats are
    selection-biased.
 3. Prior corrections: for every C# in the extracted tails, mark it
-   active / retired / revised with one clause of evidence.
+   active / retired / revised with one clause of evidence. A C# whose agent
+   code disagrees with its parenthesised agent name is carried under the
+   name's current code.
 4. Trend: an error persisting 3+ GWs is systematic → an explicit correction
    rule.
 
@@ -105,16 +143,14 @@ file, so nothing after that header may be narrative.
 | `## Running calibration stats` | calibrate's aggregate block (from `group` to `cumulative`) pasted verbatim in a fence; add team-value delta this GW and cumulative | verbatim + 2 lines |
 | `## Carried into GWN` | open risk-register items, each with the C# that binds it | 8 lines |
 
-Agents: CODE fpl/ep.py, A2 fixture-analyst, A3 player-analyst, A4 squad-optimizer, A5
-finalizer. Paste numbers, never retype them.
+Agents: CODE fpl/ep.py, A1 data-collector, A2 fixture-analyst, A3 player-analyst,
+A4 squad-optimizer, A5 red-team-reviewer, A7 finalizer, A8 plan-builder,
+A9 team-executor. Paste numbers, never retype them.
 
 ## Return to the orchestrator
 At most 15 lines: XI predicted vs actual, captain verdict, miss count by
-class, the new C# list, any gaps.
+class, the new C# list, any gaps, the backlog rows appended (or none).
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
-- Mirror every CODE correction you issue as a docs/backlog.md row (kind
-  CODE, evidence data/retro/gwM.md §Corrections) — one Bash `>>` after
-  Call 3. Findings outside your remit go there the same way. Never edit
-  existing rows.
+- docs/backlog.md rows go through Call 4 only.

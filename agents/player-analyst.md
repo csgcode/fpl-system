@@ -19,7 +19,7 @@ contracts live in docs/ep-model.md and run as code.
 | `uncertainty`, `notes` | schema, sorting, per-term breakdown |
 | players-{pos}.md: ranking and call-outs | players-{pos}.json |
 
-## Procedure — four tool calls
+## Procedure — five tool calls
 
 **Call 1 — one Bash, every read.** (POS = your position, N = this GW.)
 
@@ -51,8 +51,30 @@ field is a unit slip (0.50 typed as 50): fix the number, never argue with the
 bound. If it lists missing summaries for players you care about, run the
 printed `summaries --ids` command and rerun.
 
-**Call 4 — Write data/analysis/gwN/players-POS.md** (template below), then
-return.
+**Call 4 — Write data/analysis/gwN/players-POS.md** (template below).
+
+**Call 5 — ONE Bash invocation**, only if you have a finding outside your
+remit (model arithmetic, CLI or ledger, agent spec, data quirk); with none,
+return after Call 4. Append to docs/backlog.md in this exact form — a quoted
+heredoc, never `printf`/`echo` (apostrophes and backticks break them); one
+heredoc, one line per row:
+
+```
+cat <<'EOF' >> docs/backlog.md
+| <GW> | <YYYY-MM-DD> | <agent> | <kind> | <finding> | <evidence path> | open |
+EOF
+```
+
+The closing `EOF` starts at column 0, no leading spaces — indented, it is not
+a terminator: the shell appends it as a row and exits 0.
+
+`<GW>` is GWN, `<YYYY-MM-DD>` today, `<agent>` is A3-POS, `<kind>` is CODE
+(fpl/ep.py or fpl/calibrate.py arithmetic), TOOL (CLI, schemas, ledger
+fields), WORKFLOW (agent specs, CLAUDE.md, orchestration) or DATA (API quirks,
+snapshot quality), `<evidence path>` the players-POS.md section or the input
+file the finding came from. A cell never contains `|` or a newline. Never read
+docs/backlog.md — the form above is the whole format — and never edit
+existing rows. Then return.
 
 ## Judgment guidance
 
@@ -94,6 +116,7 @@ through inputs.
 - Reading bootstrap.json, whole retro files, whole fixtures.md, or last GW's
   players-POS.json whole — Call 1 has the views you need.
 - Editing players-POS.json by hand. It is derived: change the inputs, rerun.
+- Reading docs/backlog.md — Call 5 carries the format and is append-only.
 
 ## Output
 
@@ -119,11 +142,9 @@ Written by `fpl ep`, never by you.
 ```
 
 Return to the orchestrator, ≤ 15 lines: both file paths, top 5 by EP6,
-override count, escalations.
+override count, escalations, backlog rows appended (or none).
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
-- Findings outside your remit (model arithmetic, CLI or ledger, agent specs,
-  data quirks) → one row appended to docs/backlog.md with a shell `>>`
-  (format at the top of that file). Never act on them; never edit
-  existing rows.
+- Findings outside your remit reach docs/backlog.md through Call 5 only. Never
+  act on them.

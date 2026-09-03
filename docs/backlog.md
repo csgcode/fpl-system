@@ -10,12 +10,16 @@ single triage list.
 ## Writing a row (any agent, any cycle)
 
 Append only, with a shell append — never a whole-file write, because the
-player analysts run in parallel:
+player analysts run in parallel. The quoted `'EOF'` delimiter passes
+apostrophes, backticks, `$` and `%` through literally:
 
 ```
-printf '| %s | %s | %s | %s | %s | %s | open |\n' \
-  'GW3' '2026-09-03' 'A3-FWD' 'CODE' '<finding>' '<evidence path>' >> docs/backlog.md
+cat <<'EOF' >> docs/backlog.md
+| <GW> | <YYYY-MM-DD> | <agent> | <kind> | <finding> | <evidence path> | open |
+EOF
 ```
+
+A cell must not contain `|` or a newline; either breaks the table.
 
 | Column | Content |
 |---|---|
@@ -44,7 +48,9 @@ regenerate derived files (`fpl ep --gw N --position POS`, `fpl calibrate
 --gw N --round M`) and explain any diff, update docs/ep-model.md where the
 formula changed, one commit per group in the repo's `<area>: <summary>`
 style, no AI attribution. Then edit only the Status column of the rows you
-touched. Never edit data/retro/ or data/decisions/.
+touched. Never edit data/retro/gw*.md or data/decisions/; the
+*-calibration.json ledgers and players-{pos}.json are derived and regenerated
+by the commands above.
 ```
 
 ## Rows
@@ -60,4 +66,4 @@ touched. Never edit data/retro/ or data/decisions/.
 | GW3 | 2026-09-03 | A2 | TOOL | Attributing element-summary history rows to a club by the player's current bootstrap `team` mis-assigns transferred players (Ndiaye's round-1 xGC 1.96 landed on MCI against a true 0.65). Attribute by the row's `was_home`/`opponent_team` against the fixture list and add a guard in the ep/calibrate path. | data/analysis/gw3/fixtures.md §1 | open |
 | GW3 | 2026-09-03 | A3-MID | DATA | `news_added` can carry a timestamp ahead of the clock (element 407, +15.7h), so it must not be used as a bare recency filter. | data/analysis/gw3/players-MID.md §Escalations | open |
 | GW3 | 2026-09-03 | ORCH | TOOL | data/auth.json captured 2026-08-28 had expired by 2026-09-03; expect a re-capture every GW. `auth-check` could print the session's age or expiry (key names only) so the orchestrator can warn before the executor step. | data/executor/gw3/ | open |
-| GW3 | 2026-09-03 | ORCH | WORKFLOW | Analysts were filing model and code gaps under `## Escalations`, which is defined as freshness-gate candidates, and the retro-analyst may not read data/analysis, so the findings never reached the one agent that issues corrections. Resolved by this backlog and the per-agent rule. | agents/player-analyst.md; CLAUDE.md §Improvement backlog | shipped: introduced with this file |
+| GW3 | 2026-09-03 | ORCH | WORKFLOW | Analysts filed model and code gaps under `## Escalations`, which is defined as freshness-gate candidates, and the retro-analyst does not read data/analysis, so findings never reached the agent that issues corrections. | agents/player-analyst.md; CLAUDE.md §Improvement backlog | shipped 0315b8e |
