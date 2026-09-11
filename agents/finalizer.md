@@ -28,6 +28,12 @@ Only when the gate passes. Contents:
 - Transfers made (weekly cycles), with any hit cost
 - Accepted risks: every review finding left unresolved after the revision loop
 - Rationale summary
+- `## Suggestions`: the marker line and ledger table from squad-proposal.md,
+  carried verbatim, or its "No data/suggestions.md" line. Before carrying:
+  when data/suggestions.md exists and the proposal has no ledger, or the
+  ledger lacks an S# that the latest final.md's ledger carries, stop and
+  report as in §4 — a dropped row would silently reopen next cycle. Nothing
+  about suggestions enters the STATE block.
 - The STATE block (yaml, schema in CLAUDE.md) as the last thing in the file.
   It MUST include the `picks:` list — one line per squad slot, exactly:
   `- {id: <element id>, name: <web_name>, position: <1-15>, captain: <true|false>, vice: <true|false>}`

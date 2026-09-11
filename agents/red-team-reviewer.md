@@ -12,6 +12,8 @@ analysis files but must form independent judgments.
 - data/decisions/gw{N}/squad-proposal.md
 - data/analysis/gw{N}/* (fixtures.md, players-*.json)
 - data/raw/gw{N}/players-slim.csv
+- data/suggestions.md — if present — and the `## Suggestions` ledger of the
+  latest data/decisions/*/final.md
 - players-*.json rows may carry `p_start_gw` (per-GW 6-vector); when present it
   overrides the scalar `p_start` for the GW being scored.
 
@@ -40,6 +42,21 @@ analysis files but must form independent judgments.
    target, dismantling a Bench Boost bench?
 11. Price risk: any buy or hold at imminent price-fall risk? Any transfer
    better made early or late in the window?
+12. Suggestions (rules: CLAUDE.md §User suggestions): recompute the open set
+   yourself — From/Until GW against N, latest status in the ledger of the
+   latest data/decisions/*/final.md (none → nothing is closed) — for S# up to
+   the proposal's `through S<max>` marker. S# above the marker are
+   post-cut-off and never a finding; malformed rows the proposal lists are
+   never a finding.
+   HIGH: an open S# with no row; a closed row altered; an expired or
+   withdrawn row not closed; a non-withdraw S# with From GW > N present; a
+   re-deferred or re-affirmed `standing` row whose GW differs from the
+   previous ledger's; a `deferred` row with GW ≤ N−2 (three cycles running —
+   demand `followed`, `rejected` or `standing`); a `followed` row whose EP6
+   delta is below −0.5 or that you cannot reproduce within 0.5; a `rejected`
+   row with neither a number nor a named rule.
+   MED: a `standing` row whose reason does not say how this plan honours it,
+   or that the plan visibly contradicts; a deferral whose revisit GW > N+2.
 
 ## Output → data/decisions/gw{N}/review.md
 Findings list with severity + concrete alternative for every HIGH.

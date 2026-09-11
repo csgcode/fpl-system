@@ -12,6 +12,8 @@ CLAUDE.md. Then pick captain, vice, and bench order.
 - data/analysis/gw{N}/players-*.json, fixtures.md
 - data/retro/*.md — if present (absent at GW1)
 - data/decisions/gw{N}/review.md — only on a revision loop
+- data/suggestions.md — if present — plus the `## Suggestions` ledger of the
+  latest data/decisions/*/final.md. Rules in `## Suggestions` below.
 - players-*.json rows may carry `p_start_gw` (per-GW 6-vector); when present it
   overrides the scalar `p_start` for the GW being scored.
 
@@ -35,8 +37,11 @@ subject to: budget, 2/5/5/3 squad, max 3 per club, valid XI formation.
    justify holding more. Use ep_per_million for bench slots only.
 3. Bench: 1 playing cheap GKP strategy vs rotating pair — state which and why.
    Outfield bench: prioritize nailed £4.0–4.5m starters over EP.
-4. Swap pass: try single-player swaps until no improving swap remains. Record
-   every attempted swap and its delta — this is your audit trail.
+4. Swap pass: try single-player swaps until no improving swap remains;
+   players named by open suggestion rows are candidates. Record every
+   attempted swap and its delta — this is your audit trail.
+5. Suggestions pass: dispose every open S# per `## Suggestions` below, on the
+   deltas steps 1–4 recorded — never re-enter the swap pass.
 
 ## Transfer rule (weekly)
 All transfer decisions score on the same 6-GW EP horizon.
@@ -65,8 +70,58 @@ the rationale + rejected alternatives, plus:
 
 - Provisional chip plan — one line naming the GW each remaining set-1 chip is
   earmarked for, within the windows in bootstrap's `chips` array.
+- Suggestions ledger, format in `## Suggestions` below.
 - The STATE block (yaml, schema in CLAUDE.md) reflecting the post-decision
-  state, so the finalizer can carry it into final.md.
+  state, so the finalizer can carry it into final.md. Suggestions never enter
+  the STATE block.
+
+## Suggestions
+Non-binding user steers; hard constraints and the transfer rule always win.
+
+Open set. On your first run of the cycle read data/suggestions.md once and
+record the highest S# read. A row is OPEN when its From GW ≤ N (blank = open),
+its Until GW is blank or ≥ N, and the latest ledger status for it is absent,
+`deferred` or `standing`; no prior ledger → every row in window is open. On
+any re-run this cycle (revision loop, REOPEN) the set is the S# already in
+data/decisions/gw{N}/squad-proposal.md's ledger; rows added since wait for the
+next GW.
+
+Order of work:
+1. Malformed rows (wrong column count, non-numeric GW, S# reused or already in
+   the ledger) are not disposed: list them under `Malformed` above the ledger
+   with their line text.
+2. Withdraw rows (Suggestion cell exactly `withdraw S<n>`) fire whatever their
+   From/Until GW and are never in the open set: S<n> → `withdrawn` unless
+   already closed (left as is); no such S<n> → the withdraw row is `rejected`,
+   reason `no such S#`; otherwise the withdraw row is `followed`, reason
+   `withdraws S<n>`.
+3. Expiry: a row with Until GW < N whose latest status is absent, `deferred`
+   or `standing` → `expired`.
+4. Dispose each remaining open S# on the deltas steps 1–4 recorded:
+
+   | Status | Open? | When |
+   |---|---|---|
+   | followed | no | done, in full or in part — the reason names what was not taken |
+   | rejected | no | not worth it, or infeasible — then the reason is the rule broken verbatim (`illegal: 4 MCI`, `3xc outside window`) |
+   | deferred | yes | right idea, wrong week — names the revisit GW (≤ N+2) and why now is wrong (fixture swing, price window, chip clash) |
+   | standing | yes | a policy, or a move needing several transfers, that you accept: honour it in steps 1–4 and re-affirm each cycle with one clause on how the plan honours it; `followed` when complete, `rejected` with a number when it stops holding |
+
+   Reason = the EP6 delta (positive = the suggestion gains) against the plan
+   with this row alone removed, or the rule it breaks. A suggestion may add a
+   candidate or break a tie inside 0.5 EP6 (squad) / 0.5 certainty-discounted
+   single-GW EP (captaincy); it never bypasses a hard constraint, the transfer
+   rule or the audit trail. Two rows pulling one choice apart: the higher S#
+   wins the tie, the other is `rejected` naming it.
+
+Ledger, in squad-proposal.md: the marker line
+`Read data/suggestions.md through S<max>` (`no rows` when the table is empty),
+then one table `| S# | GW | Status | Reason |`, one row per S# read whose
+From GW ≤ N, sorted numerically. GW = the cycle that FIRST set the current
+status — a re-deferral or re-affirmed `standing` row keeps its GW and rewrites
+only the reason. Closed rows are copied forward from the latest final.md
+verbatim. No `|`, newline or triple backtick in a cell. With no S# in window,
+write the header and separator rows only. File absent: carry the previous
+ledger forward unchanged under the line "No data/suggestions.md".
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.

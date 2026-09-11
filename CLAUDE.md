@@ -47,6 +47,8 @@ Scoring context that changes valuation this season:
                                        The EP arithmetic is CODE (docs/ep-model.md);
                                        the agent supplies p_start, overrides, notes.
 4. Run `agents/squad-optimizer.md`  → data/decisions/gw{N}/squad-proposal.md
+   Reads any open rows of data/suggestions.md (no prior ledger → every row
+   in window is open).
 5. Run `agents/red-team-reviewer.md`→ data/decisions/gw{N}/review.md
 6. Run `agents/finalizer.md`        → data/decisions/gw{N}/final.md
 7. Run `agents/plan-builder.md`     → data/decisions/gw{N}/plan.json
@@ -62,8 +64,8 @@ Scoring context that changes valuation this season:
    change with tests (docs/ep-model.md §5). No agent acts on it.
 1–6. As above, but squad-optimizer proposes TRANSFERS plus captain and bench
    order, scored on the 6-GW EP horizon. It reads the current squad from the
-   STATE block of the latest data/decisions/*/final.md and any correction
-   notes from data/retro/.
+   STATE block of the latest data/decisions/*/final.md, any correction
+   notes from data/retro/, and any open rows of data/suggestions.md.
 7. Run `agents/plan-builder.md`      → data/decisions/gw{N}/plan.json
    Compiles final.md's STATE block plus the cached bootstrap into the
    deterministic execution plan. Local-only: no network, no credentials. The
@@ -94,6 +96,41 @@ Scoring context that changes valuation this season:
 ### Revision mechanics
 On a REVISE verdict, re-invoke squad-optimizer with review.md as additional
 input; exactly one such loop. Then step 6.
+
+### User suggestions (data/suggestions.md, optional)
+Non-binding steers from the user, one table row each:
+`| S# | Date | From GW | Until GW | Suggestion |`, append-only, format at the
+top of the file. Only the squad-optimizer acts on them, in any cycle, GW1
+included. Hard constraints and the transfer rule are never overridden, and a
+suggestion never drives a POST — decisions still flow through `picks:`.
+
+- Cut-off: the optimizer's first run of the cycle reads the file and records
+  the highest S# read in its ledger. Any re-run that cycle (revision loop,
+  REOPEN) keeps that set; rows added later wait for the next GW and never
+  trigger REOPEN.
+- Ledger: final.md `## Suggestions` — the marker line
+  `Read data/suggestions.md through S<max>`, then
+  `| S# | GW | Status | Reason |`, one row per S# read whose From GW ≤ N,
+  sorted numerically. GW = the cycle that first set the current status, so a
+  re-deferral or re-affirmed standing row keeps its GW. Reason = EP6 delta or
+  the rule the suggestion breaks.
+
+  | Status | Open? | Meaning |
+  |---|---|---|
+  | followed | no | done, in full or in part |
+  | rejected | no | not worth it, or infeasible |
+  | deferred | yes | not now; names a revisit GW ≤ N+2 |
+  | standing | yes | accepted policy or multi-transfer move; honoured and re-affirmed every cycle until closed |
+  | expired | no | Until GW passed undisposed |
+  | withdrawn | no | retracted by a `withdraw S<n>` row |
+
+  The next optimizer reads this table plus data/suggestions.md and nothing
+  older; closed rows are carried forward verbatim.
+- The red-team checks the dispositions (checklist item 12); the finalizer
+  refuses a ledger that drops an S#, then carries it into final.md, never
+  into the STATE block; the retro reads past it.
+- The orchestrator's cycle report to the user lists every ledger row with
+  GW = N or an open status.
 
 ### Freshness gate (all cycles)
 Executed by the finalizer via `flags` before it writes final.md. If any
@@ -314,3 +351,5 @@ agent codes.
 - Price-change prediction (protect team value)
 - Bayesian updating of player priors from retro data (lands in fpl/ep.py constants)
 - Backtesting harness against past seasons
+- Retro scoring of `followed` suggestions against the unaided plan (did the
+  user's steer add EP?)

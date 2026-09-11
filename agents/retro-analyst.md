@@ -126,6 +126,8 @@ squad numbers then describe the plan, not the fielded team.
   shots was still the right pick. Only correct process.
 - n is small early in the season. Withhold level corrections on power grounds
   and say so, rather than moving a prior on one round.
+- final.md `## Suggestions` is the user-steer ledger. Read past it: never
+  attribute a miss to it, correct on it, or mirror it — Phase 2 scores it.
 
 ## Output → data/retro/gwM.md
 About 120 lines; caps are per section. Sections in this exact order with these
