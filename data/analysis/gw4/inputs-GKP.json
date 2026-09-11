@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "gw": 4,
+  "position": "GKP",
+  "players": [
+    {
+      "id": 1,
+      "name": "Raya",
+      "p_start": 0.96,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; 2 CS, xGC 0.92; Arrizabalaga/Meslier nowhere near"
+    },
+    {
+      "id": 226,
+      "name": "Pickford",
+      "p_start": 0.96,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; undisputed, Travers 0 mins"
+    },
+    {
+      "id": 350,
+      "name": "A.Becker",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Mamardashvili 0 mins; small muscle-injury tax on a 6-GW window"
+    },
+    {
+      "id": 384,
+      "name": "Donnarumma",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Rulli/Bettinelli cup keepers"
+    },
+    {
+      "id": 28,
+      "name": "Martinez",
+      "p_start": 0.96,
+      "uncertainty": "LOW",
+      "notes": "0,90,90 - Sanchez (Como) and Jorgensen (Strasbourg) both loaned out; only Penders behind"
+    },
+    {
+      "id": 82,
+      "name": "Kelleher",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Valdimarsson 0 mins"
+    },
+    {
+      "id": 385,
+      "name": "Trafford",
+      "p_start": 0.96,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Perri loaned to Torino, Cairns/Zetterer backups"
+    },
+    {
+      "id": 412,
+      "name": "Lammens",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Bayindir loaned, Heaton hamstring - Darlow is the only alternative"
+    },
+    {
+      "id": 198,
+      "name": "Henderson",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90', chance_of_playing 100; 8 GC but no rotation signal"
+    },
+    {
+      "id": 467,
+      "name": "Sels",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; only 4 saves - NFO defw 0.90 suppresses the saves term"
+    },
+    {
+      "id": 529,
+      "name": "Roefs",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Patterson sold to Wrexham, Ellborg untested"
+    },
+    {
+      "id": 567,
+      "name": "Horníček",
+      "p_start": 0.92,
+      "uncertainty": "MED",
+      "notes": "3/3 90' ahead of a fit unflagged Pope; 13 saves leads the league. Pope reversion is the live risk"
+    },
+    {
+      "id": 572,
+      "name": "Tzolakis",
+      "p_start": 0.96,
+      "uncertainty": "MED",
+      "notes": "3/3 90', Butland arm injury no return date. 3 CS on xGC 5.05 is unsustainable - promoted-club band applies"
+    },
+    {
+      "id": 250,
+      "name": "Leno",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Lecomte backup only"
+    },
+    {
+      "id": 109,
+      "name": "Verbruggen",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Steele is bench fodder"
+    },
+    {
+      "id": 57,
+      "name": "Petrović",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Di Gregorio has not displaced him in three GWs"
+    },
+    {
+      "id": 496,
+      "name": "Kinsky",
+      "p_start": 0.95,
+      "uncertainty": "LOW",
+      "notes": "3/3 90'; Vicario loaned to Juventus, Austin/Dubravka behind"
+    },
+    {
+      "id": 564,
+      "name": "Scherpen",
+      "p_start": 0.93,
+      "uncertainty": "MED",
+      "notes": "3/3 90', 13 saves; promoted IPS, Walton/Palmer/Button are the alternatives"
+    },
+    {
+      "id": 110,
+      "name": "Rushworth",
+      "p_start": 0.93,
+      "uncertainty": "MED",
+      "notes": "3/3 90'; promoted COV, Wilson/Bentley behind; only 5 saves on 5 GC"
+    },
+    {
+      "id": 597,
+      "name": "Suzuki",
+      "p_start": 0.9,
+      "uncertainty": "MED",
+      "notes": "0,90,90 - two consecutive 90s lift the new-signing 0.70 cap; Bizot displaced after GW1"
+    },
+    {
+      "id": 442,
+      "name": "Pope",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "0 mins in 3, no flag - dropped, not injured; recall optionality only"
+    },
+    {
+      "id": 29,
+      "name": "M.Bizot",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "started GW1, benched since Suzuki came in"
+    },
+    {
+      "id": 560,
+      "name": "Penders",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "sole CHE backup after the Sanchez and Jorgensen loans"
+    },
+    {
+      "id": 351,
+      "name": "Mamardashvili",
+      "p_start": 0.07,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; would start only on an Alisson injury"
+    },
+    {
+      "id": 615,
+      "name": "Di Gregorio",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "0 mins in 3 despite the signing; behind Petrovic"
+    },
+    {
+      "id": 325,
+      "name": "Darlow",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "MUN #2 by default with Heaton injured and Bayindir loaned"
+    },
+    {
+      "id": 587,
+      "name": "Rulli",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "MCI cup keeper"
+    },
+    {
+      "id": 2,
+      "name": "Arrizabalaga",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "ARS #2, 0 mins"
+    },
+    {
+      "id": 497,
+      "name": "Dubravka",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "4.0m bench fodder, 17.9% owned; 0 mins behind Kinsky"
+    },
+    {
+      "id": 199,
+      "name": "Benitez",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "CRY #2, 0 mins"
+    },
+    {
+      "id": 111,
+      "name": "Steele",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "4.0m bench fodder behind Verbruggen"
+    },
+    {
+      "id": 83,
+      "name": "Valdimarsson",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "BRE #2, 0 mins"
+    },
+    {
+      "id": 227,
+      "name": "Travers",
+      "p_start": 0.03,
+      "uncertainty": "HIGH",
+      "notes": "EVE #2 behind a never-rested Pickford"
+    },
+    {
+      "id": 58,
+      "name": "Forster",
+      "p_start": 0.03,
+      "uncertainty": "HIGH",
+      "notes": "4.0m bench fodder, third at BOU behind Di Gregorio"
+    },
+    {
+      "id": 3,
+      "name": "Meslier",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "ARS #3, 0 mins"
+    },
+    {
+      "id": 228,
+      "name": "King",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "EVE #3, 0 mins"
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+{
+ "schema_version": 1,
+ "gw": 4,
+ "team_id": 8455344,
+ "deadline": "2026-09-12T12:30:00Z",
+ "chip": null,
+ "chip_plan": [
+  {
+   "chip": "3xc",
+   "gw": 9,
+   "status": "provisional",
+   "start_event": 1,
+   "stop_event": 19
+  },
+  {
+   "chip": "wildcard",
+   "gw": 8,
+   "status": "provisional",
+   "start_event": 2,
+   "stop_event": 19
+  },
+  {
+   "chip": "freehit",
+   "gw": 16,
+   "status": "provisional",
+   "start_event": 2,
+   "stop_event": 19
+  },
+  {
+   "chip": "bboost",
+   "gw": 19,
+   "status": "provisional",
+   "start_event": 1,
+   "stop_event": 19
+  }
+ ],
+ "chips_used": [],
+ "chips_available": [
+  {
+   "name": "wildcard",
+   "start_event": 2,
+   "stop_event": 19
+  },
+  {
+   "name": "wildcard",
+   "start_event": 20,
+   "stop_event": 38
+  },
+  {
+   "name": "freehit",
+   "start_event": 2,
+   "stop_event": 19
+  },
+  {
+   "name": "bboost",
+   "start_event": 1,
+   "stop_event": 19
+  },
+  {
+   "name": "3xc",
+   "start_event": 1,
+   "stop_event": 19
+  },
+  {
+   "name": "freehit",
+   "start_event": 20,
+   "stop_event": 38
+  },
+  {
+   "name": "bboost",
+   "start_event": 20,
+   "stop_event": 38
+  },
+  {
+   "name": "3xc",
+   "start_event": 20,
+   "stop_event": 38
+  }
+ ],
+ "formation": "3-4-3",
+ "picks": [
+  {
+   "element": 1,
+   "name": "Raya",
+   "club": "ARS",
+   "position": "GKP",
+   "slot": 1,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 6.0,
+   "starts": true
+  },
+  {
+   "element": 4,
+   "name": "Gabriel",
+   "club": "ARS",
+   "position": "DEF",
+   "slot": 2,
+   "is_captain": false,
+   "is_vice_captain": true,
+   "now_cost": 8.0,
+   "starts": true
+  },
+  {
+   "element": 229,
+   "name": "Tarkowski",
+   "club": "EVE",
+   "position": "DEF",
+   "slot": 3,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 6.0,
+   "starts": true
+  },
+  {
+   "element": 202,
+   "name": "Richards",
+   "club": "CRY",
+   "position": "DEF",
+   "slot": 4,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 5.0,
+   "starts": true
+  },
+  {
+   "element": 68,
+   "name": "Tavernier",
+   "club": "BOU",
+   "position": "MID",
+   "slot": 5,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 6.0,
+   "starts": true
+  },
+  {
+   "element": 427,
+   "name": "Mbeumo",
+   "club": "MUN",
+   "position": "MID",
+   "slot": 6,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 7.9,
+   "starts": true
+  },
+  {
+   "element": 69,
+   "name": "Scott",
+   "club": "BOU",
+   "position": "MID",
+   "slot": 7,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 6.1,
+   "starts": true
+  },
+  {
+   "element": 237,
+   "name": "Ndiaye",
+   "club": "MCI",
+   "position": "MID",
+   "slot": 8,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 5.9,
+   "starts": true
+  },
+  {
+   "element": 411,
+   "name": "Haaland",
+   "club": "MCI",
+   "position": "FWD",
+   "slot": 9,
+   "is_captain": true,
+   "is_vice_captain": false,
+   "now_cost": 15.5,
+   "starts": true
+  },
+  {
+   "element": 106,
+   "name": "Thiago",
+   "club": "BRE",
+   "position": "FWD",
+   "slot": 10,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 7.9,
+   "starts": true
+  },
+  {
+   "element": 249,
+   "name": "Barry",
+   "club": "EVE",
+   "position": "FWD",
+   "slot": 11,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 5.6,
+   "starts": true
+  },
+  {
+   "element": 497,
+   "name": "Dubravka",
+   "club": "TOT",
+   "position": "GKP",
+   "slot": 12,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 4.0,
+   "starts": false
+  },
+  {
+   "element": 481,
+   "name": "Anderson",
+   "club": "MCI",
+   "position": "MID",
+   "slot": 13,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 6.3,
+   "starts": false
+  },
+  {
+   "element": 445,
+   "name": "Thiaw",
+   "club": "NEW",
+   "position": "DEF",
+   "slot": 14,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 5.0,
+   "starts": false
+  },
+  {
+   "element": 423,
+   "name": "Shaw",
+   "club": "MUN",
+   "position": "DEF",
+   "slot": 15,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 4.4,
+   "starts": false
+  }
+ ],
+ "bench": [
+  497,
+  481,
+  445,
+  423
+ ],
+ "captain": {
+  "id": 411,
+  "name": "Haaland"
+ },
+ "vice": {
+  "id": 4,
+  "name": "Gabriel"
+ },
+ "transfers": [],
+ "transfer_source": "none",
+ "price_resolution": "live",
+ "price_resolution_note": "Every price in this file is £m at plan time and is an audit snapshot only. At POST time the selling price comes from the authenticated my-team read (it encodes each player's own price-rise profit rule) and the purchase price from the live bootstrap; a drift against purchase_price_at_plan warns, and one that breaks the bank refuses.",
+ "bank": 0.0,
+ "team_value": 99.4,
+ "free_transfers_banked": 2,
+ "source": "data/decisions/gw4/final.md",
+ "generated_from": {
+  "final": "data/decisions/gw4/final.md",
+  "previous_final": "data/decisions/gw3/final.md",
+  "bootstrap": "data/raw/gw4/bootstrap.json"
+ },
+ "bootstrap_snapshot_age_hours": 0.05,
+ "warnings": []
+}
