@@ -92,6 +92,11 @@ Scoring context that changes valuation this season:
    `chip` only if it owns it and prints a note otherwise; an unknown chip name
    refuses rather than being dropped. A transfer chip with no transfers left to
    make refuses — there would be no POST to carry it.
+9. OPTIONAL, for a COMPLETED cycle (normally at the start of the next one):
+   run `agents/usage-collector.md` for GW{N-1} → data/cost/gw{N-1}/
+   Persists that cycle's token usage and list-price cost from the Claude Code
+   transcripts. The session and window come from `fpl usage --list` /
+   `--inspect`; the arithmetic is CODE (`fpl usage`). Local-only, no network.
 
 ### Revision mechanics
 On a REVISE verdict, re-invoke squad-optimizer with review.md as additional
@@ -215,6 +220,7 @@ per GW cycle. Every subagent prompt must restate this.
 | finalizer | opus | gate enforcement + final.md assembly |
 | plan-builder | haiku | mechanical CLI invocation, no judgment |
 | team-executor | haiku | mechanical CLI invocation, no judgment |
+| usage-collector | haiku | mechanical CLI invocation, no judgment |
 
 Decision-making agents (optimizer, red-team) run on Fable-tier; analysis and
 gate-enforcement agents (fixture, player, retro, finalizer) run on Opus;
@@ -245,6 +251,7 @@ All FPL API access goes through the deterministic CLI
 | `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
 | `make-transfers --team-id <id> --from-plan <plan.json> [--apply]` | transfer POST; dry-run without `--apply` — `--apply` is the USER confirmation gate, never automated | write (auth) |
 | `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). The only command with no `--gw` | local only |
+| `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`). `--list` indexes sessions with the GW tags in their agent descriptions, by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn timeline and a suggested window; the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
 
 Authenticated write mechanics (details: docs/api-write.md):
 - Credentials live in git-ignored data/auth.json (template:
@@ -302,7 +309,7 @@ Mechanics:
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
-- plan.json, data/retro/gw{M}-calibration.json and
+- plan.json, data/retro/gw{M}-calibration.json, data/cost/gw{N}/ and
   data/analysis/gw{N}/players-{pos}.json are the exceptions: all derived
   (plan.json from final.md + cached bootstrap, the calibration ledger from the
   analysis files + final.md + the round's event-live snapshot, players-{pos}.json

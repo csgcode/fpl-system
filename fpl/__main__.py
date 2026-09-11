@@ -14,6 +14,7 @@ import csv
 import json
 import sys
 from collections.abc import Callable, Sequence
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -82,6 +83,17 @@ from fpl.state import (
     picks_from_ids,
 )
 from fpl.store import ArchiveCollisionError, SnapshotMissingError, SnapshotStore
+from fpl.usage import build_report as build_usage_report
+from fpl.usage import (
+    default_transcripts_root,
+    fmt_ts,
+    inspect_session,
+    latest_ledger_end,
+    list_sessions,
+    load_session,
+    parse_ts,
+    write_report,
+)
 from fpl.write import (
     AuthenticatedRequestsGateway,
     SessionExpiredError,
@@ -101,6 +113,7 @@ DECISIONS_ROOT = Path("data/decisions")
 ANALYSIS_ROOT = Path("data/analysis")
 FINAL_FILENAME = "final.md"
 PLAN_FILENAME = "plan.json"
+COST_ROOT = Path("data/cost")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -251,6 +264,41 @@ def build_parser() -> argparse.ArgumentParser:
     auth_import.add_argument(
         "--out", type=Path, default=DEFAULT_AUTH_PATH,
         help=f"credentials file to write (default: {DEFAULT_AUTH_PATH})",
+    )
+
+    # Local-only: reduces Claude Code's own session transcripts to token
+    # usage and list-price cost. Never the network, never credentials.
+    usage_cmd = add(
+        "usage", "token usage and list-price cost of a Claude Code session window",
+        cached=False,
+    )
+    usage_cmd.add_argument(
+        "--transcripts-root", type=Path, default=None,
+        help="Claude Code transcripts dir (default: ~/.claude/projects/<encoded cwd>)",
+    )
+    usage_mode = usage_cmd.add_mutually_exclusive_group()
+    usage_mode.add_argument(
+        "--list", action="store_true",
+        help="list sessions newest first; by default only those active after the "
+             "latest ledger for an earlier gameweek under --cost-root",
+    )
+    usage_cmd.add_argument("--since", help="with --list: only sessions active at or after this ISO-8601 UTC time")
+    usage_cmd.add_argument("--all", action="store_true", help="with --list: every session, ignoring ledgers")
+    usage_cmd.add_argument(
+        "--cost-root", type=Path, default=COST_ROOT,
+        help=f"ledger root: default --out parent and the --list cutoff source (default: {COST_ROOT})",
+    )
+    usage_cmd.add_argument("--session", help="session id or unique prefix")
+    usage_mode.add_argument(
+        "--inspect", action="store_true",
+        help="print the session's prompt/spawn timeline and a suggested window for --gw",
+    )
+    usage_mode.add_argument("--start", help="window start, ISO-8601 UTC, inclusive")
+    usage_cmd.add_argument("--end", help="window end, ISO-8601 UTC, exclusive")
+    usage_cmd.add_argument("--label", default="", help="free-text label written into the report")
+    usage_cmd.add_argument(
+        "--out", type=Path, default=None,
+        help="output directory (default: <cost-root>/gw{N})",
     )
 
     # Local-only: the plan is a pure function of final.md plus the cached
@@ -414,6 +462,8 @@ def main(
     try:
         if args.command == "auth-import":
             return run_auth_import(args)
+        if args.command == "usage":
+            return run_usage(args)
         if args.command in WRITE_COMMANDS:
             return run_write_command(
                 store, args, write_gateway_factory or _default_write_gateway
@@ -934,6 +984,80 @@ def print_plan(plan: ExecutionPlan) -> None:
     print(f"prices: {plan.price_resolution} — {plan.price_resolution_note}")
     for warning in plan.warnings:
         print(f"WARNING: {warning}")
+
+
+def run_usage(args: argparse.Namespace) -> int:
+    root = args.transcripts_root or default_transcripts_root(Path.cwd())
+    if not root.is_dir():
+        raise ValueError(f"transcripts root not found: {root}")
+    if (args.since or args.all) and not args.list:
+        raise ValueError("--since and --all apply to --list only")
+    if (args.out or args.label) and not args.start:
+        raise ValueError("--out and --label apply to an extract (--start/--end) only")
+    if args.list:
+        cutoff: datetime | None = None
+        source = ""
+        if args.since:
+            cutoff, source = parse_ts(args.since), "--since"
+        elif not args.all:
+            found = latest_ledger_end(args.cost_root, before_gw=args.gw)
+            if found:
+                cutoff, source = found[0], str(found[1])
+        if cutoff is not None:
+            _stderr(
+                f"listing sessions active after {fmt_ts(cutoff)} (from {source}); "
+                f"--all lists every session"
+            )
+        rows = list_sessions(root, since=cutoff)
+        if not rows:
+            where = f"active after {fmt_ts(cutoff)}" if cutoff else f"under {root}"
+            _stderr(f"no sessions {where}")
+            return EXIT_EMPTY
+        print(
+            f"{'session':<9} {'first (UTC)':<17} {'last':<6} {'prompts':>7} "
+            f"{'agents':>6} {'gw tags':<10} first prompt"
+        )
+        for row in rows:
+            first = fmt_ts(row.first_at)[:16].replace("T", " ") if row.first_at else "-"
+            last = fmt_ts(row.last_at)[11:16] if row.last_at else "-"
+            tags = ",".join(f"GW{n}" for n in sorted(row.gw_tags)) or "-"
+            print(
+                f"{row.session_id[:8]:<9} {first:<17} {last:<6} {row.human_prompts:>7} "
+                f"{row.agents:>6} {tags:<10} {row.first_prompt[:70]}"
+            )
+        return EXIT_OK
+    if not args.session:
+        raise ValueError("usage needs --session <id or prefix>; --list shows the sessions")
+    session = load_session(root, args.session)
+    if args.inspect:
+        print(inspect_session(session, args.gw), end="")
+        return EXIT_OK
+    if not args.start or not args.end:
+        raise ValueError(
+            "usage needs --start and --end (ISO-8601 UTC); "
+            "--inspect prints the timeline and a suggested window"
+        )
+    start, end = parse_ts(args.start), parse_ts(args.end)
+    if end <= start:
+        raise ValueError(f"--end {fmt_ts(end)} is before or equal to --start {fmt_ts(start)}")
+    report = build_usage_report(
+        session, gw=args.gw, start=start, end=end, label=args.label, transcripts_root=root
+    )
+    if not report.calls:
+        _stderr(
+            f"no API calls between {fmt_ts(start)} and {fmt_ts(end)} "
+            f"in session {session.session_id}"
+        )
+        return EXIT_EMPTY
+    out = args.out or (args.cost_root / f"gw{args.gw}")
+    for path in write_report(report, out):
+        print(path)
+    t = report.totals
+    print(
+        f"calls: {t.calls}  agents: {t.agents}  wall: {t.wall_minutes} min  "
+        f"cost: ${t.cost_usd:.2f}  (uncached-equivalent ${t.cost_uncached_equivalent:.2f})"
+    )
+    return EXIT_OK
 
 
 def run_auth_import(args: argparse.Namespace) -> int:

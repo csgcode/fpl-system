@@ -80,6 +80,12 @@ subagent tier.
 - `uv run python -m fpl auth-import --curl-file curl-request` — turn a browser
   "Copy as cURL" capture of a `my-team` request into git-ignored
   `data/auth.json` (mode 0600). The only command with no `--gw`
+- `uv run python -m fpl usage --gw N --list | --session <id> --inspect |
+  --session <id> --start <ts> --end <ts>` — token usage and list-price cost
+  of one Claude Code session window, from the transcripts under
+  `~/.claude/projects`, into `data/cost/gw{N}/` (usage.md, usage.json,
+  calls.csv). Local-only. `scripts/collect-usage.sh N` runs it headlessly via
+  `agents/usage-collector.md` on the Claude Code login
 - `uv run python -m fpl auth-check --gw N` — session pre-flight. Exit 0 prints
   PASS plus entry id, squad size, bank, value, free transfers and chips; exit
   1 means the credentials need re-capturing, so it gates a shell cycle:
@@ -89,6 +95,7 @@ subagent tier.
 ## Usage (Claude Code)
 - GW1/wildcard: "Run the initial squad workflow in CLAUDE.md."
 - Weekly:       "Run the weekly cycle for GW{N}."
+- Cost ledger:  "Run agents/usage-collector.md for GW{N}." (completed cycles)
 
 ## Phase 2 backlog
 MILP optimizer (PuLP), chip-strategy agent (DGW/BGW), price-change
