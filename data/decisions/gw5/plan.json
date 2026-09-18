@@ -91,14 +91,14 @@
    "starts": true
   },
   {
-   "element": 445,
-   "name": "Thiaw",
-   "club": "NEW",
+   "element": 4,
+   "name": "Gabriel",
+   "club": "ARS",
    "position": "DEF",
    "slot": 2,
    "is_captain": false,
-   "is_vice_captain": false,
-   "now_cost": 5.0,
+   "is_vice_captain": true,
+   "now_cost": 8.0,
    "starts": true
   },
   {
@@ -113,25 +113,14 @@
    "starts": true
   },
   {
-   "element": 4,
-   "name": "Gabriel",
-   "club": "ARS",
+   "element": 202,
+   "name": "Richards",
+   "club": "CRY",
    "position": "DEF",
    "slot": 4,
    "is_captain": false,
    "is_vice_captain": false,
-   "now_cost": 8.0,
-   "starts": true
-  },
-  {
-   "element": 427,
-   "name": "Mbeumo",
-   "club": "MUN",
-   "position": "MID",
-   "slot": 5,
-   "is_captain": false,
-   "is_vice_captain": true,
-   "now_cost": 7.9,
+   "now_cost": 5.0,
    "starts": true
   },
   {
@@ -139,10 +128,21 @@
    "name": "Tavernier",
    "club": "BOU",
    "position": "MID",
-   "slot": 6,
+   "slot": 5,
    "is_captain": false,
    "is_vice_captain": false,
    "now_cost": 6.1,
+   "starts": true
+  },
+  {
+   "element": 427,
+   "name": "Mbeumo",
+   "club": "MUN",
+   "position": "MID",
+   "slot": 6,
+   "is_captain": false,
+   "is_vice_captain": false,
+   "now_cost": 7.9,
    "starts": true
   },
   {
@@ -157,14 +157,14 @@
    "starts": true
   },
   {
-   "element": 481,
-   "name": "Anderson",
+   "element": 237,
+   "name": "Ndiaye",
    "club": "MCI",
    "position": "MID",
    "slot": 8,
    "is_captain": false,
    "is_vice_captain": false,
-   "now_cost": 6.3,
+   "now_cost": 5.9,
    "starts": true
   },
   {
@@ -212,20 +212,20 @@
    "starts": false
   },
   {
-   "element": 542,
-   "name": "E.Le Fée",
-   "club": "SUN",
+   "element": 481,
+   "name": "Anderson",
+   "club": "MCI",
    "position": "MID",
    "slot": 13,
    "is_captain": false,
    "is_vice_captain": false,
-   "now_cost": 5.8,
+   "now_cost": 6.3,
    "starts": false
   },
   {
-   "element": 202,
-   "name": "Richards",
-   "club": "CRY",
+   "element": 445,
+   "name": "Thiaw",
+   "club": "NEW",
    "position": "DEF",
    "slot": 14,
    "is_captain": false,
@@ -247,8 +247,8 @@
  ],
  "bench": [
   497,
-  542,
-  202,
+  481,
+  445,
   423
  ],
  "captain": {
@@ -256,36 +256,22 @@
   "name": "Haaland"
  },
  "vice": {
-  "id": 427,
-  "name": "Mbeumo"
+  "id": 4,
+  "name": "Gabriel"
  },
- "transfers": [
-  {
-   "out": {
-    "id": 237,
-    "name": "Ndiaye"
-   },
-   "in": {
-    "id": 542,
-    "name": "E.Le Fée"
-   },
-   "cost": 0,
-   "purchase_price_at_plan": 5.8,
-   "selling_price": null
-  }
- ],
- "transfer_source": "picks-diff",
+ "transfers": [],
+ "transfer_source": "none",
  "price_resolution": "live",
  "price_resolution_note": "Every price in this file is £m at plan time and is an audit snapshot only. At POST time the selling price comes from the authenticated my-team read (it encodes each player's own price-rise profit rule) and the purchase price from the live bootstrap; a drift against purchase_price_at_plan warns, and one that breaks the bank refuses.",
- "bank": 0.1,
- "team_value": 99.3,
- "free_transfers_banked": 2,
+ "bank": 0.0,
+ "team_value": 99.8,
+ "free_transfers_banked": 3,
  "source": "data/decisions/gw5/final.md",
  "generated_from": {
   "final": "data/decisions/gw5/final.md",
   "previous_final": "data/decisions/gw4/final.md",
   "bootstrap": "data/raw/gw5/bootstrap.json"
  },
- "bootstrap_snapshot_age_hours": 0.07,
+ "bootstrap_snapshot_age_hours": 5.18,
  "warnings": []
 }

@@ -1,5 +1,74 @@
 # GW5 Final Decision (2026/27)
 
+## CORRECTION - THE GW5 PLAN WAS NEVER EXECUTED (recorded post-deadline, 2026-09-18)
+
+Read this before anything else in this file. **Everything below this section is
+the pre-deadline prediction record, preserved verbatim for calibration. It
+describes a team that was never fielded.** The single exception is the STATE
+block at the end of the file, which has been REPLACED to describe reality: the
+fifteen that actually played, no transfers, and the unused free transfers
+carried forward. That block is what the GW6 cycle and `fpl plan` read, so it
+must be true rather than aspirational.
+
+What happened:
+
+- **Nothing was POSTed.** The authenticated FPL session had expired. `auth-check`
+  was attempted twice at the team-executor step and failed both times, and no
+  credential re-capture completed before the GW5 deadline
+  (**2026-09-18T17:30:00Z**), which has now passed. No transfer POST, no lineup
+  POST. The window is closed.
+- **The transfer did not happen.** Ndiaye (id 237) was **not** sold and
+  **E.Le Fee (id 542) was never bought** - he has never been owned by this entry.
+  Ndiaye remains in the squad. `fpl entry --gw 5 --team-id 8455344` reads
+  `last_deadline_total_transfers: 2` (the GW2 Tavernier and GW3 Barry moves),
+  confirming no third transfer was ever registered.
+- **The team that played GW5 is GW4's, carried forward by FPL.** The XI, captain,
+  vice and bench order set out below - the 3-4-3 with Thiaw and Gabriel shuffled
+  and Mbeumo as vice - were never set. The authoritative record,
+  `uv run python -m fpl picks --gw 5 --team-id 8455344 --event 5`, returns the
+  GW4 fifteen in GW4's slot order, captain Haaland (411), vice Gabriel (4), no
+  active chip. It matches `data/decisions/gw4/final.md`'s `picks:` block on all
+  fifteen ids, all fifteen slots and both armbands, with no discrepancy.
+- **Both free transfers went unused** and carry forward: 3 available at the GW6
+  deadline.
+
+### The GW5 retro must attribute this to EXECUTION, not to the model
+
+**The 57.397 GW5 prediction recorded below is a prediction for a squad and an XI
+that never took the field. The entire prediction-versus-actual gap for GW5 is an
+EXECUTION failure - an expired credential and a missed deadline - and must be
+attributed as such. It is NOT model error.**
+
+Binding consequences for `agents/retro-analyst.md` on GW5:
+
+- Do **not** raise a correction (`C<n>`) against A2 (fixture-analyst), A3
+  (player-analyst), A4 (squad-optimizer) or A5 (red-team) on the strength of
+  GW5's score. Their outputs were never tested by a real gameweek.
+- `fpl calibrate --round 5` joins the gw5 EP predictions to the round's actuals.
+  Those predictions stand and remain fair game as **per-player** minutes and rate
+  calibration for players who actually played. But every **squad-level**
+  aggregate - predicted versus actual total, captain hindsight, XI and bench
+  decisions - compares a counterfactual team against a real scoreline and is
+  **void as a model-accuracy signal**. E.Le Fee's row in particular is a
+  prediction for a player this entry did not own.
+- The one legitimate GW5 finding is the execution failure itself, logged to
+  `docs/backlog.md` (GW5 / ORCH / WORKFLOW): `auth-check` runs only at the
+  team-executor step at the end of the cycle, so credential expiry surfaces
+  minutes before the deadline with no time to recover.
+
+### Effect on the Suggestions ledger
+
+The `## Suggestions` ledger below is **left exactly as written** - S1 standing
+(GW4), S2 rejected (GW4). Disposition belongs to the squad-optimizer, and this is
+a record correction rather than an optimizer run, so no row is re-disposed here.
+
+**But S1's recorded reason is now false in fact.** It states the Ndiaye half was
+*completed*; it was not - Ndiaye was never sold and E.Le Fee was never bought.
+**The next optimizer must re-read S1 as still fully open**, both halves
+outstanding, and dispose it on that basis.
+
+---
+
 Deadline **2026-09-18T17:30:00Z**. Horizon **GW5–GW10**.
 Source: `data/decisions/gw5/squad-proposal.md` (REVISED · REOPEN re-score),
 `data/decisions/gw5/review.md` (verdict REVISE, three HIGH, all closed).
@@ -237,25 +306,41 @@ Read data/suggestions.md through S2
 
 ## STATE
 
+Replaced post-deadline (2026-09-18) to describe the team that actually played
+GW5. The pre-deadline block this supersedes proposed the Ndiaye -> E.Le Fee
+transfer and a 3-4-3; neither was ever POSTed. See the CORRECTION section at the
+top of this file.
+
 ```yaml
-# Convention (as GW2-GW4): free_transfers_banked = free transfers available at
-# the NEXT (GW6) deadline. One of this GW's two free transfers was spent
-# (Ndiaye -> E.Le Fee); one was banked, and one new FT accrues for GW6, giving
-# 2 (cap 5). team_value = squad sell value 99.2 + bank 0.1. Sell prices are
-# reconstructed from purchase prices (GW1 fifteen + Tavernier GW2 + Barry GW3,
-# sum exactly 100.0) via the FPL half-profit rule; the reconstruction
-# reproduces GW4's authenticated my-team sell column on all fifteen rows. No
-# authenticated my-team read was relayed this cycle. Ndiaye had fallen below
-# his purchase price, so his 5.9 sell equals now_cost regardless of history.
+# CORRECTED POST-DEADLINE. Nothing was POSTed for GW5: the authenticated session
+# had expired and the deadline passed. FPL carried the GW4 squad and GW4 lineup
+# forward, so picks: below are GW4's fifteen in GW4's slot order, captain Haaland
+# (411), vice Gabriel (4) - verified against
+# `fpl picks --gw 5 --team-id 8455344 --event 5`, an exact match to
+# data/decisions/gw4/final.md on all fifteen ids, all fifteen slots and both
+# armbands. transfers_made is empty: none were made.
+#
+# Convention (as GW2-GW5): free_transfers_banked = free transfers available at
+# the NEXT (GW6) deadline. Arithmetic: 2 were available at the GW5 deadline, 0
+# were used, 1 accrues for GW6 => 3, under the cap of 5.
+#
+# team_value / bank basis (as GW4): squad selling-price sum + bank. Read from
+# `fpl entry --gw 5 --team-id 8455344`, refreshed after the deadline on
+# 2026-09-18: last_deadline_value 998, last_deadline_bank 0. That is FPL's own
+# post-deadline accounting on the selling-price basis GW4 used, not the
+# bootstrap now_cost sum. So team_value 99.8 = squad sell 99.8 + bank 0.0.
+# No authenticated my-team read was possible this cycle (expired session); the
+# unauthenticated entry endpoint is the basis of record here. The same read
+# returns last_deadline_total_transfers 2 (GW2 Tavernier, GW3 Barry),
+# independently confirming no GW5 transfer was ever registered.
 gw: 5
 team_id: 8455344
-team_value: 99.3
-bank: 0.1
-free_transfers_banked: 2
+team_value: 99.8
+bank: 0.0
+free_transfers_banked: 3
 chip: null
 chips_used: []
-transfers_made:
-  - {out: Ndiaye, in: E.Le Fée, cost: 0}
+transfers_made: []
 chip_plan:
   - {chip: 3xc, gw: 9, status: provisional}
   - {chip: wildcard, gw: 8, status: provisional}
@@ -263,18 +348,18 @@ chip_plan:
   - {chip: bboost, gw: 19, status: provisional}
 picks:
   - {id: 1, name: Raya, position: 1, captain: false, vice: false}
-  - {id: 445, name: Thiaw, position: 2, captain: false, vice: false}
+  - {id: 4, name: Gabriel, position: 2, captain: false, vice: true}
   - {id: 229, name: Tarkowski, position: 3, captain: false, vice: false}
-  - {id: 4, name: Gabriel, position: 4, captain: false, vice: false}
-  - {id: 427, name: Mbeumo, position: 5, captain: false, vice: true}
-  - {id: 68, name: Tavernier, position: 6, captain: false, vice: false}
+  - {id: 202, name: Richards, position: 4, captain: false, vice: false}
+  - {id: 68, name: Tavernier, position: 5, captain: false, vice: false}
+  - {id: 427, name: Mbeumo, position: 6, captain: false, vice: false}
   - {id: 69, name: Scott, position: 7, captain: false, vice: false}
-  - {id: 481, name: Anderson, position: 8, captain: false, vice: false}
+  - {id: 237, name: Ndiaye, position: 8, captain: false, vice: false}
   - {id: 411, name: Haaland, position: 9, captain: true, vice: false}
   - {id: 106, name: Thiago, position: 10, captain: false, vice: false}
   - {id: 249, name: Barry, position: 11, captain: false, vice: false}
   - {id: 497, name: Dubravka, position: 12, captain: false, vice: false}
-  - {id: 542, name: E.Le Fée, position: 13, captain: false, vice: false}
-  - {id: 202, name: Richards, position: 14, captain: false, vice: false}
+  - {id: 481, name: Anderson, position: 13, captain: false, vice: false}
+  - {id: 445, name: Thiaw, position: 14, captain: false, vice: false}
   - {id: 423, name: Shaw, position: 15, captain: false, vice: false}
 ```
