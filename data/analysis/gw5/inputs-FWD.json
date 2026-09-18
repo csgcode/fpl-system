@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "gw": 5,
+  "position": "FWD",
+  "players": [
+    {
+      "id": 411,
+      "name": "Haaland",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts, four 90s; MCI's only senior FWD; pens #1. C18 streak tier — the one FWD earning 0.93."
+    },
+    {
+      "id": 379,
+      "name": "Isak",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts (63' GW3 the only hook); Ekitike out with Achilles leaves zero competition; pens #2."
+    },
+    {
+      "id": 106,
+      "name": "Thiago",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts; pens #1; Wilson 13' all season. 5 pts belies xG 2.41 — finishing, not role, is the problem."
+    },
+    {
+      "id": 165,
+      "name": "João Pedro",
+      "p_start": 0.68,
+      "p_start_gw": [
+        0.68,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9
+      ],
+      "uncertainty": "HIGH",
+      "notes": "Flagged d/75 on 16 Sep (unspecified). 0.75 available x 0.92 start-if-fit = 0.68 for GW5; nailed 4/4 with four 90s before the flag, so GW6-10 return to 0.90. HIGH is a GW5-local read, not a window verdict — see Escalations."
+    },
+    {
+      "id": 26,
+      "name": "Havertz",
+      "p_start": 0.91,
+      "uncertainty": "MED",
+      "notes": "4/4 starts; Gyokeres has 12' all season and is -0.3. MED not LOW: a 7.2m striker reclaiming the shirt inside the window is a live, if quiet, risk."
+    },
+    {
+      "id": 464,
+      "name": "Wissa",
+      "p_start": 0.92,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts; Woltemade loaned to Juventus, Osula injured — the only fit senior NEW striker. pens #2."
+    },
+    {
+      "id": 569,
+      "name": "Gonzalo",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts, pens #1; Muniz 28' all season. 76' GW4 the only hook."
+    },
+    {
+      "id": 249,
+      "name": "Barry",
+      "p_start": 0.91,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts, pens #1; Beto sold to Fiorentina leaves no competition. xG 2.98 is third in the position."
+    },
+    {
+      "id": 295,
+      "name": "McBurnie",
+      "p_start": 0.9,
+      "uncertainty": "HIGH",
+      "notes": "4/4 starts, pens #1, Ansah injured and Vaz 8' — nailed. HIGH is the promoted-club band (HUL att 0.68, worst in the league), not a minutes doubt."
+    },
+    {
+      "id": 346,
+      "name": "Calvert-Lewin",
+      "p_start": 0.89,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts, pens #1; hooked at 72' and 77' in the last two, and Nmecha has 50' — enough to keep him off the 0.93 tier."
+    },
+    {
+      "id": 79,
+      "name": "Evanilson",
+      "p_start": 0.89,
+      "uncertainty": "LOW",
+      "notes": "4/4 starts, two full 90s most recently after 74'/80' openers; Rodriguez and Jebbison offer nothing."
+    },
+    {
+      "id": 552,
+      "name": "Brobbey",
+      "p_start": 0.88,
+      "uncertainty": "MED",
+      "notes": "4/4 starts, two 90s. Isidor has 14 pts from 95 sub minutes — the most credible bench claim on any starter's shirt in the position."
+    },
+    {
+      "id": 316,
+      "name": "Emersonn",
+      "p_start": 0.88,
+      "uncertainty": "HIGH",
+      "overrides": {
+        "minutes_per_start": 62,
+        "attack_mult": 0.85
+      },
+      "reason": "Hooked every start (65/45/65/62, mean 59.3) so the 90' default overstates him; but three of four cleared the 60' appearance threshold, so a sub-60 mean would wrongly zero his 2-pt appearances — 62 is the least-wrong single value. attack_mult 0.85: promoted club, no PL history before this season, so the league-mean prior flatters him.",
+      "notes": "24 pts in 237' is the best minutes-adjusted return outside the elite. Raised from 0.70 — he has started all four; the ceiling is the hook, and that belongs in minutes_per_start, not p_start."
+    },
+    {
+      "id": 138,
+      "name": "Kostoulas",
+      "p_start": 0.88,
+      "p_start_gw": [
+        0.88,
+        0.88,
+        0.88,
+        0.84,
+        0.82,
+        0.82
+      ],
+      "uncertainty": "MED",
+      "notes": "Started GW2-4 after a GW1 cameo. Ferguson due back 10 Oct (~GW8), hence the taper; David and Georginio are not competition."
+    },
+    {
+      "id": 401,
+      "name": "Marmoush",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "Started GW2-4 but minutes decaying 90/83/76 while Solanke went 62' in GW4. pens #2 behind Solanke's #1. TOT att 0.74 caps the ceiling regardless."
+    },
+    {
+      "id": 166,
+      "name": "N.Jackson",
+      "p_start": 0.84,
+      "uncertainty": "MED",
+      "notes": "Started GW2-4 but 45' in GW4 with Abraham taking the other 45 — a share forming, not a nailed lead. Watkins gone to Al Hilal; pens #2."
+    },
+    {
+      "id": 167,
+      "name": "Delap",
+      "p_start": 0.8,
+      "uncertainty": "MED",
+      "notes": "Clean ramp 0/24/73/90 — has taken the NFO shirt off Igor Jesus. pens #3. Biggest riser in the position; 0.80 not higher because the streak is two rounds old."
+    },
+    {
+      "id": 222,
+      "name": "Strand Larsen",
+      "p_start": 0.72,
+      "p_start_gw": [
+        0.72,
+        0.72,
+        0.72,
+        0.6,
+        0.58,
+        0.58
+      ],
+      "uncertainty": "MED",
+      "notes": "83' in GW4 and CRY's lead while Mateta is out (hamstring, due 11 Oct ~GW8) and Nketiah was benched. Taper prices Mateta's return."
+    },
+    {
+      "id": 194,
+      "name": "Thomas-Asante",
+      "p_start": 0.48,
+      "p_start_gw": [
+        0.48,
+        0.48,
+        0.48,
+        0.48,
+        0.34,
+        0.34
+      ],
+      "uncertainty": "HIGH",
+      "overrides": {
+        "attack_mult": 0.8
+      },
+      "reason": "Promoted club with no meaningful PL scoring history; the league-mean default for a regular starter overstates his rate.",
+      "notes": "Awoniyi suspended to 19 Oct (~GW9) opens the COV lead; he has the most minutes of the three claimants. COV att 0.74 keeps the ceiling low."
+    },
+    {
+      "id": 526,
+      "name": "Solanke",
+      "p_start": 0.38,
+      "p_start_gw": [
+        0.38,
+        0.44,
+        0.48,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uncertainty": "HIGH",
+      "notes": "Fitness ramp 22/15/6/62 — the GW4 hour is the signal. pens #1 ahead of Marmoush, so a start carries outsized upside; Richarlison out of the squad."
+    },
+    {
+      "id": 56,
+      "name": "Abraham",
+      "p_start": 0.35,
+      "uncertainty": "HIGH",
+      "notes": "Ramping 0/19/5/45; split GW4 with Jackson 45-45. Watkins sold and Madjo injured make him the clear AVL #2."
+    },
+    {
+      "id": 553,
+      "name": "Isidor",
+      "p_start": 0.3,
+      "uncertainty": "HIGH",
+      "notes": "0 starts but 14 pts from 95 sub minutes. Pushing Brobbey; a start is a matter of when, not if, though the sample is tiny."
+    },
+    {
+      "id": 224,
+      "name": "Nketiah",
+      "p_start": 0.3,
+      "p_start_gw": [
+        0.3,
+        0.3,
+        0.3,
+        0.24,
+        0.22,
+        0.22
+      ],
+      "uncertainty": "HIGH",
+      "notes": "Cut from 0.70: fit since 12 Sep yet played 0' in GW4 having started GW1-3. Lost the shirt to Strand Larsen; Mateta's return pushes him down again."
+    },
+    {
+      "id": 491,
+      "name": "Igor Jesus",
+      "p_start": 0.28,
+      "uncertainty": "HIGH",
+      "notes": "Cut from 0.50: 90/90/31/15 is a clean displacement by Delap. pens #4 is no consolation."
+    },
+    {
+      "id": 634,
+      "name": "Fernandez-Pardo",
+      "p_start": 0.25,
+      "uncertainty": "HIGH",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "No PL history — the position league-mean default for a regular starter badly flatters a squad option at a weak-attack club (NEW att 0.87).",
+      "notes": "Two appearances (27', 57'), trending up, but Wissa is the only fit senior striker and is nailed. New-signing cap applies."
+    },
+    {
+      "id": 195,
+      "name": "Simms",
+      "p_start": 0.27,
+      "p_start_gw": [
+        0.27,
+        0.27,
+        0.27,
+        0.27,
+        0.2,
+        0.2
+      ],
+      "uncertainty": "HIGH",
+      "notes": "Second claimant on the COV lead while Awoniyi is suspended; 69' in GW1 is his high-water mark."
+    },
+    {
+      "id": 439,
+      "name": "Šeško",
+      "p_start": 0.24,
+      "uncertainty": "HIGH",
+      "notes": "0 starts; four near-identical cameos (23/10/20/23). MUN are starting no nominal FWD — a structural, not a form, problem."
+    },
+    {
+      "id": 25,
+      "name": "Gyökeres",
+      "p_start": 0.22,
+      "uncertainty": "HIGH",
+      "notes": "0 starts, 12' all season, -0.3 price. Havertz owns the ARS shirt. Retained above Seskо only because the price fall implies a cheap re-entry if he starts."
+    },
+    {
+      "id": 594,
+      "name": "David",
+      "p_start": 0.22,
+      "uncertainty": "HIGH",
+      "notes": "0 starts, 23' all season; Kostoulas ahead and Ferguson due back. pens #2 is the only hook."
+    },
+    {
+      "id": 136,
+      "name": "Welbeck",
+      "p_start": 0.22,
+      "p_start_gw": [
+        0.22,
+        0.13,
+        0.13,
+        0.13,
+        0.13,
+        0.13
+      ],
+      "uncertainty": "HIGH",
+      "notes": "GW5 bump is the Joao Pedro flag; Emegha due back 18 Sep restores the queue behind him from GW6."
+    },
+    {
+      "id": 599,
+      "name": "Cherif",
+      "p_start": 0.19,
+      "p_start_gw": [
+        0.19,
+        0.19,
+        0.19,
+        0.19,
+        0.14,
+        0.14
+      ],
+      "uncertainty": "HIGH",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "Promoted club, no PL history; league-mean default for a regular starter is the wrong prior for a 30-minute debutant.",
+      "notes": "First minutes in GW4 (30') as Awoniyi's suspension bit. Third in the COV queue."
+    },
+    {
+      "id": 490,
+      "name": "Wood",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "28/0/16/1 and -0.2; marginalised behind Delap and Igor Jesus despite pens #2."
+    },
+    {
+      "id": 640,
+      "name": "Flemming",
+      "p_start": 0.15,
+      "uncertainty": "HIGH",
+      "notes": "6 pts in 51' across two cameos; Emersonn's hook at ~60' is his route in. No attack discount: he carries a real PL prior (history_past), unlike the other promoted-club fringe rows."
+    },
+    {
+      "id": 347,
+      "name": "Nmecha",
+      "p_start": 0.14,
+      "uncertainty": "HIGH",
+      "notes": "50' all season behind a nailed Calvert-Lewin; pens #2 only matters if CBL is out."
+    },
+    {
+      "id": 125,
+      "name": "Georginio",
+      "p_start": 0.14,
+      "uncertainty": "HIGH",
+      "notes": "Cut from 0.35: started GW1 then 0' in three straight. Kostoulas has the shirt."
+    },
+    {
+      "id": 320,
+      "name": "Akpom",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "overrides": {
+        "attack_mult": 0.85
+      },
+      "reason": "Promoted club; prior is Championship-weighted and the league-mean fallback overstates PL finishing.",
+      "notes": "Cut from 0.25: 24/45/0/0 is a fade, not a rotation."
+    },
+    {
+      "id": 81,
+      "name": "Rodríguez",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "10' all season behind a nailed Evanilson."
+    },
+    {
+      "id": 271,
+      "name": "Muniz",
+      "p_start": 0.1,
+      "uncertainty": "HIGH",
+      "notes": "28' all season; Gonzalo plays every minute that matters."
+    },
+    {
+      "id": 440,
+      "name": "Zirkzee",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "7' all season. MUN start no nominal FWD."
+    },
+    {
+      "id": 608,
+      "name": "Jebbison",
+      "p_start": 0.08,
+      "uncertainty": "HIGH",
+      "notes": "16' all season, third at BOU."
+    },
+    {
+      "id": 108,
+      "name": "Wilson",
+      "p_start": 0.07,
+      "uncertainty": "HIGH",
+      "notes": "13' all season behind a nailed Thiago."
+    },
+    {
+      "id": 637,
+      "name": "Vaz",
+      "p_start": 0.07,
+      "uncertainty": "HIGH",
+      "overrides": {
+        "attack_mult": 0.7
+      },
+      "reason": "Promoted club, no PL history; league-mean starter default is the wrong prior for an 8-minute sample.",
+      "notes": "8' all season; McBurnie is nailed and Ansah is injured, so he is the emergency option only."
+    },
+    {
+      "id": 493,
+      "name": "Kalimuendo",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "1' all season, fourth in the NFO queue behind Delap, Igor Jesus and Wood."
+    }
+  ]
+}

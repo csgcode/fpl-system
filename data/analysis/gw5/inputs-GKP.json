@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "gw": 5,
+  "position": "GKP",
+  "players": [
+    {
+      "id": 1,
+      "name": "Raya",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; 3 CS, xGC 2.72; Arrizabalaga and Meslier both 0 mins. C18 3-round streak met; capped 0.94 not 0.96"
+    },
+    {
+      "id": 226,
+      "name": "Pickford",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Travers 0 mins, King 0 mins. Undisputed"
+    },
+    {
+      "id": 350,
+      "name": "A.Becker",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Mamardashvili 0 mins but a genuine heir, so a small muscle-injury tax over a 6-GW window"
+    },
+    {
+      "id": 384,
+      "name": "Donnarumma",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Rulli and Bettinelli are cup keepers"
+    },
+    {
+      "id": 28,
+      "name": "Martinez",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "0,90,90,90 - Sanchez to Como and Jorgensen to Strasbourg both loaned out; only Penders (4.4, 0 mins) behind. 15 saves in 270'"
+    },
+    {
+      "id": 82,
+      "name": "Kelleher",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Valdimarsson 0 mins"
+    },
+    {
+      "id": 385,
+      "name": "Trafford",
+      "p_start": 0.94,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Perri loaned to Torino, Cairns and Zetterer 0 mins"
+    },
+    {
+      "id": 467,
+      "name": "Sels",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; John and Benda 0 mins"
+    },
+    {
+      "id": 412,
+      "name": "Lammens",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Bayindir to Celta, Heaton hamstrung, Darlow 0 mins - no credible deputy despite 0 CS and 7 conceded"
+    },
+    {
+      "id": 529,
+      "name": "Roefs",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Patterson sold to Wrexham, Ellborg 0 mins"
+    },
+    {
+      "id": 250,
+      "name": "Leno",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Lecomte 0 mins, McNally loaned out"
+    },
+    {
+      "id": 496,
+      "name": "Kinsky",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Vicario at Juventus, Austin (4.0) the only cover"
+    },
+    {
+      "id": 109,
+      "name": "Verbruggen",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "4/4 90'; Steele 0 mins"
+    },
+    {
+      "id": 572,
+      "name": "Tzolakis",
+      "p_start": 0.94,
+      "uncertainty": "MED",
+      "notes": "4/4 90', 3 CS, 28 pts - the pool's best return at 4.6; Butland (arm, no return date) is the only rival. MED for promoted-club variance, not for minutes",
+      "overrides": {"saves90": 3.3},
+      "reason": "no PL prior (promoted HUL) so the code anchors on the league mean; 14 saves in 360' behind the joint-worst defensive rating (defw 1.19)"
+    },
+    {
+      "id": 597,
+      "name": "Suzuki",
+      "p_start": 0.93,
+      "uncertainty": "LOW",
+      "notes": "0,90,90,90 - took the shirt in GW2 and Bizot is now d/75 with a back injury"
+    },
+    {
+      "id": 57,
+      "name": "Petrović",
+      "p_start": 0.90,
+      "uncertainty": "MED",
+      "notes": "4/4 90' but 0 CS and 7 conceded, and Di Gregorio sits at 4.5 with 0 mins as a real deputy. C18 cap applies - no same-week confirmation"
+    },
+    {
+      "id": 110,
+      "name": "Rushworth",
+      "p_start": 0.88,
+      "uncertainty": "MED",
+      "notes": "4/4 90' but 10 conceded and xGC 7.53; Wilson (4.4) and Bentley available if COV change keeper",
+      "overrides": {"saves90": 2.2},
+      "reason": "no PL prior (promoted COV); only 7 saves in 360' despite 10 conceded - COV concede high-quality chances rather than volume, so the league-mean save rate overstates him"
+    },
+    {
+      "id": 564,
+      "name": "Scherpen",
+      "p_start": 0.88,
+      "uncertainty": "MED",
+      "notes": "4/4 90' but 0 CS, 10 conceded, xGC 6.74; Walton, Palmer and Button all behind him",
+      "overrides": {"saves90": 3.4},
+      "reason": "no PL prior (promoted IPS) so the default is the league mean; 15 saves in 360' behind a defence shipping 6.74 xGC"
+    },
+    {
+      "id": 567,
+      "name": "Horníček",
+      "p_start": 0.85,
+      "uncertainty": "MED",
+      "notes": "4/4 90' but Pope is fit at 4.9 with 0 mins and NEW's 7.55 xGC / 8 conceded is the pool's worst - the clearest live displacement risk among nominal starters",
+      "overrides": {"saves90": 3.5},
+      "reason": "first PL season, no prior to blend; 16 saves in 360' behind the pool's worst xGC"
+    },
+    {
+      "id": 199,
+      "name": "Benitez",
+      "p_start": 0.6,
+      "p_start_gw": [0.9, 0.9, 0.88, 0.42, 0.28, 0.25],
+      "uncertainty": "HIGH",
+      "notes": "started GW4 with Henderson out (foot, back 11 Oct = GW8 window). Nailed GW5-7, then hands back. HIGH is the 6-GW read; GW5 alone is 0.90"
+    },
+    {
+      "id": 198,
+      "name": "Henderson",
+      "p_start": 0.33,
+      "p_start_gw": [0.0, 0.0, 0.05, 0.55, 0.68, 0.72],
+      "uncertainty": "HIGH",
+      "notes": "foot injury, chance_of_playing 0, expected back 11 Oct - GW8 at the earliest, then match fitness and Benitez incumbency"
+    },
+    {
+      "id": 442,
+      "name": "Pope",
+      "p_start": 0.12,
+      "uncertainty": "HIGH",
+      "notes": "0 mins in 4 rounds and fit - the threat to Hornicek rather than a start today"
+    },
+    {
+      "id": 615,
+      "name": "Di Gregorio",
+      "p_start": 0.09,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; signed as competition for Petrovic, not yet trusted"
+    },
+    {
+      "id": 351,
+      "name": "Mamardashvili",
+      "p_start": 0.07,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; Alisson's understudy"
+    },
+    {
+      "id": 325,
+      "name": "Darlow",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "0 mins but MUN's only fit alternative to Lammens"
+    },
+    {
+      "id": 560,
+      "name": "Penders",
+      "p_start": 0.06,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; sole cover behind Martinez"
+    },
+    {
+      "id": 2,
+      "name": "Arrizabalaga",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; Raya's deputy"
+    },
+    {
+      "id": 587,
+      "name": "Rulli",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; MCI cup keeper"
+    },
+    {
+      "id": 29,
+      "name": "M.Bizot",
+      "p_start": 0.05,
+      "uncertainty": "HIGH",
+      "notes": "d/75 back injury (news 2026-09-17) and displaced by Suzuki since GW2"
+    },
+    {
+      "id": 227,
+      "name": "Travers",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "0 mins behind Pickford"
+    },
+    {
+      "id": 83,
+      "name": "Valdimarsson",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "0 mins behind Kelleher"
+    },
+    {
+      "id": 111,
+      "name": "Steele",
+      "p_start": 0.04,
+      "uncertainty": "HIGH",
+      "notes": "0 mins behind Verbruggen"
+    },
+    {
+      "id": 497,
+      "name": "Dubravka",
+      "p_start": 0.03,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; 17.6% owned purely as 4.0 bench fodder"
+    },
+    {
+      "id": 3,
+      "name": "Meslier",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; ARS third choice"
+    },
+    {
+      "id": 58,
+      "name": "Forster",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; BOU third choice"
+    },
+    {
+      "id": 228,
+      "name": "King",
+      "p_start": 0.02,
+      "uncertainty": "HIGH",
+      "notes": "0 mins; EVE third choice"
+    }
+  ]
+}
