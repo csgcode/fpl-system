@@ -38,9 +38,18 @@ uv run python -m fpl auth-refresh              # mint a new bearer, rewrite data
 uv run python -m fpl auth-refresh --dry-run    # show where it would go, send nothing
 ```
 
-Run this before any authenticated step instead of re-capturing. Re-capture
-only when the refresh token itself has expired or been revoked (a browser
-logout revokes it).
+Usually you will not need to run it at all: the write path refreshes itself.
+A request refused with 401/403 triggers one refresh and one replay, so a
+session that expires mid-cycle heals instead of ending the gameweek. The
+refresh is **reactive only** — a working token is never spent, because each
+refresh rotates the refresh token. Run `auth-refresh` by hand to check the
+plumbing or to see the current expiry; re-capture only when the refresh token
+itself has expired or been revoked (a browser logout revokes it).
+
+The replay happens exactly once. A 401/403 is refused before it changes
+anything, so replaying even a transfer POST cannot double-apply it — but a
+second rejection surfaces rather than looping, and once a refresh has failed
+it is not retried on later requests.
 
 Everything is derived from the tokens already held, so nothing breaks when FPL
 moves: the endpoint from the bearer's `iss` claim, the client id from the

@@ -104,6 +104,7 @@ from fpl.usage import (
 )
 from fpl.write import (
     AuthenticatedRequestsGateway,
+    RefreshingGateway,
     SessionExpiredError,
     TransferPlan,
     VerifyMismatchError,
@@ -484,6 +485,35 @@ def _default_write_gateway(credentials: AuthCredentials) -> WriteGateway:
     return AuthenticatedRequestsGateway(credentials)
 
 
+def _refreshing_write_gateway(
+    auth_path: Path,
+) -> Callable[[AuthCredentials], WriteGateway]:
+    """The real write path, able to revive itself once.
+
+    A capture's bearer lasts an hour, so a cycle that started with a valid one
+    can still meet a 401 by the time it reaches the deadline. Refreshing on
+    that rejection — rather than on every request — keeps the working case
+    untouched and stops an expired token ending a gameweek.
+    """
+
+    def build(credentials: AuthCredentials) -> WriteGateway:
+        return RefreshingGateway(
+            credentials,
+            build_gateway=AuthenticatedRequestsGateway,
+            refresh=_exchange_refresh_token,
+            on_refreshed=lambda refreshed: save_auth(auth_path, refreshed),
+        )
+
+    return build
+
+
+def _exchange_refresh_token(credentials: AuthCredentials) -> AuthCredentials:
+    with RequestsTokenGateway(credentials) as gateway:
+        return refresh_token(
+            credentials, derive_plan(credentials), gateway
+        ).credentials
+
+
 def main(
     argv: list[str] | None = None,
     service_factory: Callable[[SnapshotStore], FplDataService] | None = None,
@@ -500,7 +530,9 @@ def main(
             return run_usage(args)
         if args.command in WRITE_COMMANDS:
             return run_write_command(
-                store, args, write_gateway_factory or _default_write_gateway
+                store,
+                args,
+                write_gateway_factory or _refreshing_write_gateway(args.auth),
             )
         service = (service_factory or _default_service)(store)
         return run_command(service, store, args.gw, args)

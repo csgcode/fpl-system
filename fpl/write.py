@@ -42,11 +42,17 @@ def my_team_url(team_id: int) -> str:
 
 
 class SessionExpiredError(RuntimeError):
-    def __init__(self) -> None:
-        super().__init__(
-            "session expired — re-copy credentials from browser devtools "
-            "(see docs/api-write.md)"
+    def __init__(self, refresh_failure: str | None = None) -> None:
+        recapture = (
+            "re-copy credentials from browser devtools (see docs/api-write.md)"
         )
+        super().__init__(
+            "session expired — " + recapture
+            if refresh_failure is None
+            else f"session expired and refresh failed ({refresh_failure}) — "
+            f"{recapture}"
+        )
+        self.refresh_failure = refresh_failure
 
 
 class DeadlineError(ValueError):
@@ -113,6 +119,84 @@ class AuthenticatedRequestsGateway:
 
     def __exit__(self, exc_type, exc, tb) -> None:
         self.close()
+
+
+class RefreshingGateway:
+    """Revives a rejected session once, then replays the request.
+
+    Reactive, never proactive: the bearer is refreshed only when the server
+    actually refuses it. A working token is left alone, which matters because
+    each refresh rotates the refresh token — spending one per request would
+    turn a months-long credential into a moving target for no gain.
+
+    Exactly one replay. A 401/403 is refused before it changes anything, so
+    replaying even a transfer POST cannot double-apply it; but a second
+    rejection means the refresh did not help, and looping on it would hammer
+    the identity provider while the deadline runs down.
+    """
+
+    def __init__(
+        self,
+        credentials: AuthCredentials,
+        build_gateway: Callable[[AuthCredentials], WriteGateway],
+        refresh: Callable[[AuthCredentials], AuthCredentials],
+        on_refreshed: Callable[[AuthCredentials], None] | None = None,
+    ) -> None:
+        self._credentials = credentials
+        self._build = build_gateway
+        self._refresh = refresh
+        self._on_refreshed = on_refreshed
+        self._inner = build_gateway(credentials)
+        # Set once a refresh has been tried and the session is still refused:
+        # further attempts cannot help.
+        self._spent = False
+
+    def get_json(self, url: str) -> dict | list:
+        return self._attempt(lambda gateway: gateway.get_json(url))
+
+    def post_json(self, url: str, payload: dict) -> dict | list | None:
+        return self._attempt(lambda gateway: gateway.post_json(url, payload))
+
+    def close(self) -> None:
+        closer = getattr(self._inner, "close", None)
+        if callable(closer):
+            closer()
+
+    def __enter__(self) -> RefreshingGateway:
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    def _attempt(self, operation: Callable[[WriteGateway], object]) -> object:
+        try:
+            return operation(self._inner)
+        except SessionExpiredError:
+            if self._spent:
+                raise
+            self._renew()
+        try:
+            return operation(self._inner)
+        except SessionExpiredError:
+            self._spent = True
+            raise
+
+    def _renew(self) -> None:
+        try:
+            refreshed = self._refresh(self._credentials)
+        except Exception as exc:
+            # The refresh token is dead or the provider moved: the operator
+            # has to re-capture, so say that rather than surfacing an OAuth
+            # error from a layer they did not call.
+            self._spent = True
+            raise SessionExpiredError(str(exc)) from exc
+        if self._on_refreshed is not None:
+            # Rotation is single-use — persist before the replay, or a crash
+            # mid-request strands the session on a token already spent.
+            self._on_refreshed(refreshed)
+        self.close()
+        self._credentials = refreshed
+        self._inner = self._build(refreshed)
 
 
 def _ensure_session_alive(response) -> None:
