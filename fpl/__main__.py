@@ -14,7 +14,7 @@ import csv
 import json
 import sys
 from collections.abc import Callable, Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
@@ -47,7 +47,7 @@ from fpl.ep import (
     load_inputs,
     write_predictions,
 )
-from fpl.http import RequestsGateway
+from fpl.http import RequestsGateway, RequestsTokenGateway, TokenEndpointError
 from fpl.models import POSITION_ALIASES, MyTeam, PlayerStatus, Position
 from fpl.plan import (
     LINEUP_TARGET,
@@ -57,6 +57,14 @@ from fpl.plan import (
     parse_plan,
     route_chip,
 )
+from fpl.refresh import (
+    RefreshPlan,
+    TokenGateway,
+    TokenRefreshError,
+    derive_plan,
+    expiry_of,
+)
+from fpl.refresh import refresh as refresh_token
 from fpl.repository import (
     PLAYERS_SLIM_COLUMNS,
     SORT_KEYS,
@@ -266,6 +274,30 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"credentials file to write (default: {DEFAULT_AUTH_PATH})",
     )
 
+    # Local credential maintenance, so also no --gw. Reaches the identity
+    # provider rather than the FPL API: the captured bearer lives an hour, the
+    # refresh token beside it lives months.
+    auth_refresh = sub.add_parser(
+        "auth-refresh",
+        help="mint a fresh bearer token from the stored refresh token",
+    )
+    auth_refresh.add_argument(
+        "--auth", type=Path, default=DEFAULT_AUTH_PATH,
+        help=f"credentials file to read and rewrite (default: {DEFAULT_AUTH_PATH})",
+    )
+    auth_refresh.add_argument(
+        "--dry-run", action="store_true",
+        help="print where the refresh would go and stop, sending nothing",
+    )
+    auth_refresh.add_argument(
+        "--token-endpoint",
+        help="override the endpoint derived from the bearer token's iss claim",
+    )
+    auth_refresh.add_argument(
+        "--client-id",
+        help="override the client id derived from the bearer token's claims",
+    )
+
     # Local-only: reduces Claude Code's own session transcripts to token
     # usage and list-price cost. Never the network, never credentials.
     usage_cmd = add(
@@ -462,6 +494,8 @@ def main(
     try:
         if args.command == "auth-import":
             return run_auth_import(args)
+        if args.command == "auth-refresh":
+            return run_auth_refresh(args)
         if args.command == "usage":
             return run_usage(args)
         if args.command in WRITE_COMMANDS:
@@ -1076,6 +1110,70 @@ def run_auth_import(args: argparse.Namespace) -> int:
         )
     _warn_unless_ignored(args.curl_file)
     return EXIT_OK
+
+
+def run_auth_refresh(
+    args: argparse.Namespace,
+    gateway_factory: Callable[[AuthCredentials], TokenGateway] | None = None,
+) -> int:
+    credentials = load_auth(args.auth)
+    plan = derive_plan(
+        credentials,
+        endpoint=args.token_endpoint,
+        client_id=args.client_id,
+    )
+    print(f"auth file: {args.auth}")
+    for line in plan.describe():
+        print(line)
+    _print_current_expiry(credentials, plan)
+
+    if args.dry_run:
+        print("dry run — nothing sent")
+        return EXIT_OK
+
+    factory = gateway_factory or RequestsTokenGateway
+    try:
+        outcome = refresh_token(credentials, plan, factory(credentials))
+    except (TokenEndpointError, TokenRefreshError) as exc:
+        _stderr(f"FAIL — {exc}")
+        return EXIT_ERROR
+    except requests.RequestException as exc:
+        _stderr(f"FAIL — token request failed: {_failure_reason(exc)}")
+        return EXIT_ERROR
+
+    save_auth(args.auth, outcome.credentials)
+    print(f"wrote {args.auth} (mode 0600)")
+    if outcome.bearer_expiry is not None:
+        print(f"new bearer expires: {_stamp(outcome.bearer_expiry)}")
+    elif outcome.expires_in_s is not None:
+        print(f"new bearer expires in: {outcome.expires_in_s}s")
+    # Rotation makes the token we just replaced unusable, so whether it
+    # happened decides if an older copy of auth.json is still a fallback.
+    print(
+        "refresh token: rotated and saved"
+        if outcome.rotated_refresh
+        else "refresh token: unchanged, still valid"
+    )
+    print("verify with: python -m fpl auth-check --gw N")
+    return EXIT_OK
+
+
+def _print_current_expiry(credentials: AuthCredentials, plan: RefreshPlan) -> None:
+    if plan.bearer_header is None:
+        return
+    expiry = expiry_of(credentials.headers[plan.bearer_header])
+    if expiry is None:
+        return
+    remaining = (expiry - datetime.now(UTC)).total_seconds()
+    state = "expired" if remaining <= 0 else "valid"
+    print(
+        f"current bearer: {state}, expiry {_stamp(expiry)} "
+        f"({remaining / 60:+.0f} min)"
+    )
+
+
+def _stamp(moment: datetime) -> str:
+    return f"{moment.astimezone(UTC):%Y-%m-%d %H:%M:%S}Z"
 
 
 def _warn_unless_ignored(capture_file: Path) -> None:

@@ -25,6 +25,39 @@ source URL, key names, and value lengths. Delete the capture file afterwards —
 it holds a plaintext bearer token. The command warns loudly if the capture
 file is not git-ignored.
 
+## 1a. Refreshing instead of re-capturing
+
+A capture goes stale in **60 minutes** — that is the bearer's whole lifetime,
+and you are already some way into it when you copy it. The `refresh_token`
+cookie beside it lives for **months** (verified 2026-09-18: six). So a failed
+`auth-check` right after a fresh import means the capture was *late*, not
+malformed — do not debug the parse.
+
+```
+uv run python -m fpl auth-refresh              # mint a new bearer, rewrite data/auth.json
+uv run python -m fpl auth-refresh --dry-run    # show where it would go, send nothing
+```
+
+Run this before any authenticated step instead of re-capturing. Re-capture
+only when the refresh token itself has expired or been revoked (a browser
+logout revokes it).
+
+Everything is derived from the tokens already held, so nothing breaks when FPL
+moves: the endpoint from the bearer's `iss` claim, the client id from the
+client the **refresh token** was issued to. Those are two different clients —
+FPL runs both in one PingOne environment, and presenting the bearer's client
+id is rejected with `invalid_grant — Refresh token does not exist`. Override
+either with `--token-endpoint` / `--client-id` if the shape drifts again.
+
+The refresh token **rotates**: the server issues a new one and kills the old
+on every successful call, so `auth-refresh` persists it immediately and an
+older copy of `data/auth.json` is *not* a working fallback.
+
+The destination is allow-listed to `premierleague.com` and `pingone.eu`
+(`ALLOWED_ENDPOINT_DOMAINS` in `fpl/refresh.py`). The endpoint is read from an
+unverified JWT claim, so it is untrusted input to a request carrying a
+months-long credential; widen that list deliberately or not at all.
+
 `auth-import` is the fast path. Editing `data/auth.json` by hand — copy
 `data/auth.example.json` and paste values from devtools — is the fallback when
 "Copy as cURL" is unavailable or the capture will not parse.
