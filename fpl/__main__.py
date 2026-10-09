@@ -48,7 +48,7 @@ from fpl.ep import (
     write_predictions,
 )
 from fpl.http import RequestsGateway, RequestsTokenGateway, TokenEndpointError
-from fpl.models import POSITION_ALIASES, MyTeam, PlayerStatus, Position
+from fpl.models import POSITION_ALIASES, MyTeam, Player, PlayerStatus, Position
 from fpl.plan import (
     LINEUP_TARGET,
     TRANSFERS_TARGET,
@@ -1257,9 +1257,9 @@ def run_auth_check(
     print("PASS — authenticated session works")
     print(
         f"entry {team_id} — squad {len(team.picks)}, "
-        f"bank {_tenths(transfers.bank)}, value {_tenths(transfers.value)}, "
         f"free transfers {_blank(transfers.limit)}"
     )
+    _print_money(team, _cached_now_costs(store, args.gw))
     chips = ", ".join(
         f"{chip.name} ({chip.status_for_entry or 'unknown'})" for chip in team.chips
     )
@@ -1293,7 +1293,13 @@ def run_write_command(
         SnapshotStore(args.executor_root),
     )
     if args.command == "my-team":
-        _print_my_team(service.my_team(team_id), team_id, _player_names(store, gw))
+        elements = _cached_elements(store, gw)
+        _print_my_team(
+            service.my_team(team_id),
+            team_id,
+            {pid: e.web_name for pid, e in elements.items()},
+            {pid: e.now_cost for pid, e in elements.items()},
+        )
         return EXIT_OK
     service.ensure_deadline_open(gw, override_margin=args.force_deadline)
     execution = _load_execution_plan(gw, args)
@@ -1444,13 +1450,18 @@ def _print_dry_run(url: str, payload: dict, notes: Sequence[str]) -> None:
     _print_notes(notes)
 
 
-def _print_my_team(team: MyTeam, team_id: int, names: dict[int, str]) -> None:
+def _print_my_team(
+    team: MyTeam,
+    team_id: int,
+    names: dict[int, str],
+    now_costs: dict[int, int],
+) -> None:
     transfers = team.transfers
     print(
-        f"entry {team_id} — bank {_tenths(transfers.bank)}, "
-        f"value {_tenths(transfers.value)}, "
+        f"entry {team_id} — "
         f"free transfers {_blank(transfers.limit)}, made {_blank(transfers.made)}"
     )
+    _print_money(team, now_costs)
     chips = ", ".join(
         f"{chip.name} ({chip.status_for_entry or 'unknown'})" for chip in team.chips
     )
@@ -1466,12 +1477,40 @@ def _print_my_team(team: MyTeam, team_id: int, names: dict[int, str]) -> None:
         )
 
 
-def _player_names(store: SnapshotStore, gw: int) -> dict[int, str]:
+def _print_money(team: MyTeam, now_costs: dict[int, int]) -> None:
+    # The API's transfers.value is a market-price figure; agents once copied
+    # it as the squad's worth, which overstates what selling can raise.
+    # Every total is labelled with its basis so none can be misread.
+    transfers = team.transfers
+    sell_sum = sum(pick.selling_price for pick in team.picks)
+    budget = None if transfers.bank is None else sell_sum + transfers.bank
+    print(f"sell_sum {_tenths(sell_sum)}  (sum of selling prices)")
+    print(f"bank {_tenths(transfers.bank)}")
+    print(
+        f"budget {_tenths(budget) or 'n/a'}  "
+        "(sell_sum + bank: what a wildcard or rebuild can spend)"
+    )
+    if now_costs:
+        market_sum = sum(now_costs.get(pick.element, 0) for pick in team.picks)
+        print(f"market_sum {_tenths(market_sum)}  (sum of now_cost, cached bootstrap)")
+    else:
+        print("market_sum n/a  (no cached bootstrap)")
+    print(
+        f"api_value {_tenths(transfers.value)}  "
+        "(market basis, from the API's transfers.value — never selling prices)"
+    )
+
+
+def _cached_elements(store: SnapshotStore, gw: int) -> dict[int, Player]:
     try:
         bootstrap = load_cached_bootstrap(store, gw)
     except SnapshotMissingError:
         return {}
-    return {p.id: p.web_name for p in bootstrap.elements}
+    return {p.id: p for p in bootstrap.elements}
+
+
+def _cached_now_costs(store: SnapshotStore, gw: int) -> dict[int, int]:
+    return {pid: p.now_cost for pid, p in _cached_elements(store, gw).items()}
 
 
 def _tenths(value: int | None) -> str:

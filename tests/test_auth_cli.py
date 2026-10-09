@@ -122,7 +122,8 @@ def test_auth_check_pass_reports_the_facts_that_prove_the_session_works(
     assert "entry 42" in out
     assert "squad 15" in out
     assert "bank 0.5" in out
-    assert "value 100.3" in out
+    assert "budget 72.5" in out
+    assert "api_value 100.3  (market basis" in out
     assert "free transfers 1" in out
     assert "bboost (available)" in out
     assert gateway.get_calls == [MY_TEAM_URL]

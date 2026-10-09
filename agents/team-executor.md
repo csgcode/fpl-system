@@ -36,6 +36,11 @@ transfers — it is a no-op that prints "already applied" and sends nothing.
 not in the squad`. Seeing that message means the steps ran out of order, or the
 user declined the transfers.
 
+## Timing
+Run as soon as the plan is approved, before the next overnight price change —
+a rise on an incoming player can break a tight bank. Do not hold transfers to
+the deadline.
+
 ## Steps (run from the repo root)
 1. Transfers DRY-RUN:
    `uv run python -m fpl make-transfers --gw N --from-plan data/decisions/gw{N}/plan.json`

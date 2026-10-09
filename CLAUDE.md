@@ -8,7 +8,8 @@ decision to disk so later gameweeks build on prior analysis.
 ## Hard rules & constraints (2026/27 — enforce mechanically, never violate)
 
 Squad:
-- Budget: £100.0m at season start (thereafter: current team value + bank)
+- Budget: £100.0m at season start; thereafter STATE `team_value`, which
+  already includes the bank (selling-price sum + bank). Never add bank again.
 - 15 players: exactly 2 GK, 5 DEF, 5 MID, 3 FWD
 - Max 3 players from any one Premier League club
 - Starting XI each GW: 1 GK, ≥3 DEF, ≥2 MID, ≥1 FWD (11 total)
@@ -40,6 +41,11 @@ Scoring context that changes valuation this season:
 
 ### Initial squad (GW1) / Wildcard
 1. Run `agents/data-collector.md`   → data/raw/gw{N}/
+   It ends with the auth pre-flight (`fpl auth-check`) when data/auth.json
+   exists and team_id is non-null, and reports PASS or FAIL. On FAIL, ask the
+   user to re-capture credentials now (docs/api-write.md §1), not at step 8 —
+   an expired session found minutes before the deadline means the transfers
+   never get POSTed.
 2. Run `agents/fixture-analyst.md`  → data/analysis/gw{N}/fixtures.md + fixtures.json
 3. Run `agents/player-analyst.md` (once per position: GKP, DEF, MID, FWD)
                                      → data/analysis/gw{N}/inputs-{pos}.json, then the
@@ -178,6 +184,7 @@ picks:
 | `chip` | the chip to ACTIVATE this gameweek, or `null`. The only field that plays a chip. Must be a name from the bootstrap `chips` array, inside its window for this GW, and not already used in that window. |
 | `chips_used` | history — chips already played, and when. Never triggers anything. |
 | `chip_plan` | forward-looking earmarks. A forecast: it never activates a chip, and a GW it names is a plan, not a commitment. `status` defaults to `provisional` when omitted. |
+| `team_value` | what the squad can spend: sum of selling prices + bank, i.e. `my-team`'s `budget` line. Never market value (`now_cost` sum, the API's `transfers.value`, entry `last_deadline_value`) and never with the bank added a second time. |
 | `transfers_made` | names as written, for the human reader. Ambiguous by construction (two players can share a `web_name`), so it never drives a POST on its own. |
 | `picks` | the executable 15-slot lineup. |
 

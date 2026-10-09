@@ -133,7 +133,7 @@ lengths only, never values), then performs one authenticated `my-team` read.
 
 | Exit | Meaning |
 |---|---|
-| 0 | `PASS` — prints entry id, squad size, bank, team value, free transfers, available chips |
+| 0 | `PASS` — prints entry id, squad size, free transfers, the money lines (below), available chips |
 | 1 | `FAIL` — session expired (401/403), another HTTP/network error, missing `data/auth.json`, or a null `team_id` |
 
 Because the exit code is meaningful, it gates a shell cycle:
@@ -150,6 +150,17 @@ unfamiliar header name may still be the right one.
 `uv run python -m fpl my-team --gw N` remains the fuller read: the squad table
 with per-player sell prices.
 
+Both commands print the same labelled money lines. Only `budget` is what a
+wildcard or rebuild can spend, and it is what STATE `team_value` records:
+
+| Line | Basis |
+|---|---|
+| `sell_sum` | sum of per-player selling prices |
+| `bank` | cash in the bank |
+| `budget` | `sell_sum + bank` |
+| `market_sum` | sum of `now_cost` from the cached bootstrap (`n/a` when none is cached) |
+| `api_value` | the API's `transfers.value`: market basis, never selling prices |
+
 ## 3. Token expiry and shape drift
 
 Browser sessions expire (typically after weeks), but `datadome` and
@@ -161,7 +172,8 @@ CLI prints:
 Repeat step 1. Credential values are never printed, logged, or written
 anywhere by the tooling — the error is always this generic message.
 
-Run `auth-check` before each gameweek cycle. A `FAIL` that persists after a
+The data collector runs `auth-check` at the start of each gameweek cycle, so an
+expired session surfaces hours before the deadline, not at the executor step. A `FAIL` that persists after a
 fresh capture means the auth shape itself moved: compare the live request's
 headers and cookies against the table above and update
 `data/auth.example.json` and this section.

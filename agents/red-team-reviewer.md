@@ -24,6 +24,9 @@ analysis files but must form independent judgments.
    news dates in raw data)?
 3. Constraint check: recompute budget, position counts, club counts, and
    formation validity yourself. Do not trust the proposal's arithmetic.
+   Budget = STATE `team_value` (selling prices + bank already); adding
+   `bank` again is a HIGH finding. When the bank left after the plan is
+   < £0.2m, name a prose fallback transfer for an overnight price rise.
 4. Concentration risk: > 2 players dependent on one team's attack scoring?
 5. Template exposure: which highly-owned (>30%) players are we NOT holding,
    and what is the rank-volatility cost if they haul? (Maximizing points is
@@ -41,7 +44,8 @@ analysis files but must form independent judgments.
    proposed move foreclose obvious chip value — selling a Triple Captain
    target, dismantling a Bench Boost bench?
 11. Price risk: any buy or hold at imminent price-fall risk? Any transfer
-   better made early or late in the window?
+   better made early or late in the window? Approved transfers are POSTed
+   before the next overnight price change, not held to the deadline.
 12. Suggestions (rules: CLAUDE.md §User suggestions): recompute the open set
    yourself — From/Until GW against N, latest status in the ledger of the
    latest data/decisions/*/final.md (none → nothing is closed) — for S# up to

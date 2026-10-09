@@ -77,6 +77,15 @@ meta.md. `flags` and `actuals` always hit the network.
 `team_id` comes from data/entry.json. When non-null, run `entry`, `picks`, and
 `entry-history`; when null, skip all three and note the skip in meta.md.
 
+## Auth pre-flight (last step)
+When `test -f data/auth.json` succeeds and team_id is non-null, run
+`uv run python -m fpl auth-check --gw N`. Record only `PASS` or `FAIL` plus
+the CLI's one-line FAIL reason in meta.md and in your report. Never open
+data/auth.json, and never copy credential key names or lengths from the
+output. A FAIL is not your failure — finish the collection; the orchestrator
+asks the user to re-capture credentials. When either condition is false,
+record `auth: skipped (<which condition>)`.
+
 Hand-fetching URLs is forbidden — the CLI validates, caches, and archives
 every snapshot.
 
@@ -93,6 +102,7 @@ Coverage: <counts reported by prior-season>
 Anomalies: <top-level-key diff of bootstrap.json vs the previous GW's
   snapshot, when one exists; otherwise "no prior snapshot">
 team_id: <value, or "null — entry/picks/entry-history skipped">
+auth: <PASS | FAIL — reason | skipped (no data/auth.json | null team_id)>
 ```
 
 ## Rules

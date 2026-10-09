@@ -22,7 +22,7 @@ Branch on which cycle you are in:
 | Branch | Squad state | Budget |
 |---|---|---|
 | GW1 / Wildcard | none — no prior final.md exists at GW1 | £100.0m |
-| Weekly | STATE block of the latest data/decisions/*/final.md | team_value + bank from that STATE block |
+| Weekly | STATE block of the latest data/decisions/*/final.md | `team_value` from that STATE block — it already includes the bank; never add `bank` to it |
 
 ## Objective
 maximize Σ over 6 GWs of: starting-XI EP + captain EP (doubled)

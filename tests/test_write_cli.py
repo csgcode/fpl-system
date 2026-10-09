@@ -101,12 +101,38 @@ def test_my_team_prints_squad_bank_and_sell_prices(tmp_path, capsys):
     assert run(["my-team", "--gw", "2", "--team-id", "42"], tmp_path, gateway) == 0
     out = capsys.readouterr().out
     assert "entry 42" in out
-    assert "bank 0.5" in out and "value 100.3" in out
+    assert "bank 0.5" in out
     assert "free transfers 1" in out
     assert "bboost (available)" in out
     assert "E14" in out  # name joined from the cached bootstrap
     assert "5.4" in out  # id 14 selling_price 54 → £5.4m
     assert gateway.get_calls == [MY_TEAM_URL]
+
+
+def test_my_team_labels_sell_market_and_budget_totals(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    run(["my-team", "--gw", "2", "--team-id", "42"], tmp_path, gateway)
+    lines = capsys.readouterr().out.splitlines()
+    # ids 1-15: selling_price 40+id sums to 720; now_cost 50+id sums to 870
+    assert "sell_sum 72.0  (sum of selling prices)" in lines
+    assert "bank 0.5" in lines
+    assert "budget 72.5  (sell_sum + bank: what a wildcard or rebuild can spend)" in lines
+    assert "market_sum 87.0  (sum of now_cost, cached bootstrap)" in lines
+    assert any(
+        line.startswith("api_value 100.3  (market basis") for line in lines
+    )
+    assert not any(line.startswith("value ") or ", value " in line for line in lines)
+
+
+def test_my_team_without_a_cached_bootstrap_leaves_market_sum_unknown(
+    tmp_path, capsys
+):
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(["my-team", "--gw", "2", "--team-id", "42"], tmp_path, gateway) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert "budget 72.5  (sell_sum + bank: what a wildcard or rebuild can spend)" in lines
+    assert "market_sum n/a  (no cached bootstrap)" in lines
 
 
 def test_my_team_marks_captain_and_vice(tmp_path, capsys):

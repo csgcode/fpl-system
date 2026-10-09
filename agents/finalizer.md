@@ -42,6 +42,16 @@ Only when the gate passes. Contents:
   both in the XI. Element ids and web_names come from bootstrap.json.
   `fpl plan` compiles this block into plan.json, and it is strict-parsed: any
   format deviation makes the plan refuse.
+- STATE `team_value` = sum of selling prices + bank: the `budget` line of
+  `uv run python -m fpl my-team --gw N`. Transfers leave it unchanged (a
+  bought player's selling price starts at its purchase price); only `bank`
+  moves, by the proposal's sales minus purchases. Ignore the `market_sum`
+  and `api_value` lines — market prices, not what selling raises. With no
+  working auth session, entry `last_deadline_value` is the only figure: it is
+  MARKET basis, so write `team_value` from it only with a prose line just
+  above the STATE block saying "team_value: market basis
+  (last_deadline_value), not selling prices" — never present it as selling
+  prices.
 
 ## 3. The chip fields
 Three separate things. Emit all three, every gameweek.
