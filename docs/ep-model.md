@@ -139,7 +139,7 @@ bad ranges and mismatched names refuse with the offending row.
 | `name` | no | if present must equal bootstrap `web_name` — guards id typos |
 | `p_start` | yes | P(starts) for a window fixture; 0–1 |
 | `p_start_gw` | no | always six values, one per window gameweek (the surplus is ignored at the season's tail); overrides `p_start` per gameweek |
-| `uncertainty` | yes | LOW / MED / HIGH |
+| `uncertainty` | yes | LOW / MED / HIGH — rate risk (agents/player-analyst.md); passed through, never used in the arithmetic |
 | `notes` | no | analyst prose, copied to the output |
 | `overrides` | no | any of `xg90 xa90 dc90 saves90 bonus_per_start yellow90 minutes_per_start prior_weight attack_mult` |
 | `reason` | when `overrides` present | why the default rate is wrong |

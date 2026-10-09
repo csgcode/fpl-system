@@ -86,6 +86,11 @@ and price band, minutes Brier, DefCon hit sample, the squad rows, captain
 hindsight, bench points stranded, and cumulative stats pooled across all prior
 rounds. Its stdout carries everything this retro needs. Never open the JSON.
 
+The uncertainty tag changed meaning from GW7: before, minutes risk bound to
+`p_start`; from GW7, rate risk only. Tier aggregates that pool rounds from
+both sides of GW7 are not comparable — draw no tier conclusion from them, and
+say so when you cite them.
+
 `calibrate` refuses mechanically until the round has `data_checked: true` —
 bonus points are finalized then, and not before. If it refuses, stop and
 report; do not work around the gate.
@@ -117,7 +122,10 @@ squad numbers then describe the plan, not the fielded team.
 3. Prior corrections: for every C# in the extracted tails, mark it
    active / retired / revised with one clause of evidence. A C# whose agent
    code disagrees with its parenthesised agent name is carried under the
-   name's current code.
+   name's current code. C7 (tag bound to `p_start`) is superseded by the
+   player-analyst spec, where the tag now means rate risk only: mark it
+   `retired — superseded by spec`, never non-compliance. C16's multipliers
+   are gone too: captaincy ranks on raw EP, so retire C16 the same way.
 4. Trend: an error persisting 3+ GWs is systematic → an explicit correction
    rule.
 

@@ -86,12 +86,25 @@ Say explicitly when a 0.6×-minutes premium loses to a nailed mid-price player.
   consecutive 60'+ starts.
 - Use `p_start_gw` whenever availability varies across the window: injury
   ramps, suspensions, bedding-in.
-- Uncertainty binds to `p_start`: < 0.85 → at least MED, < 0.70 → HIGH.
+- Shape `p_start_gw` per gameweek when a known date inside the window changes
+  a player's competition for places — a teammate's suspension ending or an
+  injured rival's expected return. A flat array is wrong when that date is
+  known.
+- Minutes risk lives only in `p_start` / `p_start_gw`. Never raise
+  `uncertainty` for it.
+
+Uncertainty tag — rate risk only: how far this player's per-90 rates may be
+off. LOW = a settled role with a solid PL sample; MED = a thin sample or a
+partial role change; HIGH = no PL history, a tiny sample, or a new role
+(position change, penalty duty just gained). The tag feeds no EP arithmetic
+and no decision multiplier; the optimizer ranks on raw EP. It is a reading
+aid for the red-team and the retro. Retro correction C7 (tag bound to
+`p_start`) no longer applies.
 
 Overrides — only when the default rate is wrong and you can say why. The
 code's default for a player with no PL history is the position league mean
 for a regular starter, which flatters promoted-club and prior-league players:
-discount them (`attack_mult`, or `xg90`/`xa90`) and keep uncertainty HIGH.
+discount them (`attack_mult`, or `xg90`/`xa90`) and tag them HIGH.
 Other cases: penalty duty gained or lost, set-piece role, position change,
 a keeper behind a rebuilt defence (`saves90`). Every override carries a
 `reason`.

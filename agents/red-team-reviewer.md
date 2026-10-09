@@ -31,9 +31,9 @@ analysis files but must form independent judgments.
 6. Fixture myopia: does the squad decay badly after the 6-GW window right
    when we'd have no free transfers to fix it?
 7. Hit justification: any −4 whose numeric case is flimsy?
-8. Captaincy: is there a safer pick within 0.5 EP of the chosen one? Score it
-   with the optimizer's certainty mapping (LOW → 1.00, MED → 0.92,
-   HIGH → 0.80), not your own weighting.
+8. Captaincy: is the pick the highest undiscounted single-GW EP? A lower pick
+   is justified only by the optimizer's tiebreak — within 0.5 EP, prefer
+   `p_start_gw[0]` ≥ 0.85. Never weight EP by the `uncertainty` tag.
 9. Recency bias: any pick driven by last GW's haul rather than underlying
    numbers?
 10. Chip path: does a realistic window remain to use all four set-1 chips

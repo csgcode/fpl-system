@@ -55,13 +55,13 @@ All transfer decisions score on the same 6-GW EP horizon.
 Never transfer for one good fixture what the ticker says turns bad in two.
 
 ## Captaincy (separate, explicit step)
-certainty = f(the analyst's uncertainty flag): LOW → 1.00, MED → 0.92,
-HIGH → 0.80.
+Rank the top 5 captain options by single-GW EP, undiscounted, and show the
+EP gap between your pick and the field. EP already prices minutes risk through
+`p_start_gw`; the analyst's `uncertainty` tag never scales it.
 
-Rank the top 5 captain options by single-GW EP × certainty and show the EP gap
-between your pick and the field. This deliberately risk-discounts relative to
-pure EP-max: captaincy is ~20% of seasonal score, so a volatile ceiling pick
-must clear the safe one by more than the flag discount.
+Tiebreak only: when two candidates are within 0.5 single-GW EP, prefer the one
+with `p_start_gw[0]` ≥ 0.85. Outside 0.5 EP the higher EP wins — the vice
+already insures part of a non-start.
 
 ## Output → data/decisions/gw{N}/squad-proposal.md
 Squad table (player, price, EP6), XI + formation, captain + vice, bench
@@ -108,7 +108,7 @@ Order of work:
 
    Reason = the EP6 delta (positive = the suggestion gains) against the plan
    with this row alone removed, or the rule it breaks. A suggestion may add a
-   candidate or break a tie inside 0.5 EP6 (squad) / 0.5 certainty-discounted
+   candidate or break a tie inside 0.5 EP6 (squad) / 0.5
    single-GW EP (captaincy); it never bypasses a hard constraint, the transfer
    rule or the audit trail. Two rows pulling one choice apart: the higher S#
    wins the tie, the other is `rejected` naming it.
