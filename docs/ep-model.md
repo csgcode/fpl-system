@@ -138,9 +138,9 @@ bonus_per_start = (prior_bonus + current_bonus + k × league_bonus)
   cached summaries, so it covers the whole position, not just the players
   whose summaries happen to be cached. Before anyone has started (total
   starts 0) it is the fallback table value.
-- `prior_weight` (computed or overridden) does not touch bonus; an analyst who
-  wants a different bonus rate overrides `bonus_per_start` directly, and that
-  override wins.
+- `prior_weight` (computed, overridden, or forced by `--prior-weight`) does
+  not touch bonus; an analyst who wants a different bonus rate overrides
+  `bonus_per_start` directly, and that override wins.
 
 ### DefCon probability
 
@@ -249,6 +249,17 @@ out; `--inputs`, `--fixtures`, `--out` override, `--format json` prints the
 document. The table shows the top rows with their term breakdown, the coverage
 line, and the ids that lack a cached element summary together with the
 `summaries --ids` command that fetches them.
+
+What-if view: `--prior-weight W` (W in [0, 1]) forces every row's
+`prior_weight` to W, replacing any per-row `prior_weight` override; the other
+overrides still apply. `--prior-weight 1.0` gives the prior-only view.
+Because it is not the real prediction, it requires `--out`, so it never
+overwrites `players-{pos}.json`, and it cannot be combined with `--check`.
+A W outside [0, 1] is refused.
+
+```
+uv run python -m fpl ep --gw 3 --position MID --prior-weight 1.0 --out /tmp/players-MID-prior.json
+```
 
 ## 5. Changing the model
 

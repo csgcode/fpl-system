@@ -26,6 +26,7 @@ from fpl.ep import (
     defcon_hit_probability,
     defcon_minutes_factor,
     expected_floor_div,
+    force_prior_weight,
     inspect_fixtures,
     interpolate,
     league_bonus_per_start,
@@ -766,3 +767,25 @@ def test_rows_sort_by_ep_and_parse_as_calibrate_predictions():
     assert isinstance(result.rows[0].rates, EffectiveRates)
     assert result.rows[0].rates.prior_source == "league_mean"
     assert result.rows[0].terms.total() == pytest.approx(result.rows[0].ep_total6)
+
+
+def test_force_prior_weight_sets_every_row_and_supersedes_row_overrides():
+    document = inputs_doc("MID", [
+        judged(),
+        judged(id=2, name="Beta", overrides={"prior_weight": 0.3, "xg90": 0.4}, reason="r"),
+    ])
+    forced = force_prior_weight(document, 0.6)
+    assert [entry.overrides.prior_weight for entry in forced.players] == [0.6, 0.6]
+    assert forced.players[1].overrides.xg90 == 0.4
+    assert forced.players[0].reason is None
+    assert document.players[0].overrides is None
+
+
+def test_forced_prior_weight_reaches_the_effective_rates():
+    bootstrap = make_bootstrap([player()])
+    history = [match_record_payload(round=1, minutes=90, expected_goals="0.9")]
+    result = build_predictions(
+        bootstrap, {1: summary(history=history)}, fixtures_doc(),
+        force_prior_weight(inputs_doc("MID", [judged()]), 1.0), gw=GW,
+    )
+    assert result.rows[0].rates.prior_weight == 1.0

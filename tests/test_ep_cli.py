@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from fpl.__main__ import main
 from fpl.store import SnapshotStore
 from tests.factories import (
     bootstrap_payload,
     element_summary_payload,
     event_payload,
+    match_record_payload,
     past_season_payload,
     player_payload,
     team_payload,
@@ -214,3 +217,70 @@ def test_ep_allow_missing_ids_scores_the_rest_and_warns(tmp_path, capsys):
     written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
     assert [row["id"] for row in written] == [2]
     assert "WARNING" in err and "Alpha" in err
+
+
+def seed_with_current_minutes(tmp_path):
+    data_root, analysis_root = seed(tmp_path)
+    SnapshotStore(data_root).save(
+        GW, "players/summary-1",
+        element_summary_payload(
+            history_past=[past_season_payload(minutes=2700, expected_goals="9.0")],
+            history=[match_record_payload(round=1, minutes=90, expected_goals="0.9")],
+        ),
+        "seed://test",
+    )
+    return data_root, analysis_root
+
+
+def test_ep_prior_weight_forces_every_row_and_writes_only_to_out(tmp_path, capsys):
+    data_root, analysis_root = seed_with_current_minutes(tmp_path)
+    write_inputs(analysis_root, inputs_document(players=[
+        {"id": 1, "name": "Alpha", "p_start": 0.9, "uncertainty": "LOW",
+         "overrides": {"prior_weight": 0.2}, "reason": "analyst blend"},
+        {"id": 2, "name": "Beta", "p_start": 0.5, "uncertainty": "MED"},
+    ]))
+    target = tmp_path / "scratch" / "players-MID-prior.json"
+    assert run(data_root, analysis_root, "--prior-weight", "1.0", "--out", str(target)) == 0
+    written = json.loads(target.read_text())
+    assert {row["id"] for row in written} == {1, 2}
+    assert all(row["rates"]["prior_weight"] == 1.0 for row in written)
+    assert not (analysis_root / f"gw{GW}" / "players-MID.json").exists()
+    assert "players-MID-prior.json" in capsys.readouterr().out
+
+
+def test_ep_without_prior_weight_keeps_the_computed_blend(tmp_path):
+    data_root, analysis_root = seed_with_current_minutes(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(data_root, analysis_root) == 0
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert written[0]["rates"]["prior_weight"] < 1.0
+
+
+@pytest.mark.parametrize("weight", ["1.5", "-0.1", "nan", "abc"])
+def test_ep_prior_weight_outside_zero_to_one_is_refused(tmp_path, weight, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    with pytest.raises(SystemExit) as exc_info:
+        run(data_root, analysis_root, "--prior-weight", weight, "--out", str(tmp_path / "x.json"))
+    assert exc_info.value.code == 2
+    assert "prior weight" in capsys.readouterr().err
+    assert not (tmp_path / "x.json").exists()
+
+
+def test_ep_prior_weight_without_out_is_refused(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(data_root, analysis_root, "--prior-weight", "1.0") == 1
+    assert "--prior-weight requires --out" in capsys.readouterr().err
+    assert not (analysis_root / f"gw{GW}" / "players-MID.json").exists()
+
+
+def test_ep_prior_weight_with_check_is_refused(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(
+        data_root, analysis_root, "--check", "--prior-weight", "1.0",
+        "--out", str(tmp_path / "x.json"),
+    ) == 1
+    assert "--prior-weight cannot be combined with --check" in capsys.readouterr().err
+    assert not (tmp_path / "x.json").exists()

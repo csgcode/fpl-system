@@ -287,6 +287,22 @@ def parse_fixtures(raw: Any, *, label: str = "fixtures.json") -> FixturesDocumen
     return _validate(FixturesDocument, raw, label, row_key="fixtures")
 
 
+def force_prior_weight(inputs: InputsDocument, weight: float) -> InputsDocument:
+    """What-if view: every row's prior weight becomes `weight`, superseding any
+    per-row `prior_weight` override; the other overrides are kept."""
+    if not 0 <= weight <= 1:
+        raise ValueError(f"prior weight must lie in [0, 1], got {weight}")
+    players = [
+        entry.model_copy(update={
+            "overrides": (entry.overrides or RateOverrides()).model_copy(
+                update={"prior_weight": weight}
+            )
+        })
+        for entry in inputs.players
+    ]
+    return inputs.model_copy(update={"players": players})
+
+
 def load_inputs(path: Path) -> InputsDocument:
     return parse_inputs(_read_json(path), label=str(path))
 

@@ -47,6 +47,7 @@ from fpl.capture import is_git_ignored, parse_curl
 from fpl.ep import (
     EpResult,
     build_predictions,
+    force_prior_weight,
     inspect_fixtures,
     load_fixtures,
     load_inputs,
@@ -476,6 +477,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="comma-separated ids above £4.5m that may lack an inputs row; "
              "left unscored and listed in the warnings",
     )
+    ep.add_argument(
+        "--prior-weight", type=_unit_interval, metavar="W",
+        help="what-if: force every row's prior weight to W in [0, 1], superseding "
+             "per-row overrides; requires --out",
+    )
 
     # Local-only: club ratings and fixture rows are a pure function of the
     # cached snapshots plus club-priors.json (docs/ep-model.md §6).
@@ -529,6 +535,16 @@ def _gameweek(raw: str) -> int:
         raise argparse.ArgumentTypeError(
             f"gameweek must be between {MIN_GW} and {MAX_GW}, got {value}"
         )
+    return value
+
+
+def _unit_interval(raw: str) -> float:
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid prior weight: {raw!r}") from exc
+    if not 0 <= value <= 1:
+        raise argparse.ArgumentTypeError(f"prior weight must lie in [0, 1], got {raw}")
     return value
 
 
@@ -911,6 +927,12 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     position: Position | None = args.position
     analysis_dir = args.analysis_root / f"gw{gw}"
     fixtures_path = args.fixtures or analysis_dir / "fixtures.json"
+    if args.prior_weight is not None:
+        if args.check:
+            raise ValueError("--prior-weight cannot be combined with --check")
+        # A what-if must never replace the canonical players-{pos}.json.
+        if args.out is None:
+            raise ValueError("--prior-weight requires --out")
     if args.check:
         return run_ep_check(store, gw, args, fixtures_path)
     if position is None:
@@ -922,6 +944,8 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         raise ValueError(
             f"{inputs_path} is for {inputs.position.name}, not --position {position.name}"
         )
+    if args.prior_weight is not None:
+        inputs = force_prior_weight(inputs, args.prior_weight)
     fixtures = load_fixtures(fixtures_path)
     bootstrap = load_cached_bootstrap(store, gw)
     wanted = [p.id for p in bootstrap.elements if p.element_type == position]
