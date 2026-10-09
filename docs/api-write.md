@@ -62,6 +62,28 @@ The refresh token **rotates**: the server issues a new one and kills the old
 on every successful call, so `auth-refresh` persists it immediately and an
 older copy of `data/auth.json` is *not* a working fallback.
 
+### Capture from a browser profile used only for this
+
+A capture copies the browser's own refresh token, so the browser and
+`data/auth.json` hold the same token. Whichever one refreshes first gets a new
+token, and the other's copy stops working. Each time you browse the FPL site
+after a capture, the browser may refresh and leave `data/auth.json` with a dead
+token. The next `auth-check` then fails with `invalid_grant — Refresh token does
+not exist`.
+
+To avoid this, capture from a browser profile you use for nothing else:
+
+1. Create a new Chrome profile (profile icon → **Add**), named e.g. `fpl-capture`.
+2. Log in to FPL in that profile only, and capture as in §1.
+3. Close the profile and leave it closed. Do not open FPL in it again, and do
+   not log out — logging out also kills the token.
+4. Use your everyday profile or the app for normal FPL browsing. That session
+   has its own tokens and does not affect `data/auth.json`.
+
+From then on `data/auth.json` is the only thing that refreshes its token, so
+it stays valid for the refresh token's full lifetime. When it does expire,
+capture again from the same profile.
+
 The destination is allow-listed to `premierleague.com` and `pingone.eu`
 (`ALLOWED_ENDPOINT_DOMAINS` in `fpl/refresh.py`). The endpoint is read from an
 unverified JWT claim, so it is untrusted input to a request carrying a
