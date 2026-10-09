@@ -39,3 +39,8 @@ The table must stay the last thing in this file so appends land in it.
 |---|---|---|---|---|
 | S1 | 2026-09-11 |  |  | Ndiaye and Anderson are a weak midfield pair: Anderson is a defensive mid with a low ceiling and Ndiaye may not get enough minutes in a stacked midfield; move long-term to players who consistently score big |
 | S2 | 2026-09-11 |  |  | Aim for 65+ expected points per GW for the team as a long-term target |
+| S3 | 2026-10-09 | 6 |  | Sell Ndiaye now even if the move falls below the usual EP threshold: he starts but returns little (xG 0.38, xA 0.58 over GW1-5; data/analysis/gw6/research-ndiaye.md) |
+| S4 | 2026-10-09 | 6 |  | Sell Anderson now even if the move falls below the usual EP threshold: 15 points from 5 starts, no bonus, lowest points per £m among regular-starting MIDs at £5.5-8.5m (data/analysis/gw6/research-anderson.md) |
+| S5 | 2026-10-09 | 6 |  | Sell Scott: thigh injury, out for at least GW6-12 (data/analysis/gw6/research-scott.md); put the funds into consistent high scorers |
+| S6 | 2026-10-09 | 6 | 8 | Overhaul the squad toward consistent high scorers, aiming at 60 EP per GW (captain included) averaged over GW6-8; research puts the reachable figure near 57 with 3 free transfers and 59 with a GW6 wildcard, so get as close as possible and pick wildcard timing (GW6 or GW8) on the fresh EP (data/analysis/gw6/research-target.md) |
+| S7 | 2026-10-09 | 7 |  | Plan to move away from players whose price is falling (currently Richards, Mbeumo, Ndiaye, Thiago, Anderson, Shaw), selling before further drops shrink their selling price, and prefer that move when the EP difference against a rival transfer is small |

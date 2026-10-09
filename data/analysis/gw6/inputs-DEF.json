@@ -1,0 +1,1301 @@
+{
+ "schema_version": 1,
+ "gw": 6,
+ "position": "DEF",
+ "players": [
+  {
+   "id": 4,
+   "name": "Gabriel",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s, unbroken R3-R5"
+  },
+  {
+   "id": 8,
+   "name": "Calafiori",
+   "p_start": 0.89,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, one 66' hook R3"
+  },
+  {
+   "id": 10,
+   "name": "White",
+   "p_start": 0.35,
+   "p_start_gw": [
+    0.35,
+    0.5,
+    0.55,
+    0.58,
+    0.58,
+    0.58
+   ],
+   "uncertainty": "HIGH",
+   "notes": "groin 75% since 20 Sep; 45' R4 then 0 R5 - Timber took RB"
+  },
+  {
+   "id": 5,
+   "name": "J.Timber",
+   "p_start": 0.55,
+   "p_start_gw": [
+    0.55,
+    0.6,
+    0.62,
+    0.62,
+    0.62,
+    0.62
+   ],
+   "uncertainty": "HIGH",
+   "notes": "45 then 59 in R4-R5, injury ramp ending; first-choice RB while White is flagged"
+  },
+  {
+   "id": 31,
+   "name": "Konsa",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.76,
+    0.78,
+    0.78,
+    0.78,
+    0.78
+   ],
+   "uncertainty": "HIGH",
+   "notes": "90x3 R3-R5 but unspecified knock flagged 5 Oct at 75%"
+  },
+  {
+   "id": 11,
+   "name": "Mosquera",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "started R1-R2, three straight blanks since"
+  },
+  {
+   "id": 9,
+   "name": "Hincapie",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "32 minutes all season"
+  },
+  {
+   "id": 37,
+   "name": "Lindelöf",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 450 minutes"
+  },
+  {
+   "id": 34,
+   "name": "Pau",
+   "p_start": 0.2,
+   "p_start_gw": [
+    0.2,
+    0.7,
+    0.8,
+    0.8,
+    0.8,
+    0.8
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, expected back 10 Oct = GW6 date; cameo risk GW6, restored GW7"
+  },
+  {
+   "id": 36,
+   "name": "Maatsen",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.2,
+    0.45,
+    0.65,
+    0.72,
+    0.75
+   ],
+   "uncertainty": "HIGH",
+   "notes": "ankle, unknown return; 4 starts before it, ramp is a guess"
+  },
+  {
+   "id": 32,
+   "name": "Cash",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "90,77,84,0,45 - lost the slot R4, sub R5"
+  },
+  {
+   "id": 33,
+   "name": "Mings",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.45,
+    0.4,
+    0.4,
+    0.4,
+    0.4
+   ],
+   "uncertainty": "HIGH",
+   "notes": "90,65,90 R3-R5 covering Pau; cedes when Pau returns"
+  },
+  {
+   "id": 611,
+   "name": "Wan-Bissaka",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "12,5,90,45 - split RB with Cash"
+  },
+  {
+   "id": 596,
+   "name": "Ruggeri",
+   "p_start": 0.4,
+   "p_start_gw": [
+    0.4,
+    0.4,
+    0.35,
+    0.3,
+    0.25,
+    0.25
+   ],
+   "uncertainty": "HIGH",
+   "notes": "90' R5 at LB with Maatsen out; cedes when Maatsen returns"
+  },
+  {
+   "id": 504,
+   "name": "Vuskovic",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 437 minutes"
+  },
+  {
+   "id": 115,
+   "name": "De Cuyper",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, corner + FK duty"
+  },
+  {
+   "id": 116,
+   "name": "Dunk",
+   "p_start": 0.75,
+   "uncertainty": "MED",
+   "notes": "4 starts in 5; flagged 22 Sep at 100, appears to have missed R5"
+  },
+  {
+   "id": 114,
+   "name": "Boscagli",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 437 minutes"
+  },
+  {
+   "id": 328,
+   "name": "Struijk",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75% but 85' in R5; rotating with Dunk"
+  },
+  {
+   "id": 113,
+   "name": "F.Kadıoğlu",
+   "p_start": 0.6,
+   "uncertainty": "HIGH",
+   "notes": "4 starts, 332 minutes; rotated at LB"
+  },
+  {
+   "id": 119,
+   "name": "Costinha",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "68 minutes, all cameos"
+  },
+  {
+   "id": 120,
+   "name": "Svoboda",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "4 minutes all season"
+  },
+  {
+   "id": 60,
+   "name": "Hill",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 61,
+   "name": "Truffert",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 566,
+   "name": "Silva",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 64,
+   "name": "Smith",
+   "p_start": 0.86,
+   "uncertainty": "MED",
+   "notes": "5/5 starts, 434 minutes"
+  },
+  {
+   "id": 62,
+   "name": "Diakité",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "no minutes"
+  },
+  {
+   "id": 87,
+   "name": "Ajer",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 88,
+   "name": "Kayode",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "75,87,45,19,68 - splitting RB with Hickey"
+  },
+  {
+   "id": 93,
+   "name": "Schuster",
+   "p_start": 0.8,
+   "uncertainty": "MED",
+   "notes": "73,90,90 R3-R5, holding the slot"
+  },
+  {
+   "id": 90,
+   "name": "Hickey",
+   "p_start": 0.4,
+   "uncertainty": "HIGH",
+   "notes": "14,2,45,70,21 - RB share"
+  },
+  {
+   "id": 89,
+   "name": "Henry",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "2 minutes all season"
+  },
+  {
+   "id": 200,
+   "name": "Lacroix",
+   "p_start": 0.75,
+   "uncertainty": "MED",
+   "notes": "90,90,90,4,90 - back in R5 after the R4 drop (C18 case)"
+  },
+  {
+   "id": 145,
+   "name": "Fofana",
+   "p_start": 0.8,
+   "uncertainty": "MED",
+   "notes": "67,90,85,70 R2-R5, regular CB"
+  },
+  {
+   "id": 149,
+   "name": "Colwill",
+   "p_start": 0.78,
+   "uncertainty": "MED",
+   "notes": "90,71,0,90,90 - two straight starts"
+  },
+  {
+   "id": 142,
+   "name": "James",
+   "p_start": 0.45,
+   "p_start_gw": [
+    0.45,
+    0.68,
+    0.72,
+    0.72,
+    0.72,
+    0.72
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75%; 90 R3-R4 then 0 R5; corners + direct FKs when fit"
+  },
+  {
+   "id": 144,
+   "name": "Gusto",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "75,90,30,77,0 - rotating at RB with James"
+  },
+  {
+   "id": 148,
+   "name": "Hato",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "4 starts, 258 minutes; regularly hooked"
+  },
+  {
+   "id": 583,
+   "name": "Chavarria",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "25,18,30,45,90 - first start R5"
+  },
+  {
+   "id": 151,
+   "name": "Acheampong",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "90,22,90,0,19 - out of the side"
+  },
+  {
+   "id": 152,
+   "name": "Palestra",
+   "p_start": 0.05,
+   "p_start_gw": [
+    0.05,
+    0.2,
+    0.25,
+    0.28,
+    0.28,
+    0.28
+   ],
+   "uncertainty": "HIGH",
+   "notes": "thigh 50%, no minutes all season"
+  },
+  {
+   "id": 561,
+   "name": "Anselmino",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "no minutes"
+  },
+  {
+   "id": 173,
+   "name": "Thomas",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "5/5 starts, 437 minutes",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 176,
+   "name": "Dasilva",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "5/5 starts, 444 minutes",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 175,
+   "name": "van Ewijk",
+   "p_start": 0.5,
+   "p_start_gw": [
+    0.5,
+    0.72,
+    0.8,
+    0.82,
+    0.82,
+    0.82
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75% since 19 Sep; 4 full 90s then 0 in R5",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 91,
+   "name": "Pinnock",
+   "p_start": 0.82,
+   "uncertainty": "MED",
+   "notes": "90,90,90 R3-R5, now in the side",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 182,
+   "name": "Amenda",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.35,
+    0.6,
+    0.75,
+    0.8,
+    0.8
+   ],
+   "uncertainty": "HIGH",
+   "notes": "calf, unknown return; 4 starts before it",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 656,
+   "name": "Mfuni",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "one 90 in two rounds listed",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 202,
+   "name": "Richards",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 204,
+   "name": "Mitchell",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 419 minutes"
+  },
+  {
+   "id": 588,
+   "name": "Khalaili",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "35,74,90,90,90 - three straight full starts"
+  },
+  {
+   "id": 203,
+   "name": "Canvot",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "90,90,90,0,90 - back in R5 over Ahanor"
+  },
+  {
+   "id": 633,
+   "name": "Ahanor",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "one start (R4); benched R5; new-signing cap"
+  },
+  {
+   "id": 577,
+   "name": "Tomiyasu",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.15,
+    0.3,
+    0.35,
+    0.35,
+    0.35
+   ],
+   "uncertainty": "HIGH",
+   "notes": "calf, expected back 18 Oct - misses GW6, doubtful GW7",
+   "overrides": {
+    "dc90": 7.5
+   },
+   "reason": "prior DefCon is a data artefact: history_past records defensive_contribution as 0 for every prior season, so the blend drags a regular defender's dc90 to near zero; 7.5 is the DEF regular-starter floor"
+  },
+  {
+   "id": 643,
+   "name": "Chilwell",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "29 minutes; pushing for LB",
+   "overrides": {
+    "dc90": 7.5
+   },
+   "reason": "prior DefCon is a data artefact: history_past records defensive_contribution as 0 for every prior season, so the blend drags a regular defender's dc90 to near zero; 7.5 is the DEF regular-starter floor"
+  },
+  {
+   "id": 207,
+   "name": "Mingueza",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "16 minutes all season"
+  },
+  {
+   "id": 229,
+   "name": "Tarkowski",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s, unbroken R3-R5"
+  },
+  {
+   "id": 230,
+   "name": "Branthwaite",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 233,
+   "name": "Mykolenko",
+   "p_start": 0.75,
+   "p_start_gw": [
+    0.75,
+    0.86,
+    0.88,
+    0.88,
+    0.88,
+    0.88
+   ],
+   "uncertainty": "MED",
+   "notes": "leg 75% flagged 1 Oct, but 5/5 full 90s; doubt unresolved"
+  },
+  {
+   "id": 649,
+   "name": "Maitland-Niles",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "two starts, 177 minutes",
+   "overrides": {
+    "dc90": 7.5
+   },
+   "reason": "prior DefCon is a data artefact: history_past records defensive_contribution as 0 for every prior season, so the blend drags a regular defender's dc90 to near zero; 7.5 is the DEF regular-starter floor"
+  },
+  {
+   "id": 232,
+   "name": "O'Brien",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "16 minutes all season"
+  },
+  {
+   "id": 231,
+   "name": "Keane",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "no minutes"
+  },
+  {
+   "id": 257,
+   "name": "Bassey",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 450 minutes"
+  },
+  {
+   "id": 258,
+   "name": "Castagne",
+   "p_start": 0.85,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 408 minutes"
+  },
+  {
+   "id": 254,
+   "name": "Robinson",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.8,
+    0.85,
+    0.86,
+    0.86,
+    0.86
+   ],
+   "uncertainty": "HIGH",
+   "notes": "ankle 75% flagged 9 Oct 11:30 - new; 5/5 starts before it"
+  },
+  {
+   "id": 253,
+   "name": "Andersen",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "0,90,90,0,10 - out of the side R4-R5"
+  },
+  {
+   "id": 650,
+   "name": "Affengruber",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "90,90 in the last two listed rounds; new signing cap 0.7"
+  },
+  {
+   "id": 255,
+   "name": "J.Cuenca",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "one start in R1"
+  },
+  {
+   "id": 256,
+   "name": "Tete",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "27 minutes all season"
+  },
+  {
+   "id": 269,
+   "name": "Sessegnon",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "50 minutes all season"
+  },
+  {
+   "id": 277,
+   "name": "Egan",
+   "p_start": 0.89,
+   "uncertainty": "HIGH",
+   "notes": "5/5 starts, 437 minutes, high DefCon",
+   "overrides": {
+    "attack_mult": 0.8,
+    "dc90": 7.5
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount; prior DefCon is a data artefact: history_past records defensive_contribution as 0 for every prior season, so the blend drags a regular defender's dc90 to near zero; 7.5 is the DEF regular-starter floor"
+  },
+  {
+   "id": 279,
+   "name": "Ajayi",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "4 straight full 90s R2-R5",
+   "overrides": {
+    "attack_mult": 0.8,
+    "dc90": 7.5
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount; prior DefCon is a data artefact: history_past records defensive_contribution as 0 for every prior season, so the blend drags a regular defender's dc90 to near zero; 7.5 is the DEF regular-starter floor"
+  },
+  {
+   "id": 282,
+   "name": "Giles",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "5/5 starts; primary direct FKs, corner order 3",
+   "overrides": {
+    "attack_mult": 1.0
+   },
+   "reason": "the promoted-club 0.80 discount is cancelled by primary penalty and direct-FK duty"
+  },
+  {
+   "id": 280,
+   "name": "Coyle",
+   "p_start": 0.8,
+   "uncertainty": "HIGH",
+   "notes": "5/5 starts, 348 minutes",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 586,
+   "name": "Mendy",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "63,58,70,58,0 - back from concussion, cleared at 100",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 556,
+   "name": "Targett",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "ankle 75%, 5 minutes all season",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 585,
+   "name": "Herrington",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "one start, 197 minutes",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 285,
+   "name": "McNair",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "26 minutes all season",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 638,
+   "name": "Norton-Cuffy",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75%, 34 minutes",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 259,
+   "name": "Diop",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 304,
+   "name": "O'Shea",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 305,
+   "name": "Davis",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "5/5 full 90s, direct-FK order 2"
+  },
+  {
+   "id": 306,
+   "name": "Greaves",
+   "p_start": 0.8,
+   "uncertainty": "HIGH",
+   "notes": "4 starts, 357 minutes"
+  },
+  {
+   "id": 592,
+   "name": "Ouattara",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "131 minutes, one start",
+   "overrides": {
+    "attack_mult": 0.88
+   },
+   "reason": "promoted club with a league-mean prior (no PL history), so the attack term carries no penalty of its own"
+  },
+  {
+   "id": 308,
+   "name": "Furlong",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "17 minutes all season",
+   "overrides": {
+    "dc90": 7.5
+   },
+   "reason": "prior DefCon is a data artefact: history_past records defensive_contribution as 0 for every prior season, so the blend drags a regular defender's dc90 to near zero; 7.5 is the DEF regular-starter floor"
+  },
+  {
+   "id": 334,
+   "name": "Muharemović",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 332,
+   "name": "Justin",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 330,
+   "name": "Bogle",
+   "p_start": 0.86,
+   "uncertainty": "MED",
+   "notes": "5/5 starts but hooked 4 times (67,60,82,66)"
+  },
+  {
+   "id": 598,
+   "name": "Elvedi",
+   "p_start": 0.85,
+   "uncertainty": "MED",
+   "notes": "56,90,90,90 - three straight full starts"
+  },
+  {
+   "id": 327,
+   "name": "Bijol",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "90,45,29,0,0 - lost the slot to Elvedi"
+  },
+  {
+   "id": 331,
+   "name": "Gudmundsson",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "3 starts, 252 minutes"
+  },
+  {
+   "id": 356,
+   "name": "Virgil",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s, unbroken R3-R5"
+  },
+  {
+   "id": 362,
+   "name": "Jacquet",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.8,
+    0.84,
+    0.85,
+    0.85,
+    0.85
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75% flagged 6 Oct; nailed before it (90x3 R3-R5)"
+  },
+  {
+   "id": 358,
+   "name": "Kerkez",
+   "p_start": 0.82,
+   "uncertainty": "MED",
+   "notes": "90,70,90,45,90 - starts, hooked twice"
+  },
+  {
+   "id": 579,
+   "name": "Araujo",
+   "p_start": 0.75,
+   "uncertainty": "MED",
+   "notes": "90,71,90 R3-R5"
+  },
+  {
+   "id": 357,
+   "name": "Frimpong",
+   "p_start": 0.3,
+   "p_start_gw": [
+    0.4,
+    0.3,
+    0.28,
+    0.28,
+    0.28,
+    0.28
+   ],
+   "uncertainty": "HIGH",
+   "notes": "90,70,0,18,0 - lost RB to Jacquet; Jacquet doubt lifts him GW6"
+  },
+  {
+   "id": 364,
+   "name": "Tsimikas",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "64 minutes all season"
+  },
+  {
+   "id": 359,
+   "name": "Gomez",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "no minutes; not picked"
+  },
+  {
+   "id": 388,
+   "name": "Guéhi",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s, unbroken R3-R5"
+  },
+  {
+   "id": 391,
+   "name": "Gvardiol",
+   "p_start": 0.89,
+   "uncertainty": "LOW",
+   "notes": "90,74,90,90,90"
+  },
+  {
+   "id": 390,
+   "name": "Rúben",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 389,
+   "name": "Matheus N.",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "90,90 in R4-R5 after three non-starts; penalty order 4"
+  },
+  {
+   "id": 393,
+   "name": "Khusanov",
+   "p_start": 0.4,
+   "uncertainty": "HIGH",
+   "notes": "90,88,90 then benched R4-R5"
+  },
+  {
+   "id": 387,
+   "name": "O'Reilly",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "unspecified 75%; 8,5 cameos R4-R5"
+  },
+  {
+   "id": 392,
+   "name": "Aït-Nouri",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "no minutes at 5.2m"
+  },
+  {
+   "id": 395,
+   "name": "Lewis",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "56 minutes all season"
+  },
+  {
+   "id": 396,
+   "name": "Vitor Reis",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "1 minute all season"
+  },
+  {
+   "id": 418,
+   "name": "Maguire",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 419,
+   "name": "Martinez",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "4 straight full 90s R2-R5"
+  },
+  {
+   "id": 417,
+   "name": "Dalot",
+   "p_start": 0.85,
+   "uncertainty": "LOW",
+   "notes": "73,83,90,90 - minutes climbing"
+  },
+  {
+   "id": 423,
+   "name": "Shaw",
+   "p_start": 0.75,
+   "uncertainty": "MED",
+   "notes": "90,72,90,0,83 - back in R5"
+  },
+  {
+   "id": 422,
+   "name": "Mazraoui",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "back 75%, 97 minutes"
+  },
+  {
+   "id": 421,
+   "name": "Heaven",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "one 90 all season"
+  },
+  {
+   "id": 420,
+   "name": "Yoro",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "22 minutes all season"
+  },
+  {
+   "id": 449,
+   "name": "Hall",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, primary corners + direct FKs",
+   "overrides": {
+    "attack_mult": 1.15
+   },
+   "reason": "primary direct-FK and corner duty this season, absent from his prior-season rates, which sat behind Trippier"
+  },
+  {
+   "id": 445,
+   "name": "Thiaw",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 447,
+   "name": "Botman",
+   "p_start": 0.9,
+   "p_start_gw": [
+    0.9,
+    0.84,
+    0.8,
+    0.79,
+    0.79,
+    0.79
+   ],
+   "uncertainty": "MED",
+   "notes": "5/5 full 90s; Burn back 12 Oct, contests from GW7"
+  },
+  {
+   "id": 448,
+   "name": "Burn",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.4,
+    0.55,
+    0.6,
+    0.62,
+    0.62
+   ],
+   "uncertainty": "HIGH",
+   "notes": "ankle, back 12 Oct - misses GW6, available GW7"
+  },
+  {
+   "id": 593,
+   "name": "Dedić",
+   "p_start": 0.3,
+   "p_start_gw": [
+    0.3,
+    0.45,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "uncertainty": "HIGH",
+   "notes": "unspecified 50% since 17 Sep; 4 starts before it"
+  },
+  {
+   "id": 450,
+   "name": "Livramento",
+   "p_start": 0.1,
+   "p_start_gw": [
+    0.1,
+    0.25,
+    0.3,
+    0.3,
+    0.3,
+    0.3
+   ],
+   "uncertainty": "HIGH",
+   "notes": "50%, 33 minutes all season"
+  },
+  {
+   "id": 446,
+   "name": "Schär",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "25 minutes all season"
+  },
+  {
+   "id": 472,
+   "name": "Murillo",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 near-full starts"
+  },
+  {
+   "id": 469,
+   "name": "N.Williams",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "5/5 full 90s"
+  },
+  {
+   "id": 201,
+   "name": "Muñoz",
+   "p_start": 0.68,
+   "uncertainty": "HIGH",
+   "notes": "90,82 in R4-R5 after a stop-start opening"
+  },
+  {
+   "id": 473,
+   "name": "Aina",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "73,85,58,90,0 - dropped R5 for Muñoz"
+  },
+  {
+   "id": 474,
+   "name": "Jair Cunha",
+   "p_start": 0.78,
+   "p_start_gw": [
+    0.78,
+    0.7,
+    0.66,
+    0.65,
+    0.65,
+    0.65
+   ],
+   "uncertainty": "MED",
+   "notes": "90,90,90,0,90; Milenković return pressures from GW7"
+  },
+  {
+   "id": 581,
+   "name": "Diomande",
+   "p_start": 0.5,
+   "p_start_gw": [
+    0.5,
+    0.4,
+    0.35,
+    0.35,
+    0.35,
+    0.35
+   ],
+   "uncertainty": "HIGH",
+   "notes": "90,72 R4-R5 covering Milenković; cedes on his return"
+  },
+  {
+   "id": 471,
+   "name": "Milenković",
+   "p_start": 0.15,
+   "p_start_gw": [
+    0.15,
+    0.6,
+    0.8,
+    0.84,
+    0.84,
+    0.84
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, back 11 Oct - doubtful GW6, restored GW7"
+  },
+  {
+   "id": 478,
+   "name": "Netz",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "27 minutes all season"
+  },
+  {
+   "id": 533,
+   "name": "Mukiele",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "4 straight full 90s R2-R5"
+  },
+  {
+   "id": 501,
+   "name": "Danso",
+   "p_start": 0.86,
+   "uncertainty": "LOW",
+   "notes": "90x3 R3-R5; Ballard injured, slot secure"
+  },
+  {
+   "id": 541,
+   "name": "Meunier",
+   "p_start": 0.86,
+   "uncertainty": "LOW",
+   "notes": "5/5 starts, 396 minutes"
+  },
+  {
+   "id": 536,
+   "name": "Reinildo",
+   "p_start": 0.75,
+   "uncertainty": "MED",
+   "notes": "suspension ended 10 Oct; 4 starts before it"
+  },
+  {
+   "id": 534,
+   "name": "Hume",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "79,90,26,0,11 - minutes collapsing"
+  },
+  {
+   "id": 535,
+   "name": "Alderete",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "23 minutes all season"
+  },
+  {
+   "id": 539,
+   "name": "O'Nien",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "66 minutes all season"
+  },
+  {
+   "id": 612,
+   "name": "Methalie",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "one 90 all season"
+  },
+  {
+   "id": 503,
+   "name": "Van de Ven",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "4 straight full 90s R2-R5"
+  },
+  {
+   "id": 112,
+   "name": "Van Hecke",
+   "p_start": 0.75,
+   "p_start_gw": [
+    0.75,
+    0.86,
+    0.88,
+    0.88,
+    0.88,
+    0.88
+   ],
+   "uncertainty": "MED",
+   "notes": "foot 75% flagged 30 Sep, but 5/5 full 90s; doubt unresolved"
+  },
+  {
+   "id": 502,
+   "name": "Robertson",
+   "p_start": 0.8,
+   "uncertainty": "MED",
+   "notes": "90,67,29,90,90 - two straight starts; corner order 1"
+  },
+  {
+   "id": 499,
+   "name": "Pedro Porro",
+   "p_start": 0.4,
+   "p_start_gw": [
+    0.4,
+    0.6,
+    0.65,
+    0.66,
+    0.66,
+    0.66
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75%; 0,90,90,0,18 - cameo R5"
+  },
+  {
+   "id": 498,
+   "name": "Senesi",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "90 in R1 then nothing at 5.8m"
+  },
+  {
+   "id": 506,
+   "name": "Udogie",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "86 minutes, one start"
+  },
+  {
+   "id": 147,
+   "name": "Tosin",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "5 minutes all season"
+  }
+ ]
+}
