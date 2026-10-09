@@ -197,7 +197,8 @@ Override ceilings (a decimal slip refuses instead of scoring): `xg90`, `xa90`
 Coverage rule: every player of the position priced above £4.5m with status
 `a` or `d` must appear; the command refuses otherwise and lists them. Players
 at or below £4.5m, or unavailable, absent from the file are excluded and
-counted.
+counted. `--allow-missing-ids <ids>` exempts the listed players: they go
+unscored and the run names them in a warning.
 
 ### fixtures.json — written by the fixture analyst
 

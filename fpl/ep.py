@@ -690,6 +690,7 @@ def build_predictions(
     inputs: InputsDocument,
     *,
     gw: int,
+    allow_missing: frozenset[int] = frozenset(),
 ) -> EpResult:
     if inputs.gw != gw:
         raise ValueError(f"inputs document is for gw{inputs.gw}, not gw{gw}")
@@ -722,7 +723,7 @@ def build_predictions(
             )
 
     position_players = [p for p in bootstrap.elements if p.element_type == position]
-    not_scored = _check_coverage(position, position_players, inputs)
+    not_scored = _check_coverage(position, position_players, inputs, allow_missing, warnings)
     league, league_source, league_pool = _league_mean(position, position_players, summaries)
     if league_source == "fallback":
         warnings.append(
@@ -838,18 +839,34 @@ def _check_fixture_rows(fixtures: FixturesDocument) -> None:
 
 
 def _check_coverage(
-    position: Position, players: Sequence[Player], inputs: InputsDocument
+    position: Position,
+    players: Sequence[Player],
+    inputs: InputsDocument,
+    allow_missing: frozenset[int],
+    warnings: list[str],
 ) -> int:
     judged = {entry.id for entry in inputs.players}
     required = []
+    allowed = []
     not_scored = 0
     for player in players:
         if player.id in judged:
             continue
         if player.now_cost > COVERAGE_PRICE_FLOOR_TENTHS and player.status in COVERAGE_STATUSES:
-            required.append(player)
+            if player.id in allow_missing:
+                allowed.append(player)
+            else:
+                required.append(player)
         else:
             not_scored += 1
+    if allowed:
+        listing = ", ".join(
+            f"id {p.id} {p.web_name} £{p.price_m:.1f} {p.status.value}" for p in allowed
+        )
+        warnings.append(
+            f"--allow-missing-ids: {len(allowed)} player(s) above £4.5m with status a/d "
+            f"have no inputs row and are not scored: {listing}"
+        )
     if required:
         listing = ", ".join(
             f"id {p.id} {p.web_name} £{p.price_m:.1f} {p.status.value}"

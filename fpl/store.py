@@ -122,16 +122,29 @@ class SnapshotStore:
             return fetched_at.replace(tzinfo=timezone.utc)
         return fetched_at
 
+    def archive_path(self, gw: int, name: str) -> Path | None:
+        """Where the current snapshot will land when the next refresh archives
+        it; None when its fetch time is unknown (the stamp is then the
+        refresh time, not knowable in advance)."""
+        fetched_at = self.fetched_at(gw, name)
+        if fetched_at is None:
+            return None
+        return _archive_target(self.path(gw, name), fetched_at)
+
     def _archive_existing(self, path: Path, meta_path: Path) -> None:
         if not path.is_file():
             return
         fetched_at = self._fetched_at(meta_path) or self._now()
-        stamp = fetched_at.strftime(ARCHIVE_STAMP_FORMAT)
-        archive_path = path.parent / ".archive" / f"{path.stem}-{stamp}{path.suffix}"
+        archive_path = _archive_target(path, fetched_at)
         archive_path.parent.mkdir(parents=True, exist_ok=True)
         if archive_path.exists():
             raise ArchiveCollisionError(archive_path)
         path.rename(archive_path)
+
+
+def _archive_target(path: Path, fetched_at: datetime) -> Path:
+    stamp = fetched_at.strftime(ARCHIVE_STAMP_FORMAT)
+    return path.parent / ".archive" / f"{path.stem}-{stamp}{path.suffix}"
 
 
 def _safe_name(name: str) -> str:

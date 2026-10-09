@@ -501,6 +501,7 @@ def test_flags_prints_header_and_refresh_time(tmp_path, capsys):
         news="Knee injury - 50% chance of playing",
         news_added="2026-08-20T09:00:00Z",
     )
+    seed(tmp_path, "bootstrap", bootstrap_payload(elements=[flagged]))
     gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[flagged])})
 
     assert run(["flags", "--gw", "1", "--ids", "7"], tmp_path, gateway) == 0
@@ -509,6 +510,66 @@ def test_flags_prints_header_and_refresh_time(tmp_path, capsys):
     assert lines[1].split() == ["id", "name", "st", "chance", "news_added", "news"]
     assert "Crocked" in lines[2] and "25%" in lines[2]
     assert "Knee injury" in lines[2]
+
+
+def test_flags_exits_3_when_a_gate_id_changed_and_writes_the_delta(tmp_path, capsys):
+    seed(tmp_path, "bootstrap", bootstrap_payload(elements=[
+        player_payload(id=7, web_name="Crocked", status="d", chance_of_playing_next_round=75),
+        player_payload(id=8, web_name="Bench"),
+    ]))
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[
+        player_payload(id=7, web_name="Crocked", status="d", chance_of_playing_next_round=25),
+        player_payload(id=8, web_name="Bench"),
+    ])})
+
+    assert run(["flags", "--gw", "1", "--ids", "7,8"], tmp_path, gateway) == 3
+    out = capsys.readouterr().out
+    assert "gate: 1 of 2 ids changed" in out
+    assert "chance_of_playing_next_round 75 -> 25" in out
+    [delta_path] = (tmp_path / "gw1").glob("flags-delta-*.json")
+    delta = json.loads(delta_path.read_text())
+    assert delta["gate_ids"] == [7, 8]
+    assert delta["gate_changed"] is True
+    assert [c["id"] for c in delta["gate"]] == [7]
+    assert delta["baseline"]["fetched_at"] is not None
+
+
+def test_flags_exits_0_when_only_players_outside_the_gate_changed(tmp_path, capsys):
+    seed(tmp_path, "bootstrap", bootstrap_payload(elements=[
+        player_payload(id=7, web_name="Starter"),
+        player_payload(id=8, web_name="Elsewhere", element_type=2),
+    ]))
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[
+        player_payload(id=7, web_name="Starter"),
+        player_payload(id=8, web_name="Elsewhere", element_type=2, status="i"),
+    ])})
+
+    assert run(["flags", "--gw", "1", "--ids", "7"], tmp_path, gateway) == 0
+    out = capsys.readouterr().out
+    assert "gate: 0 of 1 ids changed" in out
+    pool = out[out.index("pool"):]
+    assert "DEF" in pool and "Elsewhere" in pool and "status a -> i" in pool
+
+
+def test_flags_baseline_option_reads_the_given_snapshot(tmp_path, capsys):
+    seed(tmp_path, "bootstrap", bootstrap_payload(elements=[player_payload(id=7, news="new")]))
+    old = tmp_path / "old-bootstrap.json"
+    old.write_text(json.dumps(bootstrap_payload(elements=[player_payload(id=7, news="")])))
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[
+        player_payload(id=7, news="new"),
+    ])})
+
+    argv = ["flags", "--gw", "1", "--ids", "7", "--baseline", str(old)]
+    assert run(argv, tmp_path, gateway) == 3
+    assert str(old) in capsys.readouterr().out
+
+
+def test_flags_without_any_baseline_exits_4_after_reporting(tmp_path, capsys):
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[player_payload(id=7)])})
+    assert run(["flags", "--gw", "1", "--ids", "7"], tmp_path, gateway) == 4
+    captured = capsys.readouterr()
+    assert "Alpha" in captured.out
+    assert "no baseline" in captured.err
 
 
 def test_flags_rejects_unknown_ids(tmp_path, capsys):

@@ -638,6 +638,25 @@ def test_coverage_refuses_when_an_available_player_above_4_5m_is_missing():
         build_predictions(bootstrap, {}, fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW)
 
 
+def test_coverage_lets_an_allowed_absentee_through_with_a_warning():
+    bootstrap = make_bootstrap([
+        player(),
+        player(id=2, web_name="Costly", now_cost=75, status="a"),
+        player(id=3, web_name="Pricey", now_cost=80, status="a"),
+    ])
+    with pytest.raises(ValueError, match="Pricey"):
+        build_predictions(
+            bootstrap, {}, fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW,
+            allow_missing=frozenset({2}),
+        )
+    result = build_predictions(
+        bootstrap, {}, fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW,
+        allow_missing=frozenset({2, 3}),
+    )
+    assert [r.id for r in result.rows] == [1]
+    assert any("id 2 Costly" in w and "id 3 Pricey" in w for w in result.warnings)
+
+
 def test_coverage_excludes_and_counts_cheap_or_unavailable_absentees():
     bootstrap = make_bootstrap([
         player(),

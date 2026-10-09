@@ -144,11 +144,12 @@ suggestion never drives a POST — decisions still flow through `picks:`.
   GW = N or an open status.
 
 ### Freshness gate (all cycles)
-Executed by the finalizer via `flags` before it writes final.md. If any
-`status`, `chance_of_playing_next_round`, or `news` value changed for a
-selected player, the finalizer returns REOPEN with the delta; you re-run the
-affected analysis and then re-run the finalizer. REOPEN cycles are exempt from
-the one-revision cap.
+Executed by the finalizer via `flags --ids <15 squad ids + every transfer-in>`
+before it writes final.md. The diff is CODE: `flags` compares `status`,
+`chance_of_playing_next_round` and `news` against the bootstrap cached just
+before its refresh and exits 3 when a gate id changed. On exit 3 the finalizer
+returns REOPEN with the printed delta; you re-run the affected analysis and
+then re-run the finalizer. REOPEN cycles are exempt from the one-revision cap.
 
 The raw snapshot must be < 24h old when final.md is written; if older, rerun
 the data collector first.
@@ -247,11 +248,11 @@ All FPL API access goes through the deterministic CLI
 | `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
 | `actuals --round R --ids <ids>` | per-player ACTUAL points, goals, assists, bonus, BPS, xG, xA and DefCon count for a completed round; sums double-gameweek rows | always refreshes |
 | `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON | cached |
-| `flags --ids <ids>` | injury/news flags — the pre-deadline freshness gate | always refreshes |
+| `flags --ids <ids> [--baseline <bootstrap.json>]` | the pre-deadline freshness gate: refreshes bootstrap, prints flags for `--ids` plus their status/chance/news delta against the baseline (default: the bootstrap cached just before the refresh) and an informational whole-pool delta by position; writes flags-delta-<stamp>.json. Exit 0 = no `--ids` change, 3 = a `--ids` player changed, 4 = no baseline | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
 | `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--minutes]` | filtered read over the cached bootstrap; `--minutes` appends this season's minutes per round from cached summaries | local only |
-| `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
+| `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N --allow-missing-ids <ids>] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
 | `plan [--from-final <path>] [--prev-final <path>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON | local only |
 | `auth-check [--team-id <id>]` | session pre-flight: redacted credential-key report + one `my-team` read. PASS → exit 0; FAIL (expired/HTTP/missing auth/null team_id) → exit 1 | always (auth) |
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |

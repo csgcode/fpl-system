@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import math
 import time
 from collections.abc import Callable, Iterable, Sequence
@@ -16,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from fpl.api import Fetched, FplApi
+from fpl.freshness import FlagChange, flag_delta
 from fpl.models import (
     Bootstrap,
     ElementSummary,
@@ -29,7 +31,12 @@ from fpl.models import (
     is_shortlisted,
 )
 from fpl.repository import PLAYERS_SLIM_COLUMNS, PlayerRepository, slim_values
-from fpl.store import SnapshotMissingError, SnapshotStore, utcnow
+from fpl.store import (
+    ARCHIVE_STAMP_FORMAT,
+    SnapshotMissingError,
+    SnapshotStore,
+    utcnow,
+)
 
 DEFAULT_MAX_AGE_HOURS = 24.0
 PLAYERS_SLIM_FILENAME = "players-slim.csv"
@@ -109,6 +116,44 @@ class ActualLine:
     expected_goals: float = 0.0
     expected_assists: float = 0.0
     defensive_contribution: float = 0.0
+
+
+@dataclass(frozen=True)
+class FlagBaseline:
+    bootstrap: Bootstrap
+    source: str
+    fetched_at: datetime | None
+
+
+@dataclass
+class FlagCheck:
+    """baseline None means no delta could be computed — the gate cannot
+    pass on it."""
+
+    players: list[Player]
+    refreshed_at: datetime | None
+    baseline: FlagBaseline | None = None
+    gate_ids: list[int] = field(default_factory=list)
+    gate: list[FlagChange] = field(default_factory=list)
+    pool: list[FlagChange] = field(default_factory=list)
+    delta_path: Path | None = None
+
+    def to_document(self, gw: int) -> dict[str, Any]:
+        if self.baseline is None:
+            raise ValueError("no baseline: there is no delta to serialise")
+        fetched_at = self.baseline.fetched_at
+        return {
+            "gw": gw,
+            "refreshed_at": self.refreshed_at.isoformat() if self.refreshed_at else None,
+            "baseline": {
+                "source": self.baseline.source,
+                "fetched_at": fetched_at.isoformat() if fetched_at else None,
+            },
+            "gate_ids": self.gate_ids,
+            "gate_changed": bool(self.gate),
+            "gate": [c.to_document() for c in self.gate],
+            "pool": [c.to_document() for c in self.pool],
+        }
 
 
 @dataclass
@@ -284,6 +329,47 @@ class FplDataService:
         if unknown:
             raise ValueError(f"unknown player ids: {unknown}")
         return [by_id[pid] for pid in ids]
+
+    def flag_check(
+        self, gw: int, *, player_ids: Sequence[int], baseline_path: Path | None = None
+    ) -> FlagCheck:
+        """flag_report plus the delta against a baseline: baseline_path when
+        given, else the cached bootstrap as it stood just before this refresh
+        (the snapshot the latest analysis read). The delta is persisted as
+        flags-delta-<refresh stamp>.json beside the bootstrap."""
+        baseline = self._flag_baseline(gw, baseline_path)
+        players = self.flag_report(gw, player_ids=player_ids)
+        refreshed = self._cached_bootstrap(gw)
+        refreshed_at = self._store.fetched_at(gw, "bootstrap")
+        if baseline is None:
+            return FlagCheck(players=players, refreshed_at=refreshed_at)
+        gate_ids = _dedupe(player_ids)
+        check = FlagCheck(
+            players=players,
+            refreshed_at=refreshed_at,
+            baseline=baseline,
+            gate_ids=gate_ids,
+            gate=flag_delta(baseline.bootstrap.elements, refreshed.elements, set(gate_ids)),
+            pool=flag_delta(baseline.bootstrap.elements, refreshed.elements),
+        )
+        stamp = (refreshed_at or self._now()).strftime(ARCHIVE_STAMP_FORMAT)
+        check.delta_path = self._store.save(
+            gw, f"flags-delta-{stamp}", check.to_document(gw), "derived://flags-delta"
+        )
+        return check
+
+    def _flag_baseline(self, gw: int, baseline_path: Path | None) -> FlagBaseline | None:
+        if baseline_path is not None:
+            raw = json.loads(baseline_path.read_text(encoding="utf-8"))
+            return FlagBaseline(Bootstrap.model_validate(raw), str(baseline_path), None)
+        if not self._store.exists(gw, "bootstrap"):
+            return None
+        archived = self._store.archive_path(gw, "bootstrap")
+        return FlagBaseline(
+            self._cached_bootstrap(gw),
+            str(archived or self._store.path(gw, "bootstrap")),
+            self._store.fetched_at(gw, "bootstrap"),
+        )
 
     def actuals(
         self, gw: int, *, player_ids: Sequence[int], match_round: int

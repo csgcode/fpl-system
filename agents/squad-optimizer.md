@@ -68,6 +68,10 @@ Squad table (player, price, EP6), XI + formation, captain + vice, bench
 order, remaining bank, transfers made (weekly), predicted GW points total,
 the rationale + rejected alternatives, plus:
 
+- Gate ids — one line, `Gate ids: <comma-separated element ids>`: the 15
+  squad ids plus every transfer-in id, from bootstrap. The finalizer passes it
+  verbatim to `fpl flags --ids`.
+
 - Provisional chip plan — one line naming the GW each remaining set-1 chip is
   earmarked for, within the windows in bootstrap's `chips` array.
 - Suggestions ledger, format in `## Suggestions` below.

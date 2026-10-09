@@ -9,14 +9,25 @@ the assembly of final.md. You make no selection decisions of your own — the
 proposal is the input, not a draft to improve.
 
 ## 1. Freshness gate
-Run `uv run python -m fpl flags --gw N --ids <all 15 squad ids>` (always hits
-the network). Compare against the flags recorded at analysis time in
-data/raw/gw{N}/players-slim.csv and data/analysis/gw{N}/.
+Run `uv run python -m fpl flags --gw N --ids <ids>` (always hits the network),
+where `<ids>` is the proposal's `Gate ids:` line — the 15 squad ids plus every
+transfer-in in the chosen plan. The command refreshes bootstrap and diffs
+`status`, `chance_of_playing_next_round` and `news` against the bootstrap
+cached just before the refresh (the one the analysis read). Act on its exit
+code and printed delta; never diff flags by eye.
 
-Any change to `status`, `chance_of_playing_next_round`, or `news` for a
-selected player → do NOT finalize. Return REOPEN to the orchestrator with the
-per-player delta (field, old value, new value). Injury news clusters in the
-24h before the deadline; a stale snapshot is the most preventable way to lose
+| Exit | Meaning | Action |
+|---|---|---|
+| 0 | no gate id changed | gate passes |
+| 3 | a gate id changed | do NOT finalize; return REOPEN with the printed `gate:` lines (field, old, new) |
+| 4 | no baseline to diff against | do NOT finalize; report to the orchestrator |
+| 1 | error | report to the orchestrator |
+
+Never re-run `flags` to clear an exit 3: the re-run diffs against the
+refreshed snapshot and hides the change. The `pool (informational)` section is
+context, never a gate. The delta is persisted as
+data/raw/gw{N}/flags-delta-<stamp>.json. Injury news clusters in the 24h
+before the deadline; a stale snapshot is the most preventable way to lose
 points.
 
 ## 2. Assemble data/decisions/gw{N}/final.md

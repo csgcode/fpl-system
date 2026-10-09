@@ -119,8 +119,8 @@ def shortlist_case(**overrides):
         (shortlist_case(selected_by_percent="1.9"), False),
         (shortlist_case(penalties_order=2), True),
         (shortlist_case(penalties_order=3), False),
-        (shortlist_case(minutes=900), True),
-        (shortlist_case(minutes=899), False),
+        (shortlist_case(starts=1, minutes=90), True),
+        (shortlist_case(starts=0, minutes=899), False),
         (shortlist_case(minutes=90, defensive_contribution=8.0), True),
         (shortlist_case(minutes=90, defensive_contribution=7.9), False),
         (shortlist_case(minutes=0, defensive_contribution=500.0), False),
@@ -129,6 +129,14 @@ def shortlist_case(**overrides):
 )
 def test_shortlist_rule_disjuncts(overrides, expected):
     assert is_shortlisted(Player.model_validate(player_payload(**overrides))) is expected
+
+
+def test_shortlist_includes_a_cheap_regular_starter_early_in_the_season():
+    # GW6: five rounds played, so no one has 900 minutes yet.
+    keeper = player_payload(
+        **shortlist_case(element_type=1, now_cost=45, minutes=450, starts=5)
+    )
+    assert is_shortlisted(Player.model_validate(keeper))
 
 
 @pytest.mark.parametrize("status", ["u", "n"])

@@ -316,7 +316,7 @@ class MyTeam(_FrozenModel):
 SHORTLIST_PRICE_FLOOR_TENTHS = 45
 SHORTLIST_MIN_OWNERSHIP_PCT = 2.0
 SHORTLIST_MAX_PENALTY_ORDER = 2
-SHORTLIST_MIN_MINUTES = 900
+SHORTLIST_MIN_STARTS = 1
 SHORTLIST_MIN_DEFCON_PER_90 = 8.0
 SHORTLIST_EXCLUDED_STATUSES = frozenset(
     {PlayerStatus.UNAVAILABLE, PlayerStatus.NOT_ELIGIBLE}
@@ -345,6 +345,8 @@ def is_shortlisted(player: Player) -> bool:
             player.penalties_order is not None
             and player.penalties_order <= SHORTLIST_MAX_PENALTY_ORDER
         )
-        or player.minutes >= SHORTLIST_MIN_MINUTES
+        # Starts, not a minutes total: any fixed minutes floor misses cheap
+        # regular starters early in the season, before it can be reached.
+        or player.starts >= SHORTLIST_MIN_STARTS
         or defcon_per_90(player) >= SHORTLIST_MIN_DEFCON_PER_90
     )

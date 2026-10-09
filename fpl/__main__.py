@@ -48,6 +48,7 @@ from fpl.ep import (
     write_predictions,
 )
 from fpl.http import RequestsGateway, RequestsTokenGateway, TokenEndpointError
+from fpl.freshness import FlagChange
 from fpl.models import POSITION_ALIASES, MyTeam, Player, PlayerStatus, Position
 from fpl.plan import (
     LINEUP_TARGET,
@@ -116,6 +117,8 @@ from fpl.write import (
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_EMPTY = 2
+EXIT_FLAGS_CHANGED = 3
+EXIT_NO_BASELINE = 4
 
 WRITE_COMMANDS = ("auth-check", "my-team", "set-lineup", "make-transfers")
 DECISIONS_ROOT = Path("data/decisions")
@@ -193,9 +196,21 @@ def build_parser() -> argparse.ArgumentParser:
         "write prior-season.json from cached summaries",
         cached=False,
     )
-    flags = add("flags", "force-refresh injury/news flags for given players", cached=False)
+    flags = add(
+        "flags",
+        "force-refresh injury/news flags and diff them against a baseline "
+        f"(exit {EXIT_FLAGS_CHANGED}: a --ids player changed; "
+        f"exit {EXIT_NO_BASELINE}: no baseline)",
+        cached=False,
+    )
     flags.add_argument(
-        "--ids", type=_id_list, required=True, help="comma-separated player ids"
+        "--ids", type=_id_list, required=True,
+        help="comma-separated player ids — the gate scope",
+    )
+    flags.add_argument(
+        "--baseline", type=Path,
+        help="bootstrap JSON to diff against (default: the cached gw bootstrap "
+             "as it stood just before this refresh)",
     )
     def add_write(name: str, help_text: str) -> argparse.ArgumentParser:
         p = add(name, help_text, cached=False)
@@ -394,6 +409,11 @@ def build_parser() -> argparse.ArgumentParser:
     ep.add_argument("--out", type=Path, help="default: <analysis-root>/gw{N}/players-{POS}.json")
     ep.add_argument("--format", choices=("table", "json"), default="table")
     ep.add_argument("--limit", type=int, default=15, help="rows shown in the table")
+    ep.add_argument(
+        "--allow-missing-ids", type=_id_list, default=[],
+        help="comma-separated ids above £4.5m that may lack an inputs row; "
+             "left unscored and listed in the warnings",
+    )
 
     players = add("players", "filtered view over the cached bootstrap", cached=False)
     players.add_argument(
@@ -659,15 +679,7 @@ def run_command(
             )
             return EXIT_EMPTY
     elif args.command == "flags":
-        players = service.flag_report(gw, player_ids=args.ids)
-        print(f"refreshed at {store.fetched_at(gw, 'bootstrap')}")
-        print(f"{'id':>4}  {'name':<20} {'st':<2} {'chance':>6}  "
-              f"{'news_added':<25} news")
-        for p in players:
-            chance = "" if p.chance_of_playing_next_round is None else f"{p.chance_of_playing_next_round}%"
-            added = p.news_added.isoformat() if p.news_added else ""
-            print(f"{p.id:>4}  {p.web_name:<20.20} {p.status.value:<2} "
-                  f"{chance:>6}  {added:<25} {p.news}")
+        return run_flags(service, gw, args)
     elif args.command == "plan":
         return run_plan(store, gw, args)
     elif args.command == "calibrate":
@@ -688,6 +700,48 @@ def run_command(
         minutes = _minutes_by_round(store, gw, rows) if args.minutes else None
         print_players(rows, args.format, minutes)
     return EXIT_OK
+
+
+def run_flags(service: FplDataService, gw: int, args: argparse.Namespace) -> int:
+    check = service.flag_check(gw, player_ids=args.ids, baseline_path=args.baseline)
+    print(f"refreshed at {check.refreshed_at}")
+    print(f"{'id':>4}  {'name':<20} {'st':<2} {'chance':>6}  "
+          f"{'news_added':<25} news")
+    for p in check.players:
+        chance = "" if p.chance_of_playing_next_round is None else f"{p.chance_of_playing_next_round}%"
+        added = p.news_added.isoformat() if p.news_added else ""
+        print(f"{p.id:>4}  {p.web_name:<20.20} {p.status.value:<2} "
+              f"{chance:>6}  {added:<25} {p.news}")
+    if check.baseline is None:
+        _stderr(
+            f"error: no baseline — no cached gw{gw} bootstrap preceded this refresh "
+            f"and no --baseline was given; the gate cannot pass without a delta"
+        )
+        return EXIT_NO_BASELINE
+    print()
+    print(f"baseline: {check.baseline.source} (fetched {check.baseline.fetched_at or 'unknown'})")
+    print(f"gate: {len(check.gate)} of {len(check.gate_ids)} ids changed")
+    for change in check.gate:
+        print(f"  {_flag_change_line(change)}")
+    print(f"pool (informational): {len(check.pool)} changed")
+    for position in Position:
+        rows = [c for c in check.pool if c.position == position]
+        if rows:
+            print(f"  {position.name}")
+            for change in rows:
+                print(f"    {_flag_change_line(change)}")
+    print(f"wrote {check.delta_path}")
+    return EXIT_FLAGS_CHANGED if check.gate else EXIT_OK
+
+
+def _flag_change_line(change: FlagChange) -> str:
+    # news is free text: quoted so an empty value and a boundary stay visible.
+    fields = "; ".join(
+        f"{c.field} {c.before!r} -> {c.after!r}" if c.field == "news"
+        else f"{c.field} {c.before} -> {c.after}"
+        for c in change.changes
+    )
+    return f"{change.id:>4} {change.web_name}: {fields}"
 
 
 def run_calibrate(
@@ -753,7 +807,10 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     wanted = [p.id for p in bootstrap.elements if p.element_type == position]
     wanted += [entry.id for entry in inputs.players]
     summaries = load_cached_summaries(store, gw, wanted)
-    result = build_predictions(bootstrap, summaries, fixtures, inputs, gw=gw)
+    result = build_predictions(
+        bootstrap, summaries, fixtures, inputs, gw=gw,
+        allow_missing=frozenset(args.allow_missing_ids),
+    )
     # players-{pos}.json is derived from inputs + fixtures.json + cached
     # snapshots, so overwriting it is safe, like plan.json.
     write_predictions(out_path, result)
@@ -796,7 +853,7 @@ def run_ep_check(
     wanted += [entry.id for entry in inputs.players]
     result = build_predictions(
         bootstrap, load_cached_summaries(store, gw, wanted), load_fixtures(fixtures_path),
-        inputs, gw=gw,
+        inputs, gw=gw, allow_missing=frozenset(args.allow_missing_ids),
     )
     print(
         f"{inputs_path} OK: {len(result.rows)} players scored, "

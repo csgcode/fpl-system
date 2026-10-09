@@ -27,7 +27,7 @@ A player is shortlisted when they hold a playing position, `status` is not in
 - price > £4.5m
 - ownership ≥ 2%
 - penalties_order ≤ 2
-- last-season minutes ≥ 900
+- at least one start this season
 - DefCon per-90 ≥ 8
 
 ## Output → data/raw/gw{N}/

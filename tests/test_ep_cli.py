@@ -202,3 +202,15 @@ def test_ep_without_position_or_check_is_refused(tmp_path, capsys):
         "--data-root", str(data_root), "ep", "--gw", str(GW), "--analysis-root", str(analysis_root),
     ]) == 1
     assert "--position is required" in capsys.readouterr().err
+
+
+def test_ep_allow_missing_ids_scores_the_rest_and_warns(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document(players=[
+        {"id": 2, "name": "Beta", "p_start": 0.5, "uncertainty": "MED"}
+    ]))
+    assert run(data_root, analysis_root, "--allow-missing-ids", "1") == 0
+    err = capsys.readouterr().err
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert [row["id"] for row in written] == [2]
+    assert "WARNING" in err and "Alpha" in err
