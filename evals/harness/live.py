@@ -34,6 +34,18 @@ JUDGE_TIMEOUT_S = 300
 CONFIG_DIR_ENV = "CLAUDE_CONFIG_DIR"
 
 
+class LiveEvalsDisabled(RuntimeError):
+    """Live evals would bill model usage to the shared company pool, so this
+    project never starts a `claude` process. Grade with `evals replay`."""
+
+
+def refuse_live() -> None:
+    raise LiveEvalsDisabled(
+        "live evals are disabled in this project: they bill model usage to the "
+        "company pool. Use `uv run python -m evals replay <agent>` instead."
+    )
+
+
 class RunInvalid(RuntimeError):
     """The run cannot be graded: claude failed before producing a result, the
     stub was bypassed, or the agent left its workspace. `cost_usd` is what the
@@ -137,6 +149,7 @@ def agent_env(replay_dir: Path, base: dict[str, str] | None = None) -> dict[str,
 def build_claude_argv(
     prompt: str, *, model: str, replay_dir: Path, budget_usd: float = 1.00
 ) -> list[str]:
+    refuse_live()
     return [
         "claude", "-p", prompt,
         "--model", model,
@@ -157,6 +170,7 @@ def build_claude_argv(
 
 
 def build_judge_argv(model: str = "opus", budget_usd: float = 0.50) -> list[str]:
+    refuse_live()
     return [
         "claude", "-p", "--model", model, "--output-format", "json",
         "--tools", "", "--no-session-persistence", "--setting-sources", "project",
@@ -229,6 +243,7 @@ def run_agent(argv: list[str], *, cwd: Path, replay_dir: Path, stream_path: Path
     is still gradable when the stream reached its result record (an exhausted
     budget exits non-zero after one). The session's project directory is
     deleted once claude exits."""
+    refuse_live()
     session_project_dir(cwd)
     stream_path.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -255,6 +270,7 @@ def _has_result(stream_path: Path) -> bool:
 
 
 def run_judge(prompt: str, *, cwd: Path, model: str = "opus") -> JudgeVerdict:
+    refuse_live()
     session_project_dir(cwd)
     try:
         completed = subprocess.run(

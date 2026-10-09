@@ -20,17 +20,6 @@ def test_prompt_is_the_collect_usage_template() -> None:
                       "# A10 — Usage Collector\n")
 
 
-def test_argv_allows_only_the_usage_cli_and_points_at_the_tree(tmp_path: Path) -> None:
-    argv = live.build_argv("p", replay_dir=tmp_path / "replay", transcripts=tmp_path / "t")
-    assert argv[argv.index("--model") + 1] == "haiku"
-    assert argv[argv.index("--allowedTools") + 1] == "Bash(uv run python -m fpl usage*)"
-    assert argv[argv.index("--permission-mode") + 1] == "dontAsk"
-    assert "--no-session-persistence" in argv
-    env = json.loads(argv[argv.index("--settings") + 1])["env"]
-    assert env["FPL_TRANSCRIPTS_ROOT"] == str(tmp_path / "t")
-    assert env["FPL_REPLAY_DIR"] == str(tmp_path / "replay")
-
-
 def test_workspace_spec_carries_the_ledgers_and_a_dummy_auth() -> None:
     auth = make_dummy_auth()
     spec = live.workspace_spec(C1, auth)

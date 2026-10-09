@@ -79,42 +79,6 @@ def test_forget_session_refuses_a_symlinked_directory(projects, workspace, tmp_p
     assert elsewhere.is_dir()
 
 
-def test_run_agent_forgets_its_session_even_when_the_run_is_invalid(projects, workspace):
-    session_dir(projects, workspace)
-    with pytest.raises(RunInvalid):
-        run_agent(["sh", "-c", "exit 3"], cwd=workspace, replay_dir=workspace,
-                  stream_path=workspace.parent / "stream.jsonl")
-    assert not (projects / project_dir_name(workspace)).exists()
-
-
-def test_run_agent_forgets_its_session_after_a_good_run(projects, workspace):
-    session_dir(projects, workspace)
-    run_agent(["sh", "-c", f"echo '{RESULT}'"], cwd=workspace, replay_dir=workspace,
-              stream_path=workspace.parent / "stream.jsonl")
-    assert not (projects / project_dir_name(workspace)).exists()
-
-
-def test_run_agent_refuses_a_cwd_outside_the_temp_dir_before_running(projects, tmp_path):
-    marker = tmp_path / "ran"
-    with pytest.raises(ValueError, match="outside the temp dir"):
-        run_agent(["sh", "-c", f"touch {marker}"], cwd=Path.home(), replay_dir=tmp_path,
-                  stream_path=tmp_path / "stream.jsonl")
-    assert not marker.exists()
-
-
-def test_run_judge_forgets_its_session(projects, workspace, monkeypatch):
-    judge_cwd = workspace.parent
-    session_dir(projects, judge_cwd)
-
-    class Done:
-        stdout = json.dumps({"result": "PASS", "total_cost_usd": 0.01})
-        returncode = 0
-
-    monkeypatch.setattr("evals.harness.live.subprocess.run", lambda *a, **k: Done())
-    assert run_judge("prompt", cwd=judge_cwd).passed
-    assert not (projects / project_dir_name(judge_cwd)).exists()
-
-
 def read(cid: str, path: str) -> ToolCall:
     return ToolCall(cid, "Read", {"file_path": path}, ToolResult("text", False, False))
 

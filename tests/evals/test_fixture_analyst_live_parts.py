@@ -65,32 +65,6 @@ def test_no_judge_without_fixtures_md():
     assert not judged(live_case("s3-no-live"), run_with(None, {}))
 
 
-def test_live_run_validates_against_its_own_workspace(tmp_path, monkeypatch):
-    """The run's own persisted tool output is allowed; that needs the workspace."""
-    ws = Workspace(root=tmp_path / "ws", replay_dir=tmp_path / "replay", before={})
-    (ws.root / "agents").mkdir(parents=True)
-    (ws.root / live.SPEC_PATH).write_text("---\nmodel: opus\n---\nBODY\n")
-    monkeypatch.setattr(live, "prepare", lambda case: (ws, make_dummy_auth(), {}, {}))
-
-    def fake_agent(argv, *, cwd, replay_dir, stream_path):
-        stream_path.parent.mkdir(parents=True, exist_ok=True)
-        stream_path.write_text('{"type": "result", "total_cost_usd": 0.5}\n')
-        return stream_path
-
-    seen = {}
-
-    def fake_validate(transcript, **kwargs):
-        seen.update(kwargs)
-        raise RunInvalid("stop here")
-
-    monkeypatch.setattr(live, "run_agent", fake_agent)
-    monkeypatch.setattr(live, "validate_run", fake_validate)
-    with pytest.raises(RunInvalid) as exc_info:
-        live.run_live_case(live_case("gw6"), out_root=tmp_path / "out")
-    assert seen["workspace"] == ws.root
-    assert exc_info.value.cost_usd == 0.5
-
-
 def test_judge_checks_ranks_against_the_rank_columns():
     prompt = build_judge_prompt(live_case("gw6"), run_with("## Headline\nMCI", {}))
     assert "a rank must match the tables' rank columns" in prompt

@@ -19,37 +19,6 @@ from evals.harness.live import (
 from evals.harness.transcript import ToolCall, Transcript
 
 
-def test_build_claude_argv_is_exact():
-    argv = build_claude_argv("do it", model="haiku", replay_dir=Path("/tmp/r"))
-    assert argv == [
-        "claude", "-p", "do it",
-        "--model", "haiku",
-        "--output-format", "stream-json", "--verbose",
-        "--tools", "Bash,Read,Write,Edit,Glob,Grep",
-        "--permission-mode", "dontAsk",
-        "--allowedTools", "Bash Read Write Edit Glob Grep",
-        "--disallowedTools",
-        "WebFetch WebSearch Bash(curl *) Bash(wget *) Bash(git commit *) Bash(git push *)",
-        "--setting-sources", "project",
-        "--settings", json.dumps({"env": {"FPL_REPLAY_DIR": "/tmp/r", "UV_OFFLINE": "1"}}),
-        "--no-session-persistence",
-        "--max-budget-usd", "1.00",
-    ]
-
-
-def test_build_claude_argv_budget_is_formatted():
-    argv = build_claude_argv("p", model="opus", replay_dir=Path("/r"), budget_usd=0.25)
-    assert argv[-2:] == ["--max-budget-usd", "0.25"]
-
-
-def test_build_judge_argv_has_no_tools_and_reads_stdin():
-    assert build_judge_argv() == [
-        "claude", "-p", "--model", "opus", "--output-format", "json",
-        "--tools", "", "--no-session-persistence", "--setting-sources", "project",
-        "--max-budget-usd", "0.50",
-    ]
-
-
 def test_parse_result_cost_reads_the_last_result_record():
     cost = parse_result_cost([
         {"type": "system", "subtype": "init"},

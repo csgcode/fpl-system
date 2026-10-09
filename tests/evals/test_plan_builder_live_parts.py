@@ -115,23 +115,6 @@ def test_rubric_allows_restating_the_owner_the_meaning_and_the_cli_text():
     assert "invent" in rubric.lower()
 
 
-def test_run_judge_passes_the_model_through(monkeypatch, tmp_path):
-    seen = {}
-
-    class Done:
-        stdout = json.dumps({"result": "PASS", "total_cost_usd": 0.01})
-        returncode = 0
-
-    def fake_run(argv, **kwargs):
-        seen["argv"] = argv
-        return Done()
-
-    monkeypatch.setattr(harness_live.subprocess, "run", fake_run)
-    verdict = harness_live.run_judge("q", cwd=tmp_path, model="haiku")
-    assert verdict.passed
-    assert seen["argv"][seen["argv"].index("--model") + 1] == "haiku"
-
-
 def test_reference_plan_is_compared_without_the_snapshot_age(tmp_path):
     ws_root = tmp_path / "ws"
     plan = ws_root / "data/decisions/gw6/plan.json"

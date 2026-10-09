@@ -15,6 +15,7 @@ from pathlib import Path
 
 from evals.harness.checks import run_checks
 from evals.harness.live import (
+    refuse_live,
     AGENT_TOOLS,
     DISALLOWED,
     LiveOutcome,
@@ -56,6 +57,7 @@ def build_prompt(gw: int, body: str) -> str:
 
 
 def build_argv(prompt: str, *, replay_dir: Path, transcripts: Path) -> list[str]:
+    refuse_live()
     env = replay_env(replay_dir) | {TRANSCRIPTS_ROOT_ENV: str(transcripts)}
     return [
         "claude", "-p", prompt,

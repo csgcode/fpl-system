@@ -26,26 +26,6 @@ def sh(script: str) -> list[str]:
     return ["sh", "-c", script]
 
 
-def test_run_agent_keeps_claudes_stderr_beside_the_stream(tmp_path):
-    stream = run_agent(sh(f"echo '{RESULT}'; echo warming up >&2"), cwd=tmp_path,
-                       replay_dir=tmp_path, stream_path=tmp_path / "out" / "stream.jsonl")
-    assert stream.read_text().strip() == RESULT
-    assert (tmp_path / "out" / STDERR_FILE).read_text() == "warming up\n"
-
-
-def test_a_failed_run_with_no_result_is_invalid_and_quotes_stderr(tmp_path):
-    with pytest.raises(RunInvalid, match="exited 3.*bad flag") as exc_info:
-        run_agent(sh("echo bad flag >&2; exit 3"), cwd=tmp_path, replay_dir=tmp_path,
-                  stream_path=tmp_path / "stream.jsonl")
-    assert STDERR_FILE in str(exc_info.value)
-
-
-def test_a_non_zero_exit_that_still_produced_a_result_is_gradable(tmp_path):
-    """claude exits non-zero when the budget runs out, after a result record."""
-    run_agent(sh(f"echo '{RESULT}'; exit 1"), cwd=tmp_path, replay_dir=tmp_path,
-              stream_path=tmp_path / "stream.jsonl")
-
-
 @dataclass(frozen=True)
 class FakeCase:
     id: str
