@@ -7,6 +7,7 @@ support, and NA unless the instructions the agent received contain its
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from enum import Enum
@@ -83,3 +84,26 @@ def format_scorecard(columns: Mapping[str, Iterable[CheckResult]]) -> str:
         if check_id in by_run[n] and by_run[n][check_id].status is Status.FAIL
     ]
     return "\n".join(lines + ([""] + notes if notes else []))
+
+
+_LINE_BUDGET = re.compile(r"(?i)\bat most (\d+) lines")
+_WORD_BUDGET = re.compile(r"≤\s?(\d+)[ -]words?\b")
+
+
+def return_budgets(instructions: str) -> list[tuple[str, int]]:
+    """Every return-length limit the instructions state, as (kind, n)."""
+    found = ([("lines", int(n)) for n in _LINE_BUDGET.findall(instructions)]
+             + [("words", int(n)) for n in _WORD_BUDGET.findall(instructions)])
+    return list(dict.fromkeys(found))
+
+
+def budget_overruns(text: str, budgets: Iterable[tuple[str, int]]) -> list[str]:
+    lines = sum(1 for line in text.splitlines() if line.strip())
+    words = len(text.split())
+    overruns = []
+    for kind, limit in budgets:
+        if kind == "lines" and lines > limit:
+            overruns.append(f"{lines} non-blank lines > {limit}")
+        elif kind == "words" and words > limit:
+            overruns.append(f"{words} words > {limit}")
+    return overruns

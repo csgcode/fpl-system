@@ -81,6 +81,19 @@ def test_rewrites_the_repo_root_and_home(tmp_path):
     assert transcript.calls[0].input["command"] == "cat /repo/data/x; ls ~/notes"
 
 
+def test_rewrites_the_munged_project_dir_in_scratchpad_paths(tmp_path):
+    scratch = "/private/tmp/claude-501/-Users-someone-Dev-fpl-system/abc/scratchpad"
+    rows = base_records(command=f"cat {scratch}/out.txt > {ROOT}/x")
+    src = write_jsonl(tmp_path / "src.jsonl", rows)
+    dst = tmp_path / "frozen.jsonl"
+
+    freeze(src, dst, repo_root=ROOT)
+
+    command = load_transcript(dst).calls[0].input["command"]
+    assert command == "cat /private/tmp/claude-501/-repo/abc/scratchpad/out.txt > /repo/x"
+    assert "someone" not in dst.read_text()
+
+
 def test_inlines_a_persisted_output(tmp_path):
     saved = tmp_path / "saved.txt"
     saved.write_text("the full output", encoding="utf-8")

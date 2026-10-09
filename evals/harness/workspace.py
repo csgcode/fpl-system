@@ -74,12 +74,17 @@ class WorkspaceSpec:
 
 @dataclass(frozen=True)
 class ReplaySpec:
+    """`extra` maps recording keys (e.g. "entry/42.json") to sources and is
+    placed last, so it overrides anything derived from the other fields."""
+
     gw: int
-    bootstrap: RepoFile
-    fixtures: RepoFile
-    team_id: int | None
-    my_team: Path | None
+    bootstrap: RepoFile | GitBlob | Content
+    fixtures: RepoFile | None = None
+    team_id: int | None = None
+    my_team: Path | None = None
     errors: Mapping[str, int] = field(default_factory=dict)
+    summaries: bool = True
+    extra: Mapping[str, RepoFile | GitBlob | Content] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -173,20 +178,12 @@ def build_workspace(
 
 def build_replay_dir(repo: Path, spec: ReplaySpec, dest: Path) -> Path:
     dest.mkdir(parents=True, exist_ok=True)
-    bootstrap_bytes = _read_pinned(repo, spec.bootstrap)
+    bootstrap_bytes, _ = _resolve(repo, spec.bootstrap)
     _place(dest / "bootstrap-static.json", bootstrap_bytes)
-    _place(dest / "fixtures.json", _read_pinned(repo, spec.fixtures))
-
-    bootstrap = Bootstrap.model_validate(json.loads(bootstrap_bytes))
-    borrowed: dict[str, int] = {}
-    for player in bootstrap.elements:
-        if not is_shortlisted(player):
-            continue
-        source_gw, path = _nearest_summary(repo, spec.gw, player.id)
-        if source_gw != spec.gw:
-            borrowed[str(player.id)] = source_gw
-        _place(dest / "element-summary" / f"{player.id}.json", path.read_bytes())
-    _place(dest / "borrowed.json", json.dumps(borrowed, indent=1).encode())
+    if spec.fixtures is not None:
+        _place(dest / "fixtures.json", _read_pinned(repo, spec.fixtures))
+    if spec.summaries:
+        _place_summaries(repo, spec.gw, bootstrap_bytes, dest)
 
     if spec.team_id is not None:
         tid, raw = spec.team_id, repo / "data/raw" / f"gw{spec.gw}"
@@ -201,7 +198,22 @@ def build_replay_dir(repo: Path, spec: ReplaySpec, dest: Path) -> Path:
             _place(dest / "my-team" / f"{tid}.json", _read_existing(spec.my_team))
     if spec.errors:
         _place(dest / "errors.json", json.dumps(dict(spec.errors), indent=1).encode())
+    for key, source in spec.extra.items():
+        _place(dest / key, _resolve(repo, source)[0])
     return dest
+
+
+def _place_summaries(repo: Path, gw: int, bootstrap_bytes: bytes, dest: Path) -> None:
+    bootstrap = Bootstrap.model_validate(json.loads(bootstrap_bytes))
+    borrowed: dict[str, int] = {}
+    for player in bootstrap.elements:
+        if not is_shortlisted(player):
+            continue
+        source_gw, path = _nearest_summary(repo, gw, player.id)
+        if source_gw != gw:
+            borrowed[str(player.id)] = source_gw
+        _place(dest / "element-summary" / f"{player.id}.json", path.read_bytes())
+    _place(dest / "borrowed.json", json.dumps(borrowed, indent=1).encode())
 
 
 def snapshot(root: Path) -> Manifest:
@@ -244,6 +256,11 @@ def _code_files(repo: Path, code_paths: tuple[str, ...]) -> list[str]:
         if any(rel.startswith(p) if p.endswith("/") else rel == p for p in code_paths):
             chosen.append(rel)
     return chosen
+
+
+def read_source(repo: Path, source: GitBlob | RepoFile | Content | bytes) -> bytes:
+    """A source's bytes, with the same pins and refusals a workspace applies."""
+    return _resolve(repo, source)[0]
 
 
 def _resolve(repo: Path, source: GitBlob | RepoFile | Content | bytes) -> tuple[bytes, int]:

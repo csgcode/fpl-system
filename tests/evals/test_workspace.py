@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from evals.harness.workspace import (
+    Content,
     GitBlob,
     ReplaySpec,
     RepoFile,
@@ -22,6 +23,7 @@ from evals.harness.workspace import (
     build_workspace,
     diff,
     make_dummy_auth,
+    read_source,
     snapshot,
 )
 from fpl.clock import CLOCK_FILE
@@ -252,6 +254,55 @@ def test_replay_dir_refuses_a_summary_missing_everywhere(raw_repo, tmp_path):
         path.unlink()
     with pytest.raises(SourceError, match="summary-2"):
         build_replay_dir(repo, replay, tmp_path / "replay")
+
+
+def test_read_source_applies_the_workspace_pins(repo):
+    assert read_source(repo, GitBlob("HEAD", "agents/x.md")) == b"spec v1\n"
+    assert read_source(repo, Content(b"x")) == b"x"
+    with pytest.raises(SourceError, match="auth"):
+        read_source(repo, RepoFile("data/auth.json"))
+
+
+def test_replay_dir_takes_a_literal_bootstrap_and_skips_summaries(raw_repo, tmp_path):
+    repo, _ = raw_repo
+    boot = json.dumps(bootstrap_payload(elements=[player_payload(id=1)])).encode()
+    replay = ReplaySpec(gw=6, bootstrap=Content(boot), summaries=False)
+    out = build_replay_dir(repo, replay, tmp_path / "replay")
+
+    assert (out / "bootstrap-static.json").read_bytes() == boot
+    assert not (out / "element-summary").exists()
+    assert not (out / "borrowed.json").exists()
+    assert not (out / "fixtures.json").exists()
+
+
+def test_replay_dir_takes_a_git_blob_bootstrap(repo, tmp_path):
+    replay = ReplaySpec(gw=1, bootstrap=GitBlob("HEAD", "data/raw/gw1/meta.md"),
+                        summaries=False)
+    out = build_replay_dir(repo, replay, tmp_path / "replay")
+    assert (out / "bootstrap-static.json").read_text() == "GW: 1\n"
+
+
+def test_replay_dir_extras_are_placed_last_and_override(raw_repo, tmp_path):
+    repo, replay = raw_repo
+    replay = ReplaySpec(
+        gw=6, bootstrap=replay.bootstrap, fixtures=replay.fixtures, team_id=42,
+        my_team=replay.my_team,
+        extra={"entry/42.json": Content(b'{"id": 99}'),
+               "my-team/7.json": RepoFile("data/raw/gw6/entry-42.json")},
+    )
+    out = build_replay_dir(repo, replay, tmp_path / "replay")
+
+    assert json.loads((out / "entry/42.json").read_text()) == {"id": 99}
+    assert json.loads((out / "my-team/7.json").read_text()) == {"id": 42}
+
+
+def test_replay_dir_extras_never_copy_the_real_auth_file(raw_repo, tmp_path):
+    repo, replay = raw_repo
+    (repo / "data/auth.json").write_text("{}")
+    bad = ReplaySpec(gw=6, bootstrap=replay.bootstrap, summaries=False,
+                     extra={"x.json": RepoFile("data/auth.json")})
+    with pytest.raises(SourceError, match="auth"):
+        build_replay_dir(repo, bad, tmp_path / "replay")
 
 
 def test_build_workspace_places_replay_beside_the_workspace(repo, raw_repo, tmp_path):

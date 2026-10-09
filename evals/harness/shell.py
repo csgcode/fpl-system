@@ -127,6 +127,19 @@ def agent_written_files(transcript: Transcript, root: str) -> dict[str, str | _U
     return written
 
 
+def appended_text(command: str, path: str) -> str | None:
+    """The heredoc bodies `cat` appends (`>>`) to `path` — relative, or the
+    tail of an absolute target — in command order; None when nothing is."""
+    bodies = []
+    for heredoc in _scan(command)[1]:
+        if not re.search(r"\bcat\b", heredoc.header):
+            continue
+        targets = [t for op, t in _redirects(heredoc.header) if op == ">>"]
+        if any(t == path or t.endswith(f"/{path}") for t in targets):
+            bodies.append(heredoc.body)
+    return "".join(bodies) if bodies else None
+
+
 def normalise(path: str, root: str) -> str:
     path = _unquote(path)
     prefix = root.rstrip("/") + "/"

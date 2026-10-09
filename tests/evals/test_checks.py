@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from evals.harness.checks import Check, CheckResult, Status, format_scorecard, run_checks
+from evals.harness.checks import (
+    Check,
+    CheckResult,
+    Status,
+    budget_overruns,
+    format_scorecard,
+    return_budgets,
+    run_checks,
+)
 
 
 @dataclass(frozen=True)
@@ -47,3 +55,19 @@ def test_scorecard_lists_one_row_per_check():
     results = [CheckResult("C1", Status.PASS, "fine"), CheckResult("C2", Status.FAIL, "x")]
     table = format_scorecard({"gw4": results})
     assert "gw4" in table and "C1" in table and "FAIL" in table
+
+
+def test_return_budgets_reads_line_and_word_limits():
+    instructions = ("Return to the orchestrator. At most 12 lines.\n"
+                    "Keep it ≤150 words, and at most 15 lines if it fails.")
+    assert return_budgets(instructions) == [("lines", 12), ("lines", 15), ("words", 150)]
+    assert return_budgets("no limit here") == []
+    assert return_budgets("At most 12 lines. ... in at most 12 lines.") == [("lines", 12)]
+    assert return_budgets("then a ≤200-word summary") == [("words", 200)]
+
+
+def test_budget_overruns_count_non_blank_lines_and_words():
+    text = "one two\n\nthree\nfour five six\n"
+    assert budget_overruns(text, [("lines", 3), ("words", 6)]) == []
+    assert budget_overruns(text, [("lines", 2), ("words", 5)]) == [
+        "3 non-blank lines > 2", "6 words > 5"]

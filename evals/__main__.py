@@ -6,7 +6,7 @@
     python -m evals outcome fixture-analyst
 
 Agents: data-collector, plan-builder, usage-collector, fixture-analyst,
-team-executor.
+team-executor, finalizer.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import argparse
 import sys
 
 AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst",
-          "team-executor")
+          "team-executor", "finalizer")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,6 +46,8 @@ def main(argv: list[str] | None = None) -> int:
         from evals.fixture_analyst import runner
     elif args.agent == "team-executor":
         from evals.team_executor import runner
+    elif args.agent == "finalizer":
+        from evals.finalizer import runner
     else:
         from evals.data_collector import runner
 

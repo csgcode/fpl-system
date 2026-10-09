@@ -8,6 +8,7 @@ import argparse
 import csv
 import io
 import json
+from datetime import UTC, datetime, timedelta
 
 import pytest
 import requests
@@ -572,6 +573,55 @@ def test_flags_without_any_baseline_exits_4_after_reporting(tmp_path, capsys):
     assert "no baseline" in captured.err
 
 
+def seed_aged(tmp_path, payload, hours):
+    """A cached gw1 bootstrap whose sidecar says it was fetched `hours` ago."""
+    then = datetime.now(UTC) - timedelta(hours=hours)
+    SnapshotStore(tmp_path, now=lambda: then).save(1, "bootstrap", payload, "seed://test")
+
+
+def test_flags_prints_baseline_age(tmp_path, capsys):
+    seed_aged(tmp_path, bootstrap_payload(elements=[player_payload(id=7)]), hours=2)
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[player_payload(id=7)])})
+
+    assert run(["flags", "--gw", "1", "--ids", "7"], tmp_path, gateway) == 0
+    assert "baseline age: 2.0h" in capsys.readouterr().out
+
+
+def test_flags_exits_5_when_the_baseline_is_over_24h_old(tmp_path, capsys):
+    seed_aged(tmp_path, bootstrap_payload(elements=[player_payload(id=7)]), hours=25)
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[player_payload(id=7)])})
+
+    assert run(["flags", "--gw", "1", "--ids", "7"], tmp_path, gateway) == 5
+    captured = capsys.readouterr()
+    assert "baseline age: 25.0h" in captured.out
+    assert ("error: baseline is 25.0h old (> 24h) — rerun the data collector "
+            "before finalizing") in captured.err
+    assert list((tmp_path / "gw1").glob("flags-delta-*.json"))
+
+
+def test_flags_stale_beats_a_gate_change(tmp_path, capsys):
+    seed_aged(tmp_path, bootstrap_payload(elements=[player_payload(id=7, news="")]), hours=30)
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[
+        player_payload(id=7, news="Knock"),
+    ])})
+
+    assert run(["flags", "--gw", "1", "--ids", "7"], tmp_path, gateway) == 5
+    out = capsys.readouterr().out
+    assert "gate: 1 of 1 ids changed" in out
+    assert "news '' -> 'Knock'" in out
+
+
+def test_flags_explicit_baseline_has_unknown_age_and_never_exits_5(tmp_path, capsys):
+    seed_aged(tmp_path, bootstrap_payload(elements=[player_payload(id=7)]), hours=48)
+    old = tmp_path / "old-bootstrap.json"
+    old.write_text(json.dumps(bootstrap_payload(elements=[player_payload(id=7)])))
+    gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload(elements=[player_payload(id=7)])})
+
+    argv = ["flags", "--gw", "1", "--ids", "7", "--baseline", str(old)]
+    assert run(argv, tmp_path, gateway) == 0
+    assert "baseline age: unknown" in capsys.readouterr().out
+
+
 def test_flags_rejects_unknown_ids(tmp_path, capsys):
     gateway = FakeGateway({BOOTSTRAP_URL: bootstrap_payload()})
     assert run(["flags", "--gw", "1", "--ids", "999"], tmp_path, gateway) == 1
@@ -800,6 +850,65 @@ def test_replay_auth_check_reports_an_injected_401_as_fail(tmp_path, replay, cap
 def test_replay_auth_refresh_refuses(tmp_path, replay, capsys):
     assert replay_main(tmp_path, ["auth-refresh", "--auth", str(tmp_path / "a.json")]) == 1
     assert "auth-refresh is unavailable in replay mode" in capsys.readouterr().err
+
+
+def _seed_final_check(root, *, proposal: str, previous: str | None = None,
+                      final: str | None = None, suggestions: bool = True):
+    decisions = root / "data" / "decisions"
+    (decisions / "gw5").mkdir(parents=True)
+    (decisions / "gw5" / "squad-proposal.md").write_text(proposal, encoding="utf-8")
+    if final is not None:
+        (decisions / "gw5" / "final.md").write_text(final, encoding="utf-8")
+    if previous is not None:
+        (decisions / "gw4").mkdir(parents=True)
+        (decisions / "gw4" / "final.md").write_text(previous, encoding="utf-8")
+    if suggestions:
+        (root / "data" / "suggestions.md").write_text("| S# |\n", encoding="utf-8")
+
+
+def test_final_check_proposal_only_exit_0(tmp_path, monkeypatch, capsys):
+    from tests.test_final_check import proposal
+
+    _seed_final_check(tmp_path, proposal=proposal())
+    monkeypatch.chdir(tmp_path)
+    assert main(["final-check", "--gw", "5"]) == 0
+    out = capsys.readouterr().out
+    assert "PASS P1" in out and "PASS P2" in out and "PASS P3" in out
+    assert "final.md: not written — proposal checks only" in out
+
+
+def test_final_check_prints_fail_lines_and_exits_1(tmp_path, monkeypatch, capsys):
+    from tests.test_final_check import proposal
+
+    _seed_final_check(tmp_path, proposal=proposal(),
+                      final=proposal().replace("bank: 1.0", "bank: 0.9"))
+    monkeypatch.chdir(tmp_path)
+    assert main(["final-check", "--gw", "5"]) == 1
+    out = capsys.readouterr().out
+    assert "FAIL F3: STATE differs from the proposal's in: bank" in out
+    assert "PASS F1" in out
+
+
+def test_final_check_defaults_to_previous_gw_final(tmp_path, monkeypatch, capsys):
+    from tests.test_final_check import S1, S2, S3, previous, proposal
+
+    _seed_final_check(tmp_path, proposal=proposal([S1, S2]), previous=previous([S1, S2, S3]))
+    monkeypatch.chdir(tmp_path)
+    assert main(["final-check", "--gw", "5"]) == 1
+    assert "FAIL P3: S3 is in the previous ledger" in capsys.readouterr().out
+
+
+def test_final_check_explicit_paths_and_missing_proposal(tmp_path, capsys):
+    from tests.test_final_check import proposal
+
+    source = tmp_path / "p.md"
+    source.write_text(proposal(), encoding="utf-8")
+    argv = ["final-check", "--gw", "5", "--proposal", str(source),
+            "--final", str(source), "--suggestions", str(tmp_path / "none.md")]
+    assert main(argv) == 1
+    assert "FAIL P2" in capsys.readouterr().out
+    assert main(["final-check", "--gw", "5", "--proposal", str(tmp_path / "nope.md")]) == 1
+    assert "no squad proposal at" in capsys.readouterr().err
 
 
 def test_plan_from_proposal_diffs_against_previous_final_not_previous_proposal(

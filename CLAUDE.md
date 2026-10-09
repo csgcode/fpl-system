@@ -169,8 +169,8 @@ before its refresh and exits 3 when a gate id changed. On exit 3 the finalizer
 returns REOPEN with the printed delta; you re-run the affected analysis and
 then re-run the finalizer. REOPEN cycles are exempt from the one-revision cap.
 
-The raw snapshot must be < 24h old when final.md is written; if older, rerun
-the data collector first.
+`flags` exits 5 when its baseline is over 24h old; the data collector then
+runs again first.
 
 ### final.md STATE block
 final.md ends with a machine-readable yaml block. The weekly cycle reads it as
@@ -233,7 +233,8 @@ file's YAML frontmatter, and the file body below the frontmatter as the
 subagent prompt.
 
 Subagents never run `git commit` — the orchestrator makes exactly one commit
-per GW cycle. Every subagent prompt must restate this.
+per GW cycle, plus a separate `gw{N}: correct record — <why>` commit after a
+post-deadline record correction. Every subagent prompt must restate this.
 
 | Agent | Model | Why |
 |---|---|---|
@@ -266,13 +267,14 @@ All FPL API access goes through the deterministic CLI
 | `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
 | `actuals --round R --ids <ids>` | per-player ACTUAL points, goals, assists, bonus, BPS, xG, xA and DefCon count for a completed round; sums double-gameweek rows | always refreshes |
 | `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON | cached |
-| `flags --ids <ids> [--baseline <bootstrap.json>]` | the pre-deadline freshness gate: refreshes bootstrap, prints flags for `--ids` plus their status/chance/news delta against the baseline (default: the bootstrap cached just before the refresh) and an informational whole-pool delta by position; writes flags-delta-<stamp>.json. Exit 0 = no `--ids` change, 3 = a `--ids` player changed, 4 = no baseline | always refreshes |
+| `flags --ids <ids> [--baseline <bootstrap.json>]` | the pre-deadline freshness gate: refreshes bootstrap, prints flags for `--ids` plus their status/chance/news delta against the baseline (default: the bootstrap cached just before the refresh) and an informational whole-pool delta by position; writes flags-delta-<stamp>.json. Exit 0 = no `--ids` change, 3 = a `--ids` player changed, 4 = no baseline, 5 = baseline over 24h old | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `fixtures-rate [--priors <p> --analysis-root <p> --format table\|json]` | compiles club-priors.json + cached summaries + event-live snapshots into fixtures.json + fixtures-tables.md; refuses without priors or an event-live round. Formula: docs/ep-model.md §6 | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
 | `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--minutes]` | filtered read over the cached bootstrap; `--minutes` appends this season's minutes per round from cached summaries | local only |
 | `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N --allow-missing-ids <ids>] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
 | `plan [--from-final <path>] [--prev-final <path>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON | local only |
+| `final-check [--proposal <p>] [--final <p>] [--prev-final <p>] [--suggestions <p>]` | carry rules for final.md: the proposal's STATE parses; its ledger is present and drops nothing against the previous final.md; final.md's STATE equals the proposal's; explicit chip keys; ledger verbatim; STATE last. Exit 0/1 | local only |
 | `auth-check [--team-id <id>]` | session pre-flight: redacted credential-key report + one `my-team` read. PASS → exit 0; FAIL (expired/HTTP/missing auth/null team_id) → exit 1 | always (auth) |
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
 | `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
@@ -338,7 +340,11 @@ Mechanics:
   instead of reading full dumps, to keep context small.
 
 ## Persistence rules
-- Never overwrite raw or decision files; each GW gets its own directory.
+- Never overwrite raw or decision files; each GW gets its own directory —
+  except a post-deadline record correction (agents/finalizer.md §5), which
+  replaces only final.md's STATE block, adds a CORRECTION section,
+  regenerates plan.json, and is committed separately as
+  `gw{N}: correct record — <why>`.
 - plan.json, data/retro/gw{M}-calibration.json, data/cost/gw{N}/,
   data/analysis/gw{N}/players-{pos}.json, fixtures.json and fixtures-tables.md
   are the exceptions: all derived (plan.json from final.md + cached bootstrap,

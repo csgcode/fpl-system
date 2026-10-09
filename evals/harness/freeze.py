@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 FROZEN_ROOT = "/repo"
+MUNGED_ROOT = "-repo"
 _KEPT_TYPES = ("user", "assistant")
 _KEPT_FIELDS = ("type", "uuid", "parentUuid", "timestamp", "message")
 _KEPT_MESSAGE_FIELDS = ("role", "id", "model", "content", "usage")
@@ -113,6 +114,10 @@ def _inline_persisted(block: dict[str, Any], saved_path: str | None) -> dict[str
 
 
 def _rewrite_machine_details(text: str, repo_root: str) -> str:
-    text = text.replace(repo_root.rstrip("/"), FROZEN_ROOT)
+    root = repo_root.rstrip("/")
+    text = text.replace(root, FROZEN_ROOT)
+    # Claude Code names a project's scratchpad and transcript directories
+    # after the repo path with every non-alphanumeric turned into "-".
+    text = text.replace(re.sub(r"[^A-Za-z0-9]", "-", root), MUNGED_ROOT)
     text = text.replace(str(Path.home()), "~")
     return _LONG_LISTING.sub(r"\1user\2staff", text)

@@ -58,7 +58,8 @@ from fpl.fixture_ratings import load_inputs as load_rating_inputs
 from fpl.fixture_ratings import rate as rate_fixtures
 from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
-from fpl.freshness import FlagChange
+from fpl.final_check import Finding, check_final, check_proposal
+from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -147,12 +148,15 @@ EXIT_ERROR = 1
 EXIT_EMPTY = 2
 EXIT_FLAGS_CHANGED = 3
 EXIT_NO_BASELINE = 4
+EXIT_STALE_BASELINE = 5
 DRY_RUN_LINE = "DRY RUN — no request sent; re-run with --apply to execute"
 
 WRITE_COMMANDS = ("auth-check", "my-team", "set-lineup", "make-transfers")
 DECISIONS_ROOT = Path("data/decisions")
 ANALYSIS_ROOT = Path("data/analysis")
 FINAL_FILENAME = "final.md"
+PROPOSAL_FILENAME = "squad-proposal.md"
+SUGGESTIONS_PATH = Path("data/suggestions.md")
 PLAN_FILENAME = "plan.json"
 COST_ROOT = Path("data/cost")
 
@@ -229,7 +233,8 @@ def build_parser() -> argparse.ArgumentParser:
         "flags",
         "force-refresh injury/news flags and diff them against a baseline "
         f"(exit {EXIT_FLAGS_CHANGED}: a --ids player changed; "
-        f"exit {EXIT_NO_BASELINE}: no baseline)",
+        f"exit {EXIT_NO_BASELINE}: no baseline; "
+        f"exit {EXIT_STALE_BASELINE}: baseline over {BASELINE_MAX_AGE_HOURS:g}h old)",
         cached=False,
     )
     flags.add_argument(
@@ -400,6 +405,28 @@ def build_parser() -> argparse.ArgumentParser:
     plan_cmd.add_argument("--format", choices=("table", "json"), default="table")
     plan_cmd.add_argument(
         "--out", type=Path, help="also write the JSON document to this path"
+    )
+
+    final_check = add(
+        "final-check",
+        "check the carry rules from squad-proposal.md into final.md (exit 1: a FAIL)",
+        cached=False,
+    )
+    final_check.add_argument(
+        "--proposal", type=Path,
+        help=f"default: {DECISIONS_ROOT}/gw{{N}}/{PROPOSAL_FILENAME}",
+    )
+    final_check.add_argument(
+        "--final", type=Path,
+        help=f"default: {DECISIONS_ROOT}/gw{{N}}/{FINAL_FILENAME}, checked only if it exists",
+    )
+    final_check.add_argument(
+        "--prev-final", type=Path,
+        help=f"default: {DECISIONS_ROOT}/gw{{N-1}}/{FINAL_FILENAME}, if it exists",
+    )
+    final_check.add_argument(
+        "--suggestions", type=Path, default=SUGGESTIONS_PATH,
+        help=f"default: {SUGGESTIONS_PATH}",
     )
 
     calibrate = add("calibrate", "join EP predictions vs a completed round's actuals")
@@ -628,6 +655,8 @@ def main(
             return run_auth_refresh(args)
         if args.command == "usage":
             return run_usage(args)
+        if args.command == "final-check":
+            return run_final_check(args)
         if args.command == "fixtures-rate":
             return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:
@@ -803,6 +832,8 @@ def run_flags(service: FplDataService, gw: int, args: argparse.Namespace) -> int
         return EXIT_NO_BASELINE
     print()
     print(f"baseline: {check.baseline.source} (fetched {check.baseline.fetched_at or 'unknown'})")
+    age = check.baseline_age_hours
+    print(f"baseline age: {'unknown' if age is None else f'{age:.1f}h'}")
     print(f"gate: {len(check.gate)} of {len(check.gate_ids)} ids changed")
     for change in check.gate:
         print(f"  {_flag_change_line(change)}")
@@ -814,6 +845,12 @@ def run_flags(service: FplDataService, gw: int, args: argparse.Namespace) -> int
             for change in rows:
                 print(f"    {_flag_change_line(change)}")
     print(f"wrote {check.delta_path}")
+    if check.stale:
+        _stderr(
+            f"error: baseline is {age:.1f}h old (> {BASELINE_MAX_AGE_HOURS:g}h) — rerun "
+            f"the data collector before finalizing"
+        )
+        return EXIT_STALE_BASELINE
     return EXIT_FLAGS_CHANGED if check.gate else EXIT_OK
 
 
@@ -1123,6 +1160,35 @@ def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         free_now = previous_state.free_transfers_banked if previous_state else None
         print_plan(plan, free_now=free_now)
     return EXIT_OK
+
+
+def run_final_check(args: argparse.Namespace) -> int:
+    gw = args.gw
+    proposal_path = args.proposal or DECISIONS_ROOT / f"gw{gw}" / PROPOSAL_FILENAME
+    if not proposal_path.is_file():
+        raise ValueError(f"no squad proposal at {proposal_path}")
+    proposal = proposal_path.read_text(encoding="utf-8")
+    previous_path = args.prev_final or _final_path(gw - 1)
+    previous = (previous_path.read_text(encoding="utf-8")
+                if gw > MIN_GW and previous_path.is_file() else None)
+    results = _rule_lines(("P1", "P2", "P3"), check_proposal(
+        proposal, gw=gw, previous_final=previous,
+        suggestions_exists=args.suggestions.is_file()))
+    final_path = args.final or _final_path(gw)
+    if final_path.is_file():
+        results += _rule_lines(("F1", "F2", "F3", "F4"), check_final(
+            final_path.read_text(encoding="utf-8"), proposal, gw=gw))
+    else:
+        print(f"{FINAL_FILENAME}: not written — proposal checks only")
+    for line in results:
+        print(line)
+    return EXIT_ERROR if any(line.startswith("FAIL") for line in results) else EXIT_OK
+
+
+def _rule_lines(rules: tuple[str, ...], findings: list[Finding]) -> list[str]:
+    by_rule = {f.rule: f.message for f in findings}
+    return [f"FAIL {rule}: {by_rule[rule]}" if rule in by_rule else f"PASS {rule}"
+            for rule in rules]
 
 
 def _final_path(gw: int) -> Path:

@@ -15,6 +15,8 @@ from typing import Any
 from fpl.models import PLAYING_POSITIONS, Player, PlayerStatus, Position
 
 FLAG_FIELDS = ("status", "chance_of_playing_next_round", "news")
+# An analysis older than this was read off a snapshot too old to finalize on.
+BASELINE_MAX_AGE_HOURS = 24.0
 
 
 @dataclass(frozen=True)

@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from fpl.api import Fetched, FplApi
-from fpl.freshness import FlagChange, flag_delta
+from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange, flag_delta
 from fpl.models import (
     Bootstrap,
     ElementSummary,
@@ -138,6 +138,21 @@ class FlagCheck:
     pool: list[FlagChange] = field(default_factory=list)
     delta_path: Path | None = None
 
+    @property
+    def baseline_age_hours(self) -> float | None:
+        """Hours between the baseline fetch and this refresh; None when either
+        instant is unknown (an explicit --baseline file carries none)."""
+        if self.baseline is None or self.baseline.fetched_at is None:
+            return None
+        if self.refreshed_at is None:
+            return None
+        return (self.refreshed_at - self.baseline.fetched_at).total_seconds() / 3600
+
+    @property
+    def stale(self) -> bool:
+        age = self.baseline_age_hours
+        return age is not None and age > BASELINE_MAX_AGE_HOURS
+
     def to_document(self, gw: int) -> dict[str, Any]:
         if self.baseline is None:
             raise ValueError("no baseline: there is no delta to serialise")
@@ -148,6 +163,8 @@ class FlagCheck:
             "baseline": {
                 "source": self.baseline.source,
                 "fetched_at": fetched_at.isoformat() if fetched_at else None,
+                "age_hours": self.baseline_age_hours,
+                "stale": self.stale,
             },
             "gate_ids": self.gate_ids,
             "gate_changed": bool(self.gate),

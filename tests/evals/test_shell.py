@@ -8,6 +8,7 @@ import pytest
 from evals.harness.shell import (
     UNKNOWN,
     agent_written_files,
+    appended_text,
     call_failed,
     fpl_invocations,
     redirect_targets,
@@ -133,3 +134,20 @@ def test_executable_text_keeps_code_heredocs_and_drops_file_content():
     text = executable_text(command)
     assert "import requests" in text
     assert "no curl here" not in text
+
+
+def test_appended_text_is_the_heredoc_body_appended_to_the_path():
+    command = ("tail -c1 docs/backlog.md | od -An -c && cat <<'EOF' >> docs/backlog.md\n"
+               "| GW5 | 2026-09-18 | A7 | DATA | x | y | open |\n"
+               "EOF\n"
+               "cat >> /repo/docs/backlog.md <<EOF\n| second |\nEOF")
+    assert appended_text(command, "docs/backlog.md") == (
+        "| GW5 | 2026-09-18 | A7 | DATA | x | y | open |\n| second |\n")
+
+
+def test_appended_text_ignores_overwrites_and_other_paths():
+    command = "cat > docs/backlog.md <<'EOF'\nall\nEOF\ncat <<'EOF' >> notes.md\nx\nEOF"
+    assert appended_text(command, "docs/backlog.md") is None
+
+
+# --- heredoc header segments, Edit replay, write_paths (squad-optimizer eval) --

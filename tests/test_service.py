@@ -245,6 +245,36 @@ def test_flag_report_dedupes_ids(tmp_path):
     assert [p.id for p in report] == [2, 1]
 
 
+def test_flag_check_reports_baseline_age_and_stale(tmp_path):
+    clock = FakeClock()
+    service, _, _, _ = make_service(
+        tmp_path, {BOOTSTRAP_URL: bootstrap_payload(elements=[player_payload(id=9)])}, clock
+    )
+    service.bootstrap(gw=2)
+    clock.advance(hours=25)
+
+    check = service.flag_check(gw=2, player_ids=[9])
+
+    assert check.baseline_age_hours == pytest.approx(25.0)
+    assert check.stale is True
+    document = check.to_document(2)
+    assert document["baseline"]["age_hours"] == pytest.approx(25.0)
+    assert document["baseline"]["stale"] is True
+
+
+def test_flag_check_with_an_explicit_baseline_has_unknown_age(tmp_path):
+    old = tmp_path / "old.json"
+    old.write_text(json.dumps(bootstrap_payload(elements=[player_payload(id=9)])))
+    service, _, _, _ = make_service(
+        tmp_path, {BOOTSTRAP_URL: bootstrap_payload(elements=[player_payload(id=9)])}
+    )
+
+    check = service.flag_check(gw=2, player_ids=[9], baseline_path=old)
+
+    assert check.baseline_age_hours is None
+    assert check.stale is False
+
+
 def test_export_players_csv_excludes_managers(tmp_path):
     elements = [
         player_payload(id=1),
