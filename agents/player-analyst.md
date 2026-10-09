@@ -117,6 +117,8 @@ Data traps (verified 2026/27):
   zero — neither is evidence of minutes or form.
 - In-season bootstrap totals are tiny early; the code blends them by minutes.
   Never scale a rate by hand to compensate.
+- `history_past` reports DefCon as 0 for seasons before 2024/25; the code
+  treats those seasons as missing for dc90, so they need no `dc90` override.
 
 Corrections from data/retro: apply the ones addressed to A3 that concern
 judgment — p_start discipline, uncertainty tags, override policy. A correction

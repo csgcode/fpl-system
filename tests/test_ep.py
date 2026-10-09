@@ -12,6 +12,7 @@ from fpl.calibrate import PlayerPrediction
 from fpl.ep import (
     BLEND_EQUIV_MINUTES,
     BONUS_SHRINK_STARTS,
+    DEFCON_FIRST_SEASON,
     BLEND_PRIOR_FLOOR,
     EffectiveRates,
     HORIZON,
@@ -401,6 +402,62 @@ def test_league_mean_is_pooled_from_cached_summaries_when_the_pool_is_large_enou
     assert result.rows[0].rates.prior_source == "league_mean"
     assert not any("fallback" in w for w in result.warnings)
     assert result.not_scored == LEAGUE_POOL_MIN
+
+
+# ------------------------------------------------------------- defcon
+
+
+def mid_rates(history_past, *, summaries=None, players=None):
+    bootstrap = make_bootstrap([player()] + (players or []))
+    world = {1: summary(history_past=history_past), **(summaries or {})}
+    result = build_predictions(bootstrap, world, fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW)
+    return result, result.rows[0].rates
+
+
+def test_defcon_counts_from_the_first_season_that_recorded_it():
+    assert DEFCON_FIRST_SEASON == "2024/25"
+
+
+def test_seasons_before_defcon_existed_leave_dc90_at_the_league_mean():
+    old = past_season_payload(season_name="2023/24", minutes=2700, expected_goals="9.0", defensive_contribution=0.0)
+    _, rates = mid_rates([old])
+    league = LEAGUE_FALLBACK[Position.MID]
+    assert rates.dc90 == league.dc90
+    assert rates.dc90_prior == league.dc90
+    assert rates.xg90 == pytest.approx(shrink_rate(0.3, 2700, league.xg90))
+
+
+def test_mixed_seasons_take_dc90_from_defcon_seasons_and_shrink_by_their_minutes():
+    latest = past_season_payload(season_name="2024/25", minutes=450, expected_goals="0.0", defensive_contribution=60.0)
+    old = past_season_payload(season_name="2023/24", minutes=2000, expected_goals="0.0", defensive_contribution=0.0)
+    _, rates = mid_rates([latest, old])
+    league = LEAGUE_FALLBACK[Position.MID]
+    assert rates.prior_minutes == 2450
+    assert rates.dc90 == pytest.approx(shrink_rate(12.0, 450, league.dc90))
+    assert rates.xg90 == pytest.approx(shrink_rate(0.0, 2450, league.xg90))
+
+
+def test_a_recorded_zero_from_a_defcon_season_stays_zero():
+    genuine = past_season_payload(season_name="2024/25", minutes=2700, defensive_contribution=0.0)
+    _, rates = mid_rates([genuine])
+    assert rates.dc90 == pytest.approx(shrink_rate(0.0, 2700, LEAGUE_FALLBACK[Position.MID].dc90))
+
+
+def test_league_dc90_ignores_minutes_from_before_defcon_existed():
+    pool_ids = list(range(10, 10 + LEAGUE_POOL_MIN))
+    pool = {
+        i: summary(history_past=[
+            past_season_payload(season_name="2025/26", minutes=450, defensive_contribution=45.0),
+            past_season_payload(season_name="2023/24", minutes=2000, defensive_contribution=0.0),
+        ])
+        for i in pool_ids
+    }
+    result, rates = mid_rates(
+        [], summaries=pool,
+        players=[player(id=i, web_name=f"Pool{i}", now_cost=45) for i in pool_ids],
+    )
+    assert result.league.dc90 == pytest.approx(9.0)
+    assert rates.dc90 == pytest.approx(9.0)
 
 
 # ------------------------------------------------------------- bonus

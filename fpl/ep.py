@@ -55,6 +55,9 @@ BLEND_PRIOR_FLOOR = 0.2
 BONUS_SHRINK_STARTS: dict[Position, int] = {
     Position.GKP: 30, Position.DEF: 60, Position.MID: 20, Position.FWD: 15,
 }
+# The API reports defensive_contribution 0 for every season before the stat
+# existed; those zeros are missing data, not evidence.
+DEFCON_FIRST_SEASON = "2024/25"
 LEAGUE_POOL_MIN = 8
 LEAGUE_POOL_MIN_MINUTES = 900
 COVERAGE_PRICE_FLOOR_TENTHS = 45
@@ -405,6 +408,7 @@ class _Totals:
     xg: float = 0.0
     xa: float = 0.0
     dc: float = 0.0
+    dc_minutes: int = 0
     saves: int = 0
     bonus: int = 0
     yellow: int = 0
@@ -417,7 +421,9 @@ class _Totals:
         self.start_equivalents += row.starts or row.minutes / FULL_MATCH_MINUTES
         self.xg += row.expected_goals or 0.0
         self.xa += row.expected_assists or 0.0
-        self.dc += row.defensive_contribution or 0.0
+        if not isinstance(row, PastSeason) or row.season_name >= DEFCON_FIRST_SEASON:
+            self.dc += row.defensive_contribution or 0.0
+            self.dc_minutes += row.minutes
         self.saves += row.saves or 0
         self.bonus += row.bonus or 0
         self.yellow += row.yellow_cards or 0
@@ -436,7 +442,8 @@ class _Totals:
         return Rates(
             xg90=self.xg * per90,
             xa90=self.xa * per90,
-            dc90=self.dc * per90,
+            dc90=self.dc * FULL_MATCH_MINUTES / self.dc_minutes if self.dc_minutes > 0
+            else league.dc90,
             saves90=self.saves * per90,
             bonus_per_start=self.bonus / self.start_equivalents,
             yellow90=self.yellow * per90,
@@ -471,11 +478,15 @@ def rates_from_seasons(
     return totals.rates(league), totals.minutes
 
 
-def _shrunk(rates: Rates | None, minutes: int, league: Rates) -> Rates:
-    if rates is None or minutes <= 0:
+def _shrunk(rates: Rates | None, totals: _Totals, league: Rates) -> Rates:
+    if rates is None or totals.minutes <= 0:
         return league
     return Rates(**{
-        name: shrink_rate(getattr(rates, name), minutes, getattr(league, name))
+        name: shrink_rate(
+            getattr(rates, name),
+            totals.dc_minutes if name == "dc90" else totals.minutes,
+            getattr(league, name),
+        )
         for name in RATE_FIELDS
     })
 
@@ -857,7 +868,7 @@ def _effective_rates(
     prior_totals = _prior_totals(summary.history_past) if summary else _Totals()
     prior_minutes = prior_totals.minutes
     prior_rates = prior_totals.rates(league) if prior_minutes > 0 else None
-    prior = _shrunk(prior_rates, prior_minutes, league)
+    prior = _shrunk(prior_rates, prior_totals, league)
     current_totals = _Totals()
     if summary is not None:
         for row in summary.history:

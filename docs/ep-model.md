@@ -97,6 +97,23 @@ the league mean rather than from 90.
 | yellow90 | 0.05 | 0.15 | 0.15 | 0.12 |
 | minutes_per_start | 90 | 85 | 80 | 78 |
 
+### DefCon rate (dc90)
+
+The API reports `defensive_contribution` as 0 for every season before
+2024/25, when the stat did not exist. Those zeros are missing data, so dc90
+counts only the minutes that could have recorded DefCon: this season's rows
+and `history_past` seasons from 2024/25 on (`DEFCON_FIRST_SEASON`; season
+names compare as strings).
+
+- Prior dc90 = DefCon ÷ those minutes × 90, shrunk toward the league mean
+  with `M` = those minutes, not all prior minutes. A prior pool with none of
+  them gives the league mean.
+- The older seasons still feed every other rate; `prior_minutes` still
+  reports all prior minutes.
+- The league mean's dc90 is pooled the same way, so older seasons do not
+  dilute it.
+- A recorded 0 from 2024/25 on is a real 0 and stays in.
+
 ### Bonus
 
 Bonus per start skips steps 1–3. It varies a lot from match to match and
