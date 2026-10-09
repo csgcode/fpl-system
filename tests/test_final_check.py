@@ -57,6 +57,23 @@ def test_parse_ledger_reads_marker_and_rows_in_file_order():
     assert parsed.rows == (("S2", S2), ("S1", S1))
 
 
+def test_parse_ledger_skips_a_malformed_line_between_marker_and_table():
+    table = "\n".join(["| S# | GW | Status | Reason |", "|---|---|---|---|", S1, S2])
+    text = (f"## Suggestions\n\nRead data/suggestions.md through S2\n\n"
+            f"Malformed: none.\n\n\n{table}\n\nMalformed: none.\n")
+    parsed = parse_ledger(text)
+    assert parsed is not None
+    assert parsed.rows == (("S1", S1), ("S2", S2))
+
+
+def test_parse_ledger_stops_at_other_prose_before_the_table():
+    table = "\n".join(["| S# | GW | Status | Reason |", "|---|---|---|---|", S1])
+    text = f"Read data/suggestions.md through S1\n\nSome prose.\n\n{table}\n"
+    parsed = parse_ledger(text)
+    assert parsed is not None
+    assert parsed.rows == ()
+
+
 def test_parse_ledger_without_marker_is_none():
     assert parse_ledger("# GW5\n\nno ledger here\n") is None
 

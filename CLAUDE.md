@@ -146,10 +146,10 @@ suggestion never drives a POST — decisions still flow through `picks:`.
 
   | Status | Open? | Meaning |
   |---|---|---|
-  | followed | no | done, in full or in part |
+  | followed | no | done in full; or a single-choice steer done in part, the reason naming what was not taken |
   | rejected | no | not worth it, or infeasible |
   | deferred | yes | not now; names a revisit GW ≤ N+2 |
-  | standing | yes | accepted policy or multi-transfer move; honoured and re-affirmed every cycle until closed |
+  | standing | yes | accepted policy or multi-transfer move; honoured and re-affirmed every cycle until closed; a multi-transfer steer partly done stays standing until complete |
   | expired | no | Until GW passed undisposed |
   | withdrawn | no | retracted by a `withdraw S<n>` row |
 
@@ -275,6 +275,7 @@ All FPL API access goes through the deterministic CLI
 | `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N --allow-missing-ids <ids>] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
 | `plan [--from-final <path>] [--prev-final <path>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON | local only |
 | `final-check [--proposal <p>] [--final <p>] [--prev-final <p>] [--suggestions <p>]` | carry rules for final.md: the proposal's STATE parses; its ledger is present and drops nothing against the previous final.md; final.md's STATE equals the proposal's; explicit chip keys; ledger verbatim; STATE last. Exit 0/1 | local only |
+| `objective [--analysis-root <p>] [--from-final <p>] [--sell ID:£m,…] [--bank B] [--free-transfers K] [--moves OUT:IN,…\|none] [--chip wildcard\|freehit] [--top N] [--format table\|json]` | the squad optimizer's scorer: Σ over 6 GWs of best-XI EP + captain EP, on blend (players-*.json) and prior-only (the same inputs at prior weight 1.0, built in memory). Squad from the latest earlier final.md; prints the baseline, the legal single moves, the plan's per-move marginals against the transfer rule, the greedy reference, the GW-N XI, captain ranking, near-tie pairs and dead bench slots. Without `--sell`, selling price = now_cost, labelled unverified. Exit 1 when `--moves` fails the rule. Formula: docs/ep-model.md §7 | local only |
 | `auth-check [--team-id <id>]` | session pre-flight: redacted credential-key report + one `my-team` read. PASS → exit 0; FAIL (expired/HTTP/missing auth/null team_id) → exit 1 | always (auth) |
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
 | `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
@@ -354,6 +355,8 @@ Mechanics:
   club-priors.json + cached snapshots via `fpl fixtures-rate`), so regenerating
   any of them is safe and expected.
 - data/analysis/club-priors.json is written once at GW1 and never overwritten.
+- A re-run squad optimizer (revision loop, REOPEN) archives the previous
+  squad-proposal.md as squad-proposal.v{k}.md before writing the new one.
 - data/executor/gw{N}/runs.jsonl is append-only: the CLI adds a line per run
   and never rewrites one.
 - Every prediction must be written down BEFORE the deadline. No prediction,

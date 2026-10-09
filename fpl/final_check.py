@@ -20,6 +20,7 @@ STATE_CHIP_KEYS = ("chip", "chips_used", "chip_plan")
 _MARKER = re.compile(r"(?m)^Read data/suggestions\.md through S(\d+)\s*$")
 _ROW = re.compile(r"^\|\s*(S\d+)\s*\|")
 _NO_SUGGESTIONS = "No data/suggestions.md"
+_MALFORMED = "Malformed:"
 _YAML_BLOCK = re.compile(r"```yaml\n(.*?)```", re.DOTALL)
 
 
@@ -42,7 +43,9 @@ class Ledger:
 
 def parse_ledger(text: str) -> Ledger | None:
     """The marker line, then the `| S<n> |` rows of the table that follows it.
-    Prose after the table is not part of the ledger."""
+    Between the marker and the table only blank lines and a `Malformed:` line
+    may appear; any other prose ends the ledger. Prose after the table is not
+    part of the ledger."""
     matches = list(_MARKER.finditer(text))
     if not matches:
         return None
@@ -56,7 +59,9 @@ def parse_ledger(text: str) -> Ledger | None:
             if row:
                 rows.append((row.group(1), line.rstrip()))
             continue
-        if in_table or line.strip():
+        if in_table:
+            break
+        if line.strip() and not line.startswith(_MALFORMED):
             break
     return Ledger(marker.group(0).rstrip(), int(marker.group(1)), tuple(rows))
 

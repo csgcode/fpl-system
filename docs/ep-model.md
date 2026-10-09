@@ -322,3 +322,45 @@ is printed in its own column: `ATT rating rank` and `DEFW rating rank` in the
 ratings table (level clubs share a rank), `ATT rank` and `CS rank` in the
 tickers and in the FDR table. The fixture analyst quotes these tables, ranks
 included, and never recomputes them.
+
+## 7. Squad objective (`fpl objective`)
+
+The squad optimizer, the red-team and the eval score squads with one tested
+function, `fpl/objective.py`. Searching for a plan is the agent's job; scoring
+it is code.
+
+- **Objective:** the sum over GW N..N+5 of the best XI's EP plus the
+  captain's EP. The captain is the XI's highest `ep_gw[k]`, so it counts
+  twice.
+- **Best XI for GW k:** for each formation, in the order 3-4-3, 3-5-2, 4-3-3,
+  4-4-2, 4-5-1, 5-2-3, 5-3-2, 5-4-1, take the top goalkeeper and the top
+  players per position, sorted by EP then id. The best total wins; a tie goes
+  to the earlier formation. This is exact: each position's top player is in
+  every formation, so the squad's best player always starts and the captain
+  term never changes which XI wins. The bench scores nothing.
+- **Two readings:** blend is players-*.json as published. Prior-only is the
+  same inputs-*.json with every row's prior weight forced to 1.0, scored in
+  memory with `build_predictions` and rounded as `fpl ep` writes. Every
+  figure is printed on both.
+- **Pool:** players in both readings whose status is `a` or `d`.
+- **Money:** integer tenths. A purchase costs `now_cost`. A sale earns the
+  relayed selling price (`--sell`); without it, `now_cost`, labelled
+  unverified. A legal squad is 2/5/5/3, at most 3 per club, bank ≥ 0.
+- **Move marginal:** the plan's objective minus the objective of the plan
+  with that one pair undone.
+- **Gates:** a free move needs blend ≥ 2.0 and prior-only ≥ 0; a hit needs
+  blend ≥ 6.0 and prior-only > 0. When a plan takes hits, its lowest-gain
+  moves are the paid ones. With free transfers left, no further single move
+  may pass the free gate.
+- **Greedy reference:** repeatedly take the best legal single move (blend
+  gain, then out id, then in id) that keeps its prior-only sign, while it
+  passes the gate for its slot: free while free transfers last, then a hit.
+  A plan's blend gain may fall at most 0.05 below the reference's.
+- **Chips:** a wildcard or free hit must beat the greedy plan, net of its hit
+  costs, by ≥ 6.0 on blend and ≥ 0 on prior-only. A free hit is scored on
+  GW N alone.
+- **Free transfers next GW:** min(5, free − used + 1) when used ≤ free,
+  else 1. Each transfer beyond the free ones costs 4.
+- **Reported, never priced:** near-tie XI↔bench pairs (formation-legal swaps
+  within 0.25 GW-N EP, with each player's DefCon share of EP6) and dead bench
+  slots (`p_start_gw[0]` < 0.5).

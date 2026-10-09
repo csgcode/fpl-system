@@ -61,6 +61,7 @@ from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
+from fpl import objective_report
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -430,6 +431,15 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"default: {SUGGESTIONS_PATH}",
     )
 
+    # Local-only: the objective is a pure function of the EP files, the cached
+    # bootstrap and the previous final.md (docs/ep-model.md §7).
+    objective_report.add_arguments(add(
+        "objective",
+        "score the squad and a transfer plan on the spec objective, blend and prior-only "
+        "(exit 1: --moves fails the transfer rule)",
+        cached=False,
+    ))
+
     calibrate = add("calibrate", "join EP predictions vs a completed round's actuals")
     calibrate.add_argument(
         "--round", type=_gameweek, required=True,
@@ -673,6 +683,8 @@ def main(
             return run_usage(args)
         if args.command == "final-check":
             return run_final_check(args)
+        if args.command == "objective":
+            return objective_report.run(args.data_root, args)
         if args.command == "fixtures-rate":
             return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:

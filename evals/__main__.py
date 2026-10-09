@@ -3,10 +3,10 @@
     python -m evals replay <agent>
     python -m evals live <agent> [--case ID] [--repeat K] [--judge] [--keep]
     python -m evals freeze <agent>
-    python -m evals outcome fixture-analyst
+    python -m evals outcome fixture-analyst|squad-optimizer
 
 Agents: data-collector, plan-builder, usage-collector, fixture-analyst,
-team-executor, finalizer.
+team-executor, finalizer, squad-optimizer.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import argparse
 import sys
 
 AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst",
-          "team-executor", "finalizer")
+          "team-executor", "finalizer", "squad-optimizer")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -29,10 +29,12 @@ def build_parser() -> argparse.ArgumentParser:
     live.add_argument("--repeat", type=int, default=1)
     live.add_argument("--judge", action="store_true", help="also run the model judge")
     live.add_argument("--keep", action="store_true", help="keep the temp workspace")
+    live.add_argument("--full", action="store_true",
+                      help="squad-optimizer: add the full-suite cases to the default set")
     freeze = sub.add_parser("freeze", help="re-freeze the replay fixtures from the archive")
     freeze.add_argument("agent", choices=AGENTS)
     outcome = sub.add_parser("outcome", help="season-level forecast quality (prints only)")
-    outcome.add_argument("agent", choices=("fixture-analyst",))
+    outcome.add_argument("agent", choices=("fixture-analyst", "squad-optimizer"))
     return parser
 
 
@@ -48,6 +50,8 @@ def main(argv: list[str] | None = None) -> int:
         from evals.team_executor import runner
     elif args.agent == "finalizer":
         from evals.finalizer import runner
+    elif args.agent == "squad-optimizer":
+        from evals.squad_optimizer import runner
     else:
         from evals.data_collector import runner
 
@@ -57,8 +61,9 @@ def main(argv: list[str] | None = None) -> int:
         return runner.freeze_fixtures()
     if args.command == "outcome":
         return runner.outcome()
+    extra = {"full": True} if args.full else {}
     return runner.live(case_ids=args.case, repeat=args.repeat, judge=args.judge,
-                       keep=args.keep)
+                       keep=args.keep, **extra)
 
 
 if __name__ == "__main__":

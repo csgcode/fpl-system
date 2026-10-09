@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import re
 import shlex
+from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Any
 
 from evals.harness.transcript import ToolCall, ToolResult, Transcript
 
@@ -66,6 +68,9 @@ class FplInvocation:
 class _Heredoc:
     header: str
     body: str
+    segment: str = ""
+    """The simple command on the header line that receives the heredoc: the
+    text between the separators (`&&`, `||`, `;`, `|`) around its `<<`."""
 
 
 def command_lines(command: str) -> str:
@@ -77,7 +82,7 @@ def executable_text(command: str) -> str:
     """The command plus every heredoc body that is run as code. A body fed
     to `cat` is file content, not something the shell executes."""
     outer, heredocs = _scan(command)
-    bodies = [h.body for h in heredocs if not re.match(r"\s*cat\b", h.header)]
+    bodies = [h.body for h in heredocs if not re.match(r"\s*cat\b", h.segment)]
     return "\n".join([*outer, *bodies])
 
 
@@ -111,20 +116,37 @@ def call_failed(result: ToolResult | None) -> bool:
     return result.is_error or bool(_FAILED.search(result.text))
 
 
-def agent_written_files(transcript: Transcript, root: str) -> dict[str, str | _Unknown]:
+def agent_written_files(transcript: Transcript, root: str, *,
+                        apply_edits: bool = False) -> dict[str, str | _Unknown]:
     """Files the agent wrote, by path relative to `root`; last write wins. An
-    Edit leaves the content unknowable from the transcript alone."""
+    Edit leaves the content unknowable from the transcript alone — unless
+    `apply_edits` replays it on content already known, where its old string
+    must occur exactly once (every occurrence, with `replace_all`)."""
     written: dict[str, str | _Unknown] = {}
     for call in transcript.calls:
         if call.name == "Write":
             written[normalise(call.input["file_path"], root)] = call.input["content"]
+        elif call.name == "Edit" and apply_edits:
+            path = normalise(call.input.get("file_path", ""), root)
+            written[path] = _replayed(written.get(path), call.input)
         elif call.name in ("Edit", "MultiEdit", "NotebookEdit"):
             written[normalise(call.input.get("file_path", ""), root)] = UNKNOWN
         elif call.name == "Bash":
             for heredoc in _scan(str(call.input.get("command", "")))[1]:
-                for path in _heredoc_targets(heredoc.header):
+                for path in _heredoc_targets(heredoc.segment):
                     written[normalise(path, root)] = heredoc.body
     return written
+
+
+def _replayed(content: str | _Unknown | None, edit: Mapping[str, Any]) -> str | _Unknown:
+    if not isinstance(content, str):
+        return UNKNOWN
+    old, new = str(edit.get("old_string", "")), str(edit.get("new_string", ""))
+    if edit.get("replace_all"):
+        return content.replace(old, new) if old and old in content else UNKNOWN
+    if not old or content.count(old) != 1:
+        return UNKNOWN
+    return content.replace(old, new, 1)
 
 
 def appended_text(command: str, path: str) -> str | None:
@@ -151,14 +173,82 @@ def normalise(path: str, root: str) -> str:
 
 
 def write_paths(call: ToolCall, root: str) -> list[str]:
-    """Every path a single call writes: Write/Edit targets, shell redirects and
-    tee targets, relative to `root`."""
+    """Every path a single call writes, relative to `root`: Write/Edit
+    targets; shell redirects and tee targets outside quotes; `rm` and `mv`
+    operands; and python `open(path, 'w'|'a')`. A leading `cd DIR` and
+    `VAR=value` assignments in the same command are resolved."""
     if call.name in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
         return [normalise(str(call.input.get("file_path", "")), root)]
-    if call.name == "Bash":
-        command = str(call.input.get("command", ""))
-        return [normalise(target, root) for target in redirect_targets(command)]
-    return []
+    if call.name != "Bash":
+        return []
+    command = str(call.input.get("command", ""))
+    outer = command_lines(command)
+    targets = [t for t in redirect_targets(command) if not _inside_quotes(outer, t)]
+    targets += _removed_or_moved(outer) + _python_writes(executable_text(command))
+    variables = _assignments(outer)
+    cwd = _cd_target(outer, variables)
+    return [normalise(_resolved(t, variables, cwd), root) for t in targets]
+
+
+_QUOTED_SPAN = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"")
+_ASSIGNMENT = re.compile(
+    r"(?:^|[\s;&|(])(?:export\s+)?([A-Za-z_]\w*)=(\"[^\"]*\"|'[^']*'|[^\s;&|]+)")
+_CD = re.compile(r"(?:^|&&|;|\n)\s*cd\s+(\"[^\"]+\"|'[^']+'|[^\s;&|]+)\s*(?:&&|;|\n|$)")
+_VARIABLE = re.compile(r"\$\{?([A-Za-z_]\w*)\}?")
+_SEPARATORS = re.compile(r"&&|\|\||;|\||\n")
+_PY_OPEN = re.compile(
+    r"""open\(\s*(?:(['"])([^'"]+)\1|([A-Za-z_]\w*))\s*,\s*(?:mode\s*=\s*)?['"][wax]""")
+_PY_STRING = re.compile(r"""\b([A-Za-z_]\w*)\s*=\s*(['"])([^'"]+)\2""")
+
+
+def _inside_quotes(outer: str, target: str) -> bool:
+    """True when every redirect naming `target` sits inside a quoted span."""
+    spans = [m.span() for m in _QUOTED_SPAN.finditer(outer)]
+    found = [m for m in _REDIRECT.finditer(outer) if _unquote(m.group(2)) == target]
+    found += [m for m in _TEE.finditer(outer) if _unquote(m.group(1)) == target]
+    return bool(found) and all(any(a <= m.start() < b for a, b in spans) for m in found)
+
+
+def _assignments(outer: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for match in _ASSIGNMENT.finditer(outer):
+        values[match.group(1)] = _expand(_unquote(match.group(2)), values)
+    return values
+
+
+def _expand(value: str, variables: Mapping[str, str]) -> str:
+    return _VARIABLE.sub(lambda m: variables.get(m.group(1), m.group(0)), value)
+
+
+def _cd_target(outer: str, variables: Mapping[str, str]) -> str | None:
+    match = _CD.search(outer)
+    return _expand(_unquote(match.group(1)), variables) if match else None
+
+
+def _resolved(target: str, variables: Mapping[str, str], cwd: str | None) -> str:
+    path = _expand(target, variables)
+    if cwd and not path.startswith(("/", "~", "$")):
+        return f"{cwd.rstrip('/')}/{path}"
+    return path
+
+
+def _removed_or_moved(outer: str) -> list[str]:
+    operands = []
+    for segment in _SEPARATORS.split(outer):
+        tokens = _tokens(segment)
+        if tokens and tokens[0] in ("rm", "mv"):
+            operands += [t for t in tokens[1:] if not t.startswith("-")]
+    return operands
+
+
+def _python_writes(code: str) -> list[str]:
+    strings = {m.group(1): m.group(3) for m in _PY_STRING.finditer(code)}
+    paths = []
+    for match in _PY_OPEN.finditer(code):
+        path = match.group(2) or strings.get(match.group(3) or "")
+        if path:
+            paths.append(path)
+    return paths
 
 
 def _scan(command: str) -> tuple[list[str], list[_Heredoc]]:
@@ -179,8 +269,15 @@ def _scan(command: str) -> tuple[list[str], list[_Heredoc]]:
                 if candidate == delimiter:
                     break
                 body.append(lines[index - 1])
-            heredocs.append(_Heredoc(line, "".join(f"{b}\n" for b in body)))
+            heredocs.append(_Heredoc(line, "".join(f"{b}\n" for b in body),
+                                     _segment(line, match.start(), match.end())))
     return outer, heredocs
+
+
+def _segment(line: str, start: int, end: int) -> str:
+    before = _SEPARATORS.split(line[:start])[-1]
+    after = _SEPARATORS.split(line[end:])[0]
+    return before + line[start:end] + after
 
 
 def _redirects(text: str) -> list[tuple[str, str]]:

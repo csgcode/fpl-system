@@ -151,3 +151,72 @@ def test_appended_text_ignores_overwrites_and_other_paths():
 
 
 # --- heredoc header segments, Edit replay, write_paths (squad-optimizer eval) --
+
+
+def test_a_heredoc_after_and_and_is_still_a_cat_write():
+    command = ("mkdir -p /repo/data/decisions/gw5 && cat > /repo/data/decisions/gw5/"
+               "squad-proposal.md <<'MDEOF'\n# GW5\ngit commit is never run\nMDEOF")
+    files = agent_written_files(transcript_of(bash(command)), root="/repo")
+    assert files == {"data/decisions/gw5/squad-proposal.md": "# GW5\ngit commit is never run\n"}
+    from evals.harness.shell import executable_text
+    assert "git commit" not in executable_text(command)
+
+
+def edit(path, old, new, *, replace_all=False, tool_id="e"):
+    return ToolCall(tool_id, "Edit", {"file_path": path, "old_string": old,
+                                      "new_string": new, "replace_all": replace_all}, None)
+
+
+def test_apply_edits_replays_an_edit_on_known_content():
+    write = ToolCall("w", "Write", {"file_path": "/ws/p.md", "content": "a b a\nc\n"}, None)
+    files = agent_written_files(transcript_of(write, edit("/ws/p.md", "c", "d")), root="/ws",
+                                apply_edits=True)
+    assert files == {"p.md": "a b a\nd\n"}
+    files = agent_written_files(transcript_of(write, edit("/ws/p.md", "a", "x")), root="/ws",
+                                apply_edits=True)
+    assert files == {"p.md": UNKNOWN}
+    files = agent_written_files(
+        transcript_of(write, edit("/ws/p.md", "a", "x", replace_all=True)), root="/ws",
+        apply_edits=True)
+    assert files == {"p.md": "x b x\nc\n"}
+    assert agent_written_files(transcript_of(write, edit("/ws/p.md", "c", "d")),
+                               root="/ws") == {"p.md": UNKNOWN}
+
+
+def test_an_edit_on_unknown_content_stays_unknown():
+    files = agent_written_files(transcript_of(edit("/ws/p.md", "c", "d")), root="/ws",
+                                apply_edits=True)
+    assert files == {"p.md": UNKNOWN}
+
+
+def paths(command, root="/repo"):
+    from evals.harness.shell import write_paths
+    return write_paths(bash(command), root)
+
+
+def test_write_paths_ignore_redirect_signs_inside_quotes():
+    assert paths('python3 -c "import json; print([x for x in y if x > 1e-9])"') == []
+    assert paths("echo '>> not a file' > out.txt") == ["out.txt"]
+
+
+def test_write_paths_resolve_cd_and_same_command_variables():
+    assert paths("cd /tmp/scratch && python3 sim.py > bltest.md") == ["/tmp/scratch/bltest.md"]
+    assert paths("cd /repo && echo x > notes.md") == ["notes.md"]
+    assert paths('S=/tmp/s; uv run python -m fpl ep --gw 4 > "$S/prior/out.txt"') == [
+        "/tmp/s/prior/out.txt"]
+    assert paths("export SP=/tmp/sp && echo x > ${SP}/a.md") == ["/tmp/sp/a.md"]
+
+
+def test_write_paths_count_rm_and_mv_targets():
+    assert paths("rm -f data/analysis/gw4/opt-blend.json /repo/x.json") == [
+        "data/analysis/gw4/opt-blend.json", "x.json"]
+    assert paths("mv a.md data/b.md") == ["a.md", "data/b.md"]
+    assert paths("ls -la; grep rm notes.md") == []
+
+
+def test_write_paths_count_python_open_for_writing():
+    command = ("python3 - <<'EOF'\nimport json\n"
+               "json.dump(d, open('data/analysis/gw4/opt-blend.json', 'w'))\n"
+               "p = \"/repo/out.md\"\nwith open(p, \"a\") as f:\n    f.write('x')\n"
+               "open('data/in.json').read()\nEOF")
+    assert paths(command) == ["data/analysis/gw4/opt-blend.json", "out.md"]
