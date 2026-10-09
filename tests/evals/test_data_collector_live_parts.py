@@ -13,16 +13,20 @@ from evals.data_collector.cases import (
     BOOTSTRAP_PINS,
     JUDGE_PASS_GW6,
     MY_TEAM_FIXTURE,
+    REPLAY_NOW,
     REPO_ROOT,
     TEAM_ID,
     live_case,
 )
+from evals.data_collector import live as collector_live
 from evals.data_collector.judge import RUBRIC, build_judge_prompt
 from evals.data_collector.live import replay_spec, workspace_spec
-from evals.data_collector.prompt import build_prompt, spec_body
+from evals.data_collector.prompt import build_prompt
+from evals.harness.live import spec_body
 from evals.harness.transcript import ToolCall, ToolResult, Transcript
 from evals.harness.workspace import Content, GitBlob, make_dummy_auth
 from fpl.models import Bootstrap, MyTeam, is_shortlisted
+from fpl.store import ARCHIVE_STAMP_FORMAT
 
 SPEC = "---\nmodel: haiku\n---\n\n# A1 — Data Collector\n\nBody text.\n"
 
@@ -133,3 +137,25 @@ def test_l5_fails_the_last_shortlisted_summary_so_the_rest_are_fetched():
     bootstrap = Bootstrap.model_validate_json(source.read_text("utf-8"))
     last = [p.id for p in bootstrap.elements if is_shortlisted(p)][-1]
     assert live_case("L5").errors == {f"element-summary/{last}": 503}
+
+
+@pytest.mark.parametrize("gw", sorted(BOOTSTRAP_PINS))
+def test_replay_clock_is_the_analysis_bootstrap_fetch_time(gw):
+    """The pinned bootstrap's archive name is the moment it was fetched."""
+    stamp = REPLAY_NOW[gw].strftime(ARCHIVE_STAMP_FORMAT)
+    assert BOOTSTRAP_PINS[gw].path.endswith(f"bootstrap-{stamp}.json")
+
+
+def test_prepare_pins_the_workspace_clock_and_the_preseed_to_it(monkeypatch):
+    captured = {}
+
+    def fake_build(repo, spec, replay, **kwargs):
+        captured.update(kwargs, spec=spec)
+        raise RuntimeError("stop")
+
+    monkeypatch.setattr(collector_live, "build_workspace", fake_build)
+    with pytest.raises(RuntimeError, match="stop"):
+        collector_live.prepare(live_case("L2"))
+    assert captured["now"] == REPLAY_NOW[5]
+    meta = json.loads(captured["spec"].files["data/raw/gw5/.meta/bootstrap.json"])
+    assert datetime.fromisoformat(meta["fetched_at"]) == REPLAY_NOW[5] - timedelta(hours=1)

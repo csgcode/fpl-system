@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from evals.data_collector.cases import REPLAY_CASES, REPO_ROOT, transcripts_archive
+from evals.data_collector.cases import REPLAY_CASES, REPO_ROOT
 from evals.data_collector.checks import CHECKS
 from evals.data_collector.runs import replay_run
 from evals.harness.checks import format_scorecard, run_checks
-from evals.harness.freeze import freeze
+from evals.harness.freeze import freeze, transcripts_archive
 
 
 def replay() -> int:

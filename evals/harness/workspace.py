@@ -18,12 +18,19 @@ import tempfile
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 
+from fpl.clock import write_clock
 from fpl.models import Bootstrap, is_shortlisted
 
 Manifest = dict[str, str]
 
+# What a live run sees of the repo. .python-version pins the interpreter the
+# uv cache holds wheels for; without it an offline sync picks the newest
+# Python and tries to build from source.
+CODE_PATHS = ("fpl/", "agents/", "docs/", "CLAUDE.md", "pyproject.toml", "uv.lock",
+              ".gitignore", ".python-version")
 _SKIPPED_DIRS = frozenset({".venv", ".git", "__pycache__", ".pytest_cache"})
 _ARCHIVE_DIR = ".archive"
 REAL_AUTH = "data/auth.json"
@@ -129,7 +136,10 @@ def build_workspace(
     *,
     tmp_parent: Path | None = None,
     sync: bool = True,
+    now: datetime | None = None,
 ) -> Workspace:
+    """`now` pins the CLI's replay clock to the recorded gameweek; with no
+    recordings the replay directory then holds only the clock."""
     if tmp_parent is not None:
         tmp_parent.mkdir(parents=True, exist_ok=True)
     base = Path(tempfile.mkdtemp(prefix="fpl-eval-", dir=tmp_parent)).resolve()
@@ -146,6 +156,11 @@ def build_workspace(
         _place(root / dest, data, mode)
 
     replay_dir = build_replay_dir(repo, replay, base / "replay") if replay else None
+    if now is not None:
+        if replay_dir is None:
+            replay_dir = base / "replay"
+            replay_dir.mkdir()
+        write_clock(replay_dir, now, anchored_at=datetime.now(UTC))
 
     _git(root, "init", "-q")
     _git(root, "add", "-A")

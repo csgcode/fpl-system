@@ -16,11 +16,9 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
+from fpl.clock import utcnow
+
 ARCHIVE_STAMP_FORMAT = "%Y%m%dT%H%M%S_%fZ"
-
-
-def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 class SnapshotMissingError(FileNotFoundError):

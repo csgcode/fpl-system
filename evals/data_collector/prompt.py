@@ -17,13 +17,6 @@ Run facts:
 {spec}"""
 
 
-def spec_body(spec_text: str) -> str:
-    if not spec_text.startswith("---\n"):
-        return spec_text
-    _, _, rest = spec_text[4:].partition("\n---\n")
-    return rest.lstrip("\n")
-
-
 def build_prompt(ws: Path, case: LiveCase, body: str) -> str:
     return TEMPLATE.format(
         ws=ws, gw=case.gw, previous=case.previous_gw,

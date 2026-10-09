@@ -10,6 +10,7 @@ refuses the whole file if anything looks like a credential or personal data.
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -35,8 +36,19 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 
+ARCHIVE_ENV = "FPL_TRANSCRIPTS_ARCHIVE"
+
+
 class RedactionError(ValueError):
     pass
+
+
+def transcripts_archive() -> Path:
+    """The durable transcript backup. Claude Code prunes ~/.claude/projects."""
+    configured = os.environ.get(ARCHIVE_ENV)
+    if configured:
+        return Path(configured)
+    return Path.home() / "Dev" / "Personal" / "fpl-transcripts-archive"
 
 
 def redaction_findings(text: str) -> list[str]:

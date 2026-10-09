@@ -1061,7 +1061,8 @@ def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     if args.format == "json":
         print(document)
     else:
-        print_plan(plan)
+        free_now = previous_state.free_transfers_banked if previous_state else None
+        print_plan(plan, free_now=free_now)
     return EXIT_OK
 
 
@@ -1080,7 +1081,7 @@ def _previous_decision(
     name-free source for this gameweek's transfers."""
     if gw <= MIN_GW and explicit is None:
         return None, None
-    path = explicit or final_path.parent.parent / f"gw{gw - 1}" / final_path.name
+    path = explicit or final_path.parent.parent / f"gw{gw - 1}" / FINAL_FILENAME
     if not path.is_file():
         if explicit is not None:
             raise ValueError(f"no final.md at {path}")
@@ -1088,17 +1089,27 @@ def _previous_decision(
     return path, parse_state(path.read_text(encoding="utf-8"), expected_gw=gw - 1)
 
 
-def print_plan(plan: ExecutionPlan) -> None:
+def print_plan(plan: ExecutionPlan, *, free_now: int | None = None) -> None:
+    """`free_now` is the previous STATE's free_transfers_banked: the count
+    available at this deadline. The plan's own count is for the next one."""
     entry = "unset" if plan.team_id is None else str(plan.team_id)
+    previous_gw = plan.gw - 1
     print(
         f"gw{plan.gw} plan (schema {plan.schema_version}) — entry {entry}, "
         f"deadline {plan.deadline.isoformat()}"
     )
-    print(
-        f"formation {plan.formation}, chip: {plan.chip or 'none'}, "
-        f"bank {plan.bank:.1f}, value {plan.team_value:.1f}, "
-        f"free transfers {plan.free_transfers_banked}"
+    print(f"formation {plan.formation}, bank {plan.bank:.1f}, "
+          f"value {plan.team_value:.1f}")
+    print(f"chip: {plan.chip or 'none'}")
+    print(f"captain: {plan.captain.name} ({plan.captain.id}), "
+          f"vice: {plan.vice.name} ({plan.vice.id})")
+    this_deadline = (
+        f"{free_now} at this deadline (gw{previous_gw} STATE)"
+        if free_now is not None
+        else f"unknown at this deadline (no gw{previous_gw} STATE read)"
     )
+    print(f"free transfers: {this_deadline}, "
+          f"{plan.free_transfers_banked} banked for the next deadline")
     print(f"{'slot':>4}  {'id':>4}  {'name':<20} {'club':<4} {'pos':<3} "
           f"{'price':>5}  role")
     for pick in plan.picks:
@@ -1108,14 +1119,12 @@ def print_plan(plan: ExecutionPlan) -> None:
               f"{pick.club:<4} {pick.position:<3} {pick.now_cost:>5.1f}  "
               f"{note}".rstrip())
     print(f"bench order: {', '.join(str(element) for element in plan.bench)}")
-    print(f"transfers ({plan.transfer_source}):")
+    print(f"transfers: {len(plan.transfers)} ({plan.transfer_source})")
     for transfer in plan.transfers:
         print(f"  {transfer.out.name} ({transfer.out.id}) -> "
               f"{transfer.into.name} ({transfer.into.id}), "
               f"buy £{transfer.purchase_price_at_plan:.1f}m at plan time, "
               f"cost {transfer.cost}")
-    if not plan.transfers:
-        print("  none")
     for earmark in plan.chip_plan:
         window = (
             f"window {earmark.start_event}-{earmark.stop_event}"

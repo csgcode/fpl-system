@@ -3,7 +3,8 @@
 Selected by the FPL_REPLAY_DIR environment variable, so an agent under
 evaluation runs byte-identical commands while every request is answered from
 a directory of recordings. A request with no recording fails loudly rather
-than falling through to the network.
+than falling through to the network. A clock.json there also pins the CLI's
+clock to the recorded gameweek (fpl/clock.py).
 """
 
 from __future__ import annotations
@@ -17,9 +18,9 @@ from typing import NoReturn
 import requests
 
 from fpl.api import BASE_URL
+from fpl.clock import REPLAY_ENV
 from fpl.write import SessionExpiredError
 
-REPLAY_ENV = "FPL_REPLAY_DIR"
 SERVED_LOG = "served.jsonl"
 ERRORS_FILE = "errors.json"
 

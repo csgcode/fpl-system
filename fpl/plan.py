@@ -452,17 +452,53 @@ def _resolve_transfers(
         source = SOURCE_NAMES
     if not outs and not ins:
         return (), SOURCE_NONE
-    declared = {(t.out, t.into): t.cost for t in state.transfers_made}
+    pairs = pair_by_position(outs, ins, by_id)
+    _warn_pairing_difference(state, pairs, by_id, warnings)
+    # The declared hit belongs to the arriving player, whichever outgoing
+    # player position pairing lines him up with, so the plan's total cost
+    # always equals the declared total.
+    declared_costs: dict[str, list[int]] = defaultdict(list)
+    for entry in state.transfers_made:
+        declared_costs[entry.into].append(entry.cost)
     transfers = tuple(
         PlanTransfer(
             out=_ref(by_id[out]),
             into=_ref(by_id[incoming]),
-            cost=declared.get((by_id[out].web_name, by_id[incoming].web_name), 0),
+            cost=_pop_or_zero(declared_costs[by_id[incoming].web_name]),
             purchase_price_at_plan=by_id[incoming].price_m,
         )
-        for out, incoming in pair_by_position(outs, ins, by_id)
+        for out, incoming in pairs
     )
     return transfers, source
+
+
+def _pop_or_zero(costs: list[int]) -> int:
+    return costs.pop(0) if costs else 0
+
+
+def _warn_pairing_difference(
+    state: DecisionState,
+    pairs: list[tuple[int, int]],
+    by_id: dict[int, Player],
+    warnings: list[str],
+) -> None:
+    if not state.transfers_made:
+        return
+    declared = [(t.out, t.into) for t in state.transfers_made]
+    planned = [(by_id[out].web_name, by_id[inc].web_name) for out, inc in pairs]
+    only_declared = [pair for pair in declared if pair not in planned]
+    only_planned = [pair for pair in planned if pair not in declared]
+    if not only_declared and not only_planned:
+        return
+    warnings.append(
+        f"transfers_made pairs {_pairs_text(only_declared)} but the plan pairs by "
+        f"position as {_pairs_text(only_planned)} — the same players move either "
+        "way; make-transfers pairs by position at POST time"
+    )
+
+
+def _pairs_text(pairs: list[tuple[str, str]]) -> str:
+    return "; ".join(f"{out} → {incoming}" for out, incoming in pairs)
 
 
 def _cross_check_names(

@@ -1,8 +1,10 @@
 """Eval runner. Usage:
 
-    python -m evals replay data-collector
-    python -m evals live data-collector [--case ID] [--repeat K] [--judge] [--keep]
-    python -m evals freeze data-collector
+    python -m evals replay <agent>
+    python -m evals live <agent> [--case ID] [--repeat K] [--judge] [--keep]
+    python -m evals freeze <agent>
+
+Agents: data-collector, plan-builder.
 """
 
 from __future__ import annotations
@@ -10,7 +12,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-AGENTS = ("data-collector",)
+AGENTS = ("data-collector", "plan-builder")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,7 +33,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    from evals.data_collector import runner
+    if args.agent == "plan-builder":
+        from evals.plan_builder import runner
+    else:
+        from evals.data_collector import runner
 
     if args.command == "replay":
         return runner.replay()

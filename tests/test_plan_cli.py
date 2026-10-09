@@ -4,6 +4,7 @@ anything reaches for the network."""
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -39,13 +40,14 @@ def state_block(
     chip_plan: list[str] | None = None,
     transfers: list[str] | None = None,
     include_picks: bool = True,
+    free_transfers: int = 1,
 ) -> str:
     lines = [
         f"gw: {gw}",
         f"team_id: {team_id}",
         "team_value: 99.9",
         "bank: 1.0",
-        "free_transfers_banked: 1",
+        f"free_transfers_banked: {free_transfers}",
         "chips_used: []",
     ]
     if transfers:
@@ -288,6 +290,62 @@ def test_table_lists_transfers_and_warnings(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "E12" in out and "E20" in out
     assert "team_id is null" in out
+
+
+def table_lines(capsys) -> list[str]:
+    return capsys.readouterr().out.splitlines()
+
+
+def test_table_labels_free_transfers_for_this_and_the_next_deadline(tmp_path, capsys):
+    final = seed(
+        tmp_path,
+        previous=state_block(1, squad_slots(), free_transfers=3),
+        final=state_block(2, squad_slots(), free_transfers=1),
+    )
+    assert run(["plan", "--gw", "2", "--from-final", str(final)], tmp_path) == 0
+    lines = table_lines(capsys)
+    assert (
+        "free transfers: 3 at this deadline (gw1 STATE), 1 banked for the next deadline"
+        in lines
+    )
+    assert not any(re.search(r"free transfers \d", line) for line in lines)
+
+
+def test_table_free_transfers_this_deadline_unknown_without_a_previous_final(
+    tmp_path, capsys
+):
+    final = seed(tmp_path, final=state_block(2, squad_slots(), free_transfers=2))
+    assert run(["plan", "--gw", "2", "--from-final", str(final)], tmp_path) == 0
+    assert (
+        "free transfers: unknown at this deadline (no gw1 STATE read), "
+        "2 banked for the next deadline"
+    ) in table_lines(capsys)
+
+
+def test_table_prints_captain_and_vice_line(tmp_path, capsys):
+    final = seed(tmp_path)
+    assert run(["plan", "--gw", "2", "--from-final", str(final)], tmp_path) == 0
+    assert "captain: E14 (14), vice: E13 (13)" in table_lines(capsys)
+
+
+def test_table_prints_transfer_count_and_source(tmp_path, capsys):
+    final = seed(
+        tmp_path,
+        previous=state_block(1, squad_slots()),
+        final=state_block(
+            2, squad_slots(swap=(12, 20)), transfers=["- {out: E12, in: E20, cost: 0}"]
+        ),
+    )
+    assert run(["plan", "--gw", "2", "--from-final", str(final)], tmp_path) == 0
+    assert "transfers: 1 (picks-diff)" in table_lines(capsys)
+
+
+def test_table_prints_zero_transfers_with_source_none(tmp_path, capsys):
+    final = seed(tmp_path, previous=state_block(1, squad_slots()))
+    assert run(["plan", "--gw", "2", "--from-final", str(final)], tmp_path) == 0
+    lines = table_lines(capsys)
+    assert "transfers: 0 (none)" in lines
+    assert "  none" not in lines
 
 
 # --- refusals ---------------------------------------------------------------

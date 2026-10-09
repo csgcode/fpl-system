@@ -7,6 +7,7 @@ import hashlib
 import json
 import stat
 import subprocess
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -23,6 +24,7 @@ from evals.harness.workspace import (
     make_dummy_auth,
     snapshot,
 )
+from fpl.clock import CLOCK_FILE
 from tests.factories import bootstrap_payload, player_payload
 
 
@@ -263,3 +265,36 @@ def test_build_workspace_places_replay_beside_the_workspace(repo, raw_repo, tmp_
     assert ws.replay_dir is not None
     assert ws.replay_dir.parent == ws.root.parent
     assert (ws.replay_dir / "bootstrap-static.json").is_file()
+
+
+# --- replay clock -----------------------------------------------------------
+
+PINNED = datetime(2026, 9, 18, 12, 49, 57, tzinfo=UTC)
+
+
+def test_build_workspace_pins_the_replay_clock(repo, raw_repo, tmp_path):
+    raw, replay = raw_repo
+    (repo / "data/raw").mkdir(exist_ok=True)
+    subprocess.run(["cp", "-R", str(raw / "data/raw/."), str(repo / "data/raw")], check=True)
+
+    ws = build_workspace(repo, spec(), replay, tmp_parent=tmp_path / "tmp", sync=False,
+                         now=PINNED)
+
+    assert ws.replay_dir is not None
+    clock = json.loads((ws.replay_dir / CLOCK_FILE).read_text())
+    assert datetime.fromisoformat(clock["now"]) == PINNED
+    assert abs(datetime.fromisoformat(clock["anchored_at"]) - datetime.now(UTC)) < timedelta(
+        minutes=1)
+
+
+def test_a_clock_without_recordings_gets_an_otherwise_empty_replay_dir(repo, tmp_path):
+    ws = build_workspace(repo, spec(), None, tmp_parent=tmp_path / "tmp", sync=False,
+                         now=PINNED)
+
+    assert ws.replay_dir is not None
+    assert [p.name for p in ws.replay_dir.iterdir()] == [CLOCK_FILE]
+
+
+def test_no_clock_file_unless_a_time_is_pinned(repo, tmp_path):
+    ws = build(repo, tmp_path)
+    assert ws.replay_dir is None

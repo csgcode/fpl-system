@@ -3,8 +3,8 @@ headless scenarios (live), with every source pinned."""
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 
 from evals.harness.workspace import GitBlob, RepoFile
@@ -16,19 +16,6 @@ SPEC_FIXTURE = FIXTURES / "spec-0315b8e.md"
 MY_TEAM_FIXTURE = FIXTURES / "my-team.json"
 JUDGE_PASS_GW6 = FIXTURES / "judge-pass-gw6.txt"
 TEAM_ID = 8455344
-ARCHIVE_ENV = "FPL_TRANSCRIPTS_ARCHIVE"
-# .python-version pins the interpreter the uv cache holds wheels for; without
-# it an offline sync picks the newest Python and tries to build from source.
-CODE_PATHS = ("fpl/", "agents/", "docs/", "CLAUDE.md", "pyproject.toml", "uv.lock",
-              ".gitignore", ".python-version")
-
-
-def transcripts_archive() -> Path:
-    """The durable transcript backup. Claude Code prunes ~/.claude/projects."""
-    configured = os.environ.get(ARCHIVE_ENV)
-    if configured:
-        return Path(configured)
-    return Path.home() / "Dev" / "Personal" / "fpl-transcripts-archive"
 
 
 @dataclass(frozen=True)
@@ -67,6 +54,13 @@ BOOTSTRAP_PINS = {
                 "12a1b4e9718bc62d73834004cb02fe49f7f1396e5bda93225533fc7b54ef6a45"),
     6: RepoFile("data/raw/gw6/.archive/bootstrap-20261009T133149_122429Z.json",
                 "8fc3aff56d653b059faf3e83d790ebecf221ac969479f8f1e91c4edfda0544b4"),
+}
+# The replay clock for each GW: the moment its pinned bootstrap was fetched,
+# so snapshot ages and deadline margins read as they did at analysis time.
+REPLAY_NOW = {
+    4: datetime(2026, 9, 11, 17, 58, 39, 804484, tzinfo=UTC),
+    5: datetime(2026, 9, 18, 12, 49, 57, 221963, tzinfo=UTC),
+    6: datetime(2026, 10, 9, 13, 31, 49, 122429, tzinfo=UTC),
 }
 FIXTURE_PINS = {
     4: RepoFile("data/raw/gw4/fixtures.json",

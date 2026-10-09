@@ -53,9 +53,13 @@ SQUAD = {
 }
 CAPTAIN, VICE = 14, 13
 
-# Not in the squad: transfer candidates, a club-5 midfielder that would take
-# that club to four, plus two players sharing a web_name.
-EXTRAS = {20: (3, 6), 21: (2, 6), 22: (4, 6), 23: (1, 6), 24: (3, 5), 30: (3, 6), 31: (2, 6)}
+# Not in the squad: transfer candidates (25 lets two midfielders arrive from
+# different clubs), a club-5 midfielder that would take that club to four,
+# plus two players sharing a web_name.
+EXTRAS = {
+    20: (3, 6), 21: (2, 6), 22: (4, 6), 23: (1, 6), 24: (3, 5), 25: (3, 7),
+    30: (3, 6), 31: (2, 6),
+}
 AMBIGUOUS_NAME = "Hughes"
 AMBIGUOUS_IDS = (30, 31)
 
@@ -93,7 +97,7 @@ def bootstrap(deadline: str = DEADLINE) -> Bootstrap:
             elements=elements,
             teams=[
                 team_payload(id=n, name=f"Club {n}", short_name=f"T{n}")
-                for n in range(1, 7)
+                for n in range(1, 8)
             ],
             events=[
                 event_payload(id=1, is_next=False, finished=True),
@@ -322,6 +326,92 @@ def test_diff_and_names_disagreement_refuses_showing_both_readings():
     assert "disagree" in message
     assert "picks diff" in message and "transfers_made" in message
     assert "E12" in message and "E11" in message
+
+
+def double_midfield_swap() -> dict[int, tuple[int, int, int]]:
+    """8 and 9 leave, 20 and 25 arrive; position pairing gives 8→20, 9→25."""
+    squad = swapped(8, 20)
+    _, _, slot = squad.pop(9)
+    squad[25] = (3, 7, slot)
+    return squad
+
+
+def test_declared_cost_follows_the_incoming_player_when_pairings_differ():
+    result = plan(
+        state=state(
+            picks=planned(double_midfield_swap()),
+            transfers_made=[transfer("E8", "E25", cost=4), transfer("E9", "E20", cost=0)],
+        ),
+        previous_state=state(gw=1, picks=planned(), free_transfers_banked=1),
+    )
+    assert [(t.out.id, t.into.id, t.cost) for t in result.transfers] == [
+        (8, 20, 0),
+        (9, 25, 4),
+    ]
+    assert sum(t.cost for t in result.transfers) == 4
+
+
+def test_a_pairing_that_differs_from_transfers_made_warns_with_both_pairings():
+    result = plan(
+        state=state(
+            picks=planned(double_midfield_swap()),
+            transfers_made=[transfer("E8", "E25", cost=4), transfer("E9", "E20", cost=0)],
+        ),
+        previous_state=state(gw=1, picks=planned(), free_transfers_banked=1),
+    )
+    pairing = [w for w in result.warnings if w.startswith("transfers_made pairs")]
+    assert len(pairing) == 1
+    assert "E8 → E25" in pairing[0] and "E8 → E20" in pairing[0]
+    assert "make-transfers pairs by position at POST time" in pairing[0]
+
+
+def test_pairing_warning_lists_only_the_pairs_that_differ():
+    squad = double_midfield_swap()
+    _, _, slot = squad.pop(12)
+    squad[24] = (3, 5, slot)
+    result = plan(
+        state=state(
+            picks=planned(squad),
+            transfers_made=[
+                transfer("E8", "E25"),
+                transfer("E9", "E24"),
+                transfer("E12", "E20"),
+            ],
+        ),
+        previous_state=state(gw=1, picks=planned(), free_transfers_banked=3),
+    )
+    [warning] = [w for w in result.warnings if w.startswith("transfers_made pairs")]
+    assert warning.startswith(
+        "transfers_made pairs E8 → E25; E12 → E20 but the plan pairs by "
+        "position as E8 → E20; E12 → E25 — "
+    )
+
+
+def test_matching_pairing_does_not_warn():
+    result = plan(
+        state=state(
+            picks=planned(double_midfield_swap()),
+            transfers_made=[transfer("E8", "E20"), transfer("E9", "E25")],
+        ),
+        previous_state=state(gw=1, picks=planned(), free_transfers_banked=2),
+    )
+    assert not any(w.startswith("transfers_made pairs") for w in result.warnings)
+
+
+def test_state_names_pairing_difference_also_warns():
+    result = plan(
+        state=state(
+            picks=planned(double_midfield_swap()),
+            transfers_made=[transfer("E8", "E25", cost=4), transfer("E9", "E20", cost=0)],
+        ),
+        previous_state=state(gw=1, picks=None, free_transfers_banked=1),
+    )
+    assert result.transfer_source == "state-names"
+    assert [(t.out.id, t.into.id, t.cost) for t in result.transfers] == [
+        (8, 20, 0),
+        (9, 25, 4),
+    ]
+    assert any(w.startswith("transfers_made pairs") for w in result.warnings)
 
 
 def test_transfers_must_swap_position_for_position():

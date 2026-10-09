@@ -6,43 +6,46 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from evals.data_collector.cases import (
     AGENT,
     BOOTSTRAP_PINS,
-    CODE_PATHS,
     FIXTURE_PINS,
     LIVE_CASES,
     MY_TEAM_FIXTURE,
+    REPLAY_NOW,
     REPO_ROOT,
     LiveCase,
 )
 from evals.data_collector.checks import CHECKS, CollectorRun, LiveWorkspace
 from evals.data_collector.judge import build_judge_prompt
-from evals.data_collector.prompt import build_prompt, spec_body
-from evals.harness.checks import CheckResult, Status, format_scorecard, run_checks
+from evals.data_collector.prompt import build_prompt
+from evals.harness.checks import run_checks
 from evals.harness.live import (
-    JudgeVerdict,
+    LiveOutcome,
     RunCost,
+    RunInvalid,
     build_claude_argv,
     parse_result_cost,
     read_stream,
     run_agent,
+    run_batch,
     run_judge,
+    spec_body,
     validate_run,
+    write_outputs,
 )
 from evals.harness.transcript import Transcript, parse_records
 from evals.harness.workspace import (
+    CODE_PATHS,
     DummyAuth,
     ReplaySpec,
     SourceError,
     Workspace,
     WorkspaceSpec,
     build_workspace,
-    diff,
     make_dummy_auth,
     snapshot,
 )
@@ -51,19 +54,6 @@ from fpl.models import Bootstrap, is_shortlisted
 OUT_ROOT = REPO_ROOT / "evals" / "out" / AGENT
 MODEL = "haiku"
 SPEC_PATH = "agents/data-collector.md"
-
-
-@dataclass(frozen=True)
-class LiveOutcome:
-    case_id: str
-    results: list[CheckResult]
-    cost: RunCost
-    judge: JudgeVerdict | None
-    out_dir: Path
-
-    @property
-    def failures(self) -> list[CheckResult]:
-        return [r for r in self.results if r.status is Status.FAIL]
 
 
 def workspace_spec(case: LiveCase, auth: DummyAuth | None, *, now: datetime) -> WorkspaceSpec:
@@ -99,8 +89,9 @@ def claude_available() -> bool:
 def prepare(case: LiveCase, *, tmp_parent: Path | None = None) -> tuple[Workspace, DummyAuth | None]:
     """Raises SourceError when a pinned source is missing or has drifted."""
     auth = make_dummy_auth() if case.auth else None
-    ws = build_workspace(REPO_ROOT, workspace_spec(case, auth, now=datetime.now(UTC)),
-                         replay_spec(case), tmp_parent=tmp_parent)
+    now = REPLAY_NOW[case.gw]
+    ws = build_workspace(REPO_ROOT, workspace_spec(case, auth, now=now),
+                         replay_spec(case), tmp_parent=tmp_parent, now=now)
     if case.errors:
         _assert_injected_ids_are_shortlisted(ws, case)
     return ws, auth
@@ -119,12 +110,15 @@ def run_live_case(case: LiveCase, *, judge: bool = False, keep: bool = False,
                            stream_path=out_dir / "stream.jsonl")
         records = read_stream(stream)
         transcript = parse_records(records)
-        validate_run(transcript, replay_dir=ws.replay_dir, real_repo=REPO_ROOT)
+        cost = parse_result_cost(records)
+        try:
+            validate_run(transcript, replay_dir=ws.replay_dir, real_repo=REPO_ROOT)
+        except RunInvalid as exc:
+            raise RunInvalid(str(exc), cost_usd=cost.total_cost_usd) from exc
         run = collector_run(case, ws, transcript, prompt, auth)
         results = run_checks(CHECKS, run, mode="live")
         verdict = run_judge(build_judge_prompt(transcript), cwd=ws.root) if judge else None
-        cost = parse_result_cost(records)
-        _write_outputs(out_dir, ws, results, cost, verdict)
+        write_outputs(out_dir, ws, results, cost, verdict)
         return LiveOutcome(case.id, results, cost, verdict, out_dir)
     finally:
         if not keep:
@@ -164,26 +158,8 @@ def run_live_cases(*, case_ids: list[str] | None, repeat: int, judge: bool, keep
         print("claude is not on PATH")
         return 1
     chosen = [c for c in LIVE_CASES if not case_ids or c.id in case_ids]
-    columns: dict[str, list[CheckResult]] = {}
-    total = 0.0
-    for case in chosen:
-        for attempt in range(1, repeat + 1):
-            try:
-                outcome = run_live_case(case, judge=judge, keep=keep)
-            except SourceError as exc:
-                print(f"{case.id}: skipped — {exc}")
-                break
-            label = case.id if repeat == 1 else f"{case.id}#{attempt}"
-            columns[label] = outcome.results
-            cost = outcome.cost.total_cost_usd or 0.0
-            total += cost + ((outcome.judge.cost_usd or 0.0) if outcome.judge else 0.0)
-            judged = (f", judge {'PASS' if outcome.judge.passed else 'FAIL: ' + outcome.judge.reason}"
-                      if outcome.judge else "")
-            print(f"{label}: ${cost:.4f}, {outcome.cost.num_turns} turns{judged} → {outcome.out_dir}")
-    if columns:
-        print(format_scorecard(columns))
-    print(f"total cost: ${total:.4f}")
-    return 0 if all(r.status is not Status.FAIL for rs in columns.values() for r in rs) else 1
+    return run_batch(chosen, lambda case: run_live_case(case, judge=judge, keep=keep),
+                     repeat=repeat)
 
 
 def smoke(tmp_dir: Path) -> tuple[str | None, Transcript, RunCost]:
@@ -219,17 +195,3 @@ def _assert_injected_ids_are_shortlisted(ws: Workspace, case: LiveCase) -> None:
             player_id = int(key.rsplit("/", 1)[1])
             if player_id not in shortlisted:
                 raise SourceError(f"injected id {player_id} is not shortlisted in gw{case.gw}")
-
-
-def _write_outputs(out_dir: Path, ws: Workspace, results: list[CheckResult], cost: RunCost,
-                   verdict: JudgeVerdict | None) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    scorecard = {
-        "results": [{"id": r.id, "status": r.status.value, "evidence": r.evidence}
-                    for r in results],
-        "cost": asdict(cost),
-        "judge": asdict(verdict) if verdict else None,
-    }
-    (out_dir / "scorecard.json").write_text(json.dumps(scorecard, indent=1), "utf-8")
-    changes = diff(ws.before, snapshot(ws.root))
-    (out_dir / "workspace-diff.json").write_text(json.dumps(asdict(changes), indent=1), "utf-8")

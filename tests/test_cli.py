@@ -800,3 +800,26 @@ def test_replay_auth_check_reports_an_injected_401_as_fail(tmp_path, replay, cap
 def test_replay_auth_refresh_refuses(tmp_path, replay, capsys):
     assert replay_main(tmp_path, ["auth-refresh", "--auth", str(tmp_path / "a.json")]) == 1
     assert "auth-refresh is unavailable in replay mode" in capsys.readouterr().err
+
+
+def test_plan_from_proposal_diffs_against_previous_final_not_previous_proposal(
+    tmp_path, capsys
+):
+    """The previous gameweek's committed decision is its final.md, whatever
+    file this gameweek's plan is built from."""
+    from tests.test_plan_cli import run as run_plan_cli
+    from tests.test_plan_cli import seed, squad_slots, state_block
+
+    seed(tmp_path, previous=state_block(1, squad_slots()))
+    decisions = tmp_path / "decisions"
+    (decisions / "gw1" / "squad-proposal.md").write_text(
+        state_block(1, squad_slots(swap=(12, 20))), encoding="utf-8"
+    )
+    proposal = decisions / "gw2" / "squad-proposal.md"
+    proposal.write_text(
+        state_block(2, squad_slots(swap=(12, 20)),
+                    transfers=["- {out: E12, in: E20, cost: 0}"]),
+        encoding="utf-8",
+    )
+    assert run_plan_cli(["plan", "--gw", "2", "--from-final", str(proposal)], tmp_path) == 0
+    assert "transfers: 1 (picks-diff)" in capsys.readouterr().out.splitlines()
