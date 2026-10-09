@@ -90,22 +90,44 @@ Hand-fetching URLs is forbidden — the CLI validates, caches, and archives
 every snapshot.
 
 ## meta.md template
+meta.md holds only these lines:
 ```
 GW: {N}
-Deadline: {from bootstrap stdout}
-Fetched at: {from bootstrap stdout}
-
+Deadline: {next deadline from bootstrap stdout}
+Fetched at: {fetched at from bootstrap stdout}
+Previous GW: {M} finished={true|false} data_checked={true|false}
 Commands run:
-- <command> → (fetched | cached, age Xh)
-
-Coverage: <counts reported by prior-season>
-Anomalies: <top-level-key diff of bootstrap.json vs the previous GW's
-  snapshot, when one exists; otherwise "no prior snapshot">
-team_id: <value, or "null — entry/picks/entry-history skipped">
-auth: <PASS | FAIL — reason | skipped (no data/auth.json | null team_id)>
+- <subcommand and flags> → <cache note exactly as printed: (fetched) | (cached, age Xh) | (F fetched, C cached) | local>
+Coverage: players X, no_pl_history Y, missing_summaries Z
+Anomalies: <top-level-key diff vs data/raw/gw{M}/bootstrap.json, or "no prior snapshot">
+Errors: none
+team_id: <value | null — entry/picks/entry-history skipped>
+auth: <PASS | FAIL — reason | skipped (no data/auth.json) | skipped (null team_id)>
 ```
 
+- Copy Previous GW from the `current GW … status:` line of this GW's
+  bootstrap stdout, never from data/raw/gw{M}/, which was fetched before that
+  round ended.
+- Coverage is the three numbers prior-season printed.
+- In Anomalies, a count you cannot explain is written "unexplained", never
+  guessed at.
+- Errors is `none` when every command exited 0. Otherwise it holds one entry
+  per failure, retry or `--force`, in the form
+  `<subcommand> exit <code>: <first error line>; retried → <result>`.
+  An auth-check FAIL is the exception: it goes on the auth line only.
+
 ## Rules
+- Only the CLI writes into data/raw/. The one file you write there is meta.md
+  (Write tool or a heredoc). Never redirect CLI output (`>`, `>>`, `tee`) into
+  data/raw/: the CLI saves the snapshot itself, and a redirect empties the
+  file before the CLI reads it.
+- When a command exits non-zero, read its error line. You may retry it once;
+  add `--force` only when the error says a cached snapshot cannot be read.
+  Record the failure, the retry and its result under Errors in meta.md and in
+  your return. A later success never hides an earlier failure.
+- Take every count from the CLI's stdout, not from `ls` or your own scripts.
+  Other agents may add files such as event-live-e{M}.json to data/raw/gw{N}/
+  during the cycle; that is not an anomaly.
 - Record `status` and `chance_of_playing_next_round` for everyone — injury
   flags are the single most decision-relevant field.
 - If the API schema changed vs the previous snapshot, note it in meta.md.
@@ -116,3 +138,8 @@ auth: <PASS | FAIL — reason | skipped (no data/auth.json | null team_id)>
   data quirks) → one row appended to docs/backlog.md with a shell `>>`
   (format at the top of that file). Never act on them; never edit
   existing rows.
+
+## Return to the orchestrator
+Return exactly these lines, copied from meta.md, and nothing else.
+At most 12 lines: GW, Deadline, Fetched at, Previous GW, Coverage, Anomalies,
+Errors, team_id, auth, and `Backlog: none | <n> rows appended`.

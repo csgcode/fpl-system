@@ -12,3 +12,6 @@ data/auth.json
 # raw browser captures used to build auth.json — bearer tokens in plaintext
 curl-request
 *.curl
+
+# live eval runs: transcripts, scorecards, workspace diffs
+evals/out/

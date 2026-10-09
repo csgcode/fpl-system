@@ -1,0 +1,8 @@
+GW: 6
+Deadline: 2026-10-10 10:00:00+00:00
+Fetched at: 2026-10-09 13:31:49.122429+00:00
+Coverage: players 348, no_pl_history 86, missing_summaries 0
+Anomalies: top-level bootstrap keys unchanged vs data/raw/gw5/bootstrap.json; players 659 → 667; players/ holds 435 summary files against 434 reported by summaries — unexplained
+Errors: none
+team_id: 8455344
+Backlog: none

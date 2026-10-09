@@ -5,6 +5,8 @@ agents/data-collector.md; `players` is a filtered read over the cached
 bootstrap. Cached snapshots are reused unless older than --max-age hours
 (default 24) or --force is given. Errors go to stderr; exit 1 means the
 command failed, exit 2 means it produced an empty or rejected result.
+With FPL_REPLAY_DIR set, every request is answered from recordings in that
+directory and nothing reaches the network (fpl/replay.py).
 """
 
 from __future__ import annotations
@@ -49,7 +51,14 @@ from fpl.ep import (
 )
 from fpl.http import RequestsGateway, RequestsTokenGateway, TokenEndpointError
 from fpl.freshness import FlagChange
-from fpl.models import POSITION_ALIASES, MyTeam, Player, PlayerStatus, Position
+from fpl.models import (
+    POSITION_ALIASES,
+    Bootstrap,
+    MyTeam,
+    Player,
+    PlayerStatus,
+    Position,
+)
 from fpl.plan import (
     LINEUP_TARGET,
     TRANSFERS_TARGET,
@@ -66,6 +75,7 @@ from fpl.refresh import (
     expiry_of,
 )
 from fpl.refresh import refresh as refresh_token
+from fpl.replay import ReplayGateway, replay_dir
 from fpl.repository import (
     PLAYERS_SLIM_COLUMNS,
     SORT_KEYS,
@@ -498,7 +508,20 @@ def _upper_set(raw: str) -> frozenset[str]:
 
 
 def _default_service(store: SnapshotStore) -> FplDataService:
+    recordings = replay_dir()
+    if recordings is not None:
+        # The throttle protects the live API; recordings need none.
+        return FplDataService(FplApi(ReplayGateway(recordings)), store, throttle_s=0.0)
     return FplDataService(FplApi(RequestsGateway()), store)
+
+
+def _default_write_gateway_factory(
+    auth_path: Path,
+) -> Callable[[AuthCredentials], WriteGateway]:
+    recordings = replay_dir()
+    if recordings is not None:
+        return lambda credentials: ReplayGateway(recordings, session_errors=True)
+    return _refreshing_write_gateway(auth_path)
 
 
 def _default_write_gateway(credentials: AuthCredentials) -> WriteGateway:
@@ -552,7 +575,7 @@ def main(
             return run_write_command(
                 store,
                 args,
-                write_gateway_factory or _refreshing_write_gateway(args.auth),
+                write_gateway_factory or _default_write_gateway_factory(args.auth),
             )
         service = (service_factory or _default_service)(store)
         return run_command(service, store, args.gw, args)
@@ -607,6 +630,7 @@ def run_command(
               f"chips: {len(bootstrap.chips)}")
         print(f"current GW: {bootstrap.current_gw()}, next GW: {bootstrap.next_gw()}, "
               f"next deadline: {bootstrap.next_deadline()}")
+        print(_current_status_line(bootstrap))
     elif args.command == "fixtures":
         fixtures = service.fixtures(gw, max_age_hours=args.max_age, force=args.force)
         print(f"{store.path(gw, 'fixtures')} ({len(fixtures)} fixtures) "
@@ -1205,6 +1229,9 @@ def run_auth_refresh(
     args: argparse.Namespace,
     gateway_factory: Callable[[AuthCredentials], TokenGateway] | None = None,
 ) -> int:
+    if replay_dir() is not None:
+        _stderr("error: auth-refresh is unavailable in replay mode")
+        return EXIT_ERROR
     credentials = load_auth(args.auth)
     plan = derive_plan(
         credentials,
@@ -1583,6 +1610,17 @@ def _stderr(message: str) -> None:
     # would surface after the warning that refers to it.
     sys.stdout.flush()
     print(message, file=sys.stderr)
+
+
+def _current_status_line(bootstrap: Bootstrap) -> str:
+    current = next((e for e in bootstrap.events if e.is_current), None)
+    if current is None:
+        return "current GW status: none"
+    return (
+        f"current GW {current.id} status: "
+        f"finished={str(current.finished).lower()} "
+        f"data_checked={str(current.data_checked).lower()}"
+    )
 
 
 def _cache_note(service: FplDataService) -> str:

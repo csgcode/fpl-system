@@ -668,3 +668,135 @@ def test_players_minutes_appends_this_seasons_minutes_per_round(tmp_path, capsys
     by_name = {row[1]: row[-1] for row in rows[1:]}
     assert by_name["Alpha"] == "90,0"
     assert by_name["Beta"] == "no summary"
+
+
+# --- bootstrap: current GW status line ------------------------------------
+
+
+def test_bootstrap_prints_the_current_gameweek_status(tmp_path, capsys):
+    payload = bootstrap_payload(events=[
+        event_payload(id=5, is_current=True, is_next=False,
+                      finished=True, data_checked=True),
+        event_payload(id=6, is_next=True),
+    ])
+    assert run(["bootstrap", "--gw", "6"], tmp_path, FakeGateway({BOOTSTRAP_URL: payload})) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[3].startswith("current GW: 5, next GW: 6")
+    assert lines[4] == "current GW 5 status: finished=true data_checked=true"
+
+
+def test_bootstrap_status_line_reports_an_unfinished_round(tmp_path, capsys):
+    payload = bootstrap_payload(events=[
+        event_payload(id=3, is_current=True, is_next=False,
+                      finished=False, data_checked=False),
+        event_payload(id=4, is_next=True),
+    ])
+    run(["bootstrap", "--gw", "4"], tmp_path, FakeGateway({BOOTSTRAP_URL: payload}))
+    assert "current GW 3 status: finished=false data_checked=false" in (
+        capsys.readouterr().out
+    )
+
+
+def test_bootstrap_status_line_before_the_season_starts(tmp_path, capsys):
+    run(["bootstrap", "--gw", "1"], tmp_path, FakeGateway({BOOTSTRAP_URL: bootstrap_payload()}))
+    assert "current GW status: none" in capsys.readouterr().out.splitlines()
+
+
+# --- replay mode (FPL_REPLAY_DIR) -------------------------------------------
+
+
+@pytest.fixture
+def replay(tmp_path, monkeypatch):
+    """A recordings dir selected through the environment, with the network
+    made unreachable so a fall-through would fail the test."""
+    from fpl.replay import REPLAY_ENV
+
+    root = tmp_path / "replay"
+    root.mkdir()
+    monkeypatch.setenv(REPLAY_ENV, str(root))
+
+    def no_network(*args, **kwargs):
+        raise AssertionError("replay mode reached the network")
+
+    monkeypatch.setattr(requests.Session, "get", no_network)
+    monkeypatch.setattr(requests.Session, "post", no_network)
+    return root
+
+
+def write_recording(root, key, payload):
+    path = root / f"{key}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def replay_main(tmp_path, argv):
+    return main(["--data-root", str(tmp_path / "raw"), *argv])
+
+
+def test_replay_bootstrap_serves_the_recording_and_saves_the_snapshot(
+    tmp_path, replay, capsys
+):
+    write_recording(replay, "bootstrap-static", bootstrap_payload())
+
+    assert replay_main(tmp_path, ["bootstrap", "--gw", "1"]) == 0
+    assert "(fetched)" in capsys.readouterr().out
+    assert (tmp_path / "raw" / "gw1" / "bootstrap.json").is_file()
+    assert (replay / "served.jsonl").read_text().count('"hit"') == 1
+
+
+def test_replay_missing_recording_fails_like_a_network_error(tmp_path, replay, capsys):
+    assert replay_main(tmp_path, ["fixtures", "--gw", "1"]) == 1
+    err = capsys.readouterr().err
+    assert "network request failed" in err
+    assert "fixtures" in err
+
+
+def test_replay_service_does_not_throttle(replay, tmp_path):
+    from fpl.__main__ import _default_service
+
+    service = _default_service(SnapshotStore(tmp_path))
+    assert service._throttle_s == 0.0
+
+
+def test_replay_summaries_serve_each_recording(tmp_path, replay, capsys):
+    write_recording(replay, "bootstrap-static", bootstrap_payload())
+    for pid in (1, 2):
+        write_recording(replay, f"element-summary/{pid}", element_summary_payload())
+    replay_main(tmp_path, ["bootstrap", "--gw", "1"])
+    capsys.readouterr()
+
+    assert replay_main(tmp_path, ["summaries", "--gw", "1", "--ids", "1,2"]) == 0
+    assert "(2 fetched, 0 cached)" in capsys.readouterr().out
+
+
+def _replay_auth_argv(tmp_path):
+    auth = tmp_path / "auth.json"
+    auth.write_text(json.dumps({
+        "headers": {"x-api-authorization": "Bearer synthetic-replay-token"},
+        "cookies": {},
+    }), encoding="utf-8")
+    return ["auth-check", "--gw", "2", "--team-id", "42", "--auth", str(auth),
+            "--executor-root", str(tmp_path / "executor")]
+
+
+def test_replay_auth_check_passes_through_the_replay_write_gateway(
+    tmp_path, replay, capsys
+):
+    from tests.factories import my_team_payload
+
+    write_recording(replay, "my-team/42", my_team_payload())
+
+    assert replay_main(tmp_path, _replay_auth_argv(tmp_path)) == 0
+    assert "PASS" in capsys.readouterr().out
+
+
+def test_replay_auth_check_reports_an_injected_401_as_fail(tmp_path, replay, capsys):
+    (replay / "errors.json").write_text(json.dumps({"my-team/42": 401}))
+
+    assert replay_main(tmp_path, _replay_auth_argv(tmp_path)) == 1
+    assert "FAIL —" in capsys.readouterr().err
+
+
+def test_replay_auth_refresh_refuses(tmp_path, replay, capsys):
+    assert replay_main(tmp_path, ["auth-refresh", "--auth", str(tmp_path / "a.json")]) == 1
+    assert "auth-refresh is unavailable in replay mode" in capsys.readouterr().err

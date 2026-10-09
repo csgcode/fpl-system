@@ -22,3 +22,5 @@ packages = ["fpl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["live: runs a real headless Claude session and costs money; opt in with -m live"]
+addopts = "-m 'not live'"
