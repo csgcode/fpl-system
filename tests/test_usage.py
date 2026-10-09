@@ -17,6 +17,7 @@ from fpl.usage import (
     UnpricedModelError,
     build_report,
     cost_of,
+    cycle_gw_tags,
     gw_tags,
     inspect_session,
     list_sessions,
@@ -293,10 +294,25 @@ def test_price_table_has_every_rate() -> None:
         ("GW3 apply transfer and lineup", "team-executor"),
         ("Patch player-analyst spec formula", "in-cycle patch"),
         ("Build FPL write API module", "other"),
+        ("GW4 usage ledger", "usage-collector"),
+        ("GW5 usage collector", "usage-collector"),
     ],
 )
 def test_stage_for(description: str, stage: str) -> None:
     assert stage_for(description) == stage
+
+
+@pytest.mark.parametrize(
+    ("description", "tags"),
+    [
+        ("GW3 retro analysis", set()),
+        ("GW4 usage ledger", set()),
+        ("GW5 data collection", {5}),
+        ("Correct GW5 record", {5}),
+    ],
+)
+def test_cycle_gw_tags_drop_next_cycle_spawns(description: str, tags: set[int]) -> None:
+    assert cycle_gw_tags(description) == tags
 
 
 def test_gw_tags_from_descriptions() -> None:
@@ -503,3 +519,133 @@ def test_report_paths_are_home_relative(root: Path, tmp_path: Path, monkeypatch)
     report = build_report(load_session(root, SID), gw=3, start=ts(T0), end=ts("2026-09-03T22:24:06Z"))
     assert report.transcripts_root == "~/projects"
     assert report.session_path.startswith("~/projects/")
+
+
+# ------------------------------------------- cycle tags and the cycle commit
+
+CYCLE_SID = "c7c7c7c7-0000-0000-0000-000000000000"
+P1 = "2026-09-03T22:08:54Z"
+P2 = "2026-09-03T22:24:06Z"
+GW3_COMMIT = "git add -A && git commit -q -F - <<'EOF'\ngw3: bank the FT\nEOF"
+
+
+def bash_line(when: str, mid: str, command: str, *, sidechain: bool = False) -> dict:
+    line = assistant_line(when, mid, "claude-fable-5-1", usage(inp=1, cr=70_000, out=50),
+                          [{"type": "tool_use", "id": f"tu_{mid}", "name": "Bash",
+                            "input": {"command": command}}], stop_reason="tool_use")
+    line["isSidechain"] = sidechain
+    return line
+
+
+def cycle_root(tmp_path: Path, tail: list[dict], *, helper_lines: list[dict] | None = None) -> Path:
+    """A GW3 cycle whose one agent finishes at 20:51, then the "Commit the
+    changes." prompt; `tail` follows it. `helper_lines` go to an untagged
+    subagent, which never bounds the window."""
+    r = tmp_path / "cycle"
+    write_jsonl(r / f"{CYCLE_SID}.jsonl", [
+        user_line(T0, "run for gw 3."),
+        spawn("2026-09-03T20:47:50Z", "m1", "tu_collect", "GW3 data collection"),
+        user_line(P1, "Commit the changes."),
+        *tail,
+    ])
+    write_agent(
+        r, CYCLE_SID, "aaa111",
+        {"agentType": "general-purpose", "description": "GW3 data collection", "toolUseId": "tu_collect",
+         "spawnDepth": 1, "model": "haiku"},
+        [assistant_line("2026-09-03T20:51:00Z", "h1", "claude-haiku-4-5-20251001", usage(inp=5, out=30), effort=None)],
+    )
+    if helper_lines:
+        write_agent(r, CYCLE_SID, "zzz999",
+                    {"agentType": "general-purpose", "description": "Ship bonus fixes", "toolUseId": "tu_ship",
+                     "spawnDepth": 1, "model": "opus"}, helper_lines)
+    return r
+
+
+def test_list_sessions_counts_only_cycle_spawns(tmp_path: Path) -> None:
+    r = tmp_path / "p"
+    write_jsonl(r / f"{CYCLE_SID}.jsonl", [user_line(T0, "go")])
+    for agent_id, description in (("r1", "GW3 retro analysis"), ("u1", "GW3 usage ledger"),
+                                  ("d1", "GW4 data collection")):
+        write_agent(r, CYCLE_SID, agent_id, {"description": description, "toolUseId": f"tu_{agent_id}"}, [])
+    [row] = list_sessions(r)
+    assert row.gw_tags == {4}
+    assert row.agents == 3
+
+
+def test_suggest_window_ignores_next_cycle_spawns(tmp_path: Path) -> None:
+    r = tmp_path / "p"
+    write_jsonl(r / f"{CYCLE_SID}.jsonl", [
+        user_line(T0, "Run for next gameweek."),
+        spawn("2026-09-03T20:47:50Z", "m1", "tu_r", "GW3 retro analysis"),
+        spawn("2026-09-03T20:48:50Z", "m2", "tu_u", "GW3 usage ledger"),
+        spawn("2026-09-03T20:49:50Z", "m3", "tu_d", "GW4 data collection"),
+    ])
+    for agent_id, description in (("r1", "GW3 retro analysis"), ("u1", "GW3 usage ledger"),
+                                  ("d1", "GW4 data collection")):
+        write_agent(r, CYCLE_SID, agent_id, {"description": description, "toolUseId": f"tu_{agent_id[0]}"}, [])
+    session = load_session(r, CYCLE_SID)
+    assert suggest_window(session, gw=3) is None
+    text = inspect_session(session, gw=3)
+    assert "suggested window for GW3: none (no GW3 cycle spawn" in text
+    assert "tags=GW3" in text   # the timeline still shows what each description says
+
+
+def test_suggest_end_follows_cycle_commit(tmp_path: Path) -> None:
+    r = cycle_root(tmp_path, [bash_line("2026-09-03T22:09:18Z", "m6", GW3_COMMIT), user_line(P2, "more")])
+    window = suggest_window(load_session(r, CYCLE_SID), gw=3)
+    assert window is not None
+    assert (window.start, window.end) == (ts(T0), ts(P2))
+    assert "last gw3: commit" in window.rule
+
+
+def test_suggest_end_without_later_prompt_is_last_line_plus_one_second(tmp_path: Path) -> None:
+    r = cycle_root(tmp_path, [bash_line("2026-09-03T22:09:18Z", "m6", GW3_COMMIT)])
+    window = suggest_window(load_session(r, CYCLE_SID), gw=3)
+    assert window is not None and window.end == ts("2026-09-03T22:09:19Z")
+
+
+@pytest.mark.parametrize(
+    ("tail", "helper_lines"),
+    [
+        ([bash_line("2026-09-03T22:09:18Z", "m6", "git commit -qm 'gw2: other cycle'")], None),
+        ([bash_line("2026-09-03T22:09:18Z", "m6", "git commit -qm 'docs: backlog'")], None),
+        ([bash_line("2026-09-03T22:09:18Z", "m6", "git commit -qm 'gw30: later season'")], None),
+        ([bash_line("2026-09-03T22:09:18Z", "m6", "git log --grep 'gw3:' -1")], None),
+        ([bash_line("2026-09-03T22:09:18Z", "m6", "git commit --amend -F /tmp/msg.txt")], None),
+        ([bash_line("2026-09-03T22:09:18Z", "m6", GW3_COMMIT, sidechain=True)], None),
+        ([], [bash_line("2026-09-03T22:09:18Z", "s6", GW3_COMMIT)]),
+        # a gw3 commit made before the last agent finished moves nothing
+        ([bash_line("2026-09-03T20:49:00Z", "m6", GW3_COMMIT)], None),
+    ],
+    ids=["other-gw", "docs", "gw30", "git-log", "amend-from-file", "sidechain", "subagent", "early"],
+)
+def test_suggest_end_ignores_other_commits(tmp_path: Path, tail: list[dict], helper_lines) -> None:
+    r = cycle_root(tmp_path, [*tail, user_line(P2, "more")], helper_lines=helper_lines)
+    window = suggest_window(load_session(r, CYCLE_SID), gw=3)
+    assert window is not None and window.end == ts(P1)
+
+
+def test_suggest_end_counts_an_amend_carrying_the_message(tmp_path: Path) -> None:
+    r = cycle_root(tmp_path, [bash_line("2026-09-03T22:09:18Z", "m6", 'git commit --amend -m "gw3: bank the FT"'),
+                              user_line(P2, "more")])
+    window = suggest_window(load_session(r, CYCLE_SID), gw=3)
+    assert window is not None and window.end == ts(P2)
+
+
+def test_suggest_end_latest_gw_commit_wins(tmp_path: Path) -> None:
+    r = cycle_root(tmp_path, [
+        bash_line("2026-09-03T22:09:18Z", "m6", GW3_COMMIT),
+        user_line(P2, "commit and push done?"),
+        bash_line("2026-09-03T22:30:00Z", "m7", 'git commit --amend -m "gw3: bank the FT"'),
+        user_line("2026-09-03T22:40:00Z", "thanks"),
+    ])
+    window = suggest_window(load_session(r, CYCLE_SID), gw=3)
+    assert window is not None and window.end == ts("2026-09-03T22:40:00Z")
+
+
+def test_inspect_shows_commit_event_and_no_extend_hint(tmp_path: Path) -> None:
+    r = cycle_root(tmp_path, [bash_line("2026-09-03T22:09:18Z", "m6", GW3_COMMIT), user_line(P2, "more")])
+    text = inspect_session(load_session(r, CYCLE_SID), gw=3)
+    assert "2026-09-03T22:09:18Z  commit    gw3: bank the FT" in text
+    assert f"--end {P2}" in text
+    assert "extend" not in text

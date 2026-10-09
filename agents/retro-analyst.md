@@ -155,7 +155,7 @@ file, so nothing after that header may be narrative.
 
 Agents: CODE fpl/ep.py, A1 data-collector, A2 fixture-analyst, A3 player-analyst,
 A4 squad-optimizer, A5 red-team-reviewer, A7 finalizer, A8 plan-builder,
-A9 team-executor. Paste numbers, never retype them.
+A9 team-executor, A10 usage-collector. Paste numbers, never retype them.
 
 ## Return to the orchestrator
 At most 15 lines: XI predicted vs actual, captain verdict, miss count by

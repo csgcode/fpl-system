@@ -37,6 +37,7 @@ PRICES: dict[str, tuple[float, float, float, float, float]] = {
 }
 _PRICE_KEYS = sorted(PRICES, key=len, reverse=True)
 
+TRANSCRIPTS_ROOT_ENV = "FPL_TRANSCRIPTS_ROOT"
 MAIN_THREAD = "main"
 ORCHESTRATOR = "orchestrator"
 SYNTHETIC_MODEL = "<synthetic>"
@@ -54,6 +55,7 @@ _SECRET_SHAPES = re.compile(
 # wins, so the more specific rows sit above the broader ones.
 STAGES: tuple[tuple[str, str], ...] = (
     (ORCHESTRATOR, r"^orchestrator$"),
+    ("usage-collector", r"usage"),
     ("data-collector", r"collect|raw data"),
     ("retro-analyst", r"retro"),
     ("fixture-analyst", r"fixture"),
@@ -68,6 +70,11 @@ STAGES: tuple[tuple[str, str], ...] = (
 OTHER_STAGE = "other"
 _STAGE_ORDER = [name for name, _ in STAGES] + [OTHER_STAGE]
 _GW_TAG = re.compile(r"\bgw\s?(\d{1,2})\b", re.IGNORECASE)
+# A GW{N} retro or usage ledger runs at the start of the GW{N+1} cycle, so its
+# description names a gameweek the session is not the cycle of.
+NEXT_CYCLE_STAGES = frozenset({"retro-analyst", "usage-collector"})
+_GIT_COMMIT = re.compile(r"\bgit\b[^\n]*\bcommit\b")
+_COMMIT_SUBJECT = re.compile(r"(?im)(?:^|[\"'])(gw\d+:.*)")
 
 
 class UnpricedModelError(ValueError):
@@ -95,6 +102,11 @@ def stage_for(description: str) -> str:
 
 def gw_tags(description: str) -> set[int]:
     return {int(m) for m in _GW_TAG.findall(description)}
+
+
+def cycle_gw_tags(description: str) -> set[int]:
+    """The gameweeks whose cycle this spawn belongs to."""
+    return set() if stage_for(description) in NEXT_CYCLE_STAGES else gw_tags(description)
 
 
 def parse_ts(value: str) -> datetime:
@@ -215,6 +227,7 @@ class Session:
     versions: set[str]
     first_at: datetime | None
     last_at: datetime | None
+    commits: list[tuple[datetime, str]] = field(default_factory=list)
 
 
 # ------------------------------------------------------------------ parsing
@@ -345,11 +358,14 @@ def load_session(root: Path, session_id: str) -> Session:
     prompts: list[Prompt] = []
     versions: set[str] = set()
     stamps: list[datetime] = []
+    commits: list[tuple[datetime, str]] = []
     for line in _iter_lines(path):
         if line.get("timestamp"):
             stamps.append(parse_ts(line["timestamp"]))
         if line.get("version"):
             versions.add(line["version"])
+        if line.get("type") == "assistant" and not line.get("isSidechain") and line.get("timestamp"):
+            commits += [(parse_ts(line["timestamp"]), command) for command in _commit_commands(line)]
         if line.get("type") != "user" or line.get("isMeta"):
             continue
         text = _prompt_text(line.get("message") or {})
@@ -398,7 +414,23 @@ def load_session(root: Path, session_id: str) -> Session:
     return Session(
         session_id=sid, path=path, main_calls=main_calls, agents=agents, prompts=prompts,
         versions=versions, first_at=min(stamps, default=None), last_at=max(stamps, default=None),
+        commits=commits,
     )
+
+
+def _commit_commands(line: dict) -> list[str]:
+    commands = []
+    for block in (line.get("message") or {}).get("content") or []:
+        if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Bash":
+            command = str((block.get("input") or {}).get("command") or "")
+            if _GIT_COMMIT.search(command):
+                commands.append(command)
+    return commands
+
+
+def _commit_label(command: str) -> str:
+    subject = _COMMIT_SUBJECT.search(command)
+    return subject.group(1).strip() if subject else " ".join(command.split())[:70]
 
 
 # ---------------------------------------------------------- window & report
@@ -758,7 +790,7 @@ def list_sessions(root: Path, since: datetime | None = None) -> list[SessionSumm
             except (OSError, ValueError):
                 continue
             agents += 1
-            tags |= gw_tags(str(description))
+            tags |= cycle_gw_tags(str(description))
         rows.append(SessionSummary(path.stem, path, first, last, first_prompt, humans, agents, tags))
     return sorted(rows, key=lambda r: (r.first_at or datetime.min.replace(tzinfo=timezone.utc)), reverse=True)
 
@@ -771,19 +803,26 @@ class Window:
 
 
 def suggest_window(session: Session, gw: int) -> Window | None:
-    """Heuristic only: the human prompt preceding the first GW-tagged agent
-    spawn, to the first human prompt after the last such agent finished."""
-    tagged = [a for a in session.agents.values() if gw in gw_tags(a.description) and a.spawned_at]
+    """The human prompt preceding the first GW{N} cycle spawn, to the first
+    human prompt after both the last such agent finished and the last
+    `gw{N}:` commit, so the commit turn is counted."""
+    tagged = [a for a in session.agents.values() if gw in cycle_gw_tags(a.description) and a.spawned_at]
     if not tagged:
         return None
     first_spawn = min(a.spawned_at for a in tagged)
     finished = max(a.last_call_at or a.spawned_at for a in tagged)
+    subject = re.compile(rf"(?im)(?:^|[\"'])gw{gw}:")
+    anchor = max([finished, *(when for when, command in session.commits if subject.search(command))])
     humans = [p for p in session.prompts if p.kind == "human"]
     before = [p.timestamp for p in humans if p.timestamp <= first_spawn]
-    after = [p.timestamp for p in humans if p.timestamp > finished]
+    after = [p.timestamp for p in humans if p.timestamp > anchor]
     start = max(before) if before else first_spawn
-    end = min(after) if after else (session.last_at or finished) + timedelta(seconds=1)
-    return Window(start, end, "prompt before first GW-tagged spawn → first human prompt after the last GW-tagged agent finished")
+    end = min(after) if after else (session.last_at or anchor) + timedelta(seconds=1)
+    return Window(
+        start, end,
+        f"prompt before first GW{gw} cycle spawn → first human prompt after the last GW{gw} "
+        f"cycle agent finished and the last gw{gw}: commit",
+    )
 
 
 def inspect_session(session: Session, gw: int) -> str:
@@ -800,15 +839,19 @@ def inspect_session(session: Session, gw: int) -> str:
         last = fmt_ts(a.last_call_at) if a.last_call_at else "-"
         events.append((when or datetime.max.replace(tzinfo=timezone.utc),
                        f"{'spawn':<9} [{a.requested_tier or '?':<5}] {a.description}  tags={tags} calls={len(a.calls)} last={last}"))
+    for when, command in session.commits:
+        events.append((when, f"{'commit':<9} {_commit_label(command)}"))
     for when, text in sorted(events, key=lambda e: e[0]):
         stamp = fmt_ts(when) if when != datetime.max.replace(tzinfo=timezone.utc) else "unknown             "
         lines.append(f"  {stamp}  {text}")
     window = suggest_window(session, gw)
     lines.append("")
     if window is None:
-        lines.append(f"suggested window for GW{gw}: none (no agent description tagged GW{gw})")
+        lines.append(
+            f"suggested window for GW{gw}: none (no GW{gw} cycle spawn; "
+            "retro and usage-ledger spawns belong to the next cycle)"
+        )
     else:
         lines += [f"suggested window for GW{gw}: --start {fmt_ts(window.start)} --end {fmt_ts(window.end)}",
-                  f"  rule: {window.rule}",
-                  "  check: extend --end past the cycle-commit turn if the next prompt is the commit"]
+                  f"  rule: {window.rule}"]
     return "\n".join(lines) + "\n"

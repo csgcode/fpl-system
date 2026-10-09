@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import sys
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
@@ -104,6 +105,7 @@ from fpl.state import (
 from fpl.store import ArchiveCollisionError, SnapshotMissingError, SnapshotStore
 from fpl.usage import build_report as build_usage_report
 from fpl.usage import (
+    TRANSCRIPTS_ROOT_ENV,
     default_transcripts_root,
     fmt_ts,
     inspect_session,
@@ -332,7 +334,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     usage_cmd.add_argument(
         "--transcripts-root", type=Path, default=None,
-        help="Claude Code transcripts dir (default: ~/.claude/projects/<encoded cwd>)",
+        help=f"Claude Code transcripts dir (default: ${TRANSCRIPTS_ROOT_ENV}, "
+             "else ~/.claude/projects/<encoded cwd>)",
     )
     usage_mode = usage_cmd.add_mutually_exclusive_group()
     usage_mode.add_argument(
@@ -1143,7 +1146,8 @@ def print_plan(plan: ExecutionPlan, *, free_now: int | None = None) -> None:
 
 
 def run_usage(args: argparse.Namespace) -> int:
-    root = args.transcripts_root or default_transcripts_root(Path.cwd())
+    env_root = os.environ.get(TRANSCRIPTS_ROOT_ENV)
+    root = args.transcripts_root or (Path(env_root) if env_root else default_transcripts_root(Path.cwd()))
     if not root.is_dir():
         raise ValueError(f"transcripts root not found: {root}")
     if (args.since or args.all) and not args.list:

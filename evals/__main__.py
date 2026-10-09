@@ -4,7 +4,7 @@
     python -m evals live <agent> [--case ID] [--repeat K] [--judge] [--keep]
     python -m evals freeze <agent>
 
-Agents: data-collector, plan-builder.
+Agents: data-collector, plan-builder, usage-collector.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-AGENTS = ("data-collector", "plan-builder")
+AGENTS = ("data-collector", "plan-builder", "usage-collector")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -35,6 +35,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.agent == "plan-builder":
         from evals.plan_builder import runner
+    elif args.agent == "usage-collector":
+        from evals.usage_collector import runner
     else:
         from evals.data_collector import runner
 

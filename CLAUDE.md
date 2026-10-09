@@ -103,6 +103,10 @@ Scoring context that changes valuation this season:
    Persists that cycle's token usage and list-price cost from the Claude Code
    transcripts. The session and window come from `fpl usage --list` /
    `--inspect`; the arithmetic is CODE (`fpl usage`). Local-only, no network.
+   Spawn it with a description containing `GW{N-1} usage ledger`. Step 9
+   stays optional, but the cycle report always states
+   `usage ledger GW{N-1}: written (<calls: … line>)` or
+   `usage ledger GW{N-1}: skipped (<reason>)`.
 
 ### Revision mechanics
 On a REVISE verdict, re-invoke squad-optimizer with review.md as additional
@@ -259,7 +263,7 @@ All FPL API access goes through the deterministic CLI
 | `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
 | `make-transfers --team-id <id> --from-plan <plan.json> [--apply]` | transfer POST; dry-run without `--apply` — `--apply` is the USER confirmation gate, never automated | write (auth) |
 | `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). The only command with no `--gw` | local only |
-| `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`). `--list` indexes sessions with the GW tags in their agent descriptions, by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn timeline and a suggested window; the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
+| `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`, else the `FPL_TRANSCRIPTS_ROOT` env var). `--list` indexes sessions by the GW tags of their cycle spawns — a GW{N} retro or usage-ledger spawn counts toward the next cycle, not GW{N} — by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn/commit timeline and the window to use verbatim (end = first human prompt after both the last cycle agent finished and the last `gw{N}:` commit); the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
 
 Authenticated write mechanics (details: docs/api-write.md):
 - Credentials live in git-ignored data/auth.json (template:
@@ -348,11 +352,12 @@ agent codes.
   to the user. Agents append without reading the file, and a malformed heredoc
   still exits 0: under zsh an indented `EOF` leaves a phantom `  EOF` line
   with no trailing newline, and the next agent's correct row is glued onto
-  it. The agent specs prevent; this detects:
+  it. A row can also lose its leading or trailing `|`. The agent specs
+  prevent; this detects:
 
   ```
   tail -c1 docs/backlog.md | od -An -c                       # must print \n
-  awk '/^## Rows/{p=1} p && NF && !/^\|/' docs/backlog.md    # must print only "## Rows"
+  awk '/^## Rows/{p=1} p && NF && !/^\|.*\|$/' docs/backlog.md   # must print only "## Rows"
   ```
 
   On failure: repair by hand — delete the stray line or restore the

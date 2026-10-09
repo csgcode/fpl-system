@@ -163,3 +163,18 @@ def test_out_without_extract_refuses(root: Path, tmp_path: Path, capsys) -> None
 def test_modes_are_mutually_exclusive(root: Path, tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         run(["usage", "--gw", "3", "--transcripts-root", str(root), "--list", "--session", SID, "--inspect"], tmp_path)
+
+
+def test_transcripts_root_env_used_when_flag_absent(root: Path, tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("FPL_TRANSCRIPTS_ROOT", str(root))
+    code = run(["usage", "--gw", "3", "--cost-root", str(tmp_path / "cost"), "--list"], tmp_path)
+    assert code == 0
+    assert SID[:8] in capsys.readouterr().out
+
+
+def test_transcripts_root_flag_beats_env(root: Path, tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("FPL_TRANSCRIPTS_ROOT", str(tmp_path / "nope"))
+    code = run(["usage", "--gw", "3", "--transcripts-root", str(root), "--cost-root", str(tmp_path / "cost"),
+                "--list"], tmp_path)
+    assert code == 0
+    assert SID[:8] in capsys.readouterr().out

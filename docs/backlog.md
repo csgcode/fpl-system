@@ -25,7 +25,7 @@ A cell must not contain `|` or a newline; either breaks the table.
 |---|---|
 | GW | cycle in which the finding was made |
 | Date | ISO date of the run |
-| Agent | A1 data-collector · A2 fixture-analyst · A3-{GKP,DEF,MID,FWD} player-analyst · A4 squad-optimizer · A5 red-team · A6 retro-analyst · A7 finalizer · A8 plan-builder · A9 team-executor · ORCH |
+| Agent | A1 data-collector · A2 fixture-analyst · A3-{GKP,DEF,MID,FWD} player-analyst · A4 squad-optimizer · A5 red-team · A6 retro-analyst · A7 finalizer · A8 plan-builder · A9 team-executor · A10 usage-collector · ORCH |
 | Kind | CODE (fpl/ep.py, fpl/calibrate.py arithmetic) · TOOL (CLI, schemas, ledger fields) · WORKFLOW (agent specs, CLAUDE.md, orchestration) · DATA (API quirks, snapshot quality) |
 | Finding | one sentence: defect, evidence figure, proposed fix |
 | Evidence | repo path the triage session should open |
