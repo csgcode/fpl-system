@@ -6,13 +6,15 @@ bootstrap. Cached snapshots are reused unless older than --max-age hours
 (default 24) or --force is given. Errors go to stderr; exit 1 means the
 command failed, exit 2 means it produced an empty or rejected result.
 With FPL_REPLAY_DIR set, every request is answered from recordings in that
-directory and nothing reaches the network (fpl/replay.py).
+directory and nothing reaches the network (fpl/replay.py); when it also holds
+a fake-server.json, write commands talk to a stateful fake (fpl/fake_server.py).
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import functools
 import json
 import os
 import sys
@@ -55,6 +57,7 @@ from fpl.fixture_ratings import PRIORS_FILENAME, RatingRefusal, render_json, sum
 from fpl.fixture_ratings import load_inputs as load_rating_inputs
 from fpl.fixture_ratings import rate as rate_fixtures
 from fpl.fixture_ratings import write_outputs as write_rating_outputs
+from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.freshness import FlagChange
 from fpl.models import (
     POSITION_ALIASES,
@@ -80,7 +83,14 @@ from fpl.refresh import (
     expiry_of,
 )
 from fpl.refresh import refresh as refresh_token
-from fpl.replay import ReplayGateway, replay_dir
+from fpl.replay import ReplayGateway, network_blocked, replay_dir
+from fpl.runlog import (
+    LOGGED_COMMANDS,
+    RunResult,
+    append_run,
+    build_row,
+    run_log_path,
+)
 from fpl.repository import (
     PLAYERS_SLIM_COLUMNS,
     SORT_KEYS,
@@ -106,7 +116,7 @@ from fpl.state import (
     parse_state_picks,
     picks_from_ids,
 )
-from fpl.store import ArchiveCollisionError, SnapshotMissingError, SnapshotStore
+from fpl.store import ArchiveCollisionError, SnapshotMissingError, SnapshotStore, utcnow
 from fpl.usage import build_report as build_usage_report
 from fpl.usage import (
     TRANSCRIPTS_ROOT_ENV,
@@ -121,6 +131,7 @@ from fpl.usage import (
 )
 from fpl.write import (
     AuthenticatedRequestsGateway,
+    LineupPlan,
     RefreshingGateway,
     SessionExpiredError,
     TransferPlan,
@@ -128,6 +139,7 @@ from fpl.write import (
     WriteApi,
     WriteGateway,
     WriteService,
+    transfer_id,
 )
 
 EXIT_OK = 0
@@ -135,6 +147,7 @@ EXIT_ERROR = 1
 EXIT_EMPTY = 2
 EXIT_FLAGS_CHANGED = 3
 EXIT_NO_BASELINE = 4
+DRY_RUN_LINE = "DRY RUN — no request sent; re-run with --apply to execute"
 
 WRITE_COMMANDS = ("auth-check", "my-team", "set-lineup", "make-transfers")
 DECISIONS_ROOT = Path("data/decisions")
@@ -289,6 +302,11 @@ def build_parser() -> argparse.ArgumentParser:
     make_transfers.add_argument(
         "--in", dest="transfers_in", type=_id_list,
         help="comma-separated player ids to transfer in",
+    )
+    make_transfers.add_argument(
+        "--approve", metavar="TRANSFER_ID",
+        help="with --apply: the transfer id the user approved, as the dry run "
+             "printed it; the POST is refused when it does not match",
     )
 
     # Local-only, and the one command with no --gw: it rebuilds credentials,
@@ -542,6 +560,10 @@ def _default_write_gateway_factory(
     auth_path: Path,
 ) -> Callable[[AuthCredentials], WriteGateway]:
     recordings = replay_dir()
+    fake = fake_server_dir(recordings)
+    if fake is not None:
+        _stderr(f"FAKE SERVER — nothing is sent to FPL ({fake})")
+        return lambda credentials: FakeFplServer(fake)
     if recordings is not None:
         return lambda credentials: ReplayGateway(recordings, session_errors=True)
     return _refreshing_write_gateway(auth_path)
@@ -580,6 +602,18 @@ def _exchange_refresh_token(credentials: AuthCredentials) -> AuthCredentials:
         ).credentials
 
 
+def offline_in_replay(entry: Callable[..., int]) -> Callable[..., int]:
+    @functools.wraps(entry)
+    def guarded(*args, **kwargs) -> int:
+        if replay_dir() is None:
+            return entry(*args, **kwargs)
+        with network_blocked():
+            return entry(*args, **kwargs)
+
+    return guarded
+
+
+@offline_in_replay
 def main(
     argv: list[str] | None = None,
     service_factory: Callable[[SnapshotStore], FplDataService] | None = None,
@@ -597,7 +631,7 @@ def main(
         if args.command == "fixtures-rate":
             return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:
-            return run_write_command(
+            return run_logged_write(
                 store,
                 args,
                 write_gateway_factory or _default_write_gateway_factory(args.auth),
@@ -1369,7 +1403,7 @@ def run_auth_check(
     store: SnapshotStore,
     args: argparse.Namespace,
     gateway_factory: Callable[[AuthCredentials], WriteGateway],
-) -> int:
+) -> RunResult:
     credentials = load_auth(args.auth)
     print(f"auth file: {args.auth}")
     for line in redacted_summary(credentials):
@@ -1389,13 +1423,12 @@ def run_auth_check(
     try:
         team = service.my_team(team_id)
     except SessionExpiredError as exc:
-        _stderr(f"FAIL — {exc}")
-        return EXIT_ERROR
+        return _auth_failed(f"FAIL — {exc}")
     except requests.RequestException as exc:
-        _stderr(f"FAIL — my-team request failed: {_failure_reason(exc)}")
-        return EXIT_ERROR
+        return _auth_failed(f"FAIL — my-team request failed: {_failure_reason(exc)}")
     transfers = team.transfers
-    print("PASS — authenticated session works")
+    passed = "PASS — authenticated session works"
+    print(passed)
     print(
         f"entry {team_id} — squad {len(team.picks)}, "
         f"free transfers {_blank(transfers.limit)}"
@@ -1405,7 +1438,12 @@ def run_auth_check(
         f"{chip.name} ({chip.status_for_entry or 'unknown'})" for chip in team.chips
     )
     print(f"chips: {chips or 'none'}")
-    return EXIT_OK
+    return RunResult(EXIT_OK, "pass", passed)
+
+
+def _auth_failed(line: str) -> RunResult:
+    _stderr(line)
+    return RunResult(EXIT_ERROR, "fail", line)
 
 
 def _failure_reason(exc: requests.RequestException) -> str:
@@ -1418,11 +1456,93 @@ def _failure_reason(exc: requests.RequestException) -> str:
     return f"{type(exc).__name__}: {exc}"
 
 
-def run_write_command(
+class _PostWatch:
+    """Notes whether a POST was attempted, which decides whether a failure
+    may have changed the team."""
+
+    def __init__(self, factory: Callable[[AuthCredentials], WriteGateway]) -> None:
+        self._factory = factory
+        self.attempted = False
+
+    def __call__(self, credentials: AuthCredentials) -> WriteGateway:
+        inner = self._factory(credentials)
+        watch = self
+
+        class Watched:
+            def get_json(self, url: str) -> dict | list:
+                return inner.get_json(url)
+
+            def post_json(self, url: str, payload: dict) -> dict | list | None:
+                watch.attempted = True
+                return inner.post_json(url, payload)
+
+        return Watched()
+
+
+def run_logged_write(
     store: SnapshotStore,
     args: argparse.Namespace,
     gateway_factory: Callable[[AuthCredentials], WriteGateway],
 ) -> int:
+    """Runs a write command and appends its outcome to the run log. A failure
+    is logged, then re-raised so main() prints it as before."""
+    if args.command not in LOGGED_COMMANDS:
+        return run_write_command(store, args, gateway_factory).exit_code
+    watch = _PostWatch(gateway_factory)
+    try:
+        result = run_write_command(store, args, watch)
+    except Exception as exc:
+        _record_run(args, _failure_result(args.command, exc, watch.attempted))
+        raise
+    _record_run(args, result)
+    return result.exit_code
+
+
+def _failure_result(command: str, exc: Exception, posted: bool) -> RunResult:
+    if command == "auth-check":
+        outcome = "fail"
+    elif isinstance(exc, VerifyMismatchError):
+        outcome = "verify-failed"
+    elif posted:
+        outcome = "error"
+    else:
+        outcome = "refused"
+    return RunResult(EXIT_ERROR, outcome, _error_line(exc))
+
+
+def _error_line(exc: Exception) -> str:
+    """The line main() prints for `exc`."""
+    if isinstance(exc, (AuthMissingError, SnapshotMissingError)):
+        return f"error: {exc}"
+    if isinstance(exc, ValidationError):
+        return (
+            f"error: payload failed validation ({exc.error_count()} problems); "
+            f"first: {exc.errors()[0].get('loc')} {exc.errors()[0].get('msg')}"
+        )
+    if isinstance(exc, requests.RequestException):
+        return f"error: network request failed: {exc}"
+    if isinstance(exc, OSError) and not isinstance(exc, ArchiveCollisionError):
+        return f"error: filesystem failure: {exc}"
+    return f"error: {exc}"
+
+
+def _record_run(args: argparse.Namespace, result: RunResult) -> None:
+    row = build_row(
+        at=utcnow(),
+        command=args.command,
+        apply=bool(getattr(args, "apply", False)),
+        result=result,
+        plan=getattr(args, "from_plan", None),
+        fake_server=replay_dir() is not None,
+    )
+    append_run(run_log_path(args.executor_root, args.gw), row)
+
+
+def run_write_command(
+    store: SnapshotStore,
+    args: argparse.Namespace,
+    gateway_factory: Callable[[AuthCredentials], WriteGateway],
+) -> RunResult:
     if args.command == "auth-check":
         return run_auth_check(store, args, gateway_factory)
     gw = args.gw
@@ -1441,7 +1561,7 @@ def run_write_command(
             {pid: e.web_name for pid, e in elements.items()},
             {pid: e.now_cost for pid, e in elements.items()},
         )
-        return EXIT_OK
+        return RunResult(EXIT_OK, "read", "")
     service.ensure_deadline_open(gw, override_margin=args.force_deadline)
     execution = _load_execution_plan(gw, args)
     chip = _resolve_chip(args, execution)
@@ -1456,28 +1576,41 @@ def run_write_command(
         notes = _chip_routing_notes(chip, routed, "make-transfers")
         plan = service.plan_lineup(team_id=team_id, picks=picks, chip=routed)
         if plan.already_applied:
-            print("already applied — current lineup matches; no request sent")
+            done = "already applied — current lineup matches; no request sent"
+            print(done)
             _print_notes(notes)
-            return EXIT_OK
+            return RunResult(EXIT_OK, "already-applied", done)
         if not args.apply:
-            _print_dry_run(plan.url, plan.payload, notes)
-            return EXIT_OK
-        print(f"applied and verified — audit: {service.apply_lineup(gw, plan)}")
+            _print_dry_run(plan.url, plan.payload, notes, details=_lineup_lines(plan))
+            return RunResult(EXIT_OK, "dry-run", DRY_RUN_LINE)
+        audit = service.apply_lineup(gw, plan)
+        applied = f"applied and verified — audit: {audit}"
+        print(applied)
         _print_notes(notes)
-        return EXIT_OK
+        return RunResult(EXIT_OK, "applied", applied, audit=audit)
     routed = route_chip(chip, TRANSFERS_TARGET)
     notes = _chip_routing_notes(chip, routed, "set-lineup")
     plan = _transfer_plan(service, gw, team_id, args, execution, routed)
     if plan.already_applied:
-        print("already applied — requested transfers are in place; no request sent")
+        done = "already applied — requested transfers are in place; no request sent"
+        print(done)
         _print_notes(notes)
-        return EXIT_OK
+        return RunResult(EXIT_OK, "already-applied", done)
+    approval_id = transfer_id(plan.payload)
     if not args.apply:
-        _print_dry_run(plan.url, plan.payload, [*plan.notes, *notes])
-        return EXIT_OK
-    print(f"applied and verified — audit: {service.apply_transfers(gw, plan)}")
+        names = {pid: e.web_name for pid, e in _cached_elements(store, gw).items()}
+        _print_dry_run(
+            plan.url, plan.payload, [*plan.notes, *notes],
+            summary=_transfer_lines(plan.payload, names),
+        )
+        print(f"transfer id: {approval_id}")
+        return RunResult(EXIT_OK, "dry-run", DRY_RUN_LINE, transfer_id=approval_id)
+    _ensure_approved(args.approve, approval_id)
+    audit = service.apply_transfers(gw, plan)
+    applied = f"applied and verified — audit: {audit}"
+    print(applied)
     _print_notes(notes)
-    return EXIT_OK
+    return RunResult(EXIT_OK, "applied", applied, audit=audit, transfer_id=approval_id)
 
 
 def _resolve_team_id(explicit: int | None, entry_file: Path) -> int:
@@ -1584,10 +1717,58 @@ def _print_notes(notes: Sequence[str]) -> None:
         print(note)
 
 
-def _print_dry_run(url: str, payload: dict, notes: Sequence[str]) -> None:
-    print("DRY RUN — no request sent; re-run with --apply to execute")
+def _ensure_approved(approved: str | None, actual: str) -> None:
+    if approved is None:
+        raise ValueError(
+            "make-transfers --apply needs --approve <transfer id> — dry-run "
+            "first and pass the id the user approved"
+        )
+    if approved != actual:
+        raise ValueError(
+            f"--approve {approved} does not match this payload's transfer id "
+            f"{actual} — the transfers changed since approval; dry-run again and "
+            "get the user's approval for the new id"
+        )
+
+
+def _transfer_lines(payload: dict, names: dict[int, str]) -> list[str]:
+    return [
+        f"transfer: {names.get(row['element_out'], '?')} ({row['element_out']}) → "
+        f"{names.get(row['element_in'], '?')} ({row['element_in']}), "
+        f"sell £{row['selling_price'] / 10:.1f}m, buy £{row['purchase_price'] / 10:.1f}m"
+        for row in payload["transfers"]
+    ]
+
+
+def _lineup_lines(plan: LineupPlan) -> list[str]:
+    picks = plan.expected.in_position_order()
+    captain = next(p for p in picks if p.captain)
+    vice = next(p for p in picks if p.vice)
+    bench = ", ".join(f"{p.name} ({p.id})" for p in picks if not p.starts)
+    return [
+        f"captain: {captain.name} ({captain.id}), vice: {vice.name} ({vice.id})",
+        f"bench: {bench}",
+        "changes from the current lineup:",
+        *(f"  {change}" for change in plan.changes),
+    ]
+
+
+def _print_dry_run(
+    url: str,
+    payload: dict,
+    notes: Sequence[str],
+    *,
+    summary: Sequence[str] = (),
+    details: Sequence[str] = (),
+) -> None:
+    """`summary` lines go before the payload, `details` after it."""
+    print(DRY_RUN_LINE)
     print(f"POST {url}")
+    for line in summary:
+        print(line)
     print(json.dumps(payload, indent=1))
+    for line in details:
+        print(line)
     _print_notes(notes)
 
 

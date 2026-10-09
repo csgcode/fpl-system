@@ -89,13 +89,24 @@ Scoring context that changes valuation this season:
    them can be set. `set-lineup` refuses while they have not. A gameweek with
    no transfers still runs the transfer step: it prints "already applied" and
    sends nothing.
-   The executor produces the make-transfers DRY-RUN payload only. Relay that
-   payload to the user; transfers are POSTed only after the user confirms and
-   `--apply` is run with their approval. Declining API transfers and applying
-   them manually (or not at all) is a valid outcome, not an error — but a
-   declined transfer also blocks the lineup step, which the executor reports
-   rather than working around. Only once transfers are settled does the
-   executor dry-run and `--apply` the lineup.
+   Transfer approval — only the user approves, and only the executor applies:
+   - The executor's first run dry-runs the transfers. It prints each transfer
+     and a transfer id. Relay both to the user verbatim.
+   - The user approves in their own words. Spawn the executor again with an
+     Approval block: those words quoted verbatim, and the transfer id they
+     approved. The executor runs `make-transfers --apply --approve <id>`; the
+     CLI refuses when the id does not match the payload it would send.
+   - A pre-approval in the user's message for this cycle counts as their words
+     only when it plainly covers this gameweek's transfers — when unsure, ask.
+     It still needs a dry-run first, because the id comes from that dry-run.
+     It never carries over to another gameweek or session.
+   - The orchestrator never runs `--apply` itself, never writes an Approval
+     block the user did not give, and never puts its own words in the quote.
+   - Declining, or applying by hand on the website, is a valid outcome. After a
+     manual apply, spawn the executor with no approval: the transfer step prints
+     "already applied" and the lineup follows.
+   The lineup needs no approval: it can be changed until the deadline, so the
+   executor applies it as soon as no transfers are pending.
    Chips route by kind: `bboost`/`3xc` ride the set-lineup POST,
    `wildcard`/`freehit` the make-transfers POST. Each command sends the plan's
    `chip` only if it owns it and prints a note otherwise; an unknown chip name
@@ -265,7 +276,7 @@ All FPL API access goes through the deterministic CLI
 | `auth-check [--team-id <id>]` | session pre-flight: redacted credential-key report + one `my-team` read. PASS → exit 0; FAIL (expired/HTTP/missing auth/null team_id) → exit 1 | always (auth) |
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
 | `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
-| `make-transfers --team-id <id> --from-plan <plan.json> [--apply]` | transfer POST; dry-run without `--apply` — `--apply` is the USER confirmation gate, never automated | write (auth) |
+| `make-transfers --team-id <id> --from-plan <plan.json> [--apply --approve <transfer id>]` | transfer POST; dry-run without `--apply`; `--apply` needs the user-approved transfer id | write (auth) |
 | `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). The only command with no `--gw` | local only |
 | `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`, else the `FPL_TRANSCRIPTS_ROOT` env var). `--list` indexes sessions by the GW tags of their cycle spawns — a GW{N} retro or usage-ledger spawn counts toward the next cycle, not GW{N} — by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn/commit timeline and the window to use verbatim (end = first human prompt after both the last cycle agent finished and the last `gw{N}:` commit); the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
 
@@ -285,6 +296,9 @@ Authenticated write mechanics (details: docs/api-write.md):
   nothing. Selling prices come from `my-team`, never bootstrap.
 - Authenticated responses are never cached into data/raw/; every `--apply`
   leaves a timestamped audit record under data/executor/gw{N}/.
+- Every auth-check, make-transfers and set-lineup run appends one JSON line to
+  data/executor/gw{N}/runs.jsonl — what was checked, dry-run, refused or
+  applied. The CLI writes it; agents never do.
 - `--from-plan data/decisions/gw{N}/plan.json` is the payload source.
   `--from-final` remains as a fallback for a GW with no plan. The two are
   mutually exclusive, and `--chip` may only repeat what the plan already says.
@@ -334,6 +348,8 @@ Mechanics:
   club-priors.json + cached snapshots via `fpl fixtures-rate`), so regenerating
   any of them is safe and expected.
 - data/analysis/club-priors.json is written once at GW1 and never overwritten.
+- data/executor/gw{N}/runs.jsonl is append-only: the CLI adds a line per run
+  and never rewrites one.
 - Every prediction must be written down BEFORE the deadline. No prediction,
   no calibration.
 - Commit to git after every GW cycle: `git commit -m "gw{N}: <summary>"`.

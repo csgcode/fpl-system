@@ -4,15 +4,18 @@ invariant — all through main() over a fake write gateway."""
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import timedelta
 from pathlib import Path
+
+import requests
 
 from fpl.__main__ import main
 from fpl.models import Position
 from fpl.plan import SCHEMA_VERSION
 from fpl.store import SnapshotStore, utcnow
-from fpl.write import SessionExpiredError
+from fpl.write import SessionExpiredError, transfer_id
 from tests.factories import my_team_payload, my_team_transfers_payload
 from tests.test_write import (
     MY_TEAM_URL,
@@ -223,7 +226,7 @@ def test_set_lineup_dry_run_prints_the_payload_and_never_posts(tmp_path, capsys)
     assert run(SET_LINEUP_CHANGED, tmp_path, gateway) == 0
     out = capsys.readouterr().out
     assert "DRY RUN" in out and "--apply" in out
-    payload = json.loads(out[out.index("{"):])
+    payload = json.loads(out[out.index("{"): out.rindex("}") + 1])
     assert len(payload["picks"]) == 15
     assert payload["chip"] is None
     captain_rows = [p for p in payload["picks"] if p["is_captain"]]
@@ -263,7 +266,7 @@ def test_set_lineup_from_final_builds_payload_from_the_state_block(tmp_path, cap
     argv = ["set-lineup", "--gw", "2", "--team-id", "42", "--from-final", str(final)]
     assert run(argv, tmp_path, gateway) == 0
     out = capsys.readouterr().out
-    payload = json.loads(out[out.index("{"):])
+    payload = json.loads(out[out.index("{"): out.rindex("}") + 1])
     captain_rows = [p for p in payload["picks"] if p["is_captain"]]
     assert [p["element"] for p in captain_rows] == [13]
 
@@ -314,6 +317,14 @@ TRANSFER_ARGS = [
 ]
 
 
+# The id of TRANSFER_ARGS' one swap (12 out, 20 in) for entry 42 in gw2.
+TRANSFER_ID = transfer_id(
+    {"entry": 42, "event": 2, "chip": None,
+     "transfers": [{"element_out": 12, "element_in": 20}]}
+)
+APPROVED = ["--apply", "--approve", TRANSFER_ID]
+
+
 def swapped_my_team() -> dict:
     swapped = dict(SQUAD)
     swapped[20] = swapped.pop(12)
@@ -340,7 +351,7 @@ def test_make_transfers_apply_posts_and_verifies(tmp_path, capsys):
     gateway = FakeWriteGateway(
         {MY_TEAM_URL: [current_my_team(), swapped_my_team()]}
     )
-    assert run([*TRANSFER_ARGS, "--apply"], tmp_path, gateway) == 0
+    assert run([*TRANSFER_ARGS, *APPROVED], tmp_path, gateway) == 0
     assert "applied and verified" in capsys.readouterr().out
     assert len(gateway.posts) == 1
     assert list((tmp_path / "executor" / "gw2").glob("make-transfers-*.json"))
@@ -351,7 +362,7 @@ def test_make_transfers_verify_mismatch_fails_loudly(tmp_path, capsys):
     gateway = FakeWriteGateway(
         {MY_TEAM_URL: [current_my_team(), current_my_team()]}
     )
-    assert run([*TRANSFER_ARGS, "--apply"], tmp_path, gateway) == 1
+    assert run([*TRANSFER_ARGS, *APPROVED], tmp_path, gateway) == 1
     assert "verify-after-write failed" in capsys.readouterr().err
 
 
@@ -517,7 +528,7 @@ def test_set_lineup_from_plan_builds_the_payload(tmp_path, capsys):
     assert run(argv, tmp_path, gateway) == 0
     out = capsys.readouterr().out
     assert "DRY RUN" in out
-    payload = json.loads(out[out.index("{") :])
+    payload = json.loads(out[out.index("{") : out.rindex("}") + 1])
     assert len(payload["picks"]) == 15
     assert [p["element"] for p in payload["picks"] if p["is_captain"]] == [13]
     assert payload["chip"] is None
@@ -740,3 +751,292 @@ def test_a_transfer_chip_with_no_transfers_refuses_rather_than_dropping_it(
     assert run(transfer_argv(tmp_path, chip="wildcard"), tmp_path, gateway) == 1
     assert "silently skipped" in capsys.readouterr().err
     assert gateway.posts == []
+
+
+# --- transfer approval -----------------------------------------------------------
+
+
+def test_apply_with_pending_transfers_and_no_approve_refuses_without_posting(
+    tmp_path, capsys
+):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run([*TRANSFER_ARGS, "--apply"], tmp_path, gateway) == 1
+    assert (
+        "error: make-transfers --apply needs --approve <transfer id> — dry-run "
+        "first and pass the id the user approved"
+    ) in capsys.readouterr().err
+    assert gateway.posts == []
+
+
+def test_apply_with_a_mismatched_approve_refuses_without_posting(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    argv = [*TRANSFER_ARGS, "--apply", "--approve", "000000000000"]
+    assert run(argv, tmp_path, gateway) == 1
+    err = capsys.readouterr().err
+    assert (
+        f"error: --approve 000000000000 does not match this payload's transfer id "
+        f"{TRANSFER_ID} — the transfers changed since approval; dry-run again and "
+        "get the user's approval for the new id"
+    ) in err
+    assert gateway.posts == []
+
+
+def test_apply_with_the_dry_run_transfer_id_posts(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    dry = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    run(TRANSFER_ARGS, tmp_path, dry)
+    printed = [
+        line.removeprefix("transfer id: ")
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("transfer id: ")
+    ]
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team(), swapped_my_team()]})
+    argv = [*TRANSFER_ARGS, "--apply", "--approve", printed[0]]
+    assert run(argv, tmp_path, gateway) == 0
+    assert len(gateway.posts) == 1
+
+
+def test_already_applied_needs_no_approve(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team()]})
+    assert run([*TRANSFER_ARGS, "--apply"], tmp_path, gateway) == 0
+    assert "already applied" in capsys.readouterr().out
+    assert gateway.posts == []
+
+
+def test_make_transfers_dry_run_names_each_transfer(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    run(TRANSFER_ARGS, tmp_path, gateway)
+    lines = capsys.readouterr().out.splitlines()
+    line = "transfer: E12 (12) → E20 (20), sell £5.2m, buy £7.0m"
+    assert line in lines
+    assert lines.index(line) < lines.index("{")
+
+
+def test_make_transfers_dry_run_prints_the_transfer_id(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    run(TRANSFER_ARGS, tmp_path, gateway)
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[-1] == f"transfer id: {TRANSFER_ID}"
+    assert any("estimated hit" in line for line in lines[:-1])
+
+
+def test_price_drift_keeps_the_transfer_id(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    ids = []
+    for planned in (6.2, 6.0):
+        gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+        run(transfer_argv(tmp_path, transfers=[transfer_row(planned)]), tmp_path, gateway)
+        ids += [
+            line for line in capsys.readouterr().out.splitlines()
+            if line.startswith("transfer id: ")
+        ]
+    assert len(ids) == 2 and ids[0] == ids[1]
+
+
+# --- set-lineup summary --------------------------------------------------------
+
+
+def test_set_lineup_dry_run_prints_captain_vice_and_bench_by_name(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(lineup_argv(tmp_path), tmp_path, gateway) == 0
+    lines = capsys.readouterr().out.splitlines()
+    captain = "captain: E13 (13), vice: E14 (14)"
+    assert captain in lines
+    assert "bench: E2 (2), E6 (6), E7 (7), E12 (12)" in lines
+    assert lines.index("}") < lines.index(captain)
+
+
+def test_set_lineup_dry_run_lists_changes_from_the_current_lineup(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    run(lineup_argv(tmp_path, chip="freehit"), tmp_path, gateway)
+    lines = capsys.readouterr().out.splitlines()
+    start = lines.index("changes from the current lineup:")
+    assert lines[start + 1:start + 5] == [
+        "  element 13: captain flag is False, expected True",
+        "  element 13: vice flag is True, expected False",
+        "  element 14: captain flag is True, expected False",
+        "  element 14: vice flag is False, expected True",
+    ]
+    assert lines[-1].startswith("note: chip freehit is activated by make-transfers")
+
+
+# --- run log -------------------------------------------------------------------
+
+
+def run_rows(tmp_path: Path, gw: int = 2) -> list[dict]:
+    path = tmp_path / "executor" / f"gw{gw}" / "runs.jsonl"
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+
+AUTH_CHECK = ["auth-check", "--gw", "2", "--team-id", "42"]
+
+
+def test_auth_check_pass_appends_a_pass_row(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(AUTH_CHECK, tmp_path, gateway) == 0
+    [row] = run_rows(tmp_path)
+    assert row["command"] == "auth-check"
+    assert row["outcome"] == "pass"
+    assert row["message"] == "PASS — authenticated session works"
+    assert row["apply"] is False
+    assert row["plan"] is None and row["plan_sha256"] is None
+    assert row["transfer_id"] is None and row["audit"] is None
+    assert row["fake_server"] is False
+    assert row["at"].endswith("Z") and "T" in row["at"]
+
+
+def test_auth_check_expired_session_appends_a_fail_row_with_the_printed_line(
+    tmp_path, capsys
+):
+    seed_bootstrap(tmp_path)
+    assert run(AUTH_CHECK, tmp_path, ExpiredGateway()) == 1
+    [row] = run_rows(tmp_path)
+    assert row["outcome"] == "fail"
+    assert row["message"] == (
+        "FAIL — session expired — re-copy credentials from browser devtools "
+        "(see docs/api-write.md)"
+    )
+    assert row["message"] in capsys.readouterr().err.splitlines()
+
+
+def test_missing_auth_file_appends_a_fail_row(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(AUTH_CHECK, tmp_path, gateway, auth=False) == 1
+    [row] = run_rows(tmp_path)
+    assert row["outcome"] == "fail"
+    assert row["message"].startswith("error: no auth credentials")
+    assert row["message"] in capsys.readouterr().err.splitlines()
+
+
+def test_make_transfers_dry_run_row_has_plan_hash_and_transfer_id(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [swapped_my_team_with_bank(5)]})
+    argv = transfer_argv(tmp_path, transfers=[transfer_row(6.2)])
+    assert run(argv, tmp_path, gateway) == 0
+    printed = capsys.readouterr().out.splitlines()
+    [row] = run_rows(tmp_path)
+    plan = tmp_path / "plan.json"
+    assert row["command"] == "make-transfers"
+    assert row["outcome"] == "dry-run"
+    assert row["message"] == printed[0]
+    assert row["plan"] == str(plan)
+    assert row["plan_sha256"] == hashlib.sha256(plan.read_bytes()).hexdigest()
+    assert f"transfer id: {row['transfer_id']}" in printed
+
+
+def test_make_transfers_apply_row_has_the_audit_path(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team(), swapped_my_team()]})
+    assert run([*TRANSFER_ARGS, *APPROVED], tmp_path, gateway) == 0
+    printed = capsys.readouterr().out.splitlines()
+    [row] = run_rows(tmp_path)
+    assert row["outcome"] == "applied"
+    assert row["apply"] is True
+    assert row["transfer_id"] == TRANSFER_ID
+    assert row["message"] == printed[0]
+    assert printed[0] == f"applied and verified — audit: {row['audit']}"
+    assert Path(row["audit"]).is_file()
+
+
+def test_already_applied_row(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(lineup_argv(tmp_path, captain=14, vice=13), tmp_path, gateway) == 0
+    [row] = run_rows(tmp_path)
+    assert row["command"] == "set-lineup"
+    assert row["outcome"] == "already-applied"
+    assert row["message"] == capsys.readouterr().out.splitlines()[0]
+
+
+def test_deadline_refusal_appends_a_refused_row_and_sends_nothing(tmp_path, capsys):
+    seed_bootstrap(tmp_path, deadline=deadline_in(minutes=10))
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run([*TRANSFER_ARGS, *APPROVED], tmp_path, gateway) == 1
+    [row] = run_rows(tmp_path)
+    assert row["outcome"] == "refused"
+    assert "under 30 minutes away" in row["message"]
+    assert row["message"] in capsys.readouterr().err.splitlines()
+    assert gateway.posts == []
+
+
+def test_verify_mismatch_appends_a_verify_failed_row(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team(), current_my_team()]})
+    assert run([*TRANSFER_ARGS, *APPROVED], tmp_path, gateway) == 1
+    [row] = run_rows(tmp_path)
+    assert row["outcome"] == "verify-failed"
+    assert row["message"].startswith("error: verify-after-write failed: ")
+    assert row["message"] in capsys.readouterr().err.splitlines()
+
+
+class PostFailsGateway(FakeWriteGateway):
+    def post_json(self, url: str, payload: dict):
+        self.posts.append((url, payload))
+        raise requests.ConnectionError("connection reset")
+
+
+def test_a_network_failure_after_the_post_appends_an_error_row(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = PostFailsGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run([*TRANSFER_ARGS, *APPROVED], tmp_path, gateway) == 1
+    [row] = run_rows(tmp_path)
+    assert row["outcome"] == "error"
+    assert row["message"] in capsys.readouterr().err.splitlines()
+
+
+def test_rows_are_appended_never_rewritten(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    for _ in range(2):
+        run(AUTH_CHECK, tmp_path, FakeWriteGateway({MY_TEAM_URL: [current_my_team()]}))
+    log = tmp_path / "executor" / "gw2" / "runs.jsonl"
+    first = log.read_bytes()
+    run(TRANSFER_ARGS, tmp_path, FakeWriteGateway({MY_TEAM_URL: [current_my_team()]}))
+    assert log.read_bytes().startswith(first)
+    assert [r["command"] for r in run_rows(tmp_path)] == [
+        "auth-check", "auth-check", "make-transfers",
+    ]
+
+
+def test_run_log_never_contains_credentials(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    run(AUTH_CHECK, tmp_path, FakeWriteGateway({MY_TEAM_URL: [current_my_team()]}))
+    run(AUTH_CHECK, tmp_path, ExpiredGateway())
+    run(TRANSFER_ARGS, tmp_path, FakeWriteGateway({MY_TEAM_URL: [current_my_team()]}))
+    log = tmp_path / "executor" / "gw2" / "runs.jsonl"
+    assert len(run_rows(tmp_path)) == 3
+    assert SECRET not in log.read_text(encoding="utf-8")
+
+
+def test_my_team_writes_no_run_log_row(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert run(["my-team", "--gw", "2", "--team-id", "42"], tmp_path, gateway) == 0
+    assert run_rows(tmp_path) == []
+
+
+def test_a_malformed_auth_file_logs_a_fail_row_without_its_values(tmp_path, capsys):
+    seed_bootstrap(tmp_path)
+    write_auth(tmp_path).write_text(
+        json.dumps({"headers": {"X-Api-Authorization": [f"Bearer {SECRET}"]}}),
+        encoding="utf-8",
+    )
+    argv = [*AUTH_CHECK, "--auth", str(tmp_path / "auth.json"),
+            "--executor-root", str(tmp_path / "executor")]
+    gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
+    assert main(["--data-root", str(tmp_path / "raw"), *argv],
+                write_gateway_factory=lambda credentials: gateway) == 1
+    log = tmp_path / "executor" / "gw2" / "runs.jsonl"
+    assert [r["outcome"] for r in run_rows(tmp_path)] == ["fail"]
+    assert SECRET not in log.read_text(encoding="utf-8")
+    assert SECRET not in capsys.readouterr().err

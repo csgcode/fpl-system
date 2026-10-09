@@ -9,6 +9,8 @@ results, never credentials.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -39,6 +41,31 @@ DEADLINE_MARGIN = timedelta(minutes=30)
 
 def my_team_url(team_id: int) -> str:
     return f"{BASE_URL}/my-team/{team_id}/"
+
+
+TRANSFER_ID_LENGTH = 12
+
+
+def transfer_id(payload: Mapping) -> str:
+    """Names one set of transfers for one gameweek, so a user's approval can be
+    matched to the payload that is about to be sent.
+
+    Prices are left out: drift the bank can absorb does not void an approval,
+    and the bank guard still refuses drift it cannot."""
+    pairs = sorted(
+        [row["element_out"], row["element_in"]] for row in payload["transfers"]
+    )
+    canonical = json.dumps(
+        {
+            "entry": payload["entry"],
+            "event": payload["event"],
+            "pairs": pairs,
+            "chip": payload["chip"],
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(canonical.encode()).hexdigest()[:TRANSFER_ID_LENGTH]
 
 
 class SessionExpiredError(RuntimeError):
@@ -227,6 +254,7 @@ class LineupPlan:
     already_applied: bool
     expected: PlannedPicks
     chip: str | None
+    changes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -301,14 +329,15 @@ class WriteService:
             ],
             "chip": chip,
         }
-        already_applied = not _lineup_mismatches(current, picks, chip)
+        changes = _lineup_mismatches(current, picks, chip)
         return LineupPlan(
             team_id=team_id,
             url=my_team_url(team_id),
             payload=payload,
-            already_applied=already_applied,
+            already_applied=not changes,
             expected=picks,
             chip=chip,
+            changes=tuple(changes),
         )
 
     def apply_lineup(self, gw: int, plan: LineupPlan) -> Path:

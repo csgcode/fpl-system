@@ -22,6 +22,7 @@ from fpl.write import (
     VerifyMismatchError,
     WriteApi,
     WriteService,
+    transfer_id,
 )
 from tests.factories import (
     bootstrap_payload,
@@ -688,3 +689,55 @@ def test_the_bank_is_only_gated_when_planned_prices_are_supplied(tmp_path):
     service, _, _, _ = make_write_service(tmp_path, [funded_my_team(0)])
     plan = service.plan_transfers(gw=2, team_id=42, out_ids=[12], in_ids=[20])
     assert plan.payload["transfers"][0]["element_in"] == 20
+
+
+# --- transfer id ------------------------------------------------------------------
+
+
+def transfer_payload(
+    rows: list[tuple[int, int, int, int]] | None = None,
+    *,
+    event: int = 2,
+    chip: str | None = None,
+) -> dict:
+    rows = rows if rows is not None else [(12, 20, 70, 52), (11, 21, 71, 51)]
+    return {
+        "entry": 42,
+        "event": event,
+        "transfers": [
+            {"element_out": out, "element_in": incoming,
+             "purchase_price": buy, "selling_price": sell}
+            for out, incoming, buy, sell in rows
+        ],
+        "chip": chip,
+    }
+
+
+def test_transfer_id_is_twelve_hex_and_stable():
+    first = transfer_id(transfer_payload())
+    assert len(first) == 12
+    assert all(c in "0123456789abcdef" for c in first)
+    assert transfer_id(transfer_payload()) == first
+
+
+def test_transfer_id_ignores_prices():
+    repriced = transfer_payload([(12, 20, 99, 10), (11, 21, 1, 2)])
+    assert transfer_id(repriced) == transfer_id(transfer_payload())
+
+
+def test_transfer_id_ignores_row_order():
+    reordered = transfer_payload([(11, 21, 71, 51), (12, 20, 70, 52)])
+    assert transfer_id(reordered) == transfer_id(transfer_payload())
+
+
+def test_transfer_id_changes_with_pairs():
+    repaired = transfer_payload([(12, 21, 70, 52), (11, 20, 71, 51)])
+    assert transfer_id(repaired) != transfer_id(transfer_payload())
+
+
+def test_transfer_id_changes_with_chip():
+    assert transfer_id(transfer_payload(chip="wildcard")) != transfer_id(transfer_payload())
+
+
+def test_transfer_id_changes_with_event():
+    assert transfer_id(transfer_payload(event=3)) != transfer_id(transfer_payload())

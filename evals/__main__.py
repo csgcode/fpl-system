@@ -5,7 +5,8 @@
     python -m evals freeze <agent>
     python -m evals outcome fixture-analyst
 
-Agents: data-collector, plan-builder, usage-collector, fixture-analyst.
+Agents: data-collector, plan-builder, usage-collector, fixture-analyst,
+team-executor.
 """
 
 from __future__ import annotations
@@ -13,7 +14,8 @@ from __future__ import annotations
 import argparse
 import sys
 
-AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst")
+AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst",
+          "team-executor")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
         from evals.usage_collector import runner
     elif args.agent == "fixture-analyst":
         from evals.fixture_analyst import runner
+    elif args.agent == "team-executor":
+        from evals.team_executor import runner
     else:
         from evals.data_collector import runner
 

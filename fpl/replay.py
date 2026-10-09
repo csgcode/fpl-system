@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import NoReturn
 
@@ -51,6 +53,28 @@ class ReplayMissError(requests.ConnectionError):
 
 class ReplayWriteRefusedError(RuntimeError):
     pass
+
+
+class ReplayNetworkRefusedError(requests.ConnectionError):
+    pass
+
+
+@contextmanager
+def network_blocked() -> Iterator[None]:
+    """Makes every requests call fail for the duration: in replay mode no code
+    path may reach the network, whichever gateway it builds."""
+    original = requests.Session.send
+
+    def refuse(self, request, **kwargs):
+        raise ReplayNetworkRefusedError(
+            f"replay mode never reaches the network ({request.url})"
+        )
+
+    requests.Session.send = refuse
+    try:
+        yield
+    finally:
+        requests.Session.send = original
 
 
 class ReplayGateway:

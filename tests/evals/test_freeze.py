@@ -127,6 +127,13 @@ def test_redaction_findings_is_empty_for_clean_text():
     assert redaction_findings("players: 667, teams: 20 — no secrets here") == []
 
 
+def test_the_commit_attribution_address_is_not_personal_data():
+    trailer = "Co-Authored-By: Claude <noreply@anthropic.com>"
+    assert redaction_findings(trailer) == []
+    assert redaction_findings("ops-noreply@anthropic.com") == ["email"]
+    assert redaction_findings("noreply@anthropic.com.evil.org") == ["email"]
+
+
 def test_rewrites_the_owner_and_group_columns_of_long_listings(tmp_path):
     listing = ("total 17344\n"
                "drwxr-xr-x@ 438 jdoe  admins  14016  9 Oct 14:34 .\n"

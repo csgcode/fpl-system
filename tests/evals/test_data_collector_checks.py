@@ -559,6 +559,20 @@ def test_c2_live_fails_on_a_write_outside_the_gameweek(ws):
     assert "notes.txt" in result.evidence
 
 
+def test_c2_live_tolerates_the_run_log_auth_check_appends(ws):
+    log = ws.root / "data/executor/gw6/runs.jsonl"
+    log.parent.mkdir(parents=True)
+    log.write_text('{"command": "auth-check"}\n')
+    assert check_c2(make_run(workspace=refresh(ws))).status is Status.PASS
+
+
+def test_c2_live_fails_on_any_other_executor_file(ws):
+    audit = ws.root / "data/executor/gw6/set-lineup-x.json"
+    audit.parent.mkdir(parents=True)
+    audit.write_text("{}")
+    assert check_c2(make_run(workspace=refresh(ws))).status is Status.FAIL
+
+
 def test_c2_live_fails_on_an_unarchived_change(ws):
     (ws.root / "data/auth.json").write_text("{}")
     assert check_c2(make_run(workspace=refresh(ws))).status is Status.FAIL

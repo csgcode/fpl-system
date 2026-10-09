@@ -185,10 +185,36 @@ that would be POSTed and send nothing.
 
 - `set-lineup` (XI, captain, vice, bench order, optional chip) is reversible
   until the deadline, so running it with `--apply` needs no extra ceremony.
-- `make-transfers` is **irreversible** and can burn points. `--apply` is the
-  user-confirmation gate: agents run the dry run and hand the payload to the
-  user; only the user decides to re-run with `--apply`. Nothing in the system
-  auto-applies transfers.
+- `make-transfers` is **irreversible** and can burn points, so `--apply`
+  needs the user's approval of the exact transfers. The dry run prints one
+  line per transfer and a **transfer id**:
+
+  ```
+  transfer: Scott (69) → Schade (94), sell £6.0m, buy £6.2m
+  …
+  transfer id: 3f9c0a1b2d4e
+  ```
+
+  The id is a hash of the entry, the gameweek, the out/in pairs and the chip.
+  Prices are left out: drift the bank can absorb does not void an approval,
+  and the bank guard still refuses drift it cannot. The user approves that id;
+  the executor then runs
+  `make-transfers --apply --approve <transfer id>`. Without `--approve`, or
+  with an id that does not match the payload about to be sent, the command
+  refuses and sends nothing — the transfers changed since approval, so they
+  need a fresh dry run and a fresh approval. `--approve` is not needed when
+  the transfers are already in place. Nothing in the system auto-applies
+  transfers.
+
+The `set-lineup` dry run prints, after the payload, the captain and vice and
+the bench by name, then the changes from the current lineup:
+
+```
+captain: Haaland (411), vice: Mbeumo (427)
+bench: Dubravka (497), Thiago (106), Richards (202), Shaw (423)
+changes from the current lineup:
+  position 2: expected element 229, found 4
+```
 
 ### Order: transfers, then the lineup
 
@@ -283,5 +309,29 @@ with the FPL server as the authority.
 - **Audit trail**: every `--apply` writes a timestamped record (payload +
   verification result, never credentials) under `data/executor/gw{N}/`.
   Authenticated responses are never cached into `data/raw/`.
+- **Run log**: every `auth-check`, `make-transfers` and `set-lineup` run
+  appends one JSON line to `data/executor/gw{N}/runs.jsonl`, whatever the
+  outcome: `pass`/`fail` for auth-check; `dry-run`, `already-applied`,
+  `applied`, `refused` (any error before a POST), `verify-failed` or `error`
+  (a failure after a POST was attempted) for the write commands. Each line
+  carries the printed result or error line, the plan path and its sha256, the
+  transfer id and the audit path. The CLI appends; nothing rewrites it. A
+  declined transfer shows as a dry-run line with no applied line after it.
 - **Selling prices** always come from the authenticated `my-team` read;
   bootstrap's `now_cost` is the buy price, not ours.
+
+## 6. The fake server (evaluations only)
+
+The agent evaluations run the real CLI with nothing reaching FPL. In replay
+mode (`FPL_REPLAY_DIR` set, see `fpl/replay.py`), a `fake-server.json` in the
+replay directory switches the write commands to a stateful fake
+(`fpl/fake_server.py`): it answers `my-team` from that state, applies
+transfer and lineup POSTs to it, and logs every POST to `posts.jsonl` beside
+it. It can play an expired session or a failed refresh, and can accept a POST
+while ignoring it, so verify-after-write fails as it would against a server
+that dropped the request.
+
+Every write command then prints `FAKE SERVER — nothing is sent to FPL (<dir>)`
+to stderr, run-log lines carry `"fake_server": true`, and `auth-refresh`
+refuses. Never set `FPL_REPLAY_DIR` outside an evaluation: a write would
+appear to succeed while FPL saw nothing.

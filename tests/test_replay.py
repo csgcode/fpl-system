@@ -13,7 +13,9 @@ from fpl.replay import (
     REPLAY_ENV,
     ReplayGateway,
     ReplayMissError,
+    ReplayNetworkRefusedError,
     ReplayWriteRefusedError,
+    network_blocked,
     recording_key,
     replay_dir,
 )
@@ -161,3 +163,32 @@ def test_replay_dir_is_none_when_unset_or_empty(monkeypatch, value):
 def test_replay_dir_reads_the_environment(monkeypatch, tmp_path):
     monkeypatch.setenv(REPLAY_ENV, str(tmp_path))
     assert replay_dir() == tmp_path
+
+
+# --- network guard ----------------------------------------------------------------
+
+
+def test_network_blocked_refuses_any_request_then_restores(monkeypatch):
+    original = requests.Session.send
+    with network_blocked():
+        with pytest.raises(ReplayNetworkRefusedError, match="never reaches the network"):
+            requests.get("https://fantasy.premierleague.com/api/bootstrap-static/")
+    assert requests.Session.send is original
+
+
+def test_main_blocks_the_network_in_replay_mode_only(tmp_path, monkeypatch):
+    seen = []
+
+    def probe(argv=None, *args, **kwargs):
+        seen.append(requests.Session.send.__name__)
+        return 0
+
+    from fpl import __main__ as cli
+
+    guarded = cli.offline_in_replay(probe)
+    monkeypatch.delenv(REPLAY_ENV, raising=False)
+    guarded([])
+    monkeypatch.setenv(REPLAY_ENV, str(tmp_path))
+    guarded([])
+    assert seen == ["send", "refuse"]
+    assert cli.main.__wrapped__ is not None

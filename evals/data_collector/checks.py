@@ -187,8 +187,10 @@ def _workspace_write_problems(run: CollectorRun) -> list[str]:
     changes = diff(ws.before, ws.after)
     problems = [f"pre-existing file changed without archiving: {p}"
                 for p in changes.unexplained_changes if p != BACKLOG]
+    # auth-check appends its outcome to the executor run log.
+    run_log = f"data/executor/gw{run.gw}/runs.jsonl"
     problems += [f"unexpected new file: {p}" for p in changes.added
-                 if not p.startswith(_raw(run))]
+                 if not p.startswith(_raw(run)) and p != run_log]
     return problems
 
 

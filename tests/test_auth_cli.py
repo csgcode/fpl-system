@@ -149,11 +149,12 @@ def test_auth_check_uses_the_entry_file_team_id(tmp_path, capsys):
     assert gateway.get_calls == [MY_TEAM_URL]
 
 
-def test_auth_check_writes_nothing_to_disk(tmp_path):
+def test_auth_check_writes_nothing_to_disk_but_its_run_log_row(tmp_path):
     gateway = FakeWriteGateway({MY_TEAM_URL: [current_my_team()]})
     run_auth_check(tmp_path, gateway)
     assert not (tmp_path / "raw").exists()
-    assert not (tmp_path / "executor").exists()
+    written = [p for p in (tmp_path / "executor").rglob("*") if p.is_file()]
+    assert written == [tmp_path / "executor" / "gw2" / "runs.jsonl"]
 
 
 def test_auth_check_without_an_authorization_header_warns_but_still_passes(
@@ -205,6 +206,7 @@ def test_auth_check_without_a_team_id_source_exits_one(tmp_path, capsys):
         "auth-check", "--gw", "2",
         "--auth", str(write_auth(tmp_path)),
         "--entry-file", str(tmp_path / "absent-entry.json"),
+        "--executor-root", str(tmp_path / "executor"),
     ]
     assert main(argv, write_gateway_factory=lambda credentials: gateway) == 1
     assert "does not exist" in capsys.readouterr().err

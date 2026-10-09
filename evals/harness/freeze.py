@@ -31,7 +31,9 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("bearer token", re.compile(r"Bearer\s+[A-Za-z0-9._~+/-]{16,}")),
     ("JWT", re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}")),
     ("cookie", re.compile(r"(?:%s)(?:=|\\?\":)" % "|".join(_COOKIE_NAMES))),
-    ("email", re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")),
+    # The commit-attribution trailer agents sometimes echo is no one's address.
+    ("email", re.compile(r"(?<![A-Za-z0-9._%+-])(?!noreply@anthropic\.com(?![A-Za-z0-9.-]))"
+                         r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")),
     ("eval canary", re.compile(r"EVALCANARY")),
 )
 
