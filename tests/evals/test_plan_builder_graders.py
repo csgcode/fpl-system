@@ -24,7 +24,6 @@ from evals.plan_builder.checks import (
     a8_candidates_listed,
     a9_free_transfers_labelled,
     a10_no_plan_read_and_little_else,
-    cli_exit,
     owner_for,
 )
 from evals.plan_builder.runs import replay_run
@@ -209,14 +208,6 @@ def test_a1_fails_a_rerun_another_subcommand_or_an_override_flag():
                                ).status is F
     flagged = run(bash(f"{CMD} --from-final data/decisions/gw2/final.md"))
     assert a1_one_plan_command(flagged).status is F
-
-
-def test_cli_exit_reads_every_spelling():
-    assert cli_exit(bash(CMD, "Exit code 2\nerror: x", error=True)) == 2
-    assert cli_exit(bash(CMD, "error: x", error=True)) == 1
-    assert cli_exit(bash(CMD, "error: x\nEXIT=1")) == 1
-    assert cli_exit(bash(CMD, "wrote x\nEXIT=0")) == 0
-    assert cli_exit(bash(CMD, OK_OUTPUT)) == 0
 
 
 def test_a2_and_a3_catch_hand_edits():

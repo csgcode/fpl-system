@@ -323,3 +323,36 @@ def test_event_live_rejects_element_without_stats():
 
     with pytest.raises(ValidationError):
         EventLive.model_validate({"elements": [{"id": 1}]})
+
+
+def test_match_record_parses_was_home():
+    from fpl.models import MatchRecord
+
+    assert MatchRecord.model_validate(match_record_payload(was_home=True)).was_home is True
+    assert MatchRecord.model_validate(match_record_payload()).was_home is None
+
+
+def test_live_element_parses_explain_and_string_xg():
+    from fpl.models import EventLive
+    from tests.factories import event_live_payload, live_element_payload
+
+    element = live_element_payload(element_id=7, expected_goals="0.41")
+    element["explain"] = [{"fixture": 42, "stats": [
+        {"identifier": "minutes", "points": 2, "value": 90, "points_modification": 0}]}]
+    live = EventLive.model_validate(event_live_payload([element]))
+    parsed = live.elements[0]
+    assert parsed.stats.expected_goals == 0.41
+    assert parsed.explain[0].fixture == 42
+    assert parsed.explain[0].stat("minutes") == 90
+    assert parsed.explain[0].stat("bonus") == 0
+
+
+def test_event_live_without_explain_still_parses():
+    from fpl.models import EventLive
+    from tests.factories import live_stats_payload
+
+    stats = live_stats_payload()
+    del stats["expected_goals"]
+    live = EventLive.model_validate({"elements": [{"id": 3, "stats": stats}]})
+    assert live.elements[0].explain == ()
+    assert live.elements[0].stats.expected_goals is None

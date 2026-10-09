@@ -10,7 +10,7 @@ analysis files but must form independent judgments.
 
 ## Input
 - data/decisions/gw{N}/squad-proposal.md
-- data/analysis/gw{N}/* (fixtures.md, players-*.json)
+- data/analysis/gw{N}/* (fixtures.md, fixtures-tables.md, players-*.json)
 - data/raw/gw{N}/players-slim.csv
 - data/suggestions.md — if present — and the `## Suggestions` ledger of the
   latest data/decisions/*/final.md

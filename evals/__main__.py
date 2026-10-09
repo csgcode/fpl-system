@@ -3,8 +3,9 @@
     python -m evals replay <agent>
     python -m evals live <agent> [--case ID] [--repeat K] [--judge] [--keep]
     python -m evals freeze <agent>
+    python -m evals outcome fixture-analyst
 
-Agents: data-collector, plan-builder, usage-collector.
+Agents: data-collector, plan-builder, usage-collector, fixture-analyst.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-AGENTS = ("data-collector", "plan-builder", "usage-collector")
+AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -28,6 +29,8 @@ def build_parser() -> argparse.ArgumentParser:
     live.add_argument("--keep", action="store_true", help="keep the temp workspace")
     freeze = sub.add_parser("freeze", help="re-freeze the replay fixtures from the archive")
     freeze.add_argument("agent", choices=AGENTS)
+    outcome = sub.add_parser("outcome", help="season-level forecast quality (prints only)")
+    outcome.add_argument("agent", choices=("fixture-analyst",))
     return parser
 
 
@@ -37,6 +40,8 @@ def main(argv: list[str] | None = None) -> int:
         from evals.plan_builder import runner
     elif args.agent == "usage-collector":
         from evals.usage_collector import runner
+    elif args.agent == "fixture-analyst":
+        from evals.fixture_analyst import runner
     else:
         from evals.data_collector import runner
 
@@ -44,6 +49,8 @@ def main(argv: list[str] | None = None) -> int:
         return runner.replay()
     if args.command == "freeze":
         return runner.freeze_fixtures()
+    if args.command == "outcome":
+        return runner.outcome()
     return runner.live(case_ids=args.case, repeat=args.repeat, judge=args.judge,
                        keep=args.keep)
 

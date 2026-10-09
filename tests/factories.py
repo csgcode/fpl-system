@@ -342,3 +342,37 @@ def event_live_payload(elements: list[dict] | None = None) -> dict[str, Any]:
     return {
         "elements": elements if elements is not None else [live_element_payload()],
     }
+
+
+def summary_row(**overrides: Any) -> dict[str, Any]:
+    """One element-summary `history` row: a match the player's club played."""
+    return match_record_payload(**({"was_home": True} | overrides))
+
+
+def live_element(
+    element_id: int, expected_goals: str, minutes_by_fixture: dict[int, int]
+) -> dict[str, Any]:
+    """An event-live element whose `explain` splits its minutes by fixture."""
+    payload = live_element_payload(
+        element_id, expected_goals=expected_goals,
+        minutes=sum(minutes_by_fixture.values()),
+    )
+    payload["explain"] = [
+        {"fixture": fixture, "stats": [
+            {"identifier": "minutes", "points": 2, "value": minutes, "points_modification": 0}]}
+        for fixture, minutes in minutes_by_fixture.items()
+    ]
+    return payload
+
+
+def priors_doc(clubs: dict[str, tuple[float, float, bool]]) -> dict[str, Any]:
+    """club-priors.json: short name → (att, defw, promoted)."""
+    return {
+        "schema_version": 1,
+        "season": "2026/27",
+        "clubs": {
+            name: {"att": att, "defw": defw, "promoted": promoted,
+                   "source": "ASSUMPTION: synthetic" if promoted else "synthetic tier"}
+            for name, (att, defw, promoted) in clubs.items()
+        },
+    }

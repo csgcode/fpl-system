@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import shutil
 import subprocess
+import tempfile
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -28,6 +31,7 @@ AGENT_TIMEOUT_S = 900
 STDERR_FILE = "stderr.txt"
 STDERR_TAIL = 800
 JUDGE_TIMEOUT_S = 300
+CONFIG_DIR_ENV = "CLAUDE_CONFIG_DIR"
 
 
 class RunInvalid(RuntimeError):
@@ -160,16 +164,81 @@ def build_judge_argv(model: str = "opus", budget_usd: float = 0.50) -> list[str]
     ]
 
 
+def claude_projects_root() -> Path:
+    base = os.environ.get(CONFIG_DIR_ENV)
+    return (Path(base) if base else Path.home() / ".claude") / "projects"
+
+
+def project_dir_name(cwd: Path) -> str:
+    """Claude Code names a session's project directory after its working
+    directory, every non-alphanumeric character turned into "-"."""
+    return re.sub(r"[^A-Za-z0-9]", "-", str(cwd))
+
+
+def session_project_dir(cwd: Path) -> Path:
+    """The project directory a run in `cwd` gets. `--no-session-persistence`
+    keeps the transcript out of it, but persisted tool output and an empty
+    memory directory still land there. Only a cwd under the temp dir
+    qualifies: the real repo's directory holds the transcripts `fpl usage`
+    costs, and must never be a deletion target."""
+    cwd = cwd.resolve()
+    temp = Path(tempfile.gettempdir()).resolve()
+    if not cwd.is_relative_to(temp):
+        raise ValueError(f"refusing a Claude session directory for a cwd outside the "
+                         f"temp dir: {cwd}")
+    root = claude_projects_root().resolve()
+    target = root / project_dir_name(cwd)
+    if target.parent != root or not target.name.startswith(project_dir_name(temp)):
+        raise ValueError(f"{target} is not the encoded temp path under {root}")
+    return target
+
+
+def forget_session(cwd: Path) -> Path | None:
+    """Deletes the project directory of a run in `cwd`; None when there is none."""
+    target = session_project_dir(cwd)
+    if target.is_symlink():
+        raise ValueError(f"refusing to delete {target}: it is a symlink")
+    if not target.is_dir():
+        return None
+    shutil.rmtree(target)
+    return target
+
+
+def _project_roots() -> list[str]:
+    default = Path.home() / ".claude" / "projects"
+    return sorted({str(claude_projects_root()), str(default), "~/.claude/projects",
+                   "$HOME/.claude/projects", "${HOME}/.claude/projects"}, key=len, reverse=True)
+
+
+def foreign_project_paths(transcript: Transcript, cwd: Path) -> list[tuple[str, str]]:
+    """(call id, project directory) for every tool input naming a Claude Code
+    project directory other than the run's own."""
+    own = project_dir_name(cwd.resolve())
+    found = []
+    for call in transcript.calls:
+        text = json.dumps(dict(call.input), ensure_ascii=False)
+        for root in _project_roots():
+            for match in re.finditer(re.escape(root) + r"/([^/\s\"'`;|&)]+)", text):
+                if match.group(1) != own:
+                    found.append((call.id, match.group(1)))
+    return found
+
+
 def run_agent(argv: list[str], *, cwd: Path, replay_dir: Path, stream_path: Path) -> Path:
     """Writes claude's stderr to STDERR_FILE beside the stream. A non-zero exit
     is still gradable when the stream reached its result record (an exhausted
-    budget exits non-zero after one)."""
+    budget exits non-zero after one). The session's project directory is
+    deleted once claude exits."""
+    session_project_dir(cwd)
     stream_path.parent.mkdir(parents=True, exist_ok=True)
-    with stream_path.open("w", encoding="utf-8") as out:
-        completed = subprocess.run(
-            argv, cwd=cwd, env=agent_env(replay_dir), stdout=out,
-            stderr=subprocess.PIPE, timeout=AGENT_TIMEOUT_S, check=False,
-        )
+    try:
+        with stream_path.open("w", encoding="utf-8") as out:
+            completed = subprocess.run(
+                argv, cwd=cwd, env=agent_env(replay_dir), stdout=out,
+                stderr=subprocess.PIPE, timeout=AGENT_TIMEOUT_S, check=False,
+            )
+    finally:
+        forget_session(cwd)
     stderr_path = stream_path.with_name(STDERR_FILE)
     stderr_path.write_bytes(completed.stderr or b"")
     if completed.returncode != 0 and not _has_result(stream_path):
@@ -186,10 +255,14 @@ def _has_result(stream_path: Path) -> bool:
 
 
 def run_judge(prompt: str, *, cwd: Path, model: str = "opus") -> JudgeVerdict:
-    completed = subprocess.run(
-        build_judge_argv(model), input=prompt, cwd=cwd, capture_output=True, text=True,
-        timeout=JUDGE_TIMEOUT_S, check=False,
-    )
+    session_project_dir(cwd)
+    try:
+        completed = subprocess.run(
+            build_judge_argv(model), input=prompt, cwd=cwd, capture_output=True, text=True,
+            timeout=JUDGE_TIMEOUT_S, check=False,
+        )
+    finally:
+        forget_session(cwd)
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError:
@@ -228,11 +301,19 @@ def read_stream(path: Path) -> list[dict]:
     return records
 
 
-def validate_run(transcript: Transcript, *, replay_dir: Path, real_repo: Path) -> None:
+def validate_run(transcript: Transcript, *, replay_dir: Path, real_repo: Path,
+                 workspace: Path | None = None) -> None:
+    """With `workspace`, a tool input naming another Claude Code project
+    directory is an escape; the run's own (its persisted tool output) is not."""
     real = str(real_repo)
     for call in transcript.calls:
         if real in json.dumps(dict(call.input)):
             raise RunInvalid(f"a tool input names the real repo ({call.name} {call.id})")
+    if workspace is not None:
+        foreign = foreign_project_paths(transcript, workspace)
+        if foreign:
+            cid, name = foreign[0]
+            raise RunInvalid(f"call {cid} reads another Claude Code project's directory: {name}")
     networked = any(
         inv.subcommand in NETWORK_SUBCOMMANDS and not inv.is_help
         for call in transcript.calls for inv in call_fpl_invocations(call)

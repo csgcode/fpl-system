@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 
 from evals.harness.checks import Check, CheckResult
+from evals.harness.report import cli_exit, normalise_text
 from evals.harness.shell import (
     call_fpl_invocations,
     executable_text,
@@ -30,8 +31,6 @@ _PYTHON_WRITE = re.compile(r"""open\([^)]*['"][wa]b?\+?['"]|write_text|write_byt
 _IN_PLACE = re.compile(r"\b(?:sed|perl)\b[^\n;&|]*\s-i")
 _MOVES = re.compile(r"\b(?:cp|mv|rm|install|truncate)\b")
 
-_EXIT_PREFIX = re.compile(r"\AExit code (\d+)")
-_ECHOED_EXIT = re.compile(r"(?im)^[^\n]*\bexit\w*\s*[=:]?\s*(\d+)\s*\Z")
 _CHIP = re.compile(r"(?m)(?:^|, )chip: ([^,\s]+)")
 _SOURCE_NEW = re.compile(r"(?m)^transfers: \d+ \(([\w-]+)\)$")
 _SOURCE_OLD = re.compile(r"(?m)^transfers \(([\w-]+)\):$")
@@ -105,26 +104,6 @@ def expected_command(gw: int) -> re.Pattern[str]:
     core = (rf"uv run python -m fpl plan --gw {gw} "
             rf"--out data/decisions/gw{gw}/plan\.json")
     return re.compile(rf"^(?:cd \S+ && )?{core}(?: 2>&1)?(?: ?; ?echo\b[^;&|]*\$\?[^;&|]*)?$")
-
-
-def cli_exit(call: ToolCall) -> int | None:
-    result = call.result
-    if result is None:
-        return None
-    prefixed = _EXIT_PREFIX.match(result.text)
-    if prefixed:
-        return int(prefixed.group(1))
-    if result.is_error:
-        return 1
-    echoed = _ECHOED_EXIT.search(result.text.rstrip())
-    return int(echoed.group(1)) if echoed else 0
-
-
-def normalise_text(text: str) -> str:
-    """Formatting-blind: markdown emphasis and code marks gone, lower case,
-    whitespace collapsed."""
-    stripped = re.sub(r"[*_`]", "", text).lower()
-    return " ".join(stripped.split())
 
 
 def owner_for(message: str, spec: str) -> str | None:

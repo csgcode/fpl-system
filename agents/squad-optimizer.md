@@ -9,7 +9,7 @@ expected points over the next 6 GWs, subject to every hard constraint in
 CLAUDE.md. Then pick captain, vice, and bench order.
 
 ## Input
-- data/analysis/gw{N}/players-*.json, fixtures.md
+- data/analysis/gw{N}/players-*.json, fixtures.md, fixtures-tables.md
 - data/retro/*.md — if present (absent at GW1)
 - data/decisions/gw{N}/review.md — only on a revision loop
 - data/suggestions.md — if present — plus the `## Suggestions` ledger of the

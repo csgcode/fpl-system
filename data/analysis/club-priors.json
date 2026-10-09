@@ -1,0 +1,126 @@
+{
+ "schema_version": 1,
+ "season": "2026/27",
+ "clubs": {
+  "ARS": {
+   "att": 1.28,
+   "defw": 0.7,
+   "promoted": false,
+   "source": "GW1: tier 4.5 + prior-season squad xG (coverage 1.02; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "AVL": {
+   "att": 0.98,
+   "defw": 0.95,
+   "promoted": false,
+   "source": "GW1: tier 3.5 + prior-season squad xG (coverage 0.83; ATT 0.63 data + 0.37 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "BHA": {
+   "att": 0.9,
+   "defw": 1.0,
+   "promoted": false,
+   "source": "GW1: tier 2.5 + prior-season squad xG (coverage 0.86; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "BOU": {
+   "att": 1.13,
+   "defw": 0.99,
+   "promoted": false,
+   "source": "GW1: tier 3.0 + prior-season squad xG (coverage 0.79; ATT 0.61 data + 0.39 tier, DEFW 0.28 data + 0.72 tier)"
+  },
+  "BRE": {
+   "att": 1.21,
+   "defw": 0.99,
+   "promoted": false,
+   "source": "GW1: tier 3.0 + prior-season squad xG (coverage 1.02; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "CHE": {
+   "att": 1.37,
+   "defw": 0.9,
+   "promoted": false,
+   "source": "GW1: tier 4.0 + prior-season squad xG (coverage 1.02; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "COV": {
+   "att": 0.68,
+   "defw": 1.3,
+   "promoted": true,
+   "source": "ASSUMPTION: GW1 differentiated promoted estimate (tier 2.0, prior-season squad coverage 0.13; data discarded)"
+  },
+  "CRY": {
+   "att": 1.14,
+   "defw": 0.97,
+   "promoted": false,
+   "source": "GW1: tier 3.0 + prior-season squad xG (coverage 0.88; ATT 0.65 data + 0.35 tier, DEFW 0.32 data + 0.68 tier)"
+  },
+  "EVE": {
+   "att": 0.94,
+   "defw": 1.0,
+   "promoted": false,
+   "source": "GW1: tier 3.0 + prior-season squad xG (coverage 0.92; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "FUL": {
+   "att": 0.75,
+   "defw": 1.02,
+   "promoted": false,
+   "source": "GW1: tier 2.5 + prior-season squad xG (coverage 0.77; ATT 0.59 data + 0.41 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "HUL": {
+   "att": 0.62,
+   "defw": 1.36,
+   "promoted": true,
+   "source": "ASSUMPTION: GW1 differentiated promoted estimate (tier 2.0, prior-season squad coverage 0.03; data discarded)"
+  },
+  "IPS": {
+   "att": 0.7,
+   "defw": 1.26,
+   "promoted": true,
+   "source": "ASSUMPTION: GW1 differentiated promoted estimate (tier 2.0, prior-season squad coverage 0.39; data discarded)"
+  },
+  "LEE": {
+   "att": 1.06,
+   "defw": 1.03,
+   "promoted": false,
+   "source": "GW1: tier 2.5 + prior-season squad xG (coverage 0.92; ATT 0.65 data + 0.35 tier, DEFW 0.34 data + 0.66 tier)"
+  },
+  "LIV": {
+   "att": 1.18,
+   "defw": 0.85,
+   "promoted": false,
+   "source": "GW1: tier 4.0 + prior-season squad xG (coverage 0.82; ATT 0.63 data + 0.37 tier, DEFW 0.28 data + 0.72 tier)"
+  },
+  "MCI": {
+   "att": 1.39,
+   "defw": 0.8,
+   "promoted": false,
+   "source": "GW1: tier 4.5 + prior-season squad xG (coverage 1.00; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "MUN": {
+   "att": 1.16,
+   "defw": 0.87,
+   "promoted": false,
+   "source": "GW1: tier 4.0 + prior-season squad xG (coverage 1.05; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "NEW": {
+   "att": 0.99,
+   "defw": 1.01,
+   "promoted": false,
+   "source": "GW1: tier 2.5 + prior-season squad xG (coverage 0.74; ATT 0.57 data + 0.43 tier, DEFW 0.34 data + 0.66 tier)"
+  },
+  "NFO": {
+   "att": 0.92,
+   "defw": 1.0,
+   "promoted": false,
+   "source": "GW1: tier 3.0 + prior-season squad xG (coverage 0.84; ATT 0.64 data + 0.36 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "SUN": {
+   "att": 0.79,
+   "defw": 1.02,
+   "promoted": false,
+   "source": "GW1: tier 2.5 + prior-season squad xG (coverage 0.89; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  },
+  "TOT": {
+   "att": 0.83,
+   "defw": 0.98,
+   "promoted": false,
+   "source": "GW1: tier 3.0 + prior-season squad xG (coverage 1.10; ATT 0.65 data + 0.35 tier, DEFW 0.35 data + 0.65 tier)"
+  }
+ }
+}

@@ -176,6 +176,7 @@ class MatchRecord(_FrozenModel):
     expected_goals_conceded: float | None = None
     defensive_contribution: float | None = None
     yellow_cards: int | None = None
+    was_home: bool | None = None
 
 
 class PastSeason(_FrozenModel):
@@ -221,15 +222,32 @@ class LiveStats(_FrozenModel):
     bps: int
     starts: int = Field(ge=0)
     defensive_contribution: float | None = None
+    expected_goals: float | None = None
 
     @property
     def started(self) -> bool:
         return self.starts >= 1
 
 
+class LiveExplainStat(_FrozenModel):
+    identifier: str
+    value: float
+
+
+class LiveExplain(_FrozenModel):
+    """One fixture's share of an element's event: a double gameweek has two."""
+
+    fixture: int
+    stats: tuple[LiveExplainStat, ...] = ()
+
+    def stat(self, identifier: str) -> float:
+        return next((s.value for s in self.stats if s.identifier == identifier), 0)
+
+
 class LiveElement(_FrozenModel):
     id: int
     stats: LiveStats
+    explain: tuple[LiveExplain, ...] = ()
 
 
 class EventLive(_FrozenModel):

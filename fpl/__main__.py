@@ -51,6 +51,10 @@ from fpl.ep import (
     write_predictions,
 )
 from fpl.http import RequestsGateway, RequestsTokenGateway, TokenEndpointError
+from fpl.fixture_ratings import PRIORS_FILENAME, RatingRefusal, render_json, summary_lines
+from fpl.fixture_ratings import load_inputs as load_rating_inputs
+from fpl.fixture_ratings import rate as rate_fixtures
+from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.freshness import FlagChange
 from fpl.models import (
     POSITION_ALIASES,
@@ -428,6 +432,22 @@ def build_parser() -> argparse.ArgumentParser:
              "left unscored and listed in the warnings",
     )
 
+    # Local-only: club ratings and fixture rows are a pure function of the
+    # cached snapshots plus club-priors.json (docs/ep-model.md §6).
+    fixtures_rate = add(
+        "fixtures-rate", "compile club ratings + fixtures.json + fixtures-tables.md",
+        cached=False,
+    )
+    fixtures_rate.add_argument(
+        "--priors", type=Path,
+        help=f"club priors (default: <analysis-root>/{PRIORS_FILENAME})",
+    )
+    fixtures_rate.add_argument(
+        "--analysis-root", type=Path, default=ANALYSIS_ROOT,
+        help="root that receives gw{N}/fixtures.json and fixtures-tables.md",
+    )
+    fixtures_rate.add_argument("--format", choices=("table", "json"), default="table")
+
     players = add("players", "filtered view over the cached bootstrap", cached=False)
     players.add_argument(
         "--position", type=_position_set, default=frozenset(),
@@ -574,6 +594,8 @@ def main(
             return run_auth_refresh(args)
         if args.command == "usage":
             return run_usage(args)
+        if args.command == "fixtures-rate":
+            return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:
             return run_write_command(
                 store,
@@ -1143,6 +1165,28 @@ def print_plan(plan: ExecutionPlan, *, free_now: int | None = None) -> None:
     print(f"prices: {plan.price_resolution} — {plan.price_resolution_note}")
     for warning in plan.warnings:
         print(f"WARNING: {warning}")
+
+
+def run_fixtures_rate(store: SnapshotStore, args: argparse.Namespace) -> int:
+    priors_path = args.priors or args.analysis_root / PRIORS_FILENAME
+    try:
+        run = rate_fixtures(load_rating_inputs(
+            store, args.gw, priors_path=priors_path, analysis_root=args.analysis_root))
+    except RatingRefusal as exc:
+        _stderr(f"error: {exc}")
+        if exc.hint:
+            _stderr(f"hint: {exc.hint}")
+        return EXIT_ERROR
+    # Both outputs are derived from snapshots + priors, so overwriting is safe.
+    paths = write_rating_outputs(run, args.analysis_root / f"gw{args.gw}")
+    report = sys.stderr if args.format == "json" else sys.stdout
+    if args.format == "json":
+        print(render_json(run), end="")
+    for line in [*summary_lines(run), *(f"wrote {path}" for path in paths)]:
+        print(line, file=report)
+    for warning in run.warnings:
+        _stderr(f"WARNING: {warning}")
+    return EXIT_OK
 
 
 def run_usage(args: argparse.Namespace) -> int:

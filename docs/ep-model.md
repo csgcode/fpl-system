@@ -200,7 +200,7 @@ at or below £4.5m, or unavailable, absent from the file are excluded and
 counted. `--allow-missing-ids <ids>` exempts the listed players: they go
 unscored and the run names them in a warning.
 
-### fixtures.json — written by the fixture analyst
+### fixtures.json — written by `fpl fixtures-rate`
 
 ```json
 {
@@ -255,3 +255,59 @@ line, and the ids that lack a cached element summary together with the
 A retro correction to the arithmetic (a coefficient, an anchor, a blend
 constant) is a change to `fpl/ep.py` and this file, shipped with tests, not an
 instruction to an analyst. The judgment inputs stay where they are.
+
+## 6. Fixture ratings
+
+`uv run python -m fpl fixtures-rate --gw N` writes `fixtures.json` and
+`fixtures-tables.md` from the cached snapshots plus
+`data/analysis/club-priors.json`. Code: `fpl/fixture_ratings.py`. It reads no
+network and no credentials.
+
+Inputs:
+- `data/raw/gw{N}/bootstrap.json` (club short names, each player's club) and
+  `fixtures.json`.
+- Every cached player summary in `data/raw/gw{N}/players/`.
+- `event-live-e{r}.json` from `data/raw/gw{r+1}/` for every round r before N.
+  The retro's `calibrate` writes it; without it the command refuses.
+- `club-priors.json`: one ATT and DEFW per club, fixed at GW1, never edited.
+- `data/analysis/gw{N-1}/fixtures.json`, if present, only for the Δ columns.
+
+Steps:
+1. A played match is a fixture with an event before N that is finished.
+2. A club's xG in a match is the sum of the `expected_goals` of every summary
+   row for that fixture on that side (`was_home`). Rows follow the fixture,
+   not the player's current club, so a transferred player's old matches stay
+   with his old club.
+3. A player who played in a match but has no summary row is recovered from
+   that round's event-live snapshot and counted on his current club's side.
+   In a double gameweek his xG is split across the two fixtures by minutes.
+4. Each side's xG is rounded to 2 decimals. The match then gives each club an
+   implied ATT = xG / (base for its venue × opponent's prior DEFW) and an
+   implied DEFW = xG conceded / (base for the opponent's venue × opponent's
+   prior ATT). Both are clipped to [0.55, 1.80] and the clips are counted.
+5. Blend: (k × prior + Σ implied) / (k + matches played).
+
+   | Rating | k | k, promoted club |
+   |---|---|---|
+   | ATT | 5.7 | 4.0 |
+   | DEFW | 4.0 | 3.0 |
+
+   The prior keeps at least 25% weight through GW10 (k / (k + 9)).
+6. ATT and DEFW are each rescaled to a 20-club mean of 1.00, then rounded to
+   2 decimals. At GW1, with no matches, the ratings are the priors rescaled.
+7. Rows for GW N to N+5 (never past GW38): λ_att = base × ATT_club ×
+   DEFW_opp from the rounded ratings, rounded to 2 decimals, with base 1.54 at
+   home and 1.33 away. λ_def is the opponent's λ_att and P(CS) =
+   e^(−λ_def), rounded to 2 decimals. `band` is true when either club is
+   promoted. A double gameweek gives two rows; a blank gives none.
+
+The command prints the rounds and matches used, how many player-rounds were
+recovered from event-live, the clip count, the league's xG per match against
+the 1.54 + 1.33 base, and the window's blanks and doubles. `fixtures-tables.md`
+holds the ratings with their Δ, the implied ratings by round, the attack and
+defence tickers, the swings, FDR against the model's ranks, the promoted-club
+rows with P(CS) ≥ 0.30, and one detail table per window gameweek. Every rank
+is printed in its own column: `ATT rating rank` and `DEFW rating rank` in the
+ratings table (level clubs share a rank), `ATT rank` and `CS rank` in the
+tickers and in the FDR table. The fixture analyst quotes these tables, ranks
+included, and never recomputes them.

@@ -46,7 +46,8 @@ Scoring context that changes valuation this season:
    user to re-capture credentials now (docs/api-write.md §1), not at step 8 —
    an expired session found minutes before the deadline means the transfers
    never get POSTed.
-2. Run `agents/fixture-analyst.md`  → data/analysis/gw{N}/fixtures.md + fixtures.json
+2. Run `agents/fixture-analyst.md`  → data/analysis/gw{N}/fixtures.md (agent);
+                                       fixtures.json + fixtures-tables.md (`fpl fixtures-rate`)
 3. Run `agents/player-analyst.md` (once per position: GKP, DEF, MID, FWD)
                                      → data/analysis/gw{N}/inputs-{pos}.json, then the
                                        agent runs `fpl ep` → players-{pos}.json (+ .md).
@@ -68,6 +69,8 @@ Scoring context that changes valuation this season:
    A `**C<n> — CODE (fpl/ep.py): …**` correction in the retro is outside the
    GW cycle: the orchestrator surfaces it to the user, who ships it as a code
    change with tests (docs/ep-model.md §5). No agent acts on it.
+   Step 2 starts only after step 0 has returned: fixtures-rate needs the
+   retro's event-live snapshot, and the fixture analyst needs its corrections.
 1–6. As above, but squad-optimizer proposes TRANSFERS plus captain and bench
    order, scored on the 6-GW EP horizon. It reads the current squad from the
    STATE block of the latest data/decisions/*/final.md, any correction
@@ -254,6 +257,7 @@ All FPL API access goes through the deterministic CLI
 | `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON | cached |
 | `flags --ids <ids> [--baseline <bootstrap.json>]` | the pre-deadline freshness gate: refreshes bootstrap, prints flags for `--ids` plus their status/chance/news delta against the baseline (default: the bootstrap cached just before the refresh) and an informational whole-pool delta by position; writes flags-delta-<stamp>.json. Exit 0 = no `--ids` change, 3 = a `--ids` player changed, 4 = no baseline | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
+| `fixtures-rate [--priors <p> --analysis-root <p> --format table\|json]` | compiles club-priors.json + cached summaries + event-live snapshots into fixtures.json + fixtures-tables.md; refuses without priors or an event-live round. Formula: docs/ep-model.md §6 | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
 | `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--minutes]` | filtered read over the cached bootstrap; `--minutes` appends this season's minutes per round from cached summaries | local only |
 | `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N --allow-missing-ids <ids>] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
@@ -321,12 +325,15 @@ Mechanics:
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory.
-- plan.json, data/retro/gw{M}-calibration.json, data/cost/gw{N}/ and
-  data/analysis/gw{N}/players-{pos}.json are the exceptions: all derived
-  (plan.json from final.md + cached bootstrap, the calibration ledger from the
-  analysis files + final.md + the round's event-live snapshot, players-{pos}.json
-  from inputs-{pos}.json + fixtures.json + cached snapshots via `fpl ep`), so
-  regenerating any of them is safe and expected.
+- plan.json, data/retro/gw{M}-calibration.json, data/cost/gw{N}/,
+  data/analysis/gw{N}/players-{pos}.json, fixtures.json and fixtures-tables.md
+  are the exceptions: all derived (plan.json from final.md + cached bootstrap,
+  the calibration ledger from the analysis files + final.md + the round's
+  event-live snapshot, players-{pos}.json from inputs-{pos}.json + fixtures.json
+  + cached snapshots via `fpl ep`, fixtures.json and fixtures-tables.md from
+  club-priors.json + cached snapshots via `fpl fixtures-rate`), so regenerating
+  any of them is safe and expected.
+- data/analysis/club-priors.json is written once at GW1 and never overwritten.
 - Every prediction must be written down BEFORE the deadline. No prediction,
   no calibration.
 - Commit to git after every GW cycle: `git commit -m "gw{N}: <summary>"`.
@@ -340,10 +347,10 @@ CODE C# into the backlog so it is the single triage list.
 
 Row format, agent codes, kind and status vocabulary, and the append snippet
 live at the top of docs/backlog.md. Mirrors, changed together with that file:
-agents/retro-analyst.md Call 4 and agents/player-analyst.md Call 5 carry the
-snippet verbatim and restate the kind list, because those agents may not read
-the file; the `## Corrections` legend in agents/retro-analyst.md restates the
-agent codes.
+agents/retro-analyst.md Call 4, agents/player-analyst.md Call 5 and
+agents/fixture-analyst.md § Rules carry the snippet verbatim and restate the
+kind list, because those agents may not read the file; the `## Corrections`
+legend in agents/retro-analyst.md restates the agent codes.
 
 - During a cycle the file is append-only via shell append (`>>`) — never a
   whole-file write. Existing rows change only in a triage session.
