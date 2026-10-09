@@ -49,6 +49,12 @@ PRIOR_POOL_TARGET_MINUTES = 900
 PRIOR_MAX_SEASONS = 2
 BLEND_EQUIV_MINUTES = 600.0
 BLEND_PRIOR_FLOOR = 0.2
+# Starts-equivalent pseudo-counts: bonus per start is noisy match to match and
+# barely differs between players, so a player's own record needs dozens of
+# starts before it outweighs the position mean.
+BONUS_SHRINK_STARTS: dict[Position, int] = {
+    Position.GKP: 30, Position.DEF: 60, Position.MID: 20, Position.FWD: 15,
+}
 LEAGUE_POOL_MIN = 8
 LEAGUE_POOL_MIN_MINUTES = 900
 COVERAGE_PRICE_FLOOR_TENTHS = 45
@@ -137,7 +143,7 @@ LEAGUE_FALLBACK: dict[Position, Rates] = {
     Position.GKP: Rates(xg90=0.0, xa90=0.0, dc90=0.0, saves90=3.0, bonus_per_start=0.25, yellow90=0.05, minutes_per_start=90),
     Position.DEF: Rates(xg90=0.07, xa90=0.08, dc90=8.5, saves90=0.0, bonus_per_start=0.30, yellow90=0.15, minutes_per_start=85),
     Position.MID: Rates(xg90=0.18, xa90=0.15, dc90=7.0, saves90=0.0, bonus_per_start=0.30, yellow90=0.15, minutes_per_start=80),
-    Position.FWD: Rates(xg90=0.40, xa90=0.12, dc90=3.5, saves90=0.0, bonus_per_start=0.35, yellow90=0.12, minutes_per_start=78),
+    Position.FWD: Rates(xg90=0.40, xa90=0.12, dc90=3.5, saves90=0.0, bonus_per_start=0.55, yellow90=0.12, minutes_per_start=78),
 }
 
 RATE_FIELDS = tuple(Rates.model_fields)
@@ -354,6 +360,31 @@ def shrink_rate(observed: float, minutes: float, league: float) -> float:
     return (observed * minutes + league * PRIOR_SHRINK_MINUTES) / (minutes + PRIOR_SHRINK_MINUTES)
 
 
+def bonus_rate(
+    *,
+    prior_bonus: float,
+    prior_starts: float,
+    current_bonus: float,
+    current_starts: float,
+    league: float,
+    k: float,
+) -> float:
+    return (prior_bonus + current_bonus + k * league) / (prior_starts + current_starts + k)
+
+
+def league_bonus_per_start(position: Position, players: Iterable[Player]) -> float:
+    """Starts-weighted bonus per start this season over every player of the
+    position — bootstrap totals, so it never depends on which summaries are
+    cached."""
+    bonus = starts = 0
+    for player in players:
+        bonus += player.bonus
+        starts += player.starts
+    if starts <= 0:
+        return LEAGUE_FALLBACK[position].bonus_per_start
+    return bonus / starts
+
+
 def defcon_hit_probability(
     dc90_prior: float, threshold: int, *, hits: int, matches: int, w_prior: float
 ) -> float:
@@ -370,6 +401,7 @@ def defcon_hit_probability(
 class _Totals:
     minutes: int = 0
     starts: int = 0
+    start_equivalents: float = 0.0
     xg: float = 0.0
     xa: float = 0.0
     dc: float = 0.0
@@ -380,6 +412,9 @@ class _Totals:
     def add(self, row: PastSeason | MatchRecord) -> None:
         self.minutes += row.minutes
         self.starts += row.starts or 0
+        # A row without a start (substitute-only spell, season predating the
+        # starts field) still earned its bonus; count its minutes as starts.
+        self.start_equivalents += row.starts or row.minutes / FULL_MATCH_MINUTES
         self.xg += row.expected_goals or 0.0
         self.xa += row.expected_assists or 0.0
         self.dc += row.defensive_contribution or 0.0
@@ -395,17 +430,15 @@ class _Totals:
         # starts field) say nothing about how long the player lasts when he
         # does start: take that from the league, not from 90.
         if self.starts > 0:
-            starts = float(self.starts)
-            minutes_per_start = min(FULL_MATCH_MINUTES, self.minutes / starts)
+            minutes_per_start = min(FULL_MATCH_MINUTES, self.minutes / self.starts)
         else:
-            starts = self.minutes / FULL_MATCH_MINUTES
             minutes_per_start = league.minutes_per_start
         return Rates(
             xg90=self.xg * per90,
             xa90=self.xa * per90,
             dc90=self.dc * per90,
             saves90=self.saves * per90,
-            bonus_per_start=self.bonus / starts,
+            bonus_per_start=self.bonus / self.start_equivalents,
             yellow90=self.yellow * per90,
             minutes_per_start=minutes_per_start,
         )
@@ -422,12 +455,17 @@ def _prior_seasons(history_past: Sequence[PastSeason]) -> list[PastSeason]:
     return chosen
 
 
-def rates_from_seasons(
-    history_past: Sequence[PastSeason], league: Rates
-) -> tuple[Rates | None, int]:
+def _prior_totals(history_past: Sequence[PastSeason]) -> _Totals:
     totals = _Totals()
     for row in _prior_seasons(history_past):
         totals.add(row)
+    return totals
+
+
+def rates_from_seasons(
+    history_past: Sequence[PastSeason], league: Rates
+) -> tuple[Rates | None, int]:
+    totals = _prior_totals(history_past)
     if totals.minutes <= 0:
         return None, 0
     return totals.rates(league), totals.minutes
@@ -452,7 +490,7 @@ def _blend(prior: Rates, current: Rates | None, w: float) -> Rates:
 
 
 def _league_mean(
-    position: Position, players: Iterable[Player], summaries: Mapping[int, ElementSummary]
+    position: Position, players: Sequence[Player], summaries: Mapping[int, ElementSummary]
 ) -> tuple[Rates, str, int]:
     pool = _Totals()
     members = 0
@@ -467,9 +505,10 @@ def _league_mean(
         members += 1
         for row in seasons:
             pool.add(row)
+    bonus = {"bonus_per_start": league_bonus_per_start(position, players)}
     if members >= LEAGUE_POOL_MIN:
-        return pool.rates(LEAGUE_FALLBACK[position]), "pooled", members
-    return LEAGUE_FALLBACK[position], "fallback", members
+        return pool.rates(LEAGUE_FALLBACK[position]).model_copy(update=bonus), "pooled", members
+    return LEAGUE_FALLBACK[position].model_copy(update=bonus), "fallback", members
 
 
 # ------------------------------------------------------------- output
@@ -690,7 +729,7 @@ def build_predictions(
         summary = summaries.get(entry.id)
         if summary is None:
             missing_summaries.append(entry.id)
-        rates = _effective_rates(entry, summary, league, points)
+        rates = _effective_rates(entry, summary, league, BONUS_SHRINK_STARTS[position])
         p_hit = 0.0
         if points.defcon_threshold is not None:
             p_hit = _defcon_probability(summary, rates, points.defcon_threshold)
@@ -813,11 +852,11 @@ def _check_coverage(
 
 
 def _effective_rates(
-    entry: PlayerInput, summary: ElementSummary | None, league: Rates, points: PositionPoints
+    entry: PlayerInput, summary: ElementSummary | None, league: Rates, bonus_k: int
 ) -> EffectiveRates:
-    prior_rates, prior_minutes = (
-        rates_from_seasons(summary.history_past, league) if summary else (None, 0)
-    )
+    prior_totals = _prior_totals(summary.history_past) if summary else _Totals()
+    prior_minutes = prior_totals.minutes
+    prior_rates = prior_totals.rates(league) if prior_minutes > 0 else None
     prior = _shrunk(prior_rates, prior_minutes, league)
     current_totals = _Totals()
     if summary is not None:
@@ -829,7 +868,16 @@ def _effective_rates(
     w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
         current_totals.minutes
     )
-    blended = _blend(prior, current, w)
+    blended = _blend(prior, current, w).model_copy(update={
+        "bonus_per_start": bonus_rate(
+            prior_bonus=prior_totals.bonus,
+            prior_starts=prior_totals.start_equivalents,
+            current_bonus=current_totals.bonus,
+            current_starts=current_totals.start_equivalents,
+            league=league.bonus_per_start,
+            k=bonus_k,
+        )
+    })
     values = {
         name: (
             getattr(overrides, name)

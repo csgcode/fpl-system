@@ -82,6 +82,7 @@ class Player(_FrozenModel):
     news_added: datetime | None = None
     minutes: int = Field(ge=0)
     starts: int = Field(ge=0)
+    bonus: int = Field(ge=0)
     total_points: int
     form: float
     selected_by_percent: float = Field(ge=0, le=100)

@@ -85,7 +85,7 @@ the league mean rather than from 90.
    `rate = w_prior × prior + (1 − w_prior) × current`.
 4. **League mean** — pooled from cached summaries of the position with ≥ 900
    prior minutes (≥ 8 players); otherwise the v1 fallback table below, with a
-   warning.
+   warning. `bonus_per_start` is the exception: see Bonus below.
 
 | fallback per-90 | GKP | DEF | MID | FWD |
 |---|---|---|---|---|
@@ -93,9 +93,37 @@ the league mean rather than from 90.
 | xa90 | 0.00 | 0.08 | 0.15 | 0.12 |
 | dc90 | 0.0 | 8.5 | 7.0 | 3.5 |
 | saves90 | 3.0 | 0 | 0 | 0 |
-| bonus_per_start | 0.25 | 0.30 | 0.30 | 0.35 |
+| bonus_per_start | 0.25 | 0.30 | 0.30 | 0.55 |
 | yellow90 | 0.05 | 0.15 | 0.15 | 0.12 |
 | minutes_per_start | 90 | 85 | 80 | 78 |
+
+### Bonus
+
+Bonus per start skips steps 1–3. It varies a lot from match to match and
+little between players, so a player's own record is trusted only once it
+covers many starts. All his bonus — the prior seasons from step 1 and this
+season — is pooled and shrunk toward the position's league bonus mean:
+
+```
+bonus_per_start = (prior_bonus + current_bonus + k × league_bonus)
+                / (prior_starts + current_starts + k)
+```
+
+| | GKP | DEF | MID | FWD |
+|---|---|---|---|---|
+| `k` (starts) | 30 | 60 | 20 | 15 |
+
+- Starts are counted per row: a row's `starts`, or its minutes ÷ 90 when it
+  records no start (a substitute-only spell, or a season from before the API
+  recorded starts), so the bonus such a row earned still has a denominator.
+- `league_bonus` is this season's total bonus divided by total starts over
+  every bootstrap player of the position. It reads the bootstrap, not the
+  cached summaries, so it covers the whole position, not just the players
+  whose summaries happen to be cached. Before anyone has started (total
+  starts 0) it is the fallback table value.
+- `prior_weight` (computed or overridden) does not touch bonus; an analyst who
+  wants a different bonus rate overrides `bonus_per_start` directly, and that
+  override wins.
 
 ### DefCon probability
 

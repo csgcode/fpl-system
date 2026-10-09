@@ -11,6 +11,7 @@ import pytest
 from fpl.calibrate import PlayerPrediction
 from fpl.ep import (
     BLEND_EQUIV_MINUTES,
+    BONUS_SHRINK_STARTS,
     BLEND_PRIOR_FLOOR,
     EffectiveRates,
     HORIZON,
@@ -19,12 +20,14 @@ from fpl.ep import (
     POINTS,
     PRIOR_SHRINK_MINUTES,
     Rates,
+    bonus_rate,
     build_predictions,
     defcon_hit_probability,
     defcon_minutes_factor,
     expected_floor_div,
     inspect_fixtures,
     interpolate,
+    league_bonus_per_start,
     p_sixty,
     parse_fixtures,
     parse_inputs,
@@ -32,7 +35,7 @@ from fpl.ep import (
     rates_from_seasons,
     shrink_rate,
 )
-from fpl.models import Bootstrap, ElementSummary, PastSeason, Position
+from fpl.models import Bootstrap, ElementSummary, PastSeason, Player, Position
 from tests.factories import (
     bootstrap_payload,
     element_summary_payload,
@@ -398,6 +401,135 @@ def test_league_mean_is_pooled_from_cached_summaries_when_the_pool_is_large_enou
     assert result.rows[0].rates.prior_source == "league_mean"
     assert not any("fallback" in w for w in result.warnings)
     assert result.not_scored == LEAGUE_POOL_MIN
+
+
+# ------------------------------------------------------------- bonus
+
+
+def test_bonus_rate_shrinks_toward_the_league_mean_by_a_starts_pseudo_count():
+    assert BONUS_SHRINK_STARTS == {
+        Position.GKP: 30, Position.DEF: 60, Position.MID: 20, Position.FWD: 15,
+    }
+    assert bonus_rate(
+        prior_bonus=0, prior_starts=0, current_bonus=0, current_starts=0, league=0.5, k=15
+    ) == 0.5
+    assert bonus_rate(
+        prior_bonus=4, prior_starts=10, current_bonus=2, current_starts=5, league=0.5, k=15
+    ) == pytest.approx((6 + 15 * 0.5) / 30)
+
+
+def test_bonus_rate_converges_to_the_observed_rate_with_many_starts():
+    rate = bonus_rate(
+        prior_bonus=12000, prior_starts=10000, current_bonus=0, current_starts=0, league=0.3, k=20
+    )
+    assert rate == pytest.approx(1.2, abs=0.01)
+
+
+def bootstrap_player(**overrides) -> Player:
+    return Player.model_validate(player(**overrides))
+
+
+def test_league_bonus_is_starts_weighted_over_every_player_of_the_position():
+    players = [
+        bootstrap_player(id=1, bonus=10, starts=5),
+        bootstrap_player(id=2, bonus=2, starts=15),
+        bootstrap_player(id=3, bonus=7, starts=0),
+    ]
+    assert league_bonus_per_start(Position.MID, players) == pytest.approx(19 / 20)
+
+
+def test_league_bonus_falls_back_to_the_table_before_anyone_has_started():
+    players = [bootstrap_player(id=1, bonus=0, starts=0)]
+    assert league_bonus_per_start(Position.FWD, players) == LEAGUE_FALLBACK[Position.FWD].bonus_per_start
+    assert LEAGUE_FALLBACK[Position.FWD].bonus_per_start == 0.55
+
+
+def bonus_world(*, starts: int, bonus: int) -> Bootstrap:
+    # Twenty-five team-mates averaging 0.4 bonus per start set the league mean.
+    others = [
+        player(id=i, web_name=f"Pool{i}", now_cost=45, starts=10, bonus=4) for i in range(10, 35)
+    ]
+    return make_bootstrap([player(starts=starts, bonus=bonus)] + others)
+
+
+def bonus_history(starts: int, bonus: int) -> list[dict]:
+    return [
+        match_record_payload(round=r, minutes=90, starts=1, bonus=bonus if r == 1 else 0)
+        for r in range(1, starts + 1)
+    ]
+
+
+def test_three_starts_with_six_bonus_stay_near_the_league_mean():
+    bootstrap = bonus_world(starts=3, bonus=6)
+    league = (6 + 25 * 4) / (3 + 25 * 10)  # whole position, the player included
+    k = BONUS_SHRINK_STARTS[Position.MID]
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=[], history=bonus_history(3, 6))}, fixtures_doc(),
+        inputs_doc("MID", [judged()]), gw=GW,
+    )
+    rate = result.rows[0].rates.bonus_per_start
+    assert rate == pytest.approx((6 + k * league) / (3 + k))
+    assert rate < 0.75
+
+
+def test_no_starts_anywhere_gives_the_league_mean():
+    bootstrap = bonus_world(starts=0, bonus=0)
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=[])}, fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW,
+    )
+    assert result.rows[0].rates.bonus_per_start == pytest.approx(100 / 250)
+    assert result.league.bonus_per_start == pytest.approx(100 / 250)
+
+
+def test_league_bonus_does_not_depend_on_which_summaries_are_cached():
+    bootstrap = bonus_world(starts=0, bonus=0)
+    rich = {
+        i: summary(history_past=[past_season_payload(minutes=3000, starts=34, bonus=40)])
+        for i in range(10, 35)
+    }
+    sparse = {1: summary(history_past=[])}
+    doc = inputs_doc("MID", [judged()])
+    with_pool = build_predictions(bootstrap, {**rich, **sparse}, fixtures_doc(), doc, gw=GW)
+    without = build_predictions(bootstrap, sparse, fixtures_doc(), doc, gw=GW)
+    assert with_pool.league.bonus_per_start == without.league.bonus_per_start == pytest.approx(0.4)
+    assert with_pool.rows[0].rates.bonus_per_start == without.rows[0].rates.bonus_per_start
+
+
+def test_bonus_pools_prior_seasons_and_this_season_without_the_blend_floor():
+    # 3000 current minutes put the minutes blend on its 0.2 floor; bonus ignores it.
+    bootstrap = bonus_world(starts=34, bonus=0)
+    hist_past = [past_season_payload(season_name="2025/26", minutes=3060, starts=34, bonus=24)]
+    history = bonus_history(34, 34)
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=hist_past, history=history)}, fixtures_doc(),
+        inputs_doc("MID", [judged()]), gw=GW,
+    )
+    rates = result.rows[0].rates
+    assert rates.prior_weight == BLEND_PRIOR_FLOOR
+    league = result.league.bonus_per_start
+    k = BONUS_SHRINK_STARTS[Position.MID]
+    assert rates.bonus_per_start == pytest.approx((24 + 34 + k * league) / (34 + 34 + k))
+
+
+def test_prior_weight_override_does_not_reweight_bonus():
+    bootstrap = bonus_world(starts=3, bonus=6)
+    hist_past = [past_season_payload(season_name="2025/26", minutes=900, starts=10, bonus=2)]
+    world = {1: summary(history_past=hist_past, history=bonus_history(3, 6))}
+    plain = build_predictions(bootstrap, world, fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW)
+    pinned = build_predictions(
+        bootstrap, world, fixtures_doc(),
+        inputs_doc("MID", [judged(overrides={"prior_weight": 1.0}, reason="t")]), gw=GW,
+    )
+    assert pinned.rows[0].rates.bonus_per_start == plain.rows[0].rates.bonus_per_start
+
+
+def test_bonus_override_still_wins():
+    bootstrap = bonus_world(starts=3, bonus=6)
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=[], history=bonus_history(3, 6))}, fixtures_doc(),
+        inputs_doc("MID", [judged(overrides={"bonus_per_start": 1.1}, reason="t")]), gw=GW,
+    )
+    assert result.rows[0].rates.bonus_per_start == 1.1
 
 
 # --------------------------------------------------------------- contracts

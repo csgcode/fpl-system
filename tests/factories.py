@@ -21,6 +21,7 @@ def player_payload(**overrides: Any) -> dict[str, Any]:
         "news_added": None,
         "minutes": 0,
         "starts": 0,
+        "bonus": 0,
         "total_points": 0,
         "form": "0.0",
         "selected_by_percent": "45.3",
