@@ -30,11 +30,13 @@ content) is in the manifest it compares, so a store it opens agrees with
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 import re
 import sqlite3
+import sys
 import tempfile
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
@@ -851,21 +853,17 @@ _MATCH_COLUMNS = tuple(name for name in StoredMatch.model_fields if name in PLAY
 def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
     """A read-only view of the store, refused unless it has ingested exactly
     the raw tree it was built from."""
-    files = _scan(raw_root)
-    latest = max((f.gw for f in files), default=None)
-    hint = f"run: uv run python -m fpl store sync --gw {latest}"
-    if not db_path.is_file():
-        raise StoreReadError(f"no season store at {db_path} — {hint}")
-    con = sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
+    con = _open_checked(db_path, raw_root, _scan(raw_root))
+    con.row_factory = sqlite3.Row
+    return SeasonReader(con)
+
+
+def _open_checked(db_path: Path, raw_root: Path, files: Sequence[_RawFile]) -> sqlite3.Connection:
+    hint = _hint(files)
+    con = _open_existing(db_path, files)
     try:
-        try:
-            version = con.execute("PRAGMA user_version").fetchone()[0]
-            known = _manifest_keys(con) if version == SCHEMA_VERSION else None
-        except sqlite3.DatabaseError as exc:
-            raise StoreReadError(
-                f"season store {db_path} is unreadable ({exc}) — run: "
-                f"uv run python -m fpl store rebuild --gw {latest}"
-            ) from None
+        known = _readable(db_path, files, lambda: (
+            _manifest_keys(con) if _version(con) == SCHEMA_VERSION else None))
         if known is None:
             raise StoreReadError(
                 f"season store {db_path} has another schema version — {hint}")
@@ -876,8 +874,33 @@ def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
     except BaseException:
         con.close()
         raise
-    con.row_factory = sqlite3.Row
-    return SeasonReader(con)
+    return con
+
+
+def _open_existing(db_path: Path, files: Sequence[_RawFile]) -> sqlite3.Connection:
+    if not db_path.is_file():
+        raise StoreReadError(f"no season store at {db_path} — {_hint(files)}")
+    return sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
+
+
+def _version(con: sqlite3.Connection) -> int:
+    return con.execute("PRAGMA user_version").fetchone()[0]
+
+
+def _readable(
+    db_path: Path, files: Sequence[_RawFile], read: Callable[[], Any]
+) -> Any:
+    try:
+        return read()
+    except sqlite3.DatabaseError as exc:
+        raise StoreReadError(
+            f"season store {db_path} is unreadable ({exc}) — {_hint(files, 'rebuild')}"
+        ) from None
+
+
+def _hint(files: Sequence[_RawFile], action: str = "sync") -> str:
+    latest = max((f.gw for f in files), default=None)
+    return f"run: uv run python -m fpl store {action} --gw {latest}"
 
 
 def _first_difference(
@@ -1038,3 +1061,137 @@ class SeasonReader:
                 f"{path} was fetched at {found['fetched_at']}, not before the gw{gw} "
                 f"deadline {deadline[0]} — it may show round {gw}"
             )
+
+
+# --- fpl store ---------------------------------------------------------------
+
+ACTIONS = ("sync", "verify", "status", "rebuild")
+EXIT_OK = 0
+EXIT_ERROR = 1
+EXIT_MISMATCH = 3
+
+
+def register(add: Callable[..., argparse.ArgumentParser]) -> None:
+    """Adds `fpl store` through the CLI's own `add`, so it takes `--gw` like
+    every other command."""
+    p = add("store", "build and check the local season store (derived from data/raw)",
+            cached=False)
+    p.add_argument(
+        "action", choices=ACTIONS,
+        help="sync: ingest what changed; rebuild: from scratch; verify: in sync, "
+             "reconciled and equal to a fresh build (writes nothing); status: the "
+             "manifest summary (writes nothing). Every action covers the whole raw tree; "
+             f"exit {EXIT_MISMATCH}: a reconciliation mismatch",
+    )
+    p.add_argument("--store", type=Path, default=DEFAULT_STORE_PATH,
+                   help=f"store file (default: {DEFAULT_STORE_PATH})")
+
+
+def run(raw_root: Path, args: argparse.Namespace) -> int:
+    if args.action == "status":
+        return _status(raw_root, args.store)
+    if args.action == "verify":
+        return _verify(raw_root, args.store)
+    report = (rebuild if args.action == "rebuild" else sync)(raw_root, args.store)
+    print(f"store {args.store}: {report.files_ingested} files ingested")
+    return _print_report(report)
+
+
+def _print_report(report: SyncReport) -> int:
+    print(f"rounds {_spans(report.rounds)}")
+    print(f"player_rounds {report.player_rounds}")
+    print(f"history_past players {report.history_past_players}")
+    print(f"unresolved sides {len(report.unresolved)}")
+    for u in report.unresolved:
+        print(f"  round {u.round} element {u.element} fixture {u.fixture}")
+    print(f"dgw splits {len(report.dgw_splits)}")
+    for d in report.dgw_splits:
+        print(f"  round {d.round} element {d.element} "
+              f"fixtures {','.join(map(str, d.fixtures))}")
+    if report.reconciliation_skipped is not None:
+        print(f"reconciliation: skipped ({report.reconciliation_skipped})")
+        return EXIT_OK
+    if not report.mismatches:
+        print("reconciliation: OK")
+        return EXIT_OK
+    count = len(report.mismatches)
+    print(f"reconciliation: {count} mismatch{'' if count == 1 else 'es'}")
+    for line in report.mismatches:
+        print(f"  {line}")
+    return EXIT_MISMATCH
+
+
+def _verify(raw_root: Path, db_path: Path) -> int:
+    files = _scan(raw_root)
+    con = _open_checked(db_path, raw_root, files)
+    try:
+        exit_code = _print_report(_report(con, 0))
+        stored = list(con.iterdump())
+    finally:
+        con.close()
+    with tempfile.TemporaryDirectory(prefix="fpl-store-verify-") as scratch:
+        fresh_path = Path(scratch) / "fresh.sqlite"
+        _fill(fresh_path, _build(files))
+        fresh = _connect(fresh_path)
+        try:
+            built = list(fresh.iterdump())
+        finally:
+            fresh.close()
+    if stored != built:
+        first = next((a for a, b in zip(stored, built) if a != b),
+                     "row count differs" if len(stored) != len(built) else "")
+        print(f"content: differs from a fresh build (first: {first[:160]})")
+        print(f"error: season store {db_path} does not equal a fresh build of {raw_root} — "
+              f"{_hint(files, 'rebuild')}", file=sys.stderr)
+        return EXIT_ERROR
+    print("content: matches a fresh build")
+    return exit_code
+
+
+def _status(raw_root: Path, db_path: Path) -> int:
+    files = _scan(raw_root)
+    con = _open_existing(db_path, files)
+    try:
+        version = _readable(db_path, files, lambda: _version(con))
+        if version != SCHEMA_VERSION:
+            raise StoreReadError(
+                f"season store {db_path} has schema {version}, this code reads "
+                f"{SCHEMA_VERSION} — {_hint(files)}")
+        manifest = _readable(db_path, files, lambda: con.execute(
+            "SELECT kind, gw, final, ingested_rows, fetched_at FROM manifest").fetchall())
+        rounds = tuple(r for (r,) in con.execute(
+            "SELECT DISTINCT round FROM player_rounds ORDER BY round"))
+        player_rounds = con.execute("SELECT COUNT(*) FROM player_rounds").fetchone()[0]
+        stale = _first_difference(_manifest_keys(con), {f.path: f.key for f in files})
+    finally:
+        con.close()
+    gws = sorted({gw for _, gw, *_ in manifest})
+    span = f"gw{gws[0]}-{gws[-1]}" if gws else "no gameweeks"
+    print(f"store {db_path}: schema {version}, {len(manifest)} files, {span}")
+    print(f"{'kind':<11}{'files':>7}{'final':>7}{'rows':>9}")
+    for kind in ("bootstrap", "fixtures", "event-live", "summary"):
+        of_kind = [row for row in manifest if row[0] == kind]
+        print(f"{kind:<11}{len(of_kind):>7}{sum(row[2] for row in of_kind):>7}"
+              f"{sum(row[3] for row in of_kind):>9}")
+    print(f"rounds {_spans(rounds)}")
+    print(f"player_rounds {player_rounds}")
+    fetched = [row[4] for row in manifest if row[4] is not None]
+    print(f"latest fetch {max(fetched, key=datetime.fromisoformat) if fetched else 'none'}")
+    if stale is None:
+        print(f"in sync with {raw_root}")
+    else:
+        print(f"behind {raw_root}: {stale} — {_hint(files)}")
+    return EXIT_OK
+
+
+def _spans(values: Sequence[int]) -> str:
+    """1,2,3,5 → '1-3, 5'."""
+    if not values:
+        return "none"
+    spans: list[list[int]] = []
+    for value in values:
+        if spans and value == spans[-1][1] + 1:
+            spans[-1][1] = value
+        else:
+            spans.append([value, value])
+    return ", ".join(str(lo) if lo == hi else f"{lo}-{hi}" for lo, hi in spans)

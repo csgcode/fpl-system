@@ -64,7 +64,7 @@ from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
-from fpl import objective_report
+from fpl import objective_report, season_store
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -573,6 +573,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     corrections.add_argument("--agent", help="agent code, e.g. A3 or CODE")
     corrections.add_argument("--retro-root", type=Path, default=RETRO_ROOT)
+    season_store.register(add)
     return parser
 
 
@@ -737,6 +738,8 @@ def main(
             return objective_report.run(args.data_root, args)
         if args.command == "corrections":
             return run_corrections(args)
+        if args.command == "store":
+            return season_store.run(args.data_root, args)
         if args.command == "fixtures-rate":
             return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:
