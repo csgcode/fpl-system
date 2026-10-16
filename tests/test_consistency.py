@@ -32,7 +32,7 @@ def test_defender_clean_sheet_with_full_minutes() -> None:
 
 
 def test_goalkeeper_needs_six_saves_for_two_save_points() -> None:
-    fm = FixtureMeans(goal_pts=10, saves_mean=6.0, p60=1.0, p_cs=0.0)
+    fm = FixtureMeans(goal_pts=6, saves_mean=6.0, p60=1.0, p_cs=0.0)
     p_le_5 = sum(math.exp(-6.0) * 6.0**s / math.factorial(s) for s in range(6))
 
     p = p_at_least([fm], p_start=1.0, k=4)

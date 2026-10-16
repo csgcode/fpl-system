@@ -17,6 +17,8 @@ kept at 40.
 Left out, with the direction each omission biases P(X ≥ k):
 
 - bonus points: biases P down;
+- substitute appearances: a non-start counts as 0, so a sub's 1 point and
+  small chance of a return are ignored; biases P down for rotation players;
 - goals conceded, and its dependence on the clean sheet: biases GKP/DEF up;
 - yellow and red cards, own goals, missed penalties: bias P up;
 - penalty saves: biases GKP down, slightly.
