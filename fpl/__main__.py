@@ -2130,9 +2130,10 @@ def _format_fetch_log(events: Sequence[FetchEvent]) -> str:
         event = events[0]
         if event.fetched:
             return "(fetched)"
+        suffix = ", final" if event.final else ""
         if event.age_hours is None:
-            return "(cached, age unknown)"
-        return f"(cached, age {event.age_hours:.1f}h)"
+            return f"(cached, age unknown{suffix})"
+        return f"(cached, age {event.age_hours:.1f}h{suffix})"
     fetched = sum(1 for event in events if event.fetched)
     return f"({fetched} fetched, {len(events) - fetched} cached)"
 

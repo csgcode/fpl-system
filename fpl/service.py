@@ -85,12 +85,13 @@ class GameweekMismatchError(ValueError):
 
 @dataclass(frozen=True)
 class FetchEvent:
-    """One snapshot access: whether the network was touched, and the age of
-    the snapshot served from cache."""
+    """One snapshot access: whether the network was touched, the age of the
+    snapshot served from cache, and whether that snapshot is final."""
 
     name: str
     fetched: bool
     age_hours: float | None = None
+    final: bool = False
 
 
 @dataclass(frozen=True)
@@ -472,23 +473,34 @@ class FplDataService:
         max_age_hours: float,
         force: bool,
         guard: Callable[[Any], None] | None = None,
+        final_when: Callable[[Any], tuple[bool, str | None]] | None = None,
     ) -> Any:
         if not force and self._store.exists(gw, name):
             age = self._store.age_hours(gw, name)
+            final = self._store.is_final(gw, name)
             # max_age_hours == inf means "any snapshot will do", including one
-            # whose sidecar is missing or unreadable.
-            if _is_positive_inf(max_age_hours) or (
+            # whose sidecar is missing or unreadable. A final snapshot can no
+            # longer change, so it is served at any age.
+            if final or _is_positive_inf(max_age_hours) or (
                 age is not None and age <= max_age_hours
             ):
                 parsed = parse(self._store.load(gw, name))
-                self._log.events.append(FetchEvent(name, fetched=False, age_hours=age))
+                self._log.events.append(
+                    FetchEvent(name, fetched=False, age_hours=age, final=final)
+                )
                 return parsed
         fetched = fetch()
         parsed = parse(fetched.payload)
         if guard is not None:
             guard(parsed)
-        self._store.save(gw, name, fetched.payload, fetched.url)
-        self._log.events.append(FetchEvent(name, fetched=True))
+        # final_when explains its verdict either way: the basis of a final
+        # snapshot, or the reason a snapshot is not final yet.
+        final, why = final_when(parsed) if final_when is not None else (False, None)
+        self._store.save(
+            gw, name, fetched.payload, fetched.url, final=final,
+            basis=why if final else None, reason=None if final else why,
+        )
+        self._log.events.append(FetchEvent(name, fetched=True, final=final))
         return parsed
 
 

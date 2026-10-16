@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -205,3 +206,47 @@ def test_save_text_meta_does_not_collide_with_json_snapshot(store, tmp_path):
     store.save_text(2, "prior-season.csv", "x\n", "url")
     assert (tmp_path / "gw2" / ".meta" / "prior-season.json").is_file()
     assert (tmp_path / "gw2" / ".meta" / "prior-season.csv").is_file()
+
+
+def test_save_records_final_and_basis_in_the_sidecar(store, clock):
+    store.save(8, "event-live-e7", {}, "url", final=True, basis="x")
+
+    meta = store.meta(8, "event-live-e7")
+    assert meta["final"] is True
+    assert meta["basis"] == "x"
+    assert store.fetched_at(8, "event-live-e7") == clock.now
+
+
+def test_save_records_a_reason_when_given(store):
+    store.save(8, "event-live-e7", {}, "url", reason="refetch requested")
+    assert store.meta(8, "event-live-e7")["reason"] == "refetch requested"
+
+
+def test_old_sidecar_without_final_reads_as_not_final(store, tmp_path):
+    store.save(2, "bootstrap", {}, "url")
+    (tmp_path / "gw2" / ".meta" / "bootstrap.json").write_text(
+        '{"fetched_at": "2026-08-21T06:00:00+00:00", "source_url": "url"}'
+    )
+
+    meta = store.meta(2, "bootstrap")
+    assert meta["final"] is False
+    assert meta["source_url"] == "url"
+    assert store.is_final(2, "bootstrap") is False
+
+
+@pytest.mark.parametrize("meta_text", ["{corrupt", "[]", '{"final": "yes"}'])
+def test_unusable_sidecar_is_never_final(store, tmp_path, meta_text):
+    store.save(2, "bootstrap", {}, "url")
+    (tmp_path / "gw2" / ".meta" / "bootstrap.json").write_text(meta_text)
+    assert store.is_final(2, "bootstrap") is False
+
+
+def test_meta_of_a_missing_snapshot_is_not_final(store):
+    assert store.meta(2, "bootstrap") == {"final": False}
+    assert store.is_final(2, "bootstrap") is False
+
+
+def test_non_final_save_keeps_the_sidecar_shape(store, tmp_path):
+    store.save(2, "bootstrap", {}, "url")
+    meta = json.loads((tmp_path / "gw2" / ".meta" / "bootstrap.json").read_text())
+    assert set(meta) == {"fetched_at", "source_url"}

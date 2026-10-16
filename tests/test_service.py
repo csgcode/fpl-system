@@ -537,3 +537,111 @@ def test_event_live_fetches_once_then_serves_from_cache(tmp_path):
     service.event_live(gw=2, event=1)
     assert gateway.calls == [url]
     assert store.exists(2, "event-live-e1")
+
+
+EVENT_LIVE_E7_URL = f"{BASE_URL}/event/7/live/"
+
+
+def _final_event_live_service(tmp_path):
+    from tests.factories import event_live_payload, live_element_payload
+
+    service, gateway, store, clock = make_service(
+        tmp_path,
+        {EVENT_LIVE_E7_URL: event_live_payload([live_element_payload(element_id=7)])},
+    )
+    store.save(
+        8, "event-live-e7", event_live_payload([live_element_payload(element_id=7)]),
+        EVENT_LIVE_E7_URL, final=True, basis="bootstrap gw8 shows event 7 data_checked",
+    )
+    return service, gateway, store, clock
+
+
+def test_final_snapshot_is_served_past_max_age(tmp_path):
+    service, gateway, _, clock = _final_event_live_service(tmp_path)
+    clock.advance(hours=100)
+
+    live = service.event_live(gw=8, event=7, max_age_hours=24)
+
+    assert live.by_id()[7].total_points == 6
+    assert gateway.calls == []
+    (event,) = service.take_fetch_log()
+    assert event.fetched is False
+    assert event.final is True
+    assert event.age_hours == pytest.approx(100.0)
+
+
+def test_force_refetches_a_final_snapshot_and_archives_it(tmp_path):
+    service, gateway, store, clock = _final_event_live_service(tmp_path)
+    clock.advance(hours=1)
+
+    service.event_live(gw=8, event=7, force=True)
+
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+    archived = list((tmp_path / "gw8" / ".archive").glob("event-live-e7-*.json"))
+    assert len(archived) == 1
+    (event,) = service.take_fetch_log()
+    assert event.fetched is True
+    assert store.age_hours(8, "event-live-e7") == pytest.approx(0.0)
+
+
+def test_non_final_snapshot_still_honours_max_age(tmp_path):
+    from tests.factories import event_live_payload
+
+    service, gateway, store, clock = make_service(
+        tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
+    )
+    service.event_live(gw=8, event=7)
+    clock.advance(hours=25)
+    service.event_live(gw=8, event=7)
+
+    assert gateway.calls == [EVENT_LIVE_E7_URL, EVENT_LIVE_E7_URL]
+    assert [e.final for e in service.take_fetch_log()] == [False, False]
+    assert store.is_final(8, "event-live-e7") is False
+
+
+def test_final_when_decides_finality_at_fetch_time(tmp_path):
+    from fpl.models import EventLive
+    from tests.factories import event_live_payload
+
+    service, gateway, store, clock = make_service(
+        tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
+    )
+    seen = []
+
+    def final_when(parsed):
+        seen.append(parsed)
+        return True, "checked"
+
+    service._load_or_fetch(
+        8, "event-live-e7", lambda: service._api.event_live(7),
+        EventLive.model_validate, 24, False, final_when=final_when,
+    )
+
+    assert len(seen) == 1 and isinstance(seen[0], EventLive)
+    assert store.meta(8, "event-live-e7")["final"] is True
+    assert store.meta(8, "event-live-e7")["basis"] == "checked"
+    (event,) = service.take_fetch_log()
+    assert (event.fetched, event.final) == (True, True)
+
+    clock.advance(hours=72)
+    service.event_live(gw=8, event=7)
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+
+
+def test_final_when_records_why_a_snapshot_is_not_final(tmp_path):
+    from fpl.models import EventLive
+    from tests.factories import event_live_payload
+
+    service, _, store, _ = make_service(
+        tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
+    )
+    service._load_or_fetch(
+        8, "event-live-e7", lambda: service._api.event_live(7),
+        EventLive.model_validate, 24, False,
+        final_when=lambda _: (False, "event 7 not data_checked"),
+    )
+
+    meta = store.meta(8, "event-live-e7")
+    assert meta["final"] is False
+    assert meta["reason"] == "event 7 not data_checked"
+    assert "basis" not in meta

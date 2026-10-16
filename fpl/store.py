@@ -4,7 +4,8 @@ Invariant (CLAUDE.md): raw files are never destroyed. A refresh moves the
 previous snapshot into .archive/ before writing the new one, and refuses to
 write if that would overwrite an existing archive entry. Each snapshot
 carries a .meta/ sidecar with fetch time and source URL for freshness checks
-and provenance. Writes are atomic: an interrupted write can never leave a
+and provenance, plus `final: true` (and the `basis` for it) when the payload
+can no longer change, so a cached copy is valid at any age. Writes are atomic: an interrupted write can never leave a
 truncated file where a valid snapshot was.
 """
 
@@ -15,6 +16,7 @@ import os
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from fpl.clock import utcnow
 
@@ -78,9 +80,43 @@ class SnapshotStore:
             return None
         return (self._now() - fetched_at).total_seconds() / 3600
 
-    def save(self, gw: int, name: str, payload: dict | list, source_url: str) -> Path:
+    def meta(self, gw: int, name: str) -> dict[str, Any]:
+        """The sidecar's keys, with `final` always present and True only when
+        the sidecar says exactly `true`. A missing or unreadable sidecar reads
+        as `{"final": False}`."""
+        meta_path = self._meta_path(gw, f"{_safe_name(name)}.json")
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            meta = {}
+        if not isinstance(meta, dict):
+            meta = {}
+        return {**meta, "final": meta.get("final") is True}
+
+    def is_final(self, gw: int, name: str) -> bool:
+        return self.exists(gw, name) and self.meta(gw, name)["final"]
+
+    def save(
+        self,
+        gw: int,
+        name: str,
+        payload: dict | list,
+        source_url: str,
+        *,
+        final: bool = False,
+        basis: str | None = None,
+        reason: str | None = None,
+    ) -> Path:
+        extra: dict[str, Any] = {}
+        if final:
+            extra["final"] = True
+        if basis is not None:
+            extra["basis"] = basis
+        if reason is not None:
+            extra["reason"] = reason
         return self._write(
-            gw, f"{_safe_name(name)}.json", json.dumps(payload, indent=1), source_url
+            gw, f"{_safe_name(name)}.json", json.dumps(payload, indent=1), source_url,
+            extra,
         )
 
     def save_text(self, gw: int, filename: str, text: str, source_url: str) -> Path:
@@ -93,7 +129,14 @@ class SnapshotStore:
             raise SnapshotMissingError(gw, name)
         return json.loads(self.path(gw, name).read_text(encoding="utf-8"))
 
-    def _write(self, gw: int, filename: str, content: str, source_url: str) -> Path:
+    def _write(
+        self,
+        gw: int,
+        filename: str,
+        content: str,
+        source_url: str,
+        extra: dict[str, Any] | None = None,
+    ) -> Path:
         path = self.dir(gw) / filename
         meta_path = self._meta_path(gw, filename)
         self._archive_existing(path, meta_path)
@@ -101,7 +144,11 @@ class SnapshotStore:
         _atomic_write(
             meta_path,
             json.dumps(
-                {"fetched_at": self._now().isoformat(), "source_url": source_url},
+                {
+                    "fetched_at": self._now().isoformat(),
+                    "source_url": source_url,
+                    **(extra or {}),
+                },
                 indent=1,
             ),
         )

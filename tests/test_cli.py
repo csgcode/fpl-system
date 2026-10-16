@@ -1061,3 +1061,25 @@ def test_plan_from_proposal_diffs_against_previous_final_not_previous_proposal(
     )
     assert run_plan_cli(["plan", "--gw", "2", "--from-final", str(proposal)], tmp_path) == 0
     assert "transfers: 1 (picks-diff)" in capsys.readouterr().out.splitlines()
+
+
+def test_cache_note_spells_final():
+    from evals.harness.fpl_output import CacheNote, note_from_text
+    from fpl.__main__ import _format_fetch_log
+    from fpl.service import FetchEvent
+
+    note = _format_fetch_log(
+        [FetchEvent("event-live-e7", fetched=False, age_hours=100.0, final=True)]
+    )
+
+    assert note == "(cached, age 100.0h, final)"
+    assert note_from_text(note) == CacheNote("cached")
+
+
+def test_cache_note_of_a_final_snapshot_with_unknown_age():
+    from fpl.__main__ import _format_fetch_log
+    from fpl.service import FetchEvent
+
+    assert _format_fetch_log(
+        [FetchEvent("event-live-e7", fetched=False, final=True)]
+    ) == "(cached, age unknown, final)"
