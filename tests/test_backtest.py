@@ -12,7 +12,15 @@ from pathlib import Path
 
 import pytest
 
-from fpl.backtest import BacktestLine, compare, load_round, score_round, signed
+from fpl.backtest import (
+    BacktestLine,
+    compare,
+    cross_validate,
+    load_round,
+    score_round,
+    ship_value,
+    signed,
+)
 from fpl.ep import DEFAULT_CONFIG, build_predictions
 from fpl.models import Position
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
@@ -463,3 +471,63 @@ def test_compare_refuses_duplicate_lines():
     baseline, variant = _sides([2, -2], [1, -1])
     with pytest.raises(ValueError, match="duplicate"):
         compare([*baseline, baseline[0]], [*variant, variant[0]])
+
+
+def _round_lines(mae_by_round: dict[int, float], *, n: int = 4) -> list[BacktestLine]:
+    return [_line(e, id=i, round=r, club=f"C{r}-{i}")
+            for r, mae in mae_by_round.items()
+            for i, e in enumerate(_alternating(n, mae), start=1)]
+
+
+def test_loro_picks_per_fold_and_scores_the_held_out_round():
+    lines_by_value = {
+        "a": _round_lines({3: 2.0, 4: 2.0, 5: 1.0}),
+        "b": _round_lines({3: 1.0, 4: 1.5, 5: 2.0}),
+    }
+    cv_lines, picks = cross_validate(lines_by_value)
+    assert picks == {3: "a", 4: "a", 5: "b"}
+    expected = [line for line in lines_by_value["a"] if line.round in (3, 4)]
+    expected += [line for line in lines_by_value["b"] if line.round == 5]
+    assert sorted(cv_lines, key=lambda l: (l.round, l.id)) == expected
+
+
+def test_loro_tie_goes_to_the_earlier_grid_entry():
+    lines_by_value = {
+        "b": _round_lines({3: 1.0, 4: 1.5, 5: 2.0}),
+        "a": _round_lines({3: 2.0, 4: 2.0, 5: 1.0}),
+    }
+    assert cross_validate(lines_by_value)[1][4] == "b"
+
+
+def test_loro_accepts_tuple_grid_values():
+    lines_by_value = {
+        (600.0, None): _round_lines({3: 2.0, 4: 2.0}),
+        (300.0, 2.0): _round_lines({3: 1.0, 4: 1.0}),
+    }
+    assert cross_validate(lines_by_value)[1] == {3: (300.0, 2.0), 4: (300.0, 2.0)}
+
+
+def test_loro_refuses_fewer_than_two_rounds_or_mismatched_rounds():
+    with pytest.raises(ValueError, match="two rounds"):
+        cross_validate({"a": _round_lines({3: 1.0})})
+    with pytest.raises(ValueError, match="rounds"):
+        cross_validate({"a": _round_lines({3: 1.0, 4: 1.0}),
+                        "b": _round_lines({3: 1.0, 5: 1.0})})
+    with pytest.raises(ValueError, match="no grid"):
+        cross_validate({})
+
+
+def test_ship_value_mode_then_grid_order():
+    assert ship_value({3: "a", 4: "a", 5: "b"}, ["a", "b"]) == "a"
+    assert ship_value({3: "a", 4: "b"}, ["b", "a"]) == "b"
+    assert ship_value({3: "a", 4: "b"}, ["a", "b"]) == "a"
+    grid = [(600.0, None), (300.0, 2.0), (450.0, None)]
+    assert ship_value({3: (300.0, 2.0), 4: (450.0, None), 5: (300.0, 2.0)}, grid) == (300.0, 2.0)
+    assert ship_value({3: (450.0, None), 4: (300.0, 2.0)}, grid) == (300.0, 2.0)
+
+
+def test_ship_value_refuses_a_pick_outside_the_grid():
+    with pytest.raises(ValueError, match="not in the grid"):
+        ship_value({3: "c"}, ["a", "b"])
+    with pytest.raises(ValueError, match="no picks"):
+        ship_value({}, ["a"])

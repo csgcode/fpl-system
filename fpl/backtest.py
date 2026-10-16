@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Hashable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TypeVar
 
 from fpl import calibrate, ep, fixture_ratings
 from fpl.calibrate import Aggregate, PlayerLine, PlayerPrediction
@@ -41,6 +42,8 @@ GATE_Z = 1.96
 GATE_BIAS_SLACK = 0.05
 GATE_POSITION_SLACK = 0.02
 GATE_MIN_EFFECT = -0.01
+
+GridValue = TypeVar("GridValue", bound=Hashable)
 
 
 def signed(value: float, digits: int) -> str:
@@ -263,6 +266,64 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -
         beats=not reasons,
         reasons=tuple(reasons),
     )
+
+
+def cross_validate(
+    lines_by_value: Mapping[GridValue, Sequence[BacktestLine]],
+) -> tuple[list[BacktestLine], dict[int, GridValue]]:
+    """Leave-one-round-out selection over a grid, in grid order (the
+    mapping's order). For each held-out round, the value with the lowest
+    pooled MAE over the other rounds is picked, ties to the earlier grid
+    entry, and its lines for the held-out round become that round's CV
+    lines. Returns the CV lines and the pick per round.
+
+    A fold trains on later rounds for an earlier held-out round. That is
+    acceptable for a hyper-parameter: LORO measures the selection
+    procedure, not the exact constant shipped."""
+    if not lines_by_value:
+        raise ValueError("no grid values to cross-validate")
+    by_value = {value: _by_round(lines) for value, lines in lines_by_value.items()}
+    rounds = sorted(next(iter(by_value.values())))
+    for value, per_round in by_value.items():
+        if sorted(per_round) != rounds:
+            raise ValueError(f"grid value {value!r} covers rounds {sorted(per_round)}, "
+                             f"expected {rounds}")
+    if len(rounds) < 2:
+        raise ValueError(f"leave-one-round-out needs at least two rounds, got {rounds}")
+
+    cv_lines: list[BacktestLine] = []
+    picks: dict[int, GridValue] = {}
+    for held_out in rounds:
+        best, best_mae = None, math.inf
+        for value, per_round in by_value.items():
+            training = [line for r in rounds if r != held_out for line in per_round[r]]
+            mae = sum(abs(line.error) for line in training) / len(training)
+            if mae < best_mae:
+                best, best_mae = value, mae
+        picks[held_out] = best
+        cv_lines += by_value[best][held_out]
+    return cv_lines, picks
+
+
+def ship_value(picks: Mapping[int, GridValue], grid: Sequence[GridValue]) -> GridValue:
+    """The value to ship after a sweep: the most frequent LORO pick, ties
+    to the earlier grid entry."""
+    if not picks:
+        raise ValueError("no picks to choose a ship value from")
+    outside = [value for value in picks.values() if value not in grid]
+    if outside:
+        raise ValueError(f"pick(s) {outside!r} not in the grid {list(grid)!r}")
+    counts = {value: 0 for value in grid}
+    for value in picks.values():
+        counts[value] += 1
+    return max(grid, key=counts.__getitem__)
+
+
+def _by_round(lines: Sequence[BacktestLine]) -> dict[int, list[BacktestLine]]:
+    per_round: dict[int, list[BacktestLine]] = {}
+    for line in lines:
+        per_round.setdefault(line.round, []).append(line)
+    return per_round
 
 
 def _keyed(lines: Sequence[BacktestLine], side: str) -> dict[tuple[int, int], BacktestLine]:
