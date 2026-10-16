@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from fpl.backtest import BacktestLine, compare, load_round, score_round
+from fpl.backtest import BacktestLine, compare, load_round, score_round, signed
 from fpl.ep import DEFAULT_CONFIG, build_predictions
 from fpl.models import Position
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
@@ -222,9 +222,23 @@ def test_load_round_refuses_drift_from_the_decision_commit(world):
     document["players"][0]["p_start"] = 0.5
     inputs.write_text(json.dumps(document), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="analysis/gw3/inputs-MID.json"):
+    with pytest.raises(ValueError, match="analysis/gw3/inputs-MID.json") as refused:
         _load(raw, analysis)
+    assert "--no-drift-check" in str(refused.value)
+    assert "drift_check=False" not in str(refused.value)
     assert _load(raw, analysis, drift_check=False).gw == GW
+
+
+def test_load_round_refuses_decisions_outside_the_repo(world, tmp_path_factory):
+    root, raw, analysis = world
+    init_repo(root)
+    _commit_world(root, "seed")
+    outside = tmp_path_factory.mktemp("elsewhere") / "decisions"
+    with pytest.raises(ValueError) as refused:
+        _load(raw, analysis, decisions_root=outside)
+    assert str(outside) in str(refused.value)
+    assert "--no-drift-check" in str(refused.value)
+    assert _load(raw, analysis, decisions_root=outside, drift_check=False).gw == GW
 
 
 def test_load_round_outside_git_warns_once_that_drift_is_unchecked(world):
@@ -382,6 +396,8 @@ def test_gate_fails_on_ci_only():
     result = compare(*_sides([4, 0.1], [1, 3.0]))
     assert result.delta_mae == pytest.approx(-0.05)
     assert _reason_keys(result) == ["ci"]
+    assert result.reasons == (f"ci: upper {signed(result.ci[1], 3)} ≥ 0",)
+    assert result.reasons[0].startswith("ci: upper +")
     assert result.beats is False
 
 
@@ -390,6 +406,7 @@ def test_gate_fails_on_bias_only():
     assert result.delta_mae == pytest.approx(-1.0)
     assert result.se == pytest.approx(0.03)
     assert _reason_keys(result) == ["bias"]
+    assert result.reasons == ("bias: |b_v| 0.060 > |b_b| 0.000 + 0.05",)
 
 
 def test_gate_fails_on_position_only():
@@ -402,6 +419,7 @@ def test_gate_fails_on_position_only():
     assert result.delta_mae == pytest.approx(-19.9 / 22)
     assert result.by_position["DEF"].delta_mae == pytest.approx(0.05)
     assert _reason_keys(result) == ["position DEF"]
+    assert result.reasons == ("position DEF: ΔMAE +0.050 > +0.02",)
 
 
 def test_gate_fails_on_effect_only():
@@ -409,6 +427,7 @@ def test_gate_fails_on_effect_only():
     assert result.delta_mae == pytest.approx(-0.005)
     assert result.se == pytest.approx(0.0, abs=1e-12)
     assert _reason_keys(result) == ["effect"]
+    assert result.reasons == ("effect: ΔMAE \u22120.0050 > \u22120.01",)
 
 
 def test_gate_fails_on_round_wins_only():
@@ -422,6 +441,14 @@ def test_gate_fails_on_round_wins_only():
     assert result.round_wins == (1, 3)
     assert result.round_deltas == pytest.approx({3: -1.0, 4: 0.01, 5: 0.01})
     assert _reason_keys(result) == ["rounds"]
+    assert result.reasons == ("rounds: won 1 of 3, need 2",)
+
+
+def test_signed_uses_the_minus_sign():
+    assert signed(-0.0043, 4) == "\u22120.0043"
+    assert signed(0.05, 3) == "+0.050"
+    assert signed(-0.01, 2) == "\u22120.01"
+    assert "-" not in signed(-1.5, 1)
 
 
 def test_compare_refuses_unpaired_lines():

@@ -43,6 +43,11 @@ GATE_POSITION_SLACK = 0.02
 GATE_MIN_EFFECT = -0.01
 
 
+def signed(value: float, digits: int) -> str:
+    """`value` to `digits` places with an explicit sign, minus as U+2212."""
+    return f"{value:+.{digits}f}".replace("-", "\u2212")
+
+
 @dataclass(frozen=True)
 class RoundData:
     gw: int
@@ -231,16 +236,16 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -
     bias_variant = _mean_error(v for _, v in pairs)
     reasons: list[str] = []
     if ci[1] >= 0:
-        reasons.append(f"ci: upper {ci[1]:+.3f} ≥ 0")
+        reasons.append(f"ci: upper {signed(ci[1], 3)} ≥ 0")
     if abs(bias_variant) > abs(bias_base) + GATE_BIAS_SLACK:
         reasons.append(f"bias: |b_v| {abs(bias_variant):.3f} > |b_b| {abs(bias_base):.3f} "
                        f"+ {GATE_BIAS_SLACK}")
     for position, group in by_position.items():
         if group.delta_mae > GATE_POSITION_SLACK:
-            reasons.append(f"position {position}: ΔMAE {group.delta_mae:+.3f} "
-                           f"> {GATE_POSITION_SLACK:+}")
+            reasons.append(f"position {position}: ΔMAE {signed(group.delta_mae, 3)} "
+                           f"> {signed(GATE_POSITION_SLACK, 2)}")
     if delta > GATE_MIN_EFFECT:
-        reasons.append(f"effect: ΔMAE {delta:+.4f} > {GATE_MIN_EFFECT:+}")
+        reasons.append(f"effect: ΔMAE {signed(delta, 4)} > {signed(GATE_MIN_EFFECT, 2)}")
     if wins < rounds - 1:
         reasons.append(f"rounds: won {wins} of {rounds}, need {rounds - 1}")
 
@@ -398,7 +403,12 @@ def _check_drift(data_root: Path, analysis_root: Path, decisions_root: Path, gw:
         warnings.append(f"{analysis_root} is not inside a git repository — "
                         f"gw{gw} inputs not checked for drift from the decision commit")
         return None
-    sha = decision_commit(repo, gw, _relative(decisions_root, repo) or "data/decisions")
+    decisions = _relative(decisions_root, repo)
+    if decisions is None:
+        raise ValueError(f"{decisions_root} is outside the repository {repo}, so gw{gw} inputs "
+                         f"cannot be checked against its decision commit — pass "
+                         f"--no-drift-check to score the files on disk")
+    sha = decision_commit(repo, gw, decisions)
     if sha is None:
         warnings.append(f"gw{gw} has no decision commit — inputs not checked for drift")
         return None
@@ -411,7 +421,7 @@ def _check_drift(data_root: Path, analysis_root: Path, decisions_root: Path, gw:
     if changed:
         raise ValueError(f"gw{gw} inputs differ from decision commit {sha[:12]}: "
                          + ", ".join(changed)
-                         + " — restore them, or pass drift_check=False to score the files on disk")
+                         + " — restore them, or pass --no-drift-check to score the files on disk")
     return sha
 
 
