@@ -17,7 +17,7 @@ import json
 import math
 import unicodedata
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, Literal
 
@@ -626,6 +626,13 @@ class ModelConfig:
 
     blend_k: float = BLEND_EQUIV_MINUTES
     blend_floor: float = BLEND_PRIOR_FLOOR
+
+    def __post_init__(self) -> None:
+        # An int and the equal float compare equal but repr differently, so
+        # the digest would name two configs for one model.
+        for f in fields(self):
+            if f.type in ("float", float):
+                object.__setattr__(self, f.name, float(getattr(self, f.name)))
 
     def digest(self) -> str:
         return hashlib.sha256(repr(sorted(asdict(self).items())).encode()).hexdigest()[:8]

@@ -120,6 +120,13 @@ def test_config_digest_is_stable_and_changes_with_a_field():
     assert replace(DEFAULT_CONFIG, blend_k=300.0).digest() != digest
 
 
+def test_config_from_int_has_the_same_digest_as_the_equal_float_config():
+    config = ModelConfig(blend_k=600)
+    assert isinstance(config.blend_k, float)
+    assert config == DEFAULT_CONFIG
+    assert config.digest() == DEFAULT_CONFIG.digest() == "044ed4c1"
+
+
 def test_shrink_rate_moves_from_league_mean_to_observed_with_minutes():
     assert shrink_rate(observed=1.0, minutes=0, league=0.2) == 0.2
     assert shrink_rate(observed=1.0, minutes=PRIOR_SHRINK_MINUTES, league=0.0) == pytest.approx(0.5)
