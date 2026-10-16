@@ -1167,7 +1167,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
 - **Test:**
   - `test_picks_of_a_data_checked_event_are_final`: the basis names the bootstrap and its fetch time; `test_picks_past_the_deadline_of_an_unchecked_event_are_not_final`: the sidecar `reason` names the event and the bootstrap.
   - `test_summaries_into_a_past_gw_refuse_after_its_deadline`: cached bootstrap says deadline 6 passed; `summaries --gw 6 --ids 1 --force` exits 1 naming `--allow-post-deadline`; bootstrap and fixtures likewise; `event-live` into gw 7 for round 6 is allowed.
-- **Implement:** picks final when the cached bootstrap of the same GW shows the event `finished` and `data_checked`, with the basis or reason in the sidecar; deadline from the cached bootstrap of the same GW (`deadline_for`); guard in `_load_or_fetch` for kinds bootstrap, fixtures, summary; `--allow-post-deadline` on those three commands.
+- **Implement:** picks final when the cached bootstrap of the same GW shows the event `finished` and `data_checked`, with the basis or reason in the sidecar; deadline from the cached bootstrap of the same GW (`deadline_for`), checked before fetching fixtures and summaries; a bootstrap refresh is never pre-guarded on the cached deadline (a postponed deadline is only learned by refetching) and refuses before saving when the fresh payload's deadline has passed — the `flags` refresh included; `--allow-post-deadline` on those three commands.
 - **Verify:** `uv run pytest tests/test_service.py tests/test_cli.py -q`
 
 ### Task S.4: `actuals` from event-live, no network

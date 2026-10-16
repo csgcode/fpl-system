@@ -222,9 +222,16 @@ class FplDataService:
         require_next_gw: bool = False,
         allow_post_deadline: bool = False,
     ) -> Bootstrap:
+        # The deadline is read from the fresh payload, not the cached one: a
+        # postponed deadline is only learned by refetching.
         def guard(parsed: Bootstrap) -> None:
             if require_next_gw and parsed.next_gw() != gw:
                 raise GameweekMismatchError(gw, parsed.next_gw())
+            deadline = parsed.deadline_for(gw)
+            if allow_post_deadline or deadline is None:
+                return
+            if self._now() >= deadline:
+                raise PostDeadlineError(gw, deadline)
 
         return self._load_or_fetch(
             gw,
@@ -234,7 +241,6 @@ class FplDataService:
             max_age_hours,
             force,
             guard=guard,
-            before_fetch=None if allow_post_deadline else self._deadline_guard(gw),
         )
 
     def fixtures(

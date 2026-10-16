@@ -820,12 +820,68 @@ def test_summaries_into_a_past_gw_refuse_after_its_deadline(tmp_path):
         service.player_summaries(gw=6, player_ids=[1], force=True)
     assert "gw6 deadline (2026-08-20T17:30:00+00:00) has passed" in str(excinfo.value)
     with pytest.raises(ValueError, match="--allow-post-deadline"):
-        service.bootstrap(gw=6, force=True)
-    with pytest.raises(ValueError, match="--allow-post-deadline"):
         service.fixtures(gw=6)
     assert gateway.calls == []
     assert not store.exists(6, "players/summary-1")
     assert not store.exists(6, "fixtures")
+
+
+def deadline_bootstrap_payload(gw, deadline):
+    return bootstrap_payload(
+        events=[event_payload(id=gw, deadline_time=deadline, is_next=True)]
+    )
+
+
+def test_bootstrap_refresh_learns_a_postponed_deadline(tmp_path):
+    service, gateway, store, _ = make_service(
+        tmp_path, {BOOTSTRAP_URL: deadline_bootstrap_payload(8, OPEN_DEADLINE)}
+    )
+    seed_deadline_bootstrap(store, 8, {8: PASSED_DEADLINE})
+
+    refreshed = service.bootstrap(gw=8, force=True)
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert refreshed.deadline_for(8).isoformat() == "2026-08-28T17:30:00+00:00"
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
+
+
+def test_bootstrap_refresh_refuses_a_passed_deadline_in_the_fresh_payload(tmp_path):
+    from fpl.service import PostDeadlineError
+
+    service, gateway, store, _ = make_service(
+        tmp_path, {BOOTSTRAP_URL: deadline_bootstrap_payload(6, PASSED_DEADLINE)}
+    )
+    seed_deadline_bootstrap(store, 6, {6: OPEN_DEADLINE})
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+
+    with pytest.raises(PostDeadlineError, match="gw6 deadline"):
+        service.bootstrap(gw=6, force=True)
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == before
+
+
+def test_bootstrap_refresh_into_a_past_gw_with_the_override_saves(tmp_path):
+    service, _, store, _ = make_service(
+        tmp_path, {BOOTSTRAP_URL: deadline_bootstrap_payload(6, PASSED_DEADLINE)}
+    )
+
+    service.bootstrap(gw=6, force=True, allow_post_deadline=True)
+
+    assert store.exists(6, "bootstrap")
+
+
+def test_flags_refresh_learns_a_postponed_deadline(tmp_path):
+    service, gateway, store, _ = make_service(
+        tmp_path, {BOOTSTRAP_URL: deadline_bootstrap_payload(8, OPEN_DEADLINE)}
+    )
+    seed_deadline_bootstrap(store, 8, {8: PASSED_DEADLINE})
+
+    check = service.flag_check(gw=8, player_ids=[1])
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert [p.id for p in check.players] == [1]
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
 
 
 def test_post_deadline_guard_allows_cache_hits_and_the_override(tmp_path):

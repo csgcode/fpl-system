@@ -1171,16 +1171,18 @@ def test_event_live_round_must_be_before_gw(tmp_path, capsys):
 
 # --- post-deadline write guard ---------------------------------------------
 
-def post_deadline_setup(tmp_path):
-    from tests.test_service import PASSED_DEADLINE, seed_deadline_bootstrap
+def post_deadline_setup(tmp_path, *, gw=6, fresh_deadline=None):
+    from tests.test_service import (
+        PASSED_DEADLINE, deadline_bootstrap_payload, seed_deadline_bootstrap,
+    )
     from tests.test_store import FakeClock
 
     clock = FakeClock()
     store = SnapshotStore(tmp_path, now=clock)
-    seed_deadline_bootstrap(store, 6, {6: PASSED_DEADLINE})
+    seed_deadline_bootstrap(store, gw, {gw: PASSED_DEADLINE})
     gateway = FakeGateway({
         f"{BASE_URL}/element-summary/1/": element_summary_payload(),
-        BOOTSTRAP_URL: bootstrap_payload(),
+        BOOTSTRAP_URL: deadline_bootstrap_payload(gw, fresh_deadline or PASSED_DEADLINE),
         FIXTURES_URL: [fixture_payload()],
     })
 
@@ -1198,7 +1200,6 @@ def post_deadline_setup(tmp_path):
 
 @pytest.mark.parametrize("argv", [
     ["summaries", "--gw", "6", "--ids", "1", "--force"],
-    ["bootstrap", "--gw", "6", "--force"],
     ["fixtures", "--gw", "6"],
 ])
 def test_fetch_into_a_past_gw_refuses_after_its_deadline(tmp_path, capsys, argv):
@@ -1221,3 +1222,42 @@ def test_allow_post_deadline_fetches_into_a_past_gw(tmp_path, capsys):
 
     assert gateway.calls == [f"{BASE_URL}/element-summary/1/"]
     assert store.exists(6, "players/summary-1")
+
+
+def test_bootstrap_refresh_refuses_when_the_fresh_deadline_has_passed(tmp_path, capsys):
+    run_at_clock, gateway, store = post_deadline_setup(tmp_path)
+    before = store.path(6, "bootstrap").read_bytes()
+
+    assert run_at_clock(["bootstrap", "--gw", "6", "--force"]) == 1
+
+    err = capsys.readouterr().err
+    assert "gw6 deadline" in err
+    assert "--allow-post-deadline" in err
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert store.path(6, "bootstrap").read_bytes() == before
+
+
+def test_bootstrap_refresh_saves_a_postponed_deadline(tmp_path, capsys):
+    from tests.test_service import OPEN_DEADLINE
+
+    run_at_clock, gateway, store = post_deadline_setup(
+        tmp_path, gw=8, fresh_deadline=OPEN_DEADLINE
+    )
+
+    assert run_at_clock(["bootstrap", "--gw", "8", "--force"]) == 0
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
+
+
+def test_flags_refreshes_a_postponed_deadline(tmp_path, capsys):
+    from tests.test_service import OPEN_DEADLINE
+
+    run_at_clock, gateway, store = post_deadline_setup(
+        tmp_path, gw=8, fresh_deadline=OPEN_DEADLINE
+    )
+
+    assert run_at_clock(["flags", "--gw", "8", "--ids", "1"]) == 0
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
