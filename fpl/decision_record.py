@@ -96,10 +96,12 @@ def write_lock(
     now: Callable[[], datetime] = utcnow,
 ) -> list[str]:
     """Locks the gw's prediction files: their sha256 and each row's
-    [ep_gw[0], p_start]. Write-once — an existing lock is never replaced —
-    and only before the gw's deadline, so a lock is never built from files
-    rewritten after the decision. Returns warnings; a lock that cannot be
-    built is a warning, not an error."""
+    [ep_gw[0], p_start]. Only before the gw's deadline, so a lock is never
+    built from files rewritten after the decision. Before the deadline a lock
+    whose hashes differ from the files on disk is replaced, the old one kept
+    as predictions.lock.v{k}.json, so the lock follows the last decision made
+    in time. Returns warnings; a lock that cannot be built is a warning, not
+    an error."""
     if now() >= deadline:
         return [f"gw{gw} deadline passed — predictions lock not written"]
     try:
@@ -108,6 +110,7 @@ def write_lock(
         return [f"players-*.json for gw{gw} unreadable ({exc!r}) — predictions lock not written"]
     if document is None:
         return [f"no players-*.json for gw{gw} — predictions lock not written"]
+    warnings: list[str] = []
     if lock_path.exists():
         try:
             locked = json.loads(lock_path.read_text(encoding="utf-8")).get("files")
@@ -115,12 +118,22 @@ def write_lock(
             locked = None
         if locked == document["files"]:
             return []
-        return [f"predictions lock {lock_path} already exists and differs from the "
-                "players-*.json on disk — left unchanged"]
+        archive = _archive_path(lock_path)
+        lock_path.rename(archive)
+        warnings.append(f"predictions lock {lock_path} replaced — players-*.json changed "
+                        f"since it was written; previous lock archived as {archive}")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("x", encoding="utf-8") as handle:
         handle.write(json.dumps(document, indent=1) + "\n")
-    return []
+    return warnings
+
+
+def _archive_path(lock_path: Path) -> Path:
+    stem = lock_path.name.removesuffix(".json")
+    k = 1
+    while (archive := lock_path.with_name(f"{stem}.v{k}.json")).exists():
+        k += 1
+    return archive
 
 
 def _display_dir(analysis_root: Path, gw: int) -> Path:

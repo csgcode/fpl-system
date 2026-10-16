@@ -16,6 +16,8 @@ from fpl.clock import REPLAY_ENV, write_clock
 from fpl.plan import SCHEMA_VERSION
 from fpl.service import FplDataService
 from fpl.store import SnapshotStore
+from fpl.decision_record import record_predictions
+from tests.test_calibrate import prediction_row
 from tests.test_plan import SQUAD, bootstrap, player_name
 
 
@@ -482,3 +484,30 @@ def test_plan_after_the_deadline_writes_no_lock_and_warns(tmp_path, capsys, pin_
 
 def plan_json_text(out: str) -> dict:
     return json.loads(out[out.index("{") :])
+
+
+def test_a_late_reopen_before_the_deadline_relocks_what_was_decided(tmp_path, capsys, pin_clock):
+    pin_clock(DEADLINE - timedelta(hours=2))
+    final = seed(tmp_path)
+    seed_players(tmp_path)
+    mid = tmp_path / "analysis" / "gw2" / "players-MID.json"
+    mid.write_text(json.dumps([prediction_row(id=1, ep_gw=[3.0] * 6)]), encoding="utf-8")
+    assert run(lock_argv(tmp_path, final), tmp_path) == 0
+    first = (tmp_path / LOCK).read_bytes()
+    capsys.readouterr()
+
+    mid.write_text(json.dumps([prediction_row(id=1, ep_gw=[5.0] * 6, p_start=0.4)]),
+                   encoding="utf-8")
+    pin_clock(DEADLINE - timedelta(hours=1))
+    assert run(lock_argv(tmp_path, final), tmp_path) == 0
+
+    archive = tmp_path / "decisions" / "gw2" / "predictions.lock.v1.json"
+    assert archive.read_bytes() == first
+    assert capsys.readouterr().err.splitlines() == [
+        f"WARNING: predictions lock {tmp_path / LOCK} replaced — players-*.json changed "
+        f"since it was written; previous lock archived as {archive}"
+    ]
+    record = record_predictions(tmp_path / "analysis", tmp_path / "decisions", 2)
+    alpha = next(p for p in record.predictions if p.id == 1)
+    assert (alpha.ep_gw[0], alpha.p_start) == (5.0, 0.4)
+    assert record.drifted == ()

@@ -415,8 +415,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     plan_cmd.add_argument(
         "--analysis-root", type=Path, default=ANALYSIS_ROOT,
-        help=f"root holding gw{{N}}/players-*.json, locked once into "
-             f"{LOCK_FILENAME} beside final.md before the gw's deadline",
+        help=f"root holding gw{{N}}/players-*.json, locked into {LOCK_FILENAME} "
+             "beside final.md before the gw's deadline (a changed lock is "
+             "archived and replaced)",
     )
     plan_cmd.add_argument("--format", choices=("table", "json"), default="table")
     plan_cmd.add_argument(

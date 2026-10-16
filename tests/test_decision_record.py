@@ -135,7 +135,7 @@ def test_write_lock_records_hashes_and_rows(tmp_path):
     }
 
 
-def test_write_lock_is_write_once(tmp_path):
+def test_write_lock_with_unchanged_files_leaves_the_lock_alone(tmp_path):
     analysis_dir = tmp_path / "analysis" / "gw2"
     seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
     lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
@@ -143,12 +143,48 @@ def test_write_lock_is_write_once(tmp_path):
     first = lock_path.read_bytes()
 
     assert lock(analysis_dir, lock_path, 2) == []
+    assert lock_path.read_bytes() == first
+    assert sorted(p.name for p in lock_path.parent.iterdir()) == [LOCK_FILENAME]
+
+
+def test_write_lock_before_the_deadline_replaces_a_stale_lock_and_archives_it(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+    lock(analysis_dir, lock_path, 2)
+    first = lock_path.read_bytes()
+
+    seed_players(analysis_dir, {"MID": [players_row(1, 5.0, 0.4)]})
+    second_warnings = lock(analysis_dir, lock_path, 2)
+    second = lock_path.read_bytes()
+    seed_players(analysis_dir, {"MID": [players_row(1, 6.0, 0.4)]})
+    third_warnings = lock(analysis_dir, lock_path, 2)
+
+    archive_1 = lock_path.with_name("predictions.lock.v1.json")
+    archive_2 = lock_path.with_name("predictions.lock.v2.json")
+    assert archive_1.read_bytes() == first
+    assert archive_2.read_bytes() == second
+    assert json.loads(lock_path.read_text(encoding="utf-8"))["rows"] == {"1": [6.0, 0.4]}
+    assert second_warnings == [
+        f"predictions lock {lock_path} replaced — players-*.json changed since it "
+        f"was written; previous lock archived as {archive_1}"
+    ]
+    assert len(third_warnings) == 1 and str(archive_2) in third_warnings[0]
+
+
+def test_write_lock_after_the_deadline_leaves_an_existing_lock_unchanged(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+    lock(analysis_dir, lock_path, 2)
+    first = lock_path.read_bytes()
 
     seed_players(analysis_dir, {"MID": [players_row(1, 5.0, 0.9)]})
-    warnings = lock(analysis_dir, lock_path, 2)
+    warnings = lock(analysis_dir, lock_path, 2, now=lambda: DEADLINE)
 
+    assert warnings == ["gw2 deadline passed — predictions lock not written"]
     assert lock_path.read_bytes() == first
-    assert len(warnings) == 1 and str(lock_path) in warnings[0]
+    assert sorted(p.name for p in lock_path.parent.iterdir()) == [LOCK_FILENAME]
 
 
 def test_write_lock_without_players_files_writes_nothing(tmp_path):
