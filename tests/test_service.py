@@ -714,3 +714,133 @@ def test_final_when_records_why_a_snapshot_is_not_final(tmp_path):
     assert meta["final"] is False
     assert meta["reason"] == "event 7 not data_checked"
     assert "basis" not in meta
+
+
+# --- deadline: final picks, post-deadline write guard ----------------------
+
+PASSED_DEADLINE = "2026-08-20T17:30:00Z"
+OPEN_DEADLINE = "2026-08-28T17:30:00Z"
+PICKS_E7_URL = f"{BASE_URL}/entry/77/event/7/picks/"
+
+
+def seed_deadline_bootstrap(store, gw, deadlines):
+    events = [
+        event_payload(id=event, deadline_time=deadline, is_next=event == gw)
+        for event, deadline in deadlines.items()
+    ]
+    store.save(gw, "bootstrap", bootstrap_payload(events=events), "seed://test")
+
+
+def test_picks_fetched_after_the_event_deadline_are_final(tmp_path):
+    service, gateway, store, clock = make_service(
+        tmp_path, {PICKS_E7_URL: event_picks_payload()}
+    )
+    seed_deadline_bootstrap(store, 8, {7: PASSED_DEADLINE, 8: OPEN_DEADLINE})
+
+    service.picks(gw=8, team_id=77, event=7)
+
+    meta = store.meta(8, "picks-77-e7")
+    assert meta["final"] is True
+    assert meta["basis"] == (
+        "fetched after the event 7 deadline 2026-08-20T17:30:00+00:00"
+    )
+    (event,) = service.take_fetch_log()
+    assert (event.fetched, event.final) == (True, True)
+
+    clock.advance(hours=100)
+    service.picks(gw=8, team_id=77, event=7)
+    assert gateway.calls == [PICKS_E7_URL]
+    (event,) = service.take_fetch_log()
+    assert (event.fetched, event.final) == (False, True)
+
+
+def test_picks_fetched_before_the_event_deadline_are_not_final(tmp_path):
+    url = f"{BASE_URL}/entry/77/event/8/picks/"
+    service, _, store, _ = make_service(tmp_path, {url: event_picks_payload()})
+    seed_deadline_bootstrap(store, 8, {7: PASSED_DEADLINE, 8: OPEN_DEADLINE})
+
+    service.picks(gw=8, team_id=77, event=8)
+
+    meta = store.meta(8, "picks-77-e8")
+    assert meta["final"] is False
+    assert meta["reason"] == (
+        "fetched before the event 8 deadline 2026-08-28T17:30:00+00:00"
+    )
+
+
+def test_picks_without_a_known_deadline_are_not_final(tmp_path):
+    service, _, store, _ = make_service(tmp_path, {PICKS_E7_URL: event_picks_payload()})
+
+    service.picks(gw=8, team_id=77, event=7)
+
+    meta = store.meta(8, "picks-77-e7")
+    assert meta["final"] is False
+    assert meta["reason"] == "no cached gw8 bootstrap gives the event 7 deadline"
+
+
+def test_summaries_into_a_past_gw_refuse_after_its_deadline(tmp_path):
+    summary_url = f"{BASE_URL}/element-summary/1/"
+    service, gateway, store, _ = make_service(
+        tmp_path,
+        {
+            summary_url: element_summary_payload(),
+            BOOTSTRAP_URL: bootstrap_payload(),
+            FIXTURES_URL: [fixture_payload()],
+        },
+    )
+    seed_deadline_bootstrap(store, 6, {6: PASSED_DEADLINE})
+
+    with pytest.raises(ValueError, match="--allow-post-deadline") as excinfo:
+        service.player_summaries(gw=6, player_ids=[1], force=True)
+    assert "gw6 deadline (2026-08-20T17:30:00+00:00) has passed" in str(excinfo.value)
+    with pytest.raises(ValueError, match="--allow-post-deadline"):
+        service.bootstrap(gw=6, force=True)
+    with pytest.raises(ValueError, match="--allow-post-deadline"):
+        service.fixtures(gw=6)
+    assert gateway.calls == []
+    assert not store.exists(6, "players/summary-1")
+    assert not store.exists(6, "fixtures")
+
+
+def test_post_deadline_guard_allows_cache_hits_and_the_override(tmp_path):
+    summary_url = f"{BASE_URL}/element-summary/1/"
+    service, gateway, store, _ = make_service(
+        tmp_path, {summary_url: element_summary_payload()}
+    )
+    seed_deadline_bootstrap(store, 6, {6: PASSED_DEADLINE})
+
+    service.bootstrap(gw=6)
+    service.player_summaries(gw=6, player_ids=[1], allow_post_deadline=True)
+    assert gateway.calls == [summary_url]
+
+    service.player_summaries(gw=6, player_ids=[1])
+    assert gateway.calls == [summary_url]
+
+
+def test_summaries_into_an_open_gw_are_not_guarded(tmp_path):
+    summary_url = f"{BASE_URL}/element-summary/1/"
+    service, gateway, store, _ = make_service(
+        tmp_path, {summary_url: element_summary_payload()}
+    )
+    seed_deadline_bootstrap(store, 7, {6: PASSED_DEADLINE, 7: OPEN_DEADLINE})
+
+    service.player_summaries(gw=7, player_ids=[1], force=True)
+
+    assert gateway.calls == [summary_url]
+
+
+def test_event_live_is_not_guarded_by_the_gw_deadline(tmp_path):
+    from tests.factories import event_live_payload
+
+    url = f"{BASE_URL}/event/6/live/"
+    service, gateway, store, _ = make_service(tmp_path, {url: event_live_payload()})
+    events = [
+        event_payload(id=6, deadline_time=PASSED_DEADLINE, finished=True,
+                      data_checked=True, is_next=False),
+        event_payload(id=7, deadline_time=PASSED_DEADLINE, is_next=True),
+    ]
+    store.save(7, "bootstrap", bootstrap_payload(events=events), "seed://test")
+
+    service.event_live(gw=7, event=6)
+
+    assert gateway.calls == [url]

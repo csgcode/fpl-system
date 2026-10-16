@@ -1167,3 +1167,57 @@ def test_event_live_round_must_be_before_gw(tmp_path, capsys):
 
     assert "--round 8 must be before --gw 8" in capsys.readouterr().err
     assert gateway.calls == []
+
+
+# --- post-deadline write guard ---------------------------------------------
+
+def post_deadline_setup(tmp_path):
+    from tests.test_service import PASSED_DEADLINE, seed_deadline_bootstrap
+    from tests.test_store import FakeClock
+
+    clock = FakeClock()
+    store = SnapshotStore(tmp_path, now=clock)
+    seed_deadline_bootstrap(store, 6, {6: PASSED_DEADLINE})
+    gateway = FakeGateway({
+        f"{BASE_URL}/element-summary/1/": element_summary_payload(),
+        BOOTSTRAP_URL: bootstrap_payload(),
+        FIXTURES_URL: [fixture_payload()],
+    })
+
+    def run_at_clock(argv):
+        def factory(_: SnapshotStore) -> FplDataService:
+            return FplDataService(
+                FplApi(gateway), SnapshotStore(tmp_path, now=clock), now=clock,
+                throttle_s=0.0, sleep=lambda _: None,
+            )
+
+        return main(["--data-root", str(tmp_path), *argv], service_factory=factory)
+
+    return run_at_clock, gateway, store
+
+
+@pytest.mark.parametrize("argv", [
+    ["summaries", "--gw", "6", "--ids", "1", "--force"],
+    ["bootstrap", "--gw", "6", "--force"],
+    ["fixtures", "--gw", "6"],
+])
+def test_fetch_into_a_past_gw_refuses_after_its_deadline(tmp_path, capsys, argv):
+    run_at_clock, gateway, _ = post_deadline_setup(tmp_path)
+
+    assert run_at_clock(argv) == 1
+
+    err = capsys.readouterr().err
+    assert "gw6 deadline" in err
+    assert "--allow-post-deadline" in err
+    assert gateway.calls == []
+
+
+def test_allow_post_deadline_fetches_into_a_past_gw(tmp_path, capsys):
+    run_at_clock, gateway, store = post_deadline_setup(tmp_path)
+
+    assert run_at_clock(
+        ["summaries", "--gw", "6", "--ids", "1", "--force", "--allow-post-deadline"]
+    ) == 0
+
+    assert gateway.calls == [f"{BASE_URL}/element-summary/1/"]
+    assert store.exists(6, "players/summary-1")

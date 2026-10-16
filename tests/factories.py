@@ -65,7 +65,7 @@ def event_payload(**overrides: Any) -> dict[str, Any]:
     payload = {
         "id": 1,
         "name": "Gameweek 1",
-        "deadline_time": "2026-08-14T17:30:00Z",
+        "deadline_time": "2099-08-14T17:30:00Z",
         "finished": False,
         "is_current": False,
         "is_next": True,

@@ -200,8 +200,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="save even if the payload's next gameweek is not --gw",
     )
-    add("fixtures", "fetch full fixture list")
+    fixtures = add("fixtures", "fetch full fixture list")
     summaries = add("summaries", "fetch element-summary per player")
+    for deadline_guarded in (bootstrap, fixtures, summaries):
+        deadline_guarded.add_argument(
+            "--allow-post-deadline",
+            action="store_true",
+            help="fetch into --gw even though its deadline has passed",
+        )
     group = summaries.add_mutually_exclusive_group(required=True)
     group.add_argument("--ids", type=_id_list, help="comma-separated player ids")
     group.add_argument(
@@ -784,6 +790,7 @@ def run_command(
             max_age_hours=args.max_age,
             force=args.force,
             require_next_gw=not args.allow_gw_mismatch,
+            allow_post_deadline=args.allow_post_deadline,
         )
         print(f"{store.path(gw, 'bootstrap')} {_cache_note(service)}")
         print(f"fetched at {store.fetched_at(gw, 'bootstrap')}")
@@ -793,13 +800,22 @@ def run_command(
               f"next deadline: {bootstrap.next_deadline()}")
         print(_current_status_line(bootstrap))
     elif args.command == "fixtures":
-        fixtures = service.fixtures(gw, max_age_hours=args.max_age, force=args.force)
+        fixtures = service.fixtures(
+            gw,
+            max_age_hours=args.max_age,
+            force=args.force,
+            allow_post_deadline=args.allow_post_deadline,
+        )
         print(f"{store.path(gw, 'fixtures')} ({len(fixtures)} fixtures) "
               f"{_cache_note(service)}")
     elif args.command == "summaries":
         ids = service.shortlist_ids(gw) if args.shortlist else args.ids
         summaries = service.player_summaries(
-            gw, player_ids=ids, max_age_hours=args.max_age, force=args.force
+            gw,
+            player_ids=ids,
+            max_age_hours=args.max_age,
+            force=args.force,
+            allow_post_deadline=args.allow_post_deadline,
         )
         print(f"{len(summaries)} summaries under {store.dir(gw) / 'players'} "
               f"{_cache_note(service)}")

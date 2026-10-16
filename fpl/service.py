@@ -83,6 +83,17 @@ class GameweekMismatchError(ValueError):
         self.payload_gw = payload_gw
 
 
+class PostDeadlineError(ValueError):
+    def __init__(self, gw: int, deadline: datetime) -> None:
+        super().__init__(
+            f"gw{gw} deadline ({deadline.isoformat()}) has passed — its snapshots "
+            f"are the record of that gameweek and are not refetched; pass "
+            f"--allow-post-deadline to fetch into gw{gw} anyway"
+        )
+        self.gw = gw
+        self.deadline = deadline
+
+
 @dataclass(frozen=True)
 class FetchEvent:
     """One snapshot access: whether the network was touched, the age of the
@@ -209,6 +220,7 @@ class FplDataService:
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
         require_next_gw: bool = False,
+        allow_post_deadline: bool = False,
     ) -> Bootstrap:
         def guard(parsed: Bootstrap) -> None:
             if require_next_gw and parsed.next_gw() != gw:
@@ -222,6 +234,7 @@ class FplDataService:
             max_age_hours,
             force,
             guard=guard,
+            before_fetch=None if allow_post_deadline else self._deadline_guard(gw),
         )
 
     def fixtures(
@@ -230,6 +243,7 @@ class FplDataService:
         *,
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
+        allow_post_deadline: bool = False,
     ) -> tuple[Fixture, ...]:
         return self._load_or_fetch(
             gw,
@@ -238,6 +252,7 @@ class FplDataService:
             lambda raw: tuple(Fixture.model_validate(f) for f in raw),
             max_age_hours,
             force,
+            before_fetch=None if allow_post_deadline else self._deadline_guard(gw),
         )
 
     def entry(
@@ -290,6 +305,7 @@ class FplDataService:
             EventPicks.model_validate,
             max_age_hours,
             force,
+            final_when=lambda _: self._after_deadline(gw, event),
         )
 
     def event_live(
@@ -338,9 +354,11 @@ class FplDataService:
         player_ids: Sequence[int],
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
+        allow_post_deadline: bool = False,
     ) -> dict[int, ElementSummary]:
         summaries: dict[int, ElementSummary] = {}
         previous_was_fetched = False
+        guard = None if allow_post_deadline else self._deadline_guard(gw)
         for player_id in _dedupe(player_ids):
             if previous_was_fetched:
                 self._sleep(self._throttle_s)
@@ -352,6 +370,7 @@ class FplDataService:
                 ElementSummary.model_validate,
                 max_age_hours,
                 force,
+                before_fetch=guard,
             )
             previous_was_fetched = self._log.events[before].fetched
         return summaries
@@ -486,6 +505,38 @@ class FplDataService:
     def _cached_bootstrap(self, gw: int) -> Bootstrap:
         return load_cached_bootstrap(self._store, gw)
 
+    def _cached_deadline(self, gw: int, event: int) -> datetime | None:
+        if not self._store.exists(gw, "bootstrap"):
+            return None
+        return self._cached_bootstrap(gw).deadline_for(event)
+
+    def _after_deadline(self, gw: int, event: int) -> tuple[bool, str]:
+        """Picks for an event cannot change once its deadline has passed."""
+        deadline = self._cached_deadline(gw, event)
+        if deadline is None:
+            return False, f"no cached gw{gw} bootstrap gives the event {event} deadline"
+        if self._now() >= deadline:
+            return True, f"fetched after the event {event} deadline {deadline.isoformat()}"
+        return False, f"fetched before the event {event} deadline {deadline.isoformat()}"
+
+    def _deadline_guard(self, gw: int) -> Callable[[], None]:
+        """Refuses a fetch into gw{gw} once its deadline has passed: that
+        directory is the record of what the gameweek's analysis read. The
+        deadline is looked up once, on the first fetch, so a run serving
+        every snapshot from cache never parses the bootstrap."""
+        checked = False
+
+        def guard() -> None:
+            nonlocal checked
+            if checked:
+                return
+            deadline = self._cached_deadline(gw, gw)
+            if deadline is not None and self._now() >= deadline:
+                raise PostDeadlineError(gw, deadline)
+            checked = True
+
+        return guard
+
     def _load_or_fetch(
         self,
         gw: int,
@@ -496,6 +547,7 @@ class FplDataService:
         force: bool,
         guard: Callable[[Any], None] | None = None,
         final_when: Callable[[Any], tuple[bool, str | None]] | None = None,
+        before_fetch: Callable[[], None] | None = None,
     ) -> Any:
         if not force and self._store.exists(gw, name):
             age = self._store.age_hours(gw, name)
@@ -511,6 +563,8 @@ class FplDataService:
                     FetchEvent(name, fetched=False, age_hours=age, final=final)
                 )
                 return parsed
+        if before_fetch is not None:
+            before_fetch()
         fetched = fetch()
         parsed = parse(fetched.payload)
         if guard is not None:
