@@ -146,6 +146,12 @@ class TieGroup:
         return (self.best, *(tie.challenger for tie in self.ties))
 
     @property
+    def decided_by(self) -> Criterion:
+        """The criterion that put the final winner ahead of the blend-best
+        move; blend when the blend-best move won."""
+        return Criterion.BLEND if self.winner == self.best else self.deciding.criterion
+
+    @property
     def deciding(self) -> TieBreak:
         """The tie in which the final winner took over."""
         return next(tie for tie in self.ties if tie.challenger == self.winner)

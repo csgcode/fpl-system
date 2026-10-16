@@ -470,6 +470,18 @@ def test_a_tie_chain_is_judged_by_its_final_winner():
     assert report.verdict_reasons == ()
 
 
+def test_a_group_is_decided_by_the_criterion_that_unseated_the_blend_best_move():
+    view = chain_view((1, 5), (4, 5), (4, 5))
+    report = evaluate_plan(SQUAD, [], market(), view, view, calibrated=frozenset())
+    (group,) = report.tie_groups
+    assert [t.criterion for t in group.ties] == [Criterion.RET5, Criterion.BLEND]
+    assert group.winner.move == Move(11, 21) and group.decided_by is Criterion.RET5
+    view = chain_view((3, 5), (3, 5), (3, 5))
+    report = evaluate_plan(SQUAD, [], market(), view, view, calibrated=frozenset())
+    (group,) = report.tie_groups
+    assert group.winner == group.best and group.decided_by is Criterion.BLEND
+
+
 def test_a_displaced_move_names_the_final_winner_not_an_intermediate_one():
     view = chain_view((1, 5), (3, 5), (5, 5))
     report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view,

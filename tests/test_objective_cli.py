@@ -10,7 +10,7 @@ import pytest
 
 from fpl import objective
 from fpl.__main__ import main
-from fpl.objective_report import TIE_BREAK_LABEL
+from fpl.objective_report import TIE_BREAK_LABEL, TIE_GROUP_LABEL
 from fpl.store import SnapshotStore
 from tests.factories import bootstrap_payload, event_payload, player_payload, team_payload
 from tests.test_plan_cli import state_block
@@ -71,6 +71,25 @@ def seed(root, *, twin=False):
 @pytest.fixture
 def repo(tmp_path, monkeypatch, capsys):
     seed(tmp_path)
+    capsys.readouterr()
+    monkeypatch.chdir(tmp_path)
+    return tmp_path
+
+
+def seed_tie(root, returns):
+    seed(root, twin=True)
+    path = root / "data" / "analysis" / f"gw{GW}" / "players-MID.json"
+    rows = json.loads(path.read_text())
+    for row in rows:
+        if row["id"] in returns:
+            row["returns5"] = returns[row["id"]]
+    path.write_text(json.dumps(rows))
+
+
+@pytest.fixture
+def blend_tied(tmp_path, monkeypatch, capsys):
+    """P16 and P18 tie on blend for P8's slot and returned equally often."""
+    seed_tie(tmp_path, {16: [3, 5], TWIN: [3, 5]})
     capsys.readouterr()
     monkeypatch.chdir(tmp_path)
     return tmp_path
@@ -184,6 +203,29 @@ def test_tie_break_line_names_the_winner(tied, capsys):
     line = next(line for line in out.splitlines() if line.startswith(TIE_BREAK_LABEL))
     assert "P8 → P16" in line and "winner P8 → P18" in line and "ret5 4/5 v 1/5" in line
     assert "reference (greedy): P8 → P18" in out
+
+
+def test_tie_group_line_names_a_steadiness_decided_winner(tied, capsys):
+    assert run() == 0
+    out = capsys.readouterr().out
+    (line,) = [line for line in out.splitlines() if line.startswith(TIE_GROUP_LABEL)]
+    assert line == f"{TIE_GROUP_LABEL} P8 winner P18 (decided by ret5)"
+
+
+def test_tie_group_line_says_blend_when_the_blend_best_move_wins(blend_tied, capsys):
+    assert run() == 0
+    out = capsys.readouterr().out
+    (line,) = [line for line in out.splitlines() if line.startswith(TIE_GROUP_LABEL)]
+    assert line == f"{TIE_GROUP_LABEL} P8 winner P16 (decided by blend)"
+    assert run("--moves", "8:18") == 0
+    assert "verdict: PASS" in capsys.readouterr().out
+
+
+def test_json_carries_tie_groups(tied, capsys):
+    assert run("--format", "json") == 0
+    (group,) = json.loads(capsys.readouterr().out)["tie_groups"]
+    assert (group["best"]["in"], group["winner"]["in"], group["decided_by"]) \
+        == (16, TWIN, "ret5")
 
 
 def test_plan_taking_the_winner_passes_and_says_so(tied, capsys):

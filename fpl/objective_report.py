@@ -45,6 +45,7 @@ ANALYSIS_ROOT = Path("data/analysis")
 SQUAD_SIZE = 15
 RELAYED = "relayed"
 TIE_BREAK_LABEL = "tie-break move:"
+TIE_GROUP_LABEL = "tie-break group:"
 UNVERIFIED = "now_cost — unverified"
 _FINAL_DIR = re.compile(r"^gw(\d+)$")
 
@@ -224,6 +225,9 @@ def _tie_break_lines(report: PlanReport, blend, *, graded: bool):
         yield (f"{TIE_BREAK_LABEL} {_pair(tie.incumbent, blend)} {tie.incumbent.blend:+.3f} v "
                f"{_pair(tie.challenger, blend)} {tie.challenger.blend:+.3f} — winner "
                f"{_pair(tie.winner, blend)} ({tie.reason})")
+    for group in report.tie_groups:
+        yield (f"{TIE_GROUP_LABEL} {blend[group.winner.move.out].name} winner "
+               f"{blend[group.winner.move.into].name} (decided by {group.decided_by.value})")
     if not graded:
         return
     if not report.tie_groups:
@@ -310,6 +314,10 @@ def _document(gw, final_path, squad, market, report: PlanReport, singles, blend,
                         "challenger": _scored_dict(tie.challenger, blend),
                         "winner": _scored_dict(tie.winner, blend), "reason": tie.reason}
                        for tie in report.tie_breaks],
+        "tie_groups": [{"best": _scored_dict(group.best, blend),
+                        "winner": _scored_dict(group.winner, blend),
+                        "decided_by": group.decided_by.value}
+                       for group in report.tie_groups],
         "reference_gain": {"blend": round(report.reference_gain[0], 3),
                            "prior": round(report.reference_gain[1], 3)},
         "verdict": (None if args.moves is None
