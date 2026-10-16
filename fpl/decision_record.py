@@ -123,7 +123,18 @@ def write_lock(
     return []
 
 
-def _lock_predictions(analysis_dir: Path, lock_path: Path) -> RecordPredictions:
+def _display_dir(analysis_root: Path, gw: int) -> Path:
+    """The gw's analysis directory as drift reports name it: repo-relative
+    inside a git repository, else relative to the analysis root's parent."""
+    try:
+        repo = repo_root(analysis_root.resolve())
+    except ValueError:
+        return Path(analysis_root.name) / f"gw{gw}"
+    return (analysis_root.resolve() / f"gw{gw}").relative_to(repo)
+
+
+def _lock_predictions(analysis_root: Path, gw: int, lock_path: Path) -> RecordPredictions:
+    analysis_dir = analysis_root / f"gw{gw}"
     raw = lock_path.read_bytes()
     try:
         lock = json.loads(raw)
@@ -159,8 +170,9 @@ def _lock_predictions(analysis_dir: Path, lock_path: Path) -> RecordPredictions:
                 "p_start": p_start,
             }))
     source = f"lock {hashlib.sha256(raw).hexdigest()[:12]}"
+    shown = _display_dir(analysis_root, gw) if changed else analysis_dir
     return RecordPredictions(tuple(predictions), source,
-                             tuple(str(analysis_dir / name) for name in sorted(changed)))
+                             tuple(str(shown / name) for name in sorted(changed)))
 
 
 def record_predictions(analysis_root: Path, decisions_root: Path, gw: int) -> RecordPredictions:
@@ -168,7 +180,7 @@ def record_predictions(analysis_root: Path, decisions_root: Path, gw: int) -> Re
     decision commit, plus the prediction files changed on disk since."""
     lock_path = decisions_root / f"gw{gw}" / LOCK_FILENAME
     if lock_path.is_file():
-        return _lock_predictions(analysis_root / f"gw{gw}", lock_path)
+        return _lock_predictions(analysis_root, gw, lock_path)
     repo = repo_root(analysis_root.resolve())
     rel = str((analysis_root.resolve() / f"gw{gw}").relative_to(repo))
     decisions_rel = str(decisions_root.resolve().relative_to(repo))

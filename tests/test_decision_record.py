@@ -11,10 +11,12 @@ from fpl.decision_record import (
     decision_commit,
     drifted,
     materialize,
+    record_predictions,
     repo_root,
     write_lock,
 )
 from tests.gitrepo import commit_files, init_repo
+from tests.test_calibrate import POSITION_FILES, prediction_row
 
 MID = "data/analysis/gw6/players-MID.json"
 FINAL = "data/decisions/gw6/final.md"
@@ -168,3 +170,27 @@ def test_write_lock_after_the_deadline_writes_nothing(tmp_path, now):
 
     assert warnings == ["gw2 deadline passed — predictions lock not written"]
     assert not lock_path.exists()
+
+
+def locked_then_drifted(analysis_root, gw=2):
+    analysis_dir = analysis_root / f"gw{gw}"
+    seed_players(analysis_dir, {pos: [] for pos in POSITION_FILES}
+                 | {"MID": [prediction_row(id=1, ep_gw=[3.0] * 6)]})
+    decisions_root = analysis_root.parent / "decisions"
+    assert lock(analysis_dir, decisions_root / f"gw{gw}" / LOCK_FILENAME, gw) == []
+    seed_players(analysis_dir, {"MID": [prediction_row(id=1, ep_gw=[5.0] * 6)]})
+    return record_predictions(analysis_root, decisions_root, gw)
+
+
+def test_lock_drift_paths_are_repo_relative_inside_git(tmp_path):
+    repo = init_repo(tmp_path / "repo")
+
+    record = locked_then_drifted(repo / "data" / "analysis")
+
+    assert record.drifted == ("data/analysis/gw2/players-MID.json",)
+
+
+def test_lock_drift_paths_outside_git_are_relative_to_the_analysis_roots_parent(tmp_path):
+    record = locked_then_drifted(tmp_path / "x" / "data" / "analysis")
+
+    assert record.drifted == ("analysis/gw2/players-MID.json",)

@@ -409,13 +409,13 @@ def test_calibrate_prefers_the_lock(tmp_path, capsys):
     assert (alpha["predicted"], alpha["p_start"]) == (3.0, 0.9)
     lock_sha = hashlib.sha256(lock_path.read_bytes()).hexdigest()[:12]
     assert document["predictions_source"] == f"lock {lock_sha}"
-    assert document["drifted"] == [str(analysis_dir / "players-MID.json")]
+    assert document["drifted"] == [ALPHA_MID]
     captured = capsys.readouterr()
     assert f"predictions: lock {lock_sha} (drift: 1 file)" in captured.out.splitlines()
     warnings = [line for line in captured.err.splitlines() if line.startswith("WARNING:")]
     assert warnings == [
         f"WARNING: 1 prediction file changed after predictions lock {lock_sha} — "
-        f"calibrated the decision record: {analysis_dir / 'players-MID.json'}"
+        f"calibrated the decision record: {ALPHA_MID}"
     ]
 
 
