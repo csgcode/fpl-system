@@ -364,6 +364,9 @@ Mechanics:
   club-priors.json + cached snapshots via `fpl fixtures-rate`), so regenerating
   any of them is safe and expected.
 - data/analysis/club-priors.json is written once at GW1 and never overwritten.
+- data/decisions/gw{N}/predictions.lock.json is written once by `fpl plan`
+  before the GW deadline, never edited or regenerated, and committed in the
+  cycle commit. `calibrate` scores it first.
 - A re-run squad optimizer (revision loop, REOPEN) archives the previous
   squad-proposal.md as squad-proposal.v{k}.md before writing the new one.
 - data/executor/gw{N}/runs.jsonl is append-only: the CLI adds a line per run
