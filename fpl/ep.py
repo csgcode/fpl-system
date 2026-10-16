@@ -465,29 +465,40 @@ class _Totals:
     xa: float = 0.0
     dc: float = 0.0
     dc_minutes: int = 0
-    saves: int = 0
+    saves: float = 0.0
     bonus: int = 0
-    yellow: int = 0
+    yellow: float = 0.0
+    w_minutes: float = 0.0
+    w_dc_minutes: float = 0.0
+    unadjusted: int = 0
 
-    def add(self, row: PastSeason | MatchRecord) -> None:
+    def add(
+        self,
+        row: PastSeason | MatchRecord,
+        weight: float = 1.0,
+        attack_factor: float = 1.0,
+        saves_factor: float = 1.0,
+    ) -> None:
         self.minutes += row.minutes
+        self.w_minutes += weight * row.minutes
         self.starts += row.starts or 0
         # A row without a start (substitute-only spell, season predating the
         # starts field) still earned its bonus; count its minutes as starts.
         self.start_equivalents += row.starts or row.minutes / FULL_MATCH_MINUTES
-        self.xg += row.expected_goals or 0.0
-        self.xa += row.expected_assists or 0.0
+        self.xg += weight * attack_factor * (row.expected_goals or 0.0)
+        self.xa += weight * attack_factor * (row.expected_assists or 0.0)
         if not isinstance(row, PastSeason) or row.season_name >= DEFCON_FIRST_SEASON:
-            self.dc += row.defensive_contribution or 0.0
+            self.dc += weight * (row.defensive_contribution or 0.0)
             self.dc_minutes += row.minutes
-        self.saves += row.saves or 0
+            self.w_dc_minutes += weight * row.minutes
+        self.saves += weight * saves_factor * (row.saves or 0)
         self.bonus += row.bonus or 0
-        self.yellow += row.yellow_cards or 0
+        self.yellow += weight * (row.yellow_cards or 0)
 
     def rates(self, league: Rates) -> Rates:
         if self.minutes <= 0:
             return league
-        per90 = FULL_MATCH_MINUTES / self.minutes
+        per90 = FULL_MATCH_MINUTES / self.w_minutes
         # Rows without a start (substitute-only spells, seasons predating the
         # starts field) say nothing about how long the player lasts when he
         # does start: take that from the league, not from 90.
@@ -498,13 +509,50 @@ class _Totals:
         return Rates(
             xg90=self.xg * per90,
             xa90=self.xa * per90,
-            dc90=self.dc * FULL_MATCH_MINUTES / self.dc_minutes if self.dc_minutes > 0
+            dc90=self.dc * FULL_MATCH_MINUTES / self.w_dc_minutes if self.dc_minutes > 0
             else league.dc90,
             saves90=self.saves * per90,
             bonus_per_start=self.bonus / self.start_equivalents,
             yellow90=self.yellow * per90,
             minutes_per_start=minutes_per_start,
         )
+
+
+def current_totals(
+    history: Iterable[MatchRecord],
+    config: ModelConfig,
+    ratings: Mapping[str, ClubRating] | None,
+    team_names: Mapping[int, str],
+    base: BaseLambda | None,
+) -> _Totals:
+    """This season's played matches, each weighted by recency and, when the
+    config asks, adjusted for the opponent it faced. `unadjusted` counts the
+    matches an enabled adjustment could not rate; they count as played."""
+    played = played_matches(history)
+    weights = match_weights(len(played), config.half_life_matches)
+    adjusting = config.opponent_adjust or config.opponent_adjust_saves
+    totals = _Totals()
+    for row, weight in zip(played, weights, strict=True):
+        rating = _opponent_rating(row, ratings, team_names)
+        if adjusting and (rating is None or base is None):
+            totals.unadjusted += 1
+        attack = saves = 1.0
+        if rating is not None:
+            if config.opponent_adjust:
+                attack = attack_factor(row.was_home, rating.defw, base)
+            if config.opponent_adjust_saves:
+                saves = saves_factor(row.was_home, rating.att, base)
+        totals.add(row, weight, attack, saves)
+    return totals
+
+
+def _opponent_rating(
+    row: MatchRecord, ratings: Mapping[str, ClubRating] | None, team_names: Mapping[int, str]
+) -> ClubRating | None:
+    if ratings is None or row.opponent_team is None or row.was_home is None:
+        return None
+    name = team_names.get(row.opponent_team)
+    return ratings.get(name) if name is not None else None
 
 
 def _prior_seasons(history_past: Sequence[PastSeason]) -> list[PastSeason]:
@@ -662,13 +710,23 @@ class ModelConfig:
 
     blend_k: float = BLEND_EQUIV_MINUTES
     blend_floor: float = BLEND_PRIOR_FLOOR
+    half_life_matches: float | None = None
+    opponent_adjust: bool = False
+    opponent_adjust_saves: bool = False
+    blend_on_effective_minutes: bool = False
 
     def __post_init__(self) -> None:
         # An int and the equal float compare equal but repr differently, so
         # the digest would name two configs for one model.
         for f in fields(self):
-            if f.type in ("float", float):
-                object.__setattr__(self, f.name, float(getattr(self, f.name)))
+            value = getattr(self, f.name)
+            if f.type in ("float", float, "float | None") and value is not None:
+                object.__setattr__(self, f.name, float(value))
+        # match_weights divides by it; a negative one would weigh old matches above 1.
+        if self.half_life_matches is not None and not self.half_life_matches > 0:
+            raise ValueError(
+                f"half_life_matches must be > 0 or None, got {self.half_life_matches}"
+            )
 
     def digest(self) -> str:
         return hashlib.sha256(repr(sorted(asdict(self).items())).encode()).hexdigest()[:8]
@@ -798,7 +856,8 @@ def build_predictions(
     position = inputs.position
     points = POINTS[position]
     teams = bootstrap.team_by_id()
-    clubs = {team.short_name for team in teams.values()}
+    team_names = {team_id: team.short_name for team_id, team in teams.items()}
+    clubs = set(team_names.values())
     _check_clubs(fixtures, clubs)
     _check_fixture_rows(fixtures)
     by_id = bootstrap.player_by_id()
@@ -840,14 +899,20 @@ def build_predictions(
     missing_summaries: list[int] = []
     blanks: set[tuple[str, int]] = set()
     rows: list[EpRow] = []
+    unadjusted = 0
     for entry in inputs.players:
         player = by_id[entry.id]
         club = teams[player.team].short_name
         summary = summaries.get(entry.id)
         if summary is None:
             missing_summaries.append(entry.id)
+        current = current_totals(
+            summary.history if summary else (), config,
+            fixtures.ratings, team_names, fixtures.base_lambda,
+        )
+        unadjusted += current.unadjusted
         rates = _effective_rates(
-            entry, summary, league, BONUS_SHRINK_STARTS[position], config
+            entry, summary, current, league, BONUS_SHRINK_STARTS[position], config
         )
         p_hit = 0.0
         if points.defcon_threshold is not None:
@@ -896,6 +961,11 @@ def build_predictions(
                 terms=terms,
                 rates=rates,
             )
+        )
+    if unadjusted:
+        warnings.append(
+            f"opponent adjustment: {unadjusted} played match row(s) have no opponent "
+            f"rating or venue and count unadjusted"
         )
     for club, g in sorted(blanks):
         warnings.append(f"{club} has no fixture in gw{g} (blank) — scored 0 for that gameweek")
@@ -990,6 +1060,7 @@ def _check_coverage(
 def _effective_rates(
     entry: PlayerInput,
     summary: ElementSummary | None,
+    current_totals: _Totals,
     league: Rates,
     bonus_k: int,
     config: ModelConfig,
@@ -998,14 +1069,13 @@ def _effective_rates(
     prior_minutes = prior_totals.minutes
     prior_rates = prior_totals.rates(league) if prior_minutes > 0 else None
     prior = _shrunk(prior_rates, prior_totals, league)
-    current_totals = _Totals()
-    if summary is not None:
-        for row in played_matches(summary.history):
-            current_totals.add(row)
     current = current_totals.rates(league) if current_totals.minutes > 0 else None
+    blend_minutes = (
+        current_totals.w_minutes if config.blend_on_effective_minutes else current_totals.minutes
+    )
     overrides = entry.overrides or RateOverrides()
     w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
-        current_totals.minutes, k=config.blend_k, floor=config.blend_floor
+        blend_minutes, k=config.blend_k, floor=config.blend_floor
     )
     blended = _blend(prior, current, w).model_copy(update={
         "bonus_per_start": bonus_rate(
