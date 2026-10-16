@@ -13,14 +13,24 @@ clustered interval decides `significant`.
 
 from __future__ import annotations
 
+import argparse
+import json
 import math
-from collections.abc import Iterable, Sequence
+import re
+import sys
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
-from fpl.calibrate import CalibrationReport, PlayerLine
+from fpl.calibrate import CalibrationReport, PlayerLine, load_report
 
 Z = 1.96
 MIN_PAIRS = 100
+RETRO_ROOT = Path("data/retro")
+EXIT_ERROR = 1
+EXIT_NOT_SIGNIFICANT = 3
+_LEDGER = re.compile(r"^gw(\d+)-calibration\.json$")
 
 
 @dataclass(frozen=True)
@@ -149,3 +159,110 @@ def _fit(pairs: Sequence[Pair]) -> Fit:
         ci_cluster=(slope - Z * se_cluster, slope + Z * se_cluster),
         r=r,
     )
+
+
+def register(add: Callable[..., argparse.ArgumentParser]) -> None:
+    parser = add(
+        "persistence",
+        "does a player's recent EP residual predict his next one "
+        f"(exit {EXIT_NOT_SIGNIFICANT}: not significant)",
+        cached=False,
+    )
+    parser.add_argument("--window", type=int, default=3,
+                        help="rounds before the target averaged into x (default 3)")
+    parser.add_argument("--min-starts", type=int, default=2,
+                        help="window starts a player needs to enter (default 2)")
+    parser.add_argument("--retro-root", type=Path, default=RETRO_ROOT,
+                        help="where gw{M}-calibration.json ledgers live; only M < --gw is read")
+    parser.add_argument("--format", choices=("table", "json"), default="table")
+
+
+def run(args: argparse.Namespace) -> int:
+    try:
+        reports = load_ledgers(args.retro_root, args.gw)
+        results = [persistence(reports, window=args.window, min_starts=args.min_starts)]
+        results += [
+            persistence(reports, window=w, min_starts=min(args.min_starts, w))
+            for w in range(1, args.window)
+        ]
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_ERROR
+    rounds = [report.round for report in reports]
+    if args.format == "json":
+        print(json.dumps(
+            {
+                "gw": args.gw,
+                "rounds": rounds,
+                "significant": results[0].significant,
+                "windows": [to_document(result) for result in results],
+            },
+            indent=1,
+        ))
+    else:
+        print(f"ledgers: rounds {_span(rounds)} from {args.retro_root}")
+        _print_result(results[0])
+        print("sensitivity:")
+        for result in results[1:]:
+            _print_result(result)
+    return 0 if results[0].significant else EXIT_NOT_SIGNIFICANT
+
+
+def load_ledgers(retro_root: Path, gw: int) -> list[CalibrationReport]:
+    """Every gw{M}-calibration.json under `retro_root` with M < gw, in round order."""
+    found = sorted(
+        (int(match.group(1)), path)
+        for path in (retro_root.iterdir() if retro_root.is_dir() else ())
+        if (match := _LEDGER.match(path.name)) and int(match.group(1)) < gw
+    )
+    if not found:
+        raise ValueError(f"no calibration ledgers before GW{gw} under {retro_root}")
+    return [load_report(path) for _, path in found]
+
+
+def to_document(result: PersistenceResult) -> dict[str, Any]:
+    """The result as JSON-ready fields, without the per-pair rows."""
+    return {
+        "window": result.window,
+        "min_starts": result.min_starts,
+        "target_rounds": list(result.target_rounds),
+        **_fit_document(result),
+        "significant": result.significant,
+        "by_position": {pos: _fit_document(fit) for pos, fit in result.by_position.items()},
+    }
+
+
+def _fit_document(fit: Fit) -> dict[str, Any]:
+    return {
+        "n": fit.n,
+        "slope": fit.slope,
+        "intercept": fit.intercept,
+        "se_ols": fit.se_ols,
+        "se_cluster": fit.se_cluster,
+        "ci_ols": list(fit.ci_ols) if fit.ci_ols else None,
+        "ci_cluster": list(fit.ci_cluster) if fit.ci_cluster else None,
+        "r": fit.r,
+    }
+
+
+def _print_result(result: PersistenceResult) -> None:
+    verdict = "significant" if result.significant else "not significant"
+    print(f"window {result.window}, min starts {result.min_starts}: "
+          f"{_fit_text(result)} — {verdict}")
+    for pos, fit in result.by_position.items():
+        print(f"  {pos}: {_fit_text(fit)}")
+
+
+def _fit_text(fit: Fit) -> str:
+    if fit.slope is None or fit.ci_cluster is None:
+        slope = "slope n/a"
+    else:
+        lo, hi = fit.ci_cluster
+        slope = f"slope {fit.slope:.3f} [{lo:.3f}, {hi:.3f}] (cluster)"
+    return f"n {fit.n}, {slope}, r {fit.r:.3f}"
+
+
+def _span(rounds: Sequence[int]) -> str:
+    if rounds == list(range(rounds[0], rounds[-1] + 1)):
+        return f"{rounds[0]}-{rounds[-1]}" if len(rounds) > 1 else str(rounds[0])
+    return ", ".join(map(str, rounds))
