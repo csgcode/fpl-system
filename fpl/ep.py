@@ -243,6 +243,9 @@ class BaseLambda(_Contract):
     home: float = Field(ge=BASE_LAMBDA_RANGE[0], le=BASE_LAMBDA_RANGE[1])
     away: float = Field(ge=BASE_LAMBDA_RANGE[0], le=BASE_LAMBDA_RANGE[1])
 
+    def mean(self) -> float:
+        return (self.home + self.away) / 2
+
 
 class ClubRating(_Contract):
     att: float = Field(ge=CLUB_RATING_RANGE[0], le=CLUB_RATING_RANGE[1])
@@ -272,7 +275,7 @@ class FixturesDocument(_Contract):
     fixtures: list[FixtureRow]
 
     def base_mean(self) -> float:
-        return (self.base_lambda.home + self.base_lambda.away) / 2
+        return self.base_lambda.mean()
 
     def by_club_gw(self) -> dict[tuple[str, int], list[FixtureRow]]:
         grouped: dict[tuple[str, int], list[FixtureRow]] = {}
@@ -434,6 +437,23 @@ def match_weights(count: int, half_life: float | None) -> list[float]:
     if half_life is None:
         return [1.0] * count
     return [0.5 ** ((count - 1 - j) / half_life) for j in range(count)]
+
+
+def attack_factor(was_home: bool, opp_defw: float | None, base: BaseLambda | None) -> float:
+    """Opponent adjustment of a past match's xG/xA: the inverse of the
+    forecast multiplier base[venue] × DEFW_opp / base_mean. The player's own
+    ATT_club appears in both and cancels. Missing ratings leave the match as is."""
+    if opp_defw is None or base is None:
+        return 1.0
+    return base.mean() / ((base.home if was_home else base.away) * opp_defw)
+
+
+def saves_factor(was_home: bool, opp_att: float | None, base: BaseLambda | None) -> float:
+    """Opponent adjustment of a past match's saves: the inverse of the
+    opponent's attacking expectation, which plays at the other venue."""
+    if opp_att is None or base is None:
+        return 1.0
+    return base.mean() / ((base.away if was_home else base.home) * opp_att)
 
 
 @dataclass

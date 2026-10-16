@@ -13,6 +13,7 @@ from fpl.calibrate import PlayerPrediction
 from fpl.ep import (
     BLEND_EQUIV_MINUTES,
     BONUS_SHRINK_STARTS,
+    BaseLambda,
     DEFCON_FIRST_SEASON,
     BLEND_PRIOR_FLOOR,
     DEFAULT_CONFIG,
@@ -24,6 +25,7 @@ from fpl.ep import (
     ModelConfig,
     PRIOR_SHRINK_MINUTES,
     Rates,
+    attack_factor,
     bonus_rate,
     build_predictions,
     defcon_hit_probability,
@@ -41,6 +43,7 @@ from fpl.ep import (
     played_matches,
     prior_weight,
     rates_from_seasons,
+    saves_factor,
     shrink_rate,
 )
 from fpl.models import Bootstrap, ElementSummary, MatchRecord, PastSeason, Player, Position
@@ -133,6 +136,19 @@ def test_match_weights_halve_every_half_life():
     assert match_weights(4, half_life=2.0) == [0.5**1.5, 0.5**1.0, 0.5**0.5, 1.0]
     assert match_weights(3, None) == [1.0, 1.0, 1.0]
     assert match_weights(0, 2.0) == []
+
+
+def test_opponent_factors_match_hand_values():
+    base = BaseLambda(**BASE)
+    assert attack_factor(True, 1.25, base) == pytest.approx(BASE_MEAN / (1.54 * 1.25))
+    assert attack_factor(False, 0.8, base) == pytest.approx(BASE_MEAN / (1.33 * 0.8))
+    # The opponent of a home side plays away.
+    assert saves_factor(True, 1.2, base) == pytest.approx(BASE_MEAN / (1.33 * 1.2))
+    assert saves_factor(False, 1.2, base) == pytest.approx(BASE_MEAN / (1.54 * 1.2))
+    assert attack_factor(True, None, base) == 1.0
+    assert saves_factor(False, None, base) == 1.0
+    assert attack_factor(True, 1.25, None) == 1.0
+    assert saves_factor(True, 1.2, None) == 1.0
 
 
 def test_played_matches_drop_unplayed_rows_and_order_oldest_first():
