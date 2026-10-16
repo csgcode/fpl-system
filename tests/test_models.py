@@ -377,3 +377,38 @@ def test_event_live_without_explain_still_parses():
     live = EventLive.model_validate({"elements": [{"id": 3, "stats": stats}]})
     assert live.elements[0].explain == ()
     assert live.elements[0].stats.expected_goals is None
+
+
+def test_fixture_parses_scores_and_bps_sides():
+    from fpl.models import Fixture
+    from tests.factories import fixture_bps_stat, fixture_payload
+
+    fixture = Fixture.model_validate(fixture_payload(
+        team_h_score=2, team_a_score=1,
+        stats=[{"identifier": "goals_scored", "h": [], "a": []},
+               fixture_bps_stat({7: 30}, {8: 12})],
+    ))
+    assert (fixture.team_h_score, fixture.team_a_score) == (2, 1)
+    assert fixture.bps_side(7) == "h"
+    assert fixture.bps_side(8) == "a"
+    assert fixture.bps_side(9) is None
+
+
+def test_fixture_without_scores_or_stats_still_parses():
+    from fpl.models import Fixture
+    from tests.factories import fixture_payload
+
+    fixture = Fixture.model_validate(fixture_payload())
+    assert (fixture.team_h_score, fixture.stats) == (None, ())
+    assert fixture.bps_side(1) is None
+
+
+def test_player_parses_code_and_count_totals():
+    player = Player.model_validate(player_payload(
+        code=154561, goals_scored=3, assists=2, bps=140, yellow_cards=1,
+    ))
+    assert player.code == 154561
+    assert (player.goals_scored, player.assists, player.bps) == (3, 2, 140)
+    sparse = player_payload()
+    del sparse["code"]
+    assert Player.model_validate(sparse).code is None

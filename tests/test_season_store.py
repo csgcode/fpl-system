@@ -1,0 +1,537 @@
+import sqlite3
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from fpl.season_store import SCHEMA_VERSION, StoreSyncError, sync
+from fpl.store import SnapshotStore
+from tests.factories import (
+    bootstrap_payload,
+    event_payload,
+    fixture_bps_stat,
+    fixture_payload,
+    live_stats_payload,
+    past_season_payload,
+    player_payload,
+    team_payload,
+)
+
+DEADLINES = {
+    1: datetime(2026, 8, 14, 17, 30, tzinfo=timezone.utc),
+    2: datetime(2026, 8, 21, 17, 30, tzinfo=timezone.utc),
+    3: datetime(2026, 8, 28, 17, 30, tzinfo=timezone.utc),
+    4: datetime(2026, 9, 4, 17, 30, tzinfo=timezone.utc),
+}
+X_FIELDS = ("expected_goals", "expected_assists", "expected_goals_conceded")
+COMPARED = (
+    "round", "opponent_team", "was_home", "kickoff_time", "minutes", "starts",
+    "total_points", "goals_scored", "assists", "clean_sheets", "goals_conceded",
+    "saves", "bonus", "bps", *X_FIELDS, "defensive_contribution", "yellow_cards",
+    "red_cards", "own_goals", "penalties_saved", "penalties_missed", "modified",
+)
+
+
+def fetch_time(gw: int) -> datetime:
+    """A gameweek's snapshots are fetched three days before its deadline."""
+    return DEADLINES[gw] - timedelta(days=3)
+
+
+@dataclass(frozen=True)
+class Match:
+    element: int
+    fixture: int
+    minutes: int = 90
+    goals: int = 0
+    xg: str = "0.00"
+    bonus: int = 0
+    club: int | None = None
+
+    def points(self) -> int:
+        appearance = 2 if self.minutes >= 60 else 1 if self.minutes > 0 else 0
+        return appearance + 5 * self.goals + self.bonus
+
+    def stats(self) -> dict[str, Any]:
+        played = self.minutes > 0
+        return live_stats_payload(
+            minutes=self.minutes, starts=int(played), goals_scored=self.goals,
+            clean_sheets=0, goals_conceded=int(played), saves=0, bonus=self.bonus,
+            bps=10 + 20 * self.goals if played else 0, expected_goals=self.xg,
+            expected_assists="0.00",
+            expected_goals_conceded="0.50" if played else "0.00",
+            recoveries=3 if played else 0, total_points=self.points(),
+        )
+
+    def explain(self) -> dict[str, Any]:
+        stats = [{"identifier": "minutes", "points": self.points() - 5 * self.goals - self.bonus,
+                  "value": self.minutes, "points_modification": 0}]
+        if self.goals:
+            stats.append({"identifier": "goals_scored", "points": 5 * self.goals,
+                          "value": self.goals, "points_modification": 0})
+        if self.bonus:
+            stats.append({"identifier": "bonus", "points": self.bonus,
+                          "value": self.bonus, "points_modification": 0})
+        return {"fixture": self.fixture, "stats": stats}
+
+
+def _sum_stats(stats: list[dict[str, Any]]) -> dict[str, Any]:
+    total = dict(stats[0])
+    for extra in stats[1:]:
+        for key, value in extra.items():
+            if isinstance(value, bool):
+                continue
+            if isinstance(value, int):
+                total[key] += value
+            elif key in X_FIELDS:
+                total[key] = f"{float(total[key]) + float(value):.2f}"
+    return total
+
+
+@dataclass
+class Season:
+    """A synthetic raw tree: three clubs, rounds 1–2, one gw directory per
+    gameweek written in fetch order (bootstrap, fixtures, live, summaries)."""
+
+    fixtures: dict[int, tuple[int, int, int, str]] = field(default_factory=lambda: {
+        1: (1, 1, 2, "2026-08-15T14:00:00Z"),
+        2: (2, 2, 1, "2026-08-22T14:00:00Z"),
+    })
+    clubs: dict[int, dict[int, int]] = field(default_factory=lambda: {
+        1: {1: 1, 2: 1, 3: 1}, 2: {1: 2, 2: 2, 3: 2}, 3: {1: 1, 2: 1, 3: 1},
+    })
+    positions: dict[int, int] = field(default_factory=lambda: {1: 3, 2: 2, 3: 1})
+    matches: list[Match] = field(default_factory=lambda: [
+        Match(1, 1, goals=1, xg="0.61", bonus=3), Match(2, 1), Match(3, 1, minutes=0),
+        Match(1, 2, xg="0.20"), Match(2, 2, minutes=75), Match(3, 2, minutes=0),
+    ])
+    summary_ids: set[int] = field(default_factory=lambda: {1, 2, 3})
+    final_sidecar: set[int] = field(default_factory=set)
+    live_before_bootstrap: set[int] = field(default_factory=set)
+    unchecked: dict[int, set[int]] = field(default_factory=dict)
+    totals_delta: dict[tuple[int, int], dict[str, int]] = field(default_factory=dict)
+    history_past: dict[tuple[int, int], list[dict]] = field(default_factory=dict)
+
+    def round_of(self, fixture: int) -> int:
+        return self.fixtures[fixture][0]
+
+    def club_at(self, match: Match) -> int:
+        if match.club is not None:
+            return match.club
+        return self.clubs[match.element][self.round_of(match.fixture)]
+
+    def write(self, root: Path, gws: range = range(1, 4)) -> None:
+        for gw in gws:
+            when = fetch_time(gw)
+            self._bootstrap(root, gw, when)
+            self._fixtures(root, gw, when + timedelta(minutes=30))
+            if gw - 1 in {self.round_of(f) for f in self.fixtures}:
+                live_at = (when - timedelta(hours=1) if gw - 1 in self.live_before_bootstrap
+                           else when + timedelta(hours=1))
+                self._live(root, gw, gw - 1, live_at)
+                for element in sorted(self.summary_ids):
+                    self._summary(root, gw, element, when + timedelta(hours=2))
+
+    def _save(self, root: Path, when: datetime, gw: int, name: str, payload: Any,
+              **kwargs: Any) -> None:
+        SnapshotStore(root, now=lambda: when).save(gw, name, payload, "https://x.test", **kwargs)
+
+    def _checked(self, gw: int) -> set[int]:
+        return {r for r in range(1, gw) if r not in self.unchecked.get(gw, set())}
+
+    def _bootstrap(self, root: Path, gw: int, when: datetime) -> None:
+        checked = self._checked(gw)
+        events = [event_payload(
+            id=e, name=f"Gameweek {e}", deadline_time=DEADLINES[e].isoformat(),
+            finished=e < gw, data_checked=e in checked, is_current=e == gw - 1,
+            is_next=e == gw,
+        ) for e in sorted(DEADLINES)]
+        teams = [team_payload(id=i, name=f"Club {i}", short_name=f"C{i}") for i in (1, 2, 3)]
+        elements = []
+        for element, by_gw in sorted(self.clubs.items()):
+            if gw not in by_gw:
+                continue
+            played = [m for m in self.matches
+                      if m.element == element and self.round_of(m.fixture) < gw]
+            totals = {"minutes": 0, "starts": 0, "total_points": 0, "bonus": 0,
+                      "goals_scored": 0, "assists": 0, "saves": 0,
+                      "goals_conceded": 0, "clean_sheets": 0}
+            xg = xgc = 0.0
+            for match in played:
+                stats = match.stats()
+                for key in totals:
+                    totals[key] += stats[key]
+                xg += float(stats["expected_goals"])
+                xgc += float(stats["expected_goals_conceded"])
+            for key, delta in self.totals_delta.get((gw, element), {}).items():
+                totals[key] += delta
+            elements.append(player_payload(
+                id=element, code=900000 + element, web_name=f"P{element}",
+                team=by_gw[gw], element_type=self.positions.get(element, 3),
+                expected_goals=f"{xg:.2f}", expected_goals_conceded=f"{xgc:.2f}",
+                penalties_order=None, **totals,
+            ))
+        self._save(root, when, gw, "bootstrap", bootstrap_payload(elements, teams, events))
+
+    def _fixtures(self, root: Path, gw: int, when: datetime) -> None:
+        payload = []
+        for fid, (rnd, home, away, kickoff) in sorted(self.fixtures.items()):
+            done = rnd < gw
+            sides: dict[int, dict[int, int]] = {home: {}, away: {}}
+            for m in self.matches:
+                if m.fixture == fid and m.minutes > 0:
+                    sides[self.club_at(m)][m.element] = m.minutes // 10
+            payload.append(fixture_payload(
+                id=fid, event=rnd, team_h=home, team_a=away, kickoff_time=kickoff,
+                finished=done, team_h_score=1 if done else None,
+                team_a_score=0 if done else None,
+                stats=[fixture_bps_stat(sides[home], sides[away])] if done else [],
+            ))
+        self._save(root, when, gw, "fixtures", payload)
+
+    def _live(self, root: Path, gw: int, rnd: int, when: datetime) -> None:
+        elements = []
+        for element in sorted(self.clubs):
+            played = [m for m in self.matches
+                      if m.element == element and self.round_of(m.fixture) == rnd]
+            if not played:
+                continue
+            elements.append({
+                "id": element, "stats": _sum_stats([m.stats() for m in played]),
+                "explain": [m.explain() for m in played], "modified": False,
+            })
+        self._save(root, when, gw, f"event-live-e{rnd}", {"elements": elements},
+                   final=rnd in self.final_sidecar)
+
+    def summary_rows(self, element: int, before_gw: int) -> list[dict[str, Any]]:
+        rows = []
+        for m in self.matches:
+            rnd, home, away, kickoff = self.fixtures[m.fixture]
+            if m.element != element or rnd >= before_gw:
+                continue
+            was_home = self.club_at(m) == home
+            rows.append({
+                **m.stats(), "element": element, "fixture": m.fixture,
+                "opponent_team": away if was_home else home, "was_home": was_home,
+                "kickoff_time": kickoff, "team_h_score": 1, "team_a_score": 0,
+                "round": rnd, "modified": False, "value": 50, "selected": 1000,
+            })
+        return sorted(rows, key=lambda r: (r["kickoff_time"], r["fixture"]))
+
+    def _summary(self, root: Path, gw: int, element: int, when: datetime) -> None:
+        past = self.history_past.get(
+            (gw, element), [past_season_payload(element_code=900000 + element)])
+        self._save(root, when, gw, f"players/summary-{element}", {
+            "fixtures": [], "history": self.summary_rows(element, gw), "history_past": past,
+        })
+
+
+def rows(db: Path, sql: str, *args: Any) -> list[dict[str, Any]]:
+    con = sqlite3.connect(db)
+    con.row_factory = sqlite3.Row
+    try:
+        return [dict(r) for r in con.execute(sql, args)]
+    finally:
+        con.close()
+
+
+def dump(db: Path) -> str:
+    con = sqlite3.connect(db)
+    try:
+        return "\n".join(con.iterdump())
+    finally:
+        con.close()
+
+
+def player_round(db: Path, element: int, fixture: int) -> dict[str, Any]:
+    (row,) = rows(db, "SELECT * FROM player_rounds WHERE element = ? AND fixture = ?",
+                  element, fixture)
+    return row
+
+
+def assert_equals_summary_row(stored: dict[str, Any], summary: dict[str, Any]) -> None:
+    for key in COMPARED:
+        expected = summary[key]
+        if key in X_FIELDS:
+            expected = float(expected)
+        actual = bool(stored[key]) if key in ("was_home", "modified") else stored[key]
+        assert actual == expected, (key, stored["element"], stored["fixture"])
+
+
+@pytest.fixture
+def raw(tmp_path) -> Path:
+    return tmp_path / "raw"
+
+
+@pytest.fixture
+def db(tmp_path) -> Path:
+    return tmp_path / "store" / "season.sqlite"
+
+
+def test_sync_rebuilds_summary_rows_from_event_live(raw, db):
+    season = Season()
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    stored = rows(db, "SELECT * FROM player_rounds")
+    assert {r["source"] for r in stored} == {"event-live"}
+    covered = [row for element in season.summary_ids
+               for row in season.summary_rows(element, before_gw=3)]
+    assert len(stored) == len(covered) == report.player_rounds
+    for summary in covered:
+        assert_equals_summary_row(player_round(db, summary["element"], summary["fixture"]),
+                                  summary)
+    assert report.rounds == (1, 2)
+
+
+def test_side_from_bps_list_then_bootstrap_union(raw, db):
+    season = Season()
+    season.clubs[4] = {1: 3, 2: 1, 3: 1}
+    season.clubs[5] = {2: 2, 3: 2}
+    season.matches += [Match(4, 1, minutes=0), Match(5, 1, minutes=0)]
+    season.write(raw)
+
+    sync(raw, db)
+
+    def side(element: int) -> tuple:
+        row = player_round(db, element, 1)
+        return row["side_rule"], row["team"], row["opponent_team"], row["was_home"]
+
+    assert side(1) == ("bps", 1, 2, 1)
+    assert side(2) == ("bps", 2, 1, 0)
+    assert side(3) == ("bootstrap", 1, 2, 1)
+    assert side(4) == ("bootstrap", 1, 2, 1)
+    assert side(5) == ("bootstrap", 2, 1, 0)
+
+
+def test_unresolved_side_is_listed_not_guessed(raw, db):
+    season = Season()
+    season.clubs[6] = {1: 1, 2: 2, 3: 2}
+    season.matches.append(Match(6, 1, minutes=0, club=2))
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    row = player_round(db, 6, 1)
+    assert (row["team"], row["opponent_team"], row["was_home"]) == (None, None, None)
+    assert row["side_rule"] == "unresolved"
+    assert row["minutes"] == 0
+    assert [(u.round, u.element, u.fixture) for u in report.unresolved] == [(1, 6, 1)]
+
+
+def test_unresolved_side_with_a_summary_takes_the_summary_row(raw, db):
+    season = Season()
+    season.clubs[6] = {1: 1, 2: 2, 3: 2}
+    season.matches.append(Match(6, 1, minutes=0, club=2))
+    season.summary_ids.add(6)
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    row = player_round(db, 6, 1)
+    assert (row["source"], row["side_rule"], row["team"]) == ("summary", "summary", 2)
+    assert row["source_path"] == "gw2/players/summary-6.json"
+    assert_equals_summary_row(row, season.summary_rows(6, before_gw=2)[0])
+    assert report.unresolved == ()
+
+
+def double_gameweek() -> Season:
+    season = Season()
+    season.fixtures[3] = (2, 1, 3, "2026-08-24T19:00:00Z")
+    season.matches[3] = Match(1, 2, minutes=60, goals=1, xg="0.70")
+    season.matches += [Match(1, 3, minutes=30, xg="0.20"), Match(3, 3, minutes=0)]
+    return season
+
+
+def test_double_gameweek_without_summary_splits_by_minutes_and_marks_it(raw, db):
+    season = double_gameweek()
+    season.summary_ids = {2, 3}
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    first, second = player_round(db, 1, 2), player_round(db, 1, 3)
+    assert (first["split"], second["split"]) == ("minutes", "minutes")
+    assert (first["minutes"], second["minutes"]) == (60, 30)
+    assert (first["goals_scored"], second["goals_scored"]) == (1, 0)
+    assert (first["total_points"], second["total_points"]) == (7, 1)
+    assert first["expected_goals"] == pytest.approx(0.6)
+    assert second["expected_goals"] == pytest.approx(0.3)
+    assert first["bps"] + second["bps"] == 30 + 10
+    assert (first["team"], first["was_home"]) == (1, 0)
+    assert (second["team"], second["was_home"]) == (1, 1)
+    assert [(d.round, d.element, d.fixtures) for d in report.dgw_splits] == [(2, 1, (2, 3))]
+
+
+def test_double_gameweek_with_summary_uses_the_summary_rows(raw, db):
+    season = double_gameweek()
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    for summary in season.summary_rows(1, before_gw=3):
+        if summary["round"] != 2:
+            continue
+        stored = player_round(db, 1, summary["fixture"])
+        assert (stored["source"], stored["split"]) == ("summary", None)
+        assert stored["source_path"] == "gw3/players/summary-1.json"
+        assert_equals_summary_row(stored, summary)
+    assert report.dgw_splits == ()
+
+
+def test_a_bootstrap_refreshed_after_the_live_fetch_proves_nothing(raw, db):
+    season = Season()
+    season.write(raw)
+    payload = SnapshotStore(raw).load(2, "bootstrap")
+    later = fetch_time(2) + timedelta(hours=5)
+    SnapshotStore(raw, now=lambda: later).save(2, "bootstrap", payload, "https://x.test")
+
+    with pytest.raises(StoreSyncError, match="gw2/event-live-e1.json"):
+        sync(raw, db)
+
+
+def test_refuses_a_non_final_event_live(raw, db):
+    season = Season(live_before_bootstrap={1})
+    season.write(raw)
+
+    with pytest.raises(StoreSyncError) as refused:
+        sync(raw, db)
+
+    message = str(refused.value)
+    assert "gw2/event-live-e1.json" in message
+    assert "event-live --gw 2 --round 1 --force" in message
+    assert not db.exists()
+
+
+def test_a_final_sidecar_makes_an_event_live_final(raw, db):
+    season = Season(live_before_bootstrap={1}, final_sidecar={1})
+    season.write(raw)
+
+    assert sync(raw, db).rounds == (1, 2)
+
+
+def test_sync_is_incremental_and_idempotent(raw, db):
+    Season().write(raw)
+    first = sync(raw, db)
+    before = dump(db)
+
+    second = sync(raw, db)
+
+    assert first.files_ingested > 0
+    assert second.files_ingested == 0
+    assert dump(db) == before
+    assert second.player_rounds == first.player_rounds
+
+
+def test_rebuild_equals_incremental(tmp_path):
+    season = Season()
+    incremental_raw, incremental_db = tmp_path / "a" / "raw", tmp_path / "a" / "s.sqlite"
+    season.write(incremental_raw, range(1, 3))
+    assert sync(incremental_raw, incremental_db).rounds == (1,)
+    season.write(incremental_raw, range(3, 4))
+    added = sync(incremental_raw, incremental_db)
+
+    full_raw, full_db = tmp_path / "b" / "raw", tmp_path / "b" / "s.sqlite"
+    season.write(full_raw)
+    sync(full_raw, full_db)
+
+    assert added.files_ingested == 3 + len(season.summary_ids)
+    assert dump(incremental_db) == dump(full_db)
+
+
+def test_schema_version_mismatch_rebuilds(raw, db):
+    Season().write(raw)
+    first = sync(raw, db)
+    before = dump(db)
+    con = sqlite3.connect(db)
+    con.execute("PRAGMA user_version = 999")
+    con.close()
+
+    again = sync(raw, db)
+
+    assert again.files_ingested == first.files_ingested
+    assert rows(db, "PRAGMA user_version")[0]["user_version"] == SCHEMA_VERSION
+    assert dump(db) == before
+
+
+def test_history_past_ingested_once_per_player(raw, db):
+    season = Season()
+    season.history_past[(2, 1)] = [
+        past_season_payload(season_name=name, element_code=900001, total_points=pts)
+        for name, pts in (("2021/22", 90), ("2023/24", 120), ("2025/26", 150))
+    ]
+    season.history_past[(3, 1)] = [
+        past_season_payload(season_name="2025/26", element_code=900001, total_points=999)
+    ]
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    stored = rows(db, "SELECT * FROM history_past WHERE element = 1 ORDER BY season_name")
+    assert [(r["season_name"], r["total_points"]) for r in stored] == [
+        ("2021/22", 90), ("2023/24", 120), ("2025/26", 150)]
+    assert {r["source_path"] for r in stored} == {"gw2/players/summary-1.json"}
+    assert {r["code"] for r in stored} == {900001}
+    assert [(r["xg_recorded"], r["dc_recorded"]) for r in stored] == [(0, 0), (1, 0), (1, 1)]
+    assert report.history_past_players == 3
+
+
+def test_archives_are_not_ingested(raw, db):
+    season = Season()
+    season.write(raw)
+    refreshed = fetch_time(1) + timedelta(hours=5)
+    payload = SnapshotStore(raw).load(1, "bootstrap")
+    payload["elements"][0]["web_name"] = "Renamed"
+    SnapshotStore(raw, now=lambda: refreshed).save(1, "bootstrap", payload, "https://x.test")
+    assert list((raw / "gw1" / ".archive").glob("bootstrap-*.json"))
+
+    sync(raw, db)
+
+    paths = {r["path"] for r in rows(db, "SELECT path FROM manifest")}
+    assert not any(".archive" in p or ".meta" in p for p in paths)
+    assert "gw1/bootstrap.json" in paths
+    state = rows(db, "SELECT web_name, fetched_at FROM player_state WHERE gw = 1 AND element = 1")
+    assert state == [{"web_name": "Renamed", "fetched_at": refreshed.isoformat()}]
+
+
+def test_manifest_records_kind_finality_and_rows(raw, db):
+    Season().write(raw)
+
+    sync(raw, db)
+
+    (live,) = rows(db, "SELECT * FROM manifest WHERE path = 'gw2/event-live-e1.json'")
+    assert (live["kind"], live["gw"], live["final"], live["ingested_rows"]) == (
+        "event-live", 2, 1, 3)
+    assert len(live["sha256"]) == 64
+    coverage = rows(db, "SELECT gw, element FROM summary_coverage ORDER BY gw, element")
+    assert coverage == [{"gw": g, "element": e} for g in (2, 3) for e in (1, 2, 3)]
+
+
+def test_reconciliation_passes_when_totals_match(raw, db):
+    Season().write(raw)
+
+    report = sync(raw, db)
+
+    assert report.mismatches == ()
+    assert report.reconciliation_skipped is None
+
+
+def test_reconciliation_flags_a_total_mismatch(raw, db):
+    Season(totals_delta={(3, 1): {"total_points": 1}}).write(raw)
+
+    report = sync(raw, db)
+
+    (line,) = report.mismatches
+    assert "element 1" in line and "total_points" in line
+
+
+def test_reconciliation_is_skipped_when_the_current_event_is_not_data_checked(raw, db):
+    Season(unchecked={3: {2}}, final_sidecar={2},
+           totals_delta={(3, 1): {"total_points": 1}}).write(raw)
+
+    report = sync(raw, db)
+
+    assert report.mismatches == ()
+    assert "event 2" in report.reconciliation_skipped
