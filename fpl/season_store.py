@@ -14,6 +14,9 @@ An element-summary row replaces them only where event-live cannot say: a
 double gameweek or an unresolved side. Without one, a double gameweek is
 split by minutes and marked, and an unresolved side is stored with no club
 and listed.
+
+`open_ro` serves as-of reads that return the existing models. It refuses a
+store that has not ingested exactly the current raw tree.
 """
 
 from __future__ import annotations
@@ -27,21 +30,25 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 
 from fpl.models import (
     Bootstrap,
+    ElementSummary,
     EventLive,
     Fixture,
     LiveElement,
     MatchRecord,
     PastSeason,
+    PlayerStatus,
+    Position,
+    is_shortlisted,
 )
 from fpl.store import SnapshotStore
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DEFAULT_STORE_PATH = Path("data/store/season-2026-27.sqlite")
 XG_RECORDED_FROM = "2022/23"
 DC_RECORDED_FROM = "2024/25"
@@ -73,7 +80,12 @@ TOTAL_FIELDS = (
 )
 PLAYER_STATE_COLUMNS = (
     "gw", "element", "fetched_at", "code", "web_name", "team", "position", "now_cost",
-    "status", "chance", "news_added", "selected_by_percent", "form", *TOTAL_FIELDS,
+    "status", "chance", "news_added", "selected_by_percent", "form", "shortlisted",
+    *TOTAL_FIELDS,
+)
+FIXTURE_SNAPSHOT_COLUMNS = (
+    "gw", "id", "event", "team_h", "team_a", "team_h_difficulty", "team_a_difficulty",
+    "kickoff_time", "finished", "team_h_score", "team_a_score",
 )
 _X_TOTALS = frozenset({"expected_goals", "expected_assists", "expected_goals_conceded"})
 
@@ -91,6 +103,13 @@ CREATE TABLE fixtures (
     id INTEGER PRIMARY KEY, event INTEGER, team_h INTEGER NOT NULL, team_a INTEGER NOT NULL,
     kickoff_time TEXT, finished INTEGER NOT NULL, team_h_score INTEGER,
     team_a_score INTEGER, source_gw INTEGER NOT NULL
+);
+CREATE TABLE fixture_snapshots (
+    gw INTEGER NOT NULL, id INTEGER NOT NULL, event INTEGER, team_h INTEGER NOT NULL,
+    team_a INTEGER NOT NULL, team_h_difficulty INTEGER NOT NULL,
+    team_a_difficulty INTEGER NOT NULL, kickoff_time TEXT, finished INTEGER NOT NULL,
+    team_h_score INTEGER, team_a_score INTEGER,
+    PRIMARY KEY (gw, id)
 );
 CREATE TABLE player_rounds (
     element INTEGER NOT NULL, fixture INTEGER NOT NULL, round INTEGER NOT NULL,
@@ -112,7 +131,7 @@ CREATE TABLE player_state (
     gw INTEGER NOT NULL, element INTEGER NOT NULL, fetched_at TEXT, code INTEGER,
     web_name TEXT NOT NULL, team INTEGER NOT NULL, position INTEGER NOT NULL,
     now_cost INTEGER NOT NULL, status TEXT NOT NULL, chance INTEGER, news_added TEXT,
-    selected_by_percent REAL NOT NULL, form REAL NOT NULL,
+    selected_by_percent REAL NOT NULL, form REAL NOT NULL, shortlisted INTEGER NOT NULL,
     {", ".join(f"{c} {'REAL' if c in _X_TOTALS or c == 'defensive_contribution' else 'INTEGER'}"
                for c in TOTAL_FIELDS)},
     PRIMARY KEY (gw, element)
@@ -121,8 +140,8 @@ CREATE TABLE summary_coverage (
     gw INTEGER NOT NULL, element INTEGER NOT NULL, PRIMARY KEY (gw, element)
 );
 """
-_TABLES = ("manifest", "events", "clubs", "fixtures", "player_rounds", "history_past",
-           "player_state", "summary_coverage")
+_TABLES = ("manifest", "events", "clubs", "fixtures", "fixture_snapshots", "player_rounds",
+           "history_past", "player_state", "summary_coverage")
 
 _GW_DIR = re.compile(r"^gw(\d+)$")
 _LIVE_FILE = re.compile(r"^event-live-e(\d+)\.json$")
@@ -292,6 +311,7 @@ class _Tables:
     events: list[tuple]
     clubs: list[tuple]
     fixtures: list[tuple]
+    fixture_snapshots: list[tuple]
     player_rounds: list[tuple]
     history_past: list[tuple]
     player_state: list[tuple]
@@ -382,7 +402,7 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
                 gw, p.id, _iso(snapshot.fetched_at), p.code, p.web_name, p.team,
                 int(p.element_type), p.now_cost, p.status.value,
                 p.chance_of_playing_next_round, _iso(p.news_added), p.selected_by_percent,
-                p.form, *(getattr(p, name) for name in TOTAL_FIELDS),
+                p.form, int(is_shortlisted(p)), *(getattr(p, name) for name in TOTAL_FIELDS),
             ))
             rows_from[snapshot.path] += 1
 
@@ -410,6 +430,13 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
             (f.id, f.event, f.team_h, f.team_a, _api_time(f.kickoff_time), int(f.finished),
              f.team_h_score, f.team_a_score, gw)
             for f, gw, _ in (fixtures[i] for i in sorted(fixtures))
+        ],
+        fixture_snapshots=[
+            (f.gw, x.id, x.event, x.team_h, x.team_a, x.team_h_difficulty,
+             x.team_a_difficulty, _api_time(x.kickoff_time), int(x.finished),
+             x.team_h_score, x.team_a_score)
+            for f in files if f.kind == "fixtures"
+            for x in sorted(f.payload, key=lambda x: x.id)
         ],
         player_rounds=sorted(player_rounds, key=lambda r: (r[0], r[1])),
         history_past=history_past,
@@ -569,6 +596,7 @@ def _write(db_path: Path, tables: _Tables) -> None:
         _insert(con, "events", tables.events)
         _insert(con, "clubs", tables.clubs)
         _insert(con, "fixtures", tables.fixtures)
+        _insert(con, "fixture_snapshots", tables.fixture_snapshots)
         _insert(con, "player_rounds", tables.player_rounds)
         _insert(con, "history_past", tables.history_past)
         _insert(con, "player_state", tables.player_state)
@@ -690,3 +718,245 @@ def _iso(value: datetime | None) -> str | None:
     if value.tzinfo is None:
         value = value.replace(tzinfo=timezone.utc)
     return value.isoformat()
+
+
+# --- as-of readers -----------------------------------------------------------
+
+Coverage = Literal["production", "shortlist", "all"]
+COVERAGES: tuple[Coverage, ...] = ("production", "shortlist", "all")
+
+
+class StoreReadError(ValueError):
+    """The store cannot answer an as-of question without leaking or guessing."""
+
+
+class StoredMatch(MatchRecord):
+    """A per-match row as the readers return it: an element-summary `history`
+    row, with the opponent the summary also carries."""
+
+    opponent_team: int | None = None
+
+
+class PlayerState(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    gw: int
+    element: int
+    fetched_at: datetime | None
+    code: int | None
+    web_name: str
+    team: int
+    position: Position
+    now_cost: int
+    status: PlayerStatus
+    chance: int | None
+    news_added: datetime | None
+    selected_by_percent: float
+    form: float
+    shortlisted: bool
+    minutes: int
+    starts: int
+    total_points: int
+    goals_scored: int | None
+    assists: int | None
+    clean_sheets: int
+    goals_conceded: int
+    saves: int
+    bonus: int
+    bps: int | None
+    yellow_cards: int | None
+    red_cards: int | None
+    own_goals: int | None
+    penalties_saved: int | None
+    penalties_missed: int | None
+    defensive_contribution: float | None
+    expected_goals: float
+    expected_assists: float
+    expected_goals_conceded: float
+
+
+_MATCH_COLUMNS = tuple(name for name in StoredMatch.model_fields if name in PLAYER_ROUND_COLUMNS)
+
+
+def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
+    """A read-only view of the store, refused unless it has ingested exactly
+    the raw tree it was built from."""
+    files = _scan(raw_root)
+    latest = max((f.gw for f in files), default=None)
+    hint = f"run: uv run python -m fpl store sync --gw {latest}"
+    if not db_path.is_file():
+        raise StoreReadError(f"no season store at {db_path} — {hint}")
+    con = sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
+    try:
+        if con.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:
+            raise StoreReadError(
+                f"season store {db_path} has another schema version — {hint}")
+        known = dict(con.execute("SELECT path, sha256 FROM manifest"))
+        current = {f.path: f.sha256 for f in files}
+        stale = _first_difference(known, current)
+        if stale is not None:
+            raise StoreReadError(
+                f"season store {db_path} is behind {raw_root}: {stale} — {hint}")
+    except BaseException:
+        con.close()
+        raise
+    con.row_factory = sqlite3.Row
+    return SeasonReader(con)
+
+
+def _first_difference(known: dict[str, str], current: dict[str, str]) -> str | None:
+    for path in sorted(current.keys() | known.keys()):
+        if path not in known:
+            return f"{path} not ingested"
+        if path not in current:
+            return f"{path} ingested but no longer in the raw tree"
+        if known[path] != current[path]:
+            return f"{path} changed since the last sync"
+    return None
+
+
+class SeasonReader:
+    """As of round r: match rows of rounds < r only, and the gw r snapshots
+    (bootstrap, fixtures), refused when fetched at or after deadline r."""
+
+    def __init__(self, con: sqlite3.Connection) -> None:
+        self._con = con
+
+    def close(self) -> None:
+        self._con.close()
+
+    def __enter__(self) -> SeasonReader:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
+
+    def rounds(self, as_of: int, ids: Iterable[int]) -> dict[int, tuple[StoredMatch, ...]]:
+        self._require_rounds(as_of)
+        wanted = set(ids)
+        found: dict[int, list[StoredMatch]] = {}
+        for row in self._con.execute(
+            f"SELECT element, {', '.join(_MATCH_COLUMNS)} FROM player_rounds "
+            "WHERE round < ? ORDER BY element, kickoff_time, fixture", (as_of,)
+        ):
+            if row["element"] in wanted:
+                found.setdefault(row["element"], []).append(
+                    StoredMatch.model_validate({name: row[name] for name in _MATCH_COLUMNS}))
+        return {element: tuple(rows) for element, rows in found.items()}
+
+    def past(self, ids: Iterable[int]) -> dict[int, tuple[PastSeason, ...]]:
+        """Every past season of each id that has a summary on file; an id
+        whose summary lists none maps to (). history_past does not change
+        during a season, so any snapshot's copy is the as-of copy."""
+        wanted = set(ids)
+        found: dict[int, list[PastSeason]] = {
+            element: [] for (element,) in self._con.execute(
+                "SELECT DISTINCT element FROM summary_coverage") if element in wanted
+        }
+        for row in self._con.execute(
+            f"SELECT element, {', '.join(PAST_FIELDS)} FROM history_past "
+            "ORDER BY element, season_name"
+        ):
+            if row["element"] in found:
+                found[row["element"]].append(
+                    PastSeason.model_validate({name: row[name] for name in PAST_FIELDS}))
+        return {element: tuple(rows) for element, rows in found.items()}
+
+    def summaries(
+        self, as_of: int, ids: Iterable[int], coverage: Coverage = "production", *,
+        pinned: Iterable[int] = (),
+    ) -> dict[int, ElementSummary]:
+        """The summaries a gw `as_of` run would have read, by coverage:
+        production — the ids with a summary in data/raw/gw{as_of}/players;
+        shortlist — shortlisted in the gw `as_of` bootstrap, plus `pinned`
+        (the round's inputs ids); all — every id in that bootstrap. An id
+        whose history_past was never fetched is absent under every coverage."""
+        ids = list(dict.fromkeys(ids))
+        if coverage == "production":
+            pool = {element for (element,) in self._con.execute(
+                "SELECT element FROM summary_coverage WHERE gw = ?", (as_of,))}
+        elif coverage in ("shortlist", "all"):
+            self._require_before_deadline("bootstrap", as_of)
+            condition = " AND shortlisted = 1" if coverage == "shortlist" else ""
+            pool = {element for (element,) in self._con.execute(
+                f"SELECT element FROM player_state WHERE gw = ?{condition}", (as_of,))}
+            if coverage == "shortlist":
+                pool |= set(pinned)
+        else:
+            raise ValueError(f"unknown coverage {coverage!r}; expected one of {COVERAGES}")
+        chosen = [element for element in ids if element in pool]
+        past = self.past(chosen)
+        matches = self.rounds(as_of, chosen)
+        return {
+            element: ElementSummary(history=matches.get(element, ()),
+                                    history_past=past[element])
+            for element in chosen if element in past
+        }
+
+    def fixtures(self, as_of: int) -> tuple[Fixture, ...]:
+        """The fixture list as the gw `as_of` snapshot had it (no stats)."""
+        self._require_before_deadline("fixtures", as_of)
+        columns = FIXTURE_SNAPSHOT_COLUMNS[1:]
+        return tuple(
+            Fixture.model_validate({name: row[name] for name in columns})
+            for row in self._con.execute(
+                f"SELECT {', '.join(columns)} FROM fixture_snapshots WHERE gw = ? ORDER BY id",
+                (as_of,),
+            )
+        )
+
+    def club_match_xg(self, as_of: int) -> dict[int, tuple[float, float]]:
+        """fixture id → (home xG, away xG) for every fixture of rounds < as_of
+        that the gw `as_of` snapshot shows finished. Rows with no resolved
+        side are left out."""
+        self._require_rounds(as_of)
+        played = [f for f in self.fixtures(as_of)
+                  if f.finished and f.event is not None and f.event < as_of]
+        xg: dict[tuple[int, int], float] = {
+            (fixture, team): total for fixture, team, total in self._con.execute(
+                "SELECT fixture, team, SUM(expected_goals) FROM player_rounds "
+                "WHERE round < ? AND team IS NOT NULL GROUP BY fixture, team", (as_of,))
+        }
+        return {
+            f.id: (xg.get((f.id, f.team_h)) or 0.0, xg.get((f.id, f.team_a)) or 0.0)
+            for f in played
+        }
+
+    def player_state(self, gw: int) -> dict[int, PlayerState]:
+        self._require_before_deadline("bootstrap", gw)
+        return {
+            row["element"]: PlayerState.model_validate(dict(row))
+            for row in self._con.execute(
+                "SELECT * FROM player_state WHERE gw = ? ORDER BY element", (gw,))
+        }
+
+    def _require_rounds(self, as_of: int) -> None:
+        if as_of < 1:
+            raise ValueError(f"as-of round must be ≥ 1, got {as_of}")
+        stored = {r for (r,) in self._con.execute("SELECT DISTINCT round FROM player_rounds")}
+        missing = sorted(set(range(1, as_of)) - stored)
+        if missing:
+            r = missing[0]
+            raise StoreReadError(
+                f"round(s) {missing} have no final live stats in the store — fetch: "
+                f"uv run python -m fpl event-live --gw {r + 1} --round {r}, then store sync"
+            )
+
+    def _require_before_deadline(self, kind: str, gw: int) -> None:
+        path = f"gw{gw}/{kind}.json"
+        found = self._con.execute(
+            "SELECT fetched_at FROM manifest WHERE path = ?", (path,)).fetchone()
+        if found is None:
+            raise StoreReadError(f"no {path} in the store — gw{gw} has no {kind} snapshot")
+        deadline = self._con.execute(
+            "SELECT deadline_time FROM events WHERE id = ?", (gw,)).fetchone()
+        if deadline is None:
+            return
+        if found["fetched_at"] is None:
+            raise StoreReadError(
+                f"{path} has no recorded fetch time — cannot show it predates deadline {gw}")
+        if datetime.fromisoformat(found["fetched_at"]) >= datetime.fromisoformat(deadline[0]):
+            raise StoreReadError(
+                f"{path} was fetched at {found['fetched_at']}, not before the gw{gw} "
+                f"deadline {deadline[0]} — it may show round {gw}"
+            )

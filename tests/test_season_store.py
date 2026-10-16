@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -6,7 +7,18 @@ from typing import Any
 
 import pytest
 
-from fpl.season_store import SCHEMA_VERSION, StoreSyncError, sync
+from fpl.ep import _league_mean
+from fpl.fixture_ratings import _side_xg, load_inputs
+from fpl.models import Position, is_shortlisted
+from fpl.season_store import (
+    COVERAGES,
+    SCHEMA_VERSION,
+    StoreReadError,
+    StoreSyncError,
+    open_ro,
+    sync,
+)
+from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.store import SnapshotStore
 from tests.factories import (
     bootstrap_payload,
@@ -16,6 +28,7 @@ from tests.factories import (
     live_stats_payload,
     past_season_payload,
     player_payload,
+    priors_doc,
     team_payload,
 )
 
@@ -112,6 +125,7 @@ class Season:
     unchecked: dict[int, set[int]] = field(default_factory=dict)
     totals_delta: dict[tuple[int, int], dict[str, int]] = field(default_factory=dict)
     history_past: dict[tuple[int, int], list[dict]] = field(default_factory=dict)
+    player_overrides: dict[int, dict[str, Any]] = field(default_factory=dict)
 
     def round_of(self, fixture: int) -> int:
         return self.fixtures[fixture][0]
@@ -170,7 +184,7 @@ class Season:
                 id=element, code=900000 + element, web_name=f"P{element}",
                 team=by_gw[gw], element_type=self.positions.get(element, 3),
                 expected_goals=f"{xg:.2f}", expected_goals_conceded=f"{xgc:.2f}",
-                penalties_order=None, **totals,
+                penalties_order=None, **totals | self.player_overrides.get(element, {}),
             ))
         self._save(root, when, gw, "bootstrap", bootstrap_payload(elements, teams, events))
 
@@ -535,3 +549,221 @@ def test_reconciliation_is_skipped_when_the_current_event_is_not_data_checked(ra
 
     assert report.mismatches == ()
     assert "event 2" in report.reconciliation_skipped
+
+
+# --- as-of readers -----------------------------------------------------------
+
+
+def three_rounds() -> Season:
+    """Rounds 1–3 played (gw1–gw4 written); round 3 has a distinctive brace,
+    and fixture 5 is a round-4 fixture that is never played."""
+    season = Season()
+    season.fixtures[4] = (3, 1, 2, "2026-08-29T14:00:00Z")
+    season.fixtures[5] = (4, 2, 1, "2026-09-05T14:00:00Z")
+    for by_gw in season.clubs.values():
+        by_gw[4] = by_gw[3]
+    season.matches += [Match(1, 4, goals=2, xg="1.99", bonus=3), Match(2, 4),
+                       Match(3, 4, minutes=0)]
+    return season
+
+
+def save_raw(raw: Path, when: datetime, gw: int, name: str, payload: Any) -> None:
+    SnapshotStore(raw, now=lambda: when).save(gw, name, payload, "https://x.test")
+
+
+def test_as_of_excludes_round_r_and_later(raw, db):
+    season = three_rounds()
+    season.clubs[7] = {4: 1}
+    season.write(raw, range(1, 5))
+    save_raw(raw, fetch_time(4) + timedelta(hours=2), 4, "players/summary-7", {
+        "fixtures": [], "history": [], "history_past": [past_season_payload()]})
+    sync(raw, db)
+
+    with open_ro(db, raw) as store:
+        rounds = store.rounds(3, [1, 2, 3])
+        summaries = {c: store.summaries(3, [1, 2, 3, 7], coverage=c) for c in COVERAGES}
+        signed_later = store.summaries(4, [7], coverage="all")
+        xg = store.club_match_xg(3)
+        schedule = {f.id: f for f in store.fixtures(3)}
+        state = store.player_state(3)
+        later = store.rounds(4, [1])
+
+    assert {m.round for ms in rounds.values() for m in ms} == {1, 2}
+    assert all(m.fixture != 4 for ms in rounds.values() for m in ms)
+    for by_id in summaries.values():
+        assert set(by_id) == {1, 2, 3}
+        assert {m.round for s in by_id.values() for m in s.history} == {1, 2}
+    assert set(signed_later) == {7}
+    assert set(xg) == {1, 2}
+    assert (schedule[4].finished, schedule[4].team_h_score) == (False, None)
+    assert state[1].goals_scored == 1
+    assert [m.round for m in later[1]] == [1, 2, 3]
+    assert later[1][-1].expected_goals == pytest.approx(1.99)
+
+
+def test_as_of_summaries_equal_raw_summaries_for_covered_ids(raw, db):
+    season = double_gameweek()
+    season.clubs[4] = {1: 1, 2: 1, 3: 1}
+    season.matches.append(Match(4, 1, minutes=20))
+    season.write(raw)
+    sync(raw, db)
+    ids = [1, 2, 3, 4]
+
+    with open_ro(db, raw) as store:
+        got = store.summaries(3, ids, coverage="production")
+    want = load_cached_summaries(SnapshotStore(raw), 3, ids)
+
+    assert set(got) == set(want) == {1, 2, 3}
+    for element, summary in want.items():
+        assert got[element].history_past == summary.history_past
+        assert [m.model_dump(exclude={"opponent_team"}) for m in got[element].history] == [
+            m.model_dump() for m in summary.history]
+        raw_rows = SnapshotStore(raw).load(3, f"players/summary-{element}")["history"]
+        assert [m.opponent_team for m in got[element].history] == [
+            r["opponent_team"] for r in raw_rows]
+
+
+def league_world() -> Season:
+    """Nine shortlisted midfielders with a summary each, and element 20: a
+    cheap, unowned midfielder whose only summary was fetched before GW1."""
+    season = Season()
+    for element in range(10, 18):
+        season.clubs[element] = {1: 1, 2: 1, 3: 1}
+        season.positions[element] = 3
+        season.summary_ids.add(element)
+    season.clubs[20] = {1: 2, 2: 2, 3: 2}
+    season.positions[20] = 3
+    season.player_overrides[20] = {"now_cost": 40, "selected_by_percent": "0.5"}
+    return season
+
+
+def test_coverage_shortlist_pins_the_league_pool(raw, db):
+    league_world().write(raw)
+    save_raw(raw, fetch_time(1) + timedelta(hours=2), 1, "players/summary-20", {
+        "fixtures": [], "history": [], "history_past": [past_season_payload(
+            element_code=900020, minutes=2000, goals_scored=30, expected_goals="25.00")],
+    })
+    sync(raw, db)
+    bootstrap = load_cached_bootstrap(SnapshotStore(raw), 3)
+    mids = [p for p in bootstrap.elements if p.element_type == Position.MID]
+    ids = [p.id for p in mids]
+    assert not is_shortlisted(bootstrap.player_by_id()[20])
+
+    with open_ro(db, raw) as store:
+        by_coverage = {c: store.summaries(3, ids, coverage=c) for c in COVERAGES}
+        pinned = store.summaries(3, ids, coverage="shortlist", pinned=[20])
+
+    assert 20 not in by_coverage["production"]
+    assert 20 not in by_coverage["shortlist"]
+    assert by_coverage["all"][20].history_past[0].minutes == 2000
+    assert 20 in pinned
+    league = {c: _league_mean(Position.MID, mids, s) for c, s in by_coverage.items()}
+    assert league["production"] == league["shortlist"]
+    assert league["all"] != league["shortlist"]
+    assert league["all"][2] == league["shortlist"][2] + 1
+
+
+def test_schedule_comes_from_the_as_of_fixtures_snapshot(raw, db):
+    three_rounds().write(raw, range(1, 5))
+    moved = SnapshotStore(raw).load(4, "fixtures")
+    for fixture in moved:
+        if fixture["id"] == 5:
+            fixture.update(event=None, kickoff_time=None)
+    save_raw(raw, fetch_time(4) + timedelta(hours=3), 4, "fixtures", moved)
+    sync(raw, db)
+
+    with open_ro(db, raw) as store:
+        as_of_3 = {f.id: f for f in store.fixtures(3)}
+        as_of_4 = {f.id: f for f in store.fixtures(4)}
+
+    assert as_of_3[5].event == 4
+    assert as_of_3[5].kickoff_time == datetime(2026, 9, 5, 14, tzinfo=timezone.utc)
+    assert (as_of_3[5].team_h_difficulty, as_of_3[5].team_a_difficulty) == (2, 4)
+    assert (as_of_4[5].event, as_of_4[5].kickoff_time) == (None, None)
+    assert as_of_4[4].finished and not as_of_3[4].finished
+
+
+def test_club_match_xg_equals_fixture_ratings_side_xg(raw, db, tmp_path):
+    season = Season()
+    season.clubs[4] = {1: 2, 2: 2, 3: 2}
+    season.matches += [Match(4, 1, minutes=30, xg="0.33"), Match(4, 2, minutes=15, xg="0.07")]
+    season.write(raw)
+    sync(raw, db)
+    priors = tmp_path / "club-priors.json"
+    priors.write_text(json.dumps(priors_doc({f"C{i}": (1.0, 1.0, False) for i in (1, 2, 3)})))
+    inputs = load_inputs(SnapshotStore(raw), 3, priors_path=priors,
+                         analysis_root=tmp_path / "analysis")
+    played = sorted((f for f in inputs.fixtures if f.event is not None and f.event < 3
+                     and f.finished), key=lambda f: f.id)
+    tally = _side_xg(played, inputs)
+    assert tally.recovered > 0
+
+    with open_ro(db, raw) as store:
+        got = store.club_match_xg(3)
+
+    assert {fid: (round(h, 2), round(a, 2)) for fid, (h, a) in got.items()} == {
+        f.id: (round(tally.xg[(f.id, "H")], 2), round(tally.xg[(f.id, "A")], 2))
+        for f in played
+    }
+
+
+def test_reader_refuses_a_store_behind_the_raw(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    save_raw(raw, fetch_time(3) + timedelta(hours=3), 3, "players/summary-9", {
+        "fixtures": [], "history": [], "history_past": []})
+
+    with pytest.raises(StoreReadError) as refused:
+        open_ro(db, raw)
+
+    message = str(refused.value)
+    assert "gw3/players/summary-9.json" in message
+    assert "fpl store sync --gw 3" in message
+
+
+def test_reader_refuses_a_changed_raw_file_and_a_missing_store(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    payload = SnapshotStore(raw).load(2, "fixtures")
+    save_raw(raw, fetch_time(2) + timedelta(hours=1), 2, "fixtures", payload[:1])
+
+    with pytest.raises(StoreReadError, match=r"gw2/fixtures\.json.*fpl store sync --gw 3"):
+        open_ro(db, raw)
+    with pytest.raises(StoreReadError, match="fpl store sync --gw 3"):
+        open_ro(db.with_name("absent.sqlite"), raw)
+
+
+def test_reader_never_writes_the_store(raw, db):
+    three_rounds().write(raw, range(1, 5))
+    sync(raw, db)
+    before = db.read_bytes()
+
+    with open_ro(db, raw) as store:
+        store.summaries(4, [1, 2, 3], coverage="all")
+        store.club_match_xg(4)
+        store.player_state(4)
+
+    assert db.read_bytes() == before
+
+
+def test_as_of_refuses_a_snapshot_fetched_after_its_deadline(raw, db):
+    Season(final_sidecar={1, 2}).write(raw)
+    payload = SnapshotStore(raw).load(3, "bootstrap")
+    save_raw(raw, DEADLINES[3] + timedelta(hours=1), 3, "bootstrap", payload)
+    sync(raw, db)
+
+    with open_ro(db, raw) as store:
+        with pytest.raises(StoreReadError, match=r"gw3/bootstrap\.json.*deadline"):
+            store.summaries(3, [1], coverage="shortlist")
+        with pytest.raises(StoreReadError, match=r"gw3/bootstrap\.json"):
+            store.player_state(3)
+        assert set(store.summaries(3, [1], coverage="production")) == {1}
+
+
+def test_as_of_refuses_a_round_without_final_live_stats(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+
+    with open_ro(db, raw) as store:
+        with pytest.raises(StoreReadError, match=r"round\(s\) \[3\].*event-live --gw 4 --round 3"):
+            store.rounds(4, [1])
