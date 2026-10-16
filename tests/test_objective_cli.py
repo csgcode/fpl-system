@@ -8,6 +8,7 @@ import json
 import pytest
 
 from fpl.__main__ import main
+from fpl.objective_report import TIE_BREAK_LABEL
 from fpl.store import SnapshotStore
 from tests.factories import bootstrap_payload, event_payload, player_payload, team_payload
 from tests.test_plan_cli import state_block
@@ -17,15 +18,20 @@ LAYOUT = {**{i: 1 for i in (1, 2)}, **{i: 2 for i in range(3, 8)},
           **{i: 3 for i in range(8, 13)}, **{i: 4 for i in range(13, 16)}, 16: 3, 17: 3}
 POSITION_NAMES = {1: "GKP", 2: "DEF", 3: "MID", 4: "FWD"}
 CLUBS = ("AAA", "BBB", "CCC", "DDD", "EEE", "FFF")
-P_START = {11: 0.3, 12: 0.3, 16: 1.0, 17: 0.35, 2: 0.03}
-PRICE = {16: 55, 17: 50}
+P_START = {11: 0.3, 12: 0.3, 16: 1.0, 17: 0.35, 18: 1.0, 2: 0.03}
+PRICE = {16: 55, 17: 50, 18: 55}
 
 
-def seed(root):
+TWIN = 18
+
+
+def seed(root, *, twin=False):
+    """`twin` adds P18, a MID with P16's price, start chance and fixtures."""
     store = SnapshotStore(root / "data" / "raw")
+    layout = {**LAYOUT, TWIN: 3} if twin else LAYOUT
     players = [player_payload(id=pid, web_name=f"P{pid}", team=pid % 6 + 1, element_type=pos,
                               now_cost=PRICE.get(pid, 50))
-               for pid, pos in LAYOUT.items()]
+               for pid, pos in layout.items()]
     teams = [team_payload(id=i + 1, short_name=name) for i, name in enumerate(CLUBS)]
     store.save(GW, "bootstrap", bootstrap_payload(
         elements=players, teams=teams, events=[event_payload(id=GW, is_next=True)]),
@@ -45,7 +51,7 @@ def seed(root):
     for pos, name in POSITION_NAMES.items():
         inputs = [{"id": pid, "name": f"P{pid}", "p_start": P_START.get(pid, 0.9),
                    "uncertainty": "LOW", "notes": ""}
-                  for pid, p in LAYOUT.items() if p == pos]
+                  for pid, p in layout.items() if p == pos]
         (gw_dir / f"inputs-{name}.json").write_text(json.dumps(
             {"schema_version": 1, "gw": GW, "position": name, "players": inputs}))
         assert main(["--data-root", str(root / "data" / "raw"), "ep", "--gw", str(GW),
@@ -64,6 +70,22 @@ def seed(root):
 def repo(tmp_path, monkeypatch, capsys):
     seed(tmp_path)
     capsys.readouterr()
+    monkeypatch.chdir(tmp_path)
+    return tmp_path
+
+
+@pytest.fixture
+def tied(tmp_path, monkeypatch, capsys):
+    """P16 and P18 tie on blend for P8's slot; P18 returned more often."""
+    seed(tmp_path, twin=True)
+    capsys.readouterr()
+    path = tmp_path / "data" / "analysis" / f"gw{GW}" / "players-MID.json"
+    rows = json.loads(path.read_text())
+    returns = {16: [1, 5], TWIN: [4, 5]}
+    for row in rows:
+        if row["id"] in returns:
+            row["returns5"] = returns[row["id"]]
+    path.write_text(json.dumps(rows))
     monkeypatch.chdir(tmp_path)
     return tmp_path
 
@@ -143,3 +165,48 @@ def test_never_builds_a_gateway(repo, capsys):
         raise AssertionError("objective must not build a data service")
 
     assert main(["objective", "--gw", str(GW)], service_factory=refuse) == 0
+
+
+def test_singles_table_carries_p4_and_ret5_columns(tied, capsys):
+    assert run() == 0
+    out = capsys.readouterr().out
+    rows = [line for line in out.splitlines() if line.startswith("  ") and " | " in line]
+    twin = next(line for line in rows if "P11 → P18" in line)
+    assert "| p4₃ - |" in twin and "| ret5 4/5 |" in twin
+
+
+def test_tie_break_line_names_the_winner(tied, capsys):
+    assert run() == 0
+    out = capsys.readouterr().out
+    line = next(line for line in out.splitlines() if line.startswith(TIE_BREAK_LABEL))
+    assert "P8 → P16" in line and "winner P8 → P18" in line and "ret5 4/5 v 1/5" in line
+    assert "reference (greedy): P8 → P18" in out
+
+
+def test_plan_taking_the_winner_passes_and_says_so(tied, capsys):
+    assert run("--moves", "8:18") == 0
+    out = capsys.readouterr().out
+    assert "verdict: PASS" in out
+    assert "tie-break: plan takes P8 → P18" in out
+
+
+def test_plan_taking_the_displaced_move_fails(tied, capsys):
+    assert run("--moves", "8:16") == 1
+    out = capsys.readouterr().out
+    assert "departs from the tie-break" in out
+    assert "tie-break: plan takes P8 → P16, not the winner P8 → P18" in out
+
+
+def test_no_tie_in_band(repo, capsys):
+    assert run("--moves", "11:16") == 0
+    out = capsys.readouterr().out
+    assert f"{TIE_BREAK_LABEL} none within 0.5" in out
+    assert "tie-break: none in band" in out
+
+
+def test_json_carries_tie_breaks(tied, capsys):
+    assert run("--format", "json") == 0
+    document = json.loads(capsys.readouterr().out)
+    (tie,) = document["tie_breaks"]
+    assert (tie["best"]["in"], tie["challenger"]["in"], tie["winner"]["in"]) == (16, TWIN, TWIN)
+    assert tie["reason"] == "ret5 4/5 v 1/5"

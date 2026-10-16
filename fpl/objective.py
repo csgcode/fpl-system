@@ -6,6 +6,11 @@ the best of every legal formation, each filled by the top players per
 position, and the squad's maximum is always in it, so the captain term never
 changes which XI wins.
 
+Two singles with the same outgoing player whose blend gains are within
+NEAR_TIE_MOVE are a near tie: the reference takes the steadier incoming
+player (P(≥4) over the next three gameweeks where that reading is calibrated,
+then observed returns over the last five rounds), else the higher blend.
+
 Every figure is read twice: on the blend view (players-*.json, what the
 analysts published) and on the prior-only view (the same inputs at prior
 weight 1.0). A move must gain on blend and must not flip sign on prior-only.
@@ -31,6 +36,12 @@ HIT_GATE = 6.0
 CHIP_GATE = 6.0
 HIT_COST = 4
 NEAR_TIE = 0.25
+NEAR_TIE_MOVE = 0.5
+P4_CALIBRATED: frozenset[Position] = frozenset()
+P4_TIE_GAP = 0.03
+RET5_TIE_GAP = 0.2
+P4_WINDOW = 3
+BLEND_DECIDED = "blend"
 DEAD_BENCH = 0.5
 MAX_FREE_TRANSFERS = 5
 REFERENCE_TOLERANCE = 0.05
@@ -59,6 +70,8 @@ class Row:
     p_start0: float
     uncertainty: str
     defcon_share: float
+    p4_3: float | None = None
+    ret5: tuple[int, int] | None = None
 
     def ep(self, k: int) -> float:
         return self.ep_gw[k] if k < len(self.ep_gw) else 0.0
@@ -92,6 +105,9 @@ class Scored:
     bank_after: int
 
 
+TieBreak = tuple[Scored, Scored, Scored, str]
+
+
 @dataclass(frozen=True)
 class Lineup:
     xi: tuple[int, ...]
@@ -116,6 +132,7 @@ class PlanReport:
     verdict_reasons: tuple[str, ...]
     chip: str | None = None
     squad_after: tuple[int, ...] = ()
+    tie_breaks: tuple[TieBreak, ...] = ()
 
 
 # ------------------------------------------------------------- objective
@@ -312,23 +329,87 @@ def _passes(scored: Scored, *, free: bool) -> bool:
     return scored.blend >= HIT_GATE - _EPS and scored.prior > _EPS
 
 
-def greedy_reference(squad: Sequence[int], market: Market, blend: View,
-                     prior: View) -> tuple[Scored, ...]:
-    """The rule-compliant reference plan: repeatedly the best legal single
-    that keeps its prior-only sign, while it passes the gate for its slot
-    (free while free transfers last, then a hit)."""
-    current, state, taken = list(squad), market, []
+def _ratio(ret5: tuple[int, int] | None) -> float | None:
+    return ret5[0] / ret5[1] if ret5 and ret5[1] > 0 else None
+
+
+def ret5_text(ret5: tuple[int, int] | None) -> str:
+    return f"{ret5[0]}/{ret5[1]}" if ret5 else "-"
+
+
+def tie_break_winner(a: Scored, b: Scored, view: View, *,
+                     calibrated: frozenset[Position]) -> tuple[Scored, str]:
+    """The winner of a near tie and why. A is the move ahead on blend; B wins
+    only on a clearly steadier incoming player: P(≥4) first where that
+    position is calibrated, then the observed return rate."""
+    row_a, row_b = view[a.move.into], view[b.move.into]
+    if row_a.position in calibrated and row_a.p4_3 is not None and row_b.p4_3 is not None \
+            and abs(row_b.p4_3 - row_a.p4_3) >= P4_TIE_GAP - _EPS:
+        win, lose = (b, a) if row_b.p4_3 > row_a.p4_3 else (a, b)
+        return win, f"p4 {view[win.move.into].p4_3:.2f} v {view[lose.move.into].p4_3:.2f}"
+    rate_a, rate_b = _ratio(row_a.ret5), _ratio(row_b.ret5)
+    if rate_a is None or rate_b is None:
+        return a, f"n/a — {BLEND_DECIDED}"
+    if abs(rate_b - rate_a) >= RET5_TIE_GAP - _EPS:
+        win, lose = (b, a) if rate_b > rate_a else (a, b)
+        return win, (f"ret5 {ret5_text(view[win.move.into].ret5)} v "
+                     f"{ret5_text(view[lose.move.into].ret5)}")
+    return a, BLEND_DECIDED
+
+
+def tie_break_moves(singles: Sequence[Scored], view: View, *,
+                    calibrated: frozenset[Position], free: bool = True) -> list[TieBreak]:
+    """(incumbent, challenger, winner, reason) for each passing single with
+    the best passing single's outgoing player and a blend gain within
+    NEAR_TIE_MOVE of it. Challengers meet the incumbent in blend order, so
+    the last winner is the move the reference takes."""
+    passing = sorted((s for s in singles if _passes(s, free=free)),
+                     key=lambda s: (-round(s.blend, _ORDER_DP), s.move.out, s.move.into))
+    if not passing:
+        return []
+    best = incumbent = passing[0]
+    ties = []
+    for challenger in passing[1:]:
+        if challenger.move.out != best.move.out \
+                or best.blend - challenger.blend > NEAR_TIE_MOVE + _EPS:
+            continue
+        winner, reason = tie_break_winner(incumbent, challenger, view, calibrated=calibrated)
+        ties.append((incumbent, challenger, winner, reason))
+        incumbent = winner
+    return ties
+
+
+def _decided_by_steadiness(reason: str) -> bool:
+    return not reason.endswith(BLEND_DECIDED)
+
+
+def _greedy(squad: Sequence[int], market: Market, blend: View, prior: View,
+            calibrated: frozenset[Position] | None
+            ) -> tuple[tuple[Scored, ...], tuple[TieBreak, ...]]:
+    calibrated = P4_CALIBRATED if calibrated is None else calibrated
+    current, state, taken, ties = list(squad), market, [], []
     for _ in range(sum(SHAPE.values())):
         free = len(taken) < market.free_transfers
         candidates = [s for s in legal_singles(current, state, blend, prior)
                       if (s.prior >= -_EPS if free else s.prior > _EPS)]
         if not candidates or not _passes(candidates[0], free=free):
             break
-        best = candidates[0]
-        taken.append(best)
-        current = _swap(current, best.move.out, best.move.into)
-        state = _after(state, best.move, blend, best.bank_after)
-    return tuple(taken)
+        step = tie_break_moves(candidates, blend, calibrated=calibrated, free=free)
+        chosen = step[-1][2] if step else candidates[0]
+        ties += step
+        taken.append(chosen)
+        current = _swap(current, chosen.move.out, chosen.move.into)
+        state = _after(state, chosen.move, blend, chosen.bank_after)
+    return tuple(taken), tuple(ties)
+
+
+def greedy_reference(squad: Sequence[int], market: Market, blend: View, prior: View, *,
+                     calibrated: frozenset[Position] | None = None) -> tuple[Scored, ...]:
+    """The rule-compliant reference plan: repeatedly the best legal single
+    that keeps its prior-only sign, while it passes the gate for its slot
+    (free while free transfers last, then a hit). A near tie on the same
+    outgoing player goes to the tie-break winner."""
+    return _greedy(squad, market, blend, prior, calibrated)[0]
 
 
 def ft_next(*, free: int, used: int) -> int:
@@ -345,10 +426,12 @@ def _market_after(market: Market, moves: Sequence[Move], view: View, bank: int) 
 
 
 def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
-                  blend: View, prior: View, *, chip: str | None = None) -> PlanReport:
+                  blend: View, prior: View, *, chip: str | None = None,
+                  calibrated: frozenset[Position] | None = None) -> PlanReport:
     """The plan against the transfer rule. A free hit scores GW N only. A
     transfer chip must beat the greedy no-chip plan, net of its hits, by
-    CHIP_GATE on blend without losing on prior-only."""
+    CHIP_GATE on blend without losing on prior-only. Without a chip, a plan
+    that takes the move a steadiness tie-break displaced fails."""
     if chip is not None and chip not in TRANSFER_CHIPS:
         raise ValueError(f"unknown transfer chip {chip!r}; use {' or '.join(TRANSFER_CHIPS)}")
     horizon = 1 if chip == "freehit" else HORIZON
@@ -362,7 +445,7 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
     gain = (after[0] - baseline[0], after[1] - baseline[1])
     marginals = tuple(move_marginals(squad, moves, market, blend, prior)) if moves else ()
     used = len(moves)
-    reference = greedy_reference(squad, market, blend, prior)
+    reference, ties = _greedy(squad, market, blend, prior, calibrated)
     reference_squad = list(squad)
     for scored in reference:
         reference_squad = _swap(reference_squad, scored.move.out, scored.move.into)
@@ -383,7 +466,18 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
                         else f"hit gate (blend ≥ {HIT_GATE}, prior > 0)")
                 reasons.append(f"{_label(scored.move, blend)} {scored.blend:+.3f} / "
                                f"{scored.prior:+.3f} fails the {gate}")
-        singles = legal_singles(plan, _market_after(market, moves, blend, bank), blend, prior)
+        taken = set(moves)
+        displaced = set()
+        for best, challenger, winner, why in ties:
+            for loser in {best, challenger} - {winner}:
+                if winner.move in taken:
+                    displaced.add(Move(winner.move.into, loser.move.into))
+                elif loser.move in taken and _decided_by_steadiness(why):
+                    reasons.append(f"{_label(loser.move, blend)} departs from the tie-break: "
+                                   f"the greedy reference takes {_label(winner.move, blend)} "
+                                   f"({why})")
+        singles = [s for s in legal_singles(plan, _market_after(market, moves, blend, bank),
+                                            blend, prior) if s.move not in displaced]
         passing = [s for s in singles if _passes(s, free=True)]
         next_best = passing[0] if passing else (singles[0] if singles else None)
         if used < market.free_transfers and passing:
@@ -404,7 +498,7 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
         baseline=baseline, gain=gain, marginals=marginals, bank_after=bank, used=used,
         hits=hits, ft_next=next_ft, next_best=next_best, reference=reference,
         reference_gain=reference_gain, verdict_reasons=tuple(reasons), chip=chip,
-        squad_after=tuple(plan),
+        squad_after=tuple(plan), tie_breaks=ties,
     )
 
 
@@ -467,7 +561,14 @@ def _row(player_id: int, document: Mapping, bootstrap_rows: Mapping) -> Row:
         p_start0=float(p_start_gw[0] if p_start_gw else document.get("p_start", 0.0)),
         uncertainty=str(document.get("uncertainty", "")),
         defcon_share=defcon / total if total else 0.0,
+        p4_3=_mean(document["p4_gw"][:P4_WINDOW]) if document.get("p4_gw") else None,
+        ret5=(int(returns[0]), int(returns[1])) if (returns := document.get("returns5"))
+        else None,
     )
+
+
+def _mean(values: Sequence[float]) -> float:
+    return sum(float(v) for v in values) / len(values)
 
 
 def rows_from_documents(documents: Iterable[Mapping], bootstrap: Bootstrap) -> dict[int, Row]:

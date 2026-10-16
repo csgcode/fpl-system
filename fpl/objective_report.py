@@ -13,12 +13,14 @@ import json
 import re
 from pathlib import Path
 
+from fpl import objective
 from fpl.objective import (
     CHIP_GATE,
     FREE_GATE,
     HIT_GATE,
     HORIZON,
     NEAR_TIE,
+    NEAR_TIE_MOVE,
     TRANSFER_CHIPS,
     Market,
     Move,
@@ -33,6 +35,7 @@ from fpl.objective import (
     legal_singles,
     load_views,
     pool,
+    ret5_text,
 )
 from fpl.state import parse_state
 from fpl.store import SnapshotStore
@@ -41,6 +44,7 @@ DECISIONS_ROOT = Path("data/decisions")
 ANALYSIS_ROOT = Path("data/analysis")
 SQUAD_SIZE = 15
 RELAYED = "relayed"
+TIE_BREAK_LABEL = "tie-break move:"
 UNVERIFIED = "now_cost — unverified"
 _FINAL_DIR = re.compile(r"^gw(\d+)$")
 
@@ -170,8 +174,10 @@ def _table(gw, final_path, squad, market, report: PlanReport, singles, blend, pr
     yield (f"legal single moves: {len(singles)} (pool {len(pool(blend, prior))}); "
            f"top {args.top} by blend:")
     for rank, scored in enumerate(singles[:args.top], start=1):
+        incoming = blend[scored.move.into]
         yield (f"  {rank} | {_pair(scored, blend)} | {scored.blend:+.3f} | "
-               f"{scored.prior:+.3f} | bank {_m(scored.bank_after)} | {_gate_note(scored)}")
+               f"{scored.prior:+.3f} | bank {_m(scored.bank_after)} | "
+               f"p4₃ {_p4_text(incoming)} | ret5 {ret5_text(incoming.ret5)} | {_gate_note(scored)}")
     yield _plan_line(report, market, blend)
     hit_count = report.hits // 4
     by_gain = sorted(report.marginals, key=lambda s: (s.blend, s.move.out))
@@ -193,6 +199,7 @@ def _table(gw, final_path, squad, market, report: PlanReport, singles, blend, pr
                f"prior {report.reference_gain[1]:+.3f}")
     else:
         yield "reference (greedy): bank — no move passes its gate"
+    yield from _tie_break_lines(report, blend, graded=args.moves is not None)
     if args.moves is None:
         yield "verdict: none — pass --moves OUT:IN,... (or --moves none to bank) to grade a plan"
     elif report.verdict_reasons:
@@ -200,6 +207,35 @@ def _table(gw, final_path, squad, market, report: PlanReport, singles, blend, pr
     else:
         yield "verdict: PASS"
     yield from _lineup_lines(gw, list(report.squad_after), blend)
+
+
+def _p4_text(row: Row) -> str:
+    if row.p4_3 is None or row.position not in objective.P4_CALIBRATED:
+        return "-"
+    return f"{row.p4_3:.2f}"
+
+
+def _tie_break_lines(report: PlanReport, blend, *, graded: bool):
+    if not report.tie_breaks:
+        yield f"{TIE_BREAK_LABEL} none within {NEAR_TIE_MOVE}"
+    for best, challenger, winner, reason in report.tie_breaks:
+        yield (f"{TIE_BREAK_LABEL} {_pair(best, blend)} {best.blend:+.3f} v "
+               f"{_pair(challenger, blend)} {challenger.blend:+.3f} — winner "
+               f"{_pair(winner, blend)} ({reason})")
+    if not graded or report.chip:
+        return
+    if not report.tie_breaks:
+        yield "tie-break: none in band"
+    taken = {scored.move for scored in report.marginals}
+    for best, challenger, winner, _ in report.tie_breaks:
+        loser = challenger if winner is best else best
+        if winner.move in taken:
+            yield f"tie-break: plan takes {_pair(winner, blend)}"
+        elif loser.move in taken:
+            yield (f"tie-break: plan takes {_pair(loser, blend)}, not the winner "
+                   f"{_pair(winner, blend)}")
+        else:
+            yield f"tie-break: plan takes neither; winner {_pair(winner, blend)}"
 
 
 def _plan_line(report: PlanReport, market: Market, blend) -> str:
@@ -241,6 +277,10 @@ def _scored_dict(scored: Scored, view) -> dict:
             "bank_after": scored.bank_after / 10}
 
 
+def _p4_value(row: Row) -> float | None:
+    return None if _p4_text(row) == "-" else round(row.p4_3 or 0.0, 3)
+
+
 def _document(gw, final_path, squad, market, report: PlanReport, singles, blend, prior, args):
     lineup = best_lineup(list(report.squad_after), blend, 0)
     return {
@@ -252,7 +292,9 @@ def _document(gw, final_path, squad, market, report: PlanReport, singles, blend,
                      "prior": round(report.baseline[1], 3)},
         "legal_singles": len(singles),
         "pool": len(pool(blend, prior)),
-        "top": [_scored_dict(s, blend) for s in singles[:args.top]],
+        "top": [{**_scored_dict(s, blend), "p4_3": _p4_value(blend[s.move.into]),
+                 "ret5": list(blend[s.move.into].ret5) if blend[s.move.into].ret5 else None}
+                for s in singles[:args.top]],
         "plan": {
             "moves": [_scored_dict(s, blend) for s in report.marginals],
             "gain": {"blend": round(report.gain[0], 3), "prior": round(report.gain[1], 3)},
@@ -261,6 +303,10 @@ def _document(gw, final_path, squad, market, report: PlanReport, singles, blend,
         },
         "next_best": _scored_dict(report.next_best, blend) if report.next_best else None,
         "reference": [_scored_dict(s, blend) for s in report.reference],
+        "tie_breaks": [{"best": _scored_dict(best, blend),
+                        "challenger": _scored_dict(challenger, blend),
+                        "winner": _scored_dict(winner, blend), "reason": reason}
+                       for best, challenger, winner, reason in report.tie_breaks],
         "reference_gain": {"blend": round(report.reference_gain[0], 3),
                            "prior": round(report.reference_gain[1], 3)},
         "verdict": (None if args.moves is None

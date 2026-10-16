@@ -8,12 +8,13 @@ import json
 import pytest
 
 from fpl.ep import force_prior_weight, load_inputs
-from fpl.models import Position
+from fpl.models import Bootstrap, Position
 from fpl.objective import (
     FORMATIONS,
     Market,
     Move,
     Row,
+    Scored,
     apply_moves,
     best_lineup,
     boundary_pairs,
@@ -27,7 +28,9 @@ from fpl.objective import (
     move_marginals,
     objective,
     pool,
+    rows_from_documents,
     squad_violations,
+    tie_break_moves,
 )
 from fpl.store import SnapshotStore
 from tests.factories import (
@@ -45,10 +48,11 @@ SQUAD = list(range(1, 16))
 
 
 def row(pid, position, ep, *, club=None, price=50, status="a", p0=1.0, unc="LOW",
-        share=0.0) -> Row:
+        share=0.0, p4_3=None, ret5=None) -> Row:
     eps = tuple(ep) if isinstance(ep, (tuple, list)) else (float(ep),) * 6
     return Row(id=pid, name=f"P{pid}", position=position, club=club or pid, price=price,
-               status=status, ep_gw=eps, p_start0=p0, uncertainty=unc, defcon_share=share)
+               status=status, ep_gw=eps, p_start0=p0, uncertainty=unc, defcon_share=share,
+               p4_3=p4_3, ret5=ret5)
 
 
 def squad_view(eps=None, **kw) -> dict[int, Row]:
@@ -297,6 +301,109 @@ def test_dead_bench_lists_bench_players_unlikely_to_start():
     view[15] = row(15, F, 1, p0=0.5)
     lineup = best_lineup(SQUAD, view, 0)
     assert dead_bench(lineup, view) == [2]
+
+
+# ------------------------------------------------------------ tie-break
+
+MID = frozenset({M})
+
+
+def tie_view(*, a_ep=3 + 2.4 / 6, b_ep=3 + 2.1 / 6, a_p4=0.30, b_p4=0.42, a_ret=(1, 5),
+             b_ret=(4, 5), eps=None):
+    return with_pool(squad_view(eps), row(20, M, a_ep, p4_3=a_p4, ret5=a_ret),
+                     row(21, M, b_ep, p4_3=b_p4, ret5=b_ret))
+
+
+def single(out, into, gain):
+    return Scored(Move(out, into), gain, gain, 0)
+
+
+def test_tie_break_picks_the_steadier_incoming_player():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == [(a, b, b, "p4 0.42 v 0.30")]
+
+
+def test_no_tie_outside_the_band():
+    a, b = single(11, 20, 2.70), single(11, 21, 2.10)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == []
+
+
+def test_ties_need_the_same_out_player():
+    a, b = single(11, 20, 2.40), single(12, 21, 2.10)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == []
+
+
+def test_a_challenger_must_pass_the_free_gate():
+    a, b = single(11, 20, 2.40), single(11, 21, 1.95)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == []
+
+
+def test_ret5_breaks_an_equal_p4():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    view = tie_view(a_p4=0.40, b_p4=0.42)
+    assert tie_break_moves([a, b], view, calibrated=MID) == [(a, b, b, "ret5 4/5 v 1/5")]
+    view = tie_view(a_p4=0.40, b_p4=0.42, a_ret=(3, 5), b_ret=(3, 4))
+    assert tie_break_moves([a, b], view, calibrated=MID) == [(a, b, a, "blend")]
+
+
+def test_uncalibrated_position_skips_p4():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    view = tie_view(a_p4=0.90, b_p4=0.10)
+    assert tie_break_moves([a, b], view, calibrated=frozenset()) == [
+        (a, b, b, "ret5 4/5 v 1/5")]
+    view = tie_view(a_p4=0.90, b_p4=0.10, a_ret=(2, 5), b_ret=(2, 5))
+    assert tie_break_moves([a, b], view, calibrated=frozenset()) == [(a, b, a, "blend")]
+
+
+def test_ret5_with_zero_rounds_is_na():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    for a_ret, b_ret in (((0, 0), (4, 5)), ((1, 5), (0, 0)), (None, (4, 5))):
+        view = tie_view(a_p4=None, b_p4=None, a_ret=a_ret, b_ret=b_ret)
+        assert tie_break_moves([a, b], view, calibrated=MID) == [(a, b, a, "n/a — blend")]
+
+
+def test_greedy_reference_takes_the_tie_break_winner():
+    view = tie_view()
+    taken = greedy_reference(SQUAD, market(), view, view, calibrated=MID)
+    assert [s.move for s in taken] == [Move(11, 21)]
+    view = tie_view(a_ret=None, b_ret=None)
+    assert [s.move for s in greedy_reference(SQUAD, market(), view, view)] == [Move(11, 20)]
+
+
+def test_plan_taking_the_tie_break_winner_passes_the_reference_check():
+    view = tie_view()
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(), view, view, calibrated=MID)
+    assert report.verdict_reasons == ()
+    assert [(best.move, winner.move, reason) for best, _, winner, reason in report.tie_breaks] \
+        == [(Move(11, 20), Move(11, 21), "p4 0.42 v 0.30")]
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, calibrated=MID)
+    assert len(report.verdict_reasons) == 1
+    assert "tie-break" in report.verdict_reasons[0]
+    assert "P11 → P21" in report.verdict_reasons[0]
+
+
+def test_a_blend_decided_tie_adds_no_reason():
+    view = tie_view(a_p4=None, b_p4=None, a_ret=None, b_ret=None)
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, calibrated=MID)
+    assert report.verdict_reasons == ()
+
+
+def test_the_displaced_best_single_is_not_a_further_free_move():
+    view = tie_view(eps=[5, 1, 4, 4, 4, 2, 2, 5, 5, 5, 3, 3.5, 6, 4, 1])
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(free=2), view, view, calibrated=MID)
+    assert report.verdict_reasons == ()
+    assert report.next_best is not None and report.next_best.move != Move(21, 20)
+
+
+def test_rows_without_consistency_fields_load():
+    bootstrap = Bootstrap.model_validate(bootstrap_payload(
+        elements=[player_payload(id=1, element_type=3), player_payload(id=2, element_type=3)],
+        teams=[team_payload(id=1)], events=[event_payload(id=GW, is_next=True)]))
+    old = {"id": 1, "ep_gw": [1.0] * 6}
+    new = {"id": 2, "ep_gw": [1.0] * 6, "p4_gw": [0.3, 0.6, 0.0, 0.9], "returns5": [2, 4]}
+    rows = rows_from_documents([old, new], bootstrap)
+    assert rows[1].p4_3 is None and rows[1].ret5 is None
+    assert rows[2].p4_3 == pytest.approx(0.3) and rows[2].ret5 == (2, 4)
 
 
 # ----------------------------------------------------------- load_views
