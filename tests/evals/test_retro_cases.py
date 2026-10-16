@@ -122,6 +122,7 @@ def test_calibrate_in_the_workspace_reproduces_the_committed_ledger(case_id, bui
     assert done.returncode == 0, done.stderr
     live.check_validity(prepared)
     assert "squad misses (|err| > 3):" in done.stdout
+    assert "predictions: commit " in done.stdout
     for command in (["picks", "--gw", str(case.gw), "--team-id", str(TEAM_ID),
                      "--event", str(case.round)],
                     ["entry-history", "--gw", str(case.gw), "--team-id", str(TEAM_ID)],

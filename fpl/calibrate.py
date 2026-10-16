@@ -180,6 +180,8 @@ class CalibrationReport(BaseModel):
     squad: SquadSection | None = None
     cumulative: CumulativeStats | None = None
     warnings: tuple[str, ...] = ()
+    predictions_source: str = "worktree"
+    drifted: tuple[str, ...] = ()
 
 
 def build_report(
@@ -189,6 +191,8 @@ def build_report(
     match_round: int,
     picks: PlannedPicks | None = None,
     prior_reports: Sequence[CalibrationReport] = (),
+    predictions_source: str = "worktree",
+    drifted: Sequence[str] = (),
 ) -> CalibrationReport:
     stats_by_id = live.by_id()
     players = []
@@ -237,6 +241,8 @@ def build_report(
         defcon=_defcon_sample(predictions, stats_by_id),
         squad=squad,
         warnings=tuple(warnings),
+        predictions_source=predictions_source,
+        drifted=tuple(drifted),
     )
 
 

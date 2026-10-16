@@ -82,8 +82,15 @@ def write_inputs(analysis_root, document, position="MID"):
 def run(data_root, analysis_root, *extra):
     return main([
         "--data-root", str(data_root), "ep", "--gw", str(GW), "--position", "MID",
-        "--analysis-root", str(analysis_root), *extra,
+        "--analysis-root", str(analysis_root),
+        "--decisions-root", str(analysis_root.parent / "decisions"), *extra,
     ])
+
+
+def decide(analysis_root):
+    final = analysis_root.parent / "decisions" / f"gw{GW}" / "final.md"
+    final.parent.mkdir(parents=True)
+    final.write_text("# Final\n", encoding="utf-8")
 
 
 def test_ep_writes_predictions_to_the_default_path_and_prints_a_table(tmp_path, capsys):
@@ -284,3 +291,36 @@ def test_ep_prior_weight_with_check_is_refused(tmp_path, capsys):
     ) == 1
     assert "--prior-weight cannot be combined with --check" in capsys.readouterr().err
     assert not (tmp_path / "x.json").exists()
+
+
+# --- a decided gameweek -----------------------------------------------------
+
+def test_ep_refuses_the_canonical_file_once_final_md_exists(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    decide(analysis_root)
+
+    assert run(data_root, analysis_root) == 1
+
+    err = capsys.readouterr().err
+    assert "final.md" in err and "--out" in err
+    assert not (analysis_root / f"gw{GW}" / "players-MID.json").exists()
+
+
+def test_ep_out_still_works_on_a_decided_gameweek(tmp_path):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    decide(analysis_root)
+
+    assert run(data_root, analysis_root, "--out", str(tmp_path / "x.json")) == 0
+    assert run(data_root, analysis_root, "--prior-weight", "1.0",
+               "--out", str(tmp_path / "p.json")) == 0
+    assert not (analysis_root / f"gw{GW}" / "players-MID.json").exists()
+
+
+def test_ep_writes_before_final_md_exists(tmp_path):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+
+    assert run(data_root, analysis_root) == 0
+    assert (analysis_root / f"gw{GW}" / "players-MID.json").is_file()
