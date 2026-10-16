@@ -15,6 +15,7 @@ from fpl.season_store import (
     SCHEMA_VERSION,
     StoreReadError,
     StoreSyncError,
+    StoredMatch,
     _build,
     _scan,
     open_ro,
@@ -769,11 +770,15 @@ def test_as_of_summaries_equal_raw_summaries_for_covered_ids(raw, db):
     assert set(got) == set(want) == {1, 2, 3}
     for element, summary in want.items():
         assert got[element].history_past == summary.history_past
-        assert [m.model_dump(exclude={"opponent_team"}) for m in got[element].history] == [
-            m.model_dump() for m in summary.history]
         raw_rows = SnapshotStore(raw).load(3, f"players/summary-{element}")["history"]
-        assert [m.opponent_team for m in got[element].history] == [
-            r["opponent_team"] for r in raw_rows]
+        # Both sides dump through StoredMatch. Where the loaded record does not
+        # carry opponent_team, the raw row supplies it; where it does, its own
+        # value wins, so the comparison stays exact either way.
+        want_history = [
+            StoredMatch.model_validate({"opponent_team": r["opponent_team"], **m.model_dump()})
+            for m, r in zip(summary.history, raw_rows, strict=True)]
+        assert [StoredMatch.model_validate(m.model_dump()).model_dump()
+                for m in got[element].history] == [m.model_dump() for m in want_history]
 
 
 def league_world() -> Season:
