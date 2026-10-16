@@ -111,6 +111,57 @@ def test_inlines_a_persisted_output(tmp_path):
     assert result.truncated is False
 
 
+def test_keeps_the_persisted_preview_when_asked(tmp_path):
+    saved = tmp_path / "saved.txt"
+    saved.write_text("the full output", encoding="utf-8")
+    preview = (f"<persisted-output>\nOutput too large (50.1KB). Full output saved to: "
+               f"{saved}\n\nPreview (first 2KB):\nthe fu")
+    rows = base_records(output=preview)
+    rows[-1]["toolUseResult"]["persistedOutputPath"] = str(saved)
+    src = write_jsonl(tmp_path / "src.jsonl", rows)
+    dst = tmp_path / "frozen.jsonl"
+
+    freeze(src, dst, repo_root=ROOT, inline_persisted=False)
+
+    result = load_transcript(dst).calls[0].result
+    assert result.truncated is True
+    assert result.text.endswith("the fu")
+
+
+def _moved_persisted_records(tmp_path: Path) -> list[dict]:
+    gone = tmp_path / "pruned" / "tool-results" / "b123.txt"
+    preview = (f"<persisted-output>\nOutput too large (50.1KB). Full output saved to: "
+               f"{gone}\n\nPreview (first 2KB):\nthe fu")
+    rows = base_records(output=preview)
+    rows[-1]["toolUseResult"]["persistedOutputPath"] = str(gone)
+    return rows
+
+
+def test_inlines_a_persisted_output_from_a_fallback_dir(tmp_path):
+    archive = tmp_path / "archive" / "tool-results"
+    archive.mkdir(parents=True)
+    (archive / "b123.txt").write_text("the full output", encoding="utf-8")
+    src = write_jsonl(tmp_path / "src.jsonl", _moved_persisted_records(tmp_path))
+    dst = tmp_path / "frozen.jsonl"
+
+    freeze(src, dst, repo_root=ROOT, persisted_dirs=[archive])
+
+    result = load_transcript(dst).calls[0].result
+    assert result.text == "the full output"
+    assert result.truncated is False
+
+
+def test_keeps_the_preview_when_no_fallback_dir_holds_the_output(tmp_path):
+    empty = tmp_path / "archive" / "tool-results"
+    empty.mkdir(parents=True)
+    src = write_jsonl(tmp_path / "src.jsonl", _moved_persisted_records(tmp_path))
+    dst = tmp_path / "frozen.jsonl"
+
+    freeze(src, dst, repo_root=ROOT, persisted_dirs=[empty])
+
+    assert load_transcript(dst).calls[0].result.truncated is True
+
+
 SECRETS = {
     "bearer": "Bearer abcdefghijklmnopqrstuvwxyz012345",
     "jwt": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2ln",

@@ -3,10 +3,10 @@
     python -m evals replay <agent>
     python -m evals live <agent> [--case ID] [--repeat K] [--judge] [--keep]
     python -m evals freeze <agent>
-    python -m evals outcome fixture-analyst|squad-optimizer
+    python -m evals outcome fixture-analyst|player-analyst|squad-optimizer
 
-Agents: data-collector, plan-builder, usage-collector, fixture-analyst,
-team-executor, finalizer, squad-optimizer.
+Agents: data-collector, plan-builder, usage-collector, fixture-analyst, team-executor,
+finalizer, player-analyst, squad-optimizer.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import argparse
 import sys
 
 AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst",
-          "team-executor", "finalizer", "squad-optimizer")
+          "team-executor", "finalizer", "player-analyst", "squad-optimizer")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -30,11 +30,13 @@ def build_parser() -> argparse.ArgumentParser:
     live.add_argument("--judge", action="store_true", help="also run the model judge")
     live.add_argument("--keep", action="store_true", help="keep the temp workspace")
     live.add_argument("--full", action="store_true",
-                      help="squad-optimizer: add the full-suite cases to the default set")
+                      help="player-analyst, squad-optimizer: add the full-suite cases to "
+                           "the default set")
     freeze = sub.add_parser("freeze", help="re-freeze the replay fixtures from the archive")
     freeze.add_argument("agent", choices=AGENTS)
     outcome = sub.add_parser("outcome", help="season-level forecast quality (prints only)")
-    outcome.add_argument("agent", choices=("fixture-analyst", "squad-optimizer"))
+    outcome.add_argument("agent", choices=("fixture-analyst", "player-analyst",
+                                           "squad-optimizer"))
     return parser
 
 
@@ -42,16 +44,18 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.agent == "plan-builder":
         from evals.plan_builder import runner
-    elif args.agent == "usage-collector":
-        from evals.usage_collector import runner
     elif args.agent == "fixture-analyst":
         from evals.fixture_analyst import runner
-    elif args.agent == "team-executor":
-        from evals.team_executor import runner
     elif args.agent == "finalizer":
         from evals.finalizer import runner
+    elif args.agent == "player-analyst":
+        from evals.player_analyst import runner
     elif args.agent == "squad-optimizer":
         from evals.squad_optimizer import runner
+    elif args.agent == "team-executor":
+        from evals.team_executor import runner
+    elif args.agent == "usage-collector":
+        from evals.usage_collector import runner
     else:
         from evals.data_collector import runner
 

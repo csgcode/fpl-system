@@ -269,12 +269,13 @@ def _has_result(stream_path: Path) -> bool:
     return any(r.get("type") == "result" for r in read_stream(stream_path))
 
 
-def run_judge(prompt: str, *, cwd: Path, model: str = "opus") -> JudgeVerdict:
+def run_judge(prompt: str, *, cwd: Path, model: str = "opus",
+              budget_usd: float = 0.50) -> JudgeVerdict:
     refuse_live()
     session_project_dir(cwd)
     try:
         completed = subprocess.run(
-            build_judge_argv(model), input=prompt, cwd=cwd, capture_output=True, text=True,
+            build_judge_argv(model, budget_usd), input=prompt, cwd=cwd, capture_output=True, text=True,
             timeout=JUDGE_TIMEOUT_S, check=False,
         )
     finally:

@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -59,14 +60,19 @@ def redaction_findings(text: str) -> list[str]:
     return [name for name, pattern in SECRET_PATTERNS if pattern.search(text)]
 
 
-def freeze(src: Path, dst: Path, repo_root: str) -> int:
-    """Writes the stripped fixture; returns the number of records kept."""
+def freeze(src: Path, dst: Path, repo_root: str, *, inline_persisted: bool = True,
+           persisted_dirs: Sequence[Path] = ()) -> int:
+    """Writes the stripped fixture; returns the number of records kept. With
+    `inline_persisted` False a persisted tool output keeps the preview the
+    agent actually saw instead of the full saved output. A saved output that
+    is no longer at its recorded path is looked up by file name in each of
+    `persisted_dirs` (an archived session's tool-results/)."""
     lines: list[str] = []
     problems: list[str] = []
     for index, raw in enumerate(src.read_text(encoding="utf-8").splitlines()):
         if not raw.strip():
             continue
-        record = _strip(json.loads(raw))
+        record = _strip(json.loads(raw), inline_persisted, persisted_dirs)
         if record is None:
             continue
         line = _rewrite_machine_details(json.dumps(record, ensure_ascii=False), repo_root)
@@ -79,7 +85,8 @@ def freeze(src: Path, dst: Path, repo_root: str) -> int:
     return len(lines)
 
 
-def _strip(record: dict[str, Any]) -> dict[str, Any] | None:
+def _strip(record: dict[str, Any], inline_persisted: bool = True,
+           persisted_dirs: Sequence[Path] = ()) -> dict[str, Any] | None:
     if record.get("type") not in _KEPT_TYPES:
         return None
     message = record.get("message") or {}
@@ -89,7 +96,8 @@ def _strip(record: dict[str, Any]) -> dict[str, Any] | None:
         saved_path = (
             tool_output.get("persistedOutputPath") if isinstance(tool_output, dict) else None
         )
-        content = [_inline_persisted(block, saved_path)
+        content = [_inline_persisted(block, saved_path, persisted_dirs) if inline_persisted
+                   else block
                    for block in content if block.get("type") not in _DROPPED_BLOCKS]
         if not content:
             return None
@@ -99,7 +107,8 @@ def _strip(record: dict[str, Any]) -> dict[str, Any] | None:
     return kept
 
 
-def _inline_persisted(block: dict[str, Any], saved_path: str | None) -> dict[str, Any]:
+def _inline_persisted(block: dict[str, Any], saved_path: str | None,
+                      persisted_dirs: Sequence[Path] = ()) -> dict[str, Any]:
     content = block.get("content")
     if block.get("type") != "tool_result" or not isinstance(content, str):
         return block
@@ -108,9 +117,13 @@ def _inline_persisted(block: dict[str, Any], saved_path: str | None) -> dict[str
     if saved_path is None:
         match = _PERSISTED_PATH.search(content)
         saved_path = match.group(1) if match else None
-    if saved_path is None or not Path(saved_path).is_file():
+    if saved_path is None:
         return block
-    return {**block, "content": Path(saved_path).read_text(encoding="utf-8")}
+    candidates = [Path(saved_path)] + [d / Path(saved_path).name for d in persisted_dirs]
+    found = next((c for c in candidates if c.is_file()), None)
+    if found is None:
+        return block
+    return {**block, "content": found.read_text(encoding="utf-8")}
 
 
 def _rewrite_machine_details(text: str, repo_root: str) -> str:

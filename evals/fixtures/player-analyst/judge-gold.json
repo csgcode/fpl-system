@@ -1,0 +1,115 @@
+[
+ {
+  "item": "J3",
+  "label": "row 80, gw4-def DefCon",
+  "case": "gw4-def",
+  "row": "| GW4 | 2026-09-11 | A3-DEF | CODE | history_past records defensive_contribution as 0 for every season before 2024/25 because the stat did not exist; rates_from_seasons reads it as a genuine zero, so any player whose prior pool predates 2024/25 gets a near-zero dc90 prior and a near-zero P_map. Egan's prior lands at 1.07/90 against a realised 13.7/90. Fix: exclude pre-2024/25 seasons from the DefCon prior pool and fall back to the position league mean. 6 DEF rows affected at GW4; GKP/MID/FWD unchecked | data/analysis/gw4/players-DEF.md (Overrides) | open |",
+  "gold": "PASS",
+  "source": "verifier a06a631: CONFIRMED"
+ },
+ {
+  "item": "J3",
+  "label": "row 75, gw4-gkp bonus",
+  "case": "gw4-gkp",
+  "row": "| GW4 | 2026-09-11 | A3-GKP | CODE | bonus_per_start is a per-start lumpy count but blends an unshrunk current sample at the minutes-derived w_prior, so 3 bonus-heavy starts put Tzolakis at 0.769/start vs the 0.214 GKP league mean — 4.9 of his 21.75 EP6, enough to rank him above Donnarumma and level with Raya; per-start counts need their own shrinkage, not the xG minutes weight | data/analysis/gw4/players-GKP.md | open |",
+  "gold": "PASS",
+  "source": "verifier a19cda4: PARTIAL, mechanism real"
+ },
+ {
+  "item": "J3",
+  "label": "row 94, gw5-mid C7 bound",
+  "case": "gw5-mid",
+  "row": "| GW5 | 2026-09-18 | A3-MID | TOOL | C7's uncertainty bound is enforced against the output p_start, which is p_start_gw[0], so one low ramp gameweek forces a window-level HIGH tag on a player nailed from GW6 onward; bind the tag to the window mean or make uncertainty per-gameweek | data/analysis/gw5/inputs-MID.json | open |",
+  "gold": "PASS",
+  "source": "verifier aaf3c5dc: partly true"
+ },
+ {
+  "item": "J3",
+  "label": "row 105, gw6-gkp shortlist",
+  "case": "gw6-gkp",
+  "row": "| GW6 | 2026-10-09 | A3-GKP | TOOL | Data-collector summaries shortlist missed regular starters (Rushworth 5/5 90', Scherpen 4 starts, Walton GW5 starter, Benitez GW4-5 starter); first `fpl ep` run scored them on league-mean priors until a manual `summaries --ids` fetch. Shortlist should include every player with minutes in the last round | data/analysis/gw6/inputs-GKP.json | open |",
+  "gold": "PASS",
+  "source": "verifier a7b24ed: TRUE"
+ },
+ {
+  "item": "J3",
+  "label": "row 106, gw6-fwd news_added",
+  "case": "gw6-fwd",
+  "row": "| GW6 | 2026-10-09 | A3-FWD | DATA | Isak shows status i/0 with news_added 2026-09-27 but played 80' in GW5 (round after the stamp); news_added appears not to refresh when a flag is re-issued, so it cannot be trusted to date a flag for the 48h freshness window | data/analysis/gw6/players-FWD.md Escalations | open |",
+  "gold": "PASS",
+  "source": "verifier a7b24ed: TRUE"
+ },
+ {
+  "item": "J3",
+  "label": "row 88, gw5-gkp optimizer discount",
+  "case": "gw5-gkp",
+  "row": "| GW5 | 2026-09-18 | A3-GKP | TOOL | uncertainty is a single scalar per player while p_start_gw varies across the window, so the optimizer's flat LOW/MED/HIGH discount misprices anyone nailed for only part of it: Benitez sits at 0.90 for GW5-7 and 0.25 by GW10, is tagged HIGH, and his near-term EP is discounted 0.80 alongside his tail. Consider an uncertainty_gw array, or deriving the tag per gameweek from p_start_gw | data/analysis/gw5/inputs-GKP.json | open |",
+  "gold": "FAIL",
+  "source": "verifier aaf3c5dc: FALSE; the analyst never read the optimizer spec or C16"
+ },
+ {
+  "item": "J3",
+  "label": "row 90, gw5-fwd optimizer discount",
+  "case": "gw5-fwd",
+  "row": "| GW5 | 2026-09-18 | A3-FWD | WORKFLOW | uncertainty is one window-scalar while p_start_gw is per-gameweek, so a risk confined to GW N forces HIGH across all six GWs under C7 and the optimizer applies its flat 0.80 HIGH discount to five gameweeks that carry no such risk; consider a per-GW tag or deriving the optimizer discount from p_start_gw | data/analysis/gw5/inputs-FWD.json id 165 Joao Pedro p_start_gw 0.68 then 0.90 x5 | open |",
+  "gold": "FAIL",
+  "source": "same as row 88"
+ },
+ {
+  "item": "J3",
+  "label": "row 101, gw5-def-reopen live transfer candidates",
+  "case": "gw5-def-reopen",
+  "row": "| GW5 | 2026-09-18 | A3-DEF | WORKFLOW | The finalizer's freshness gate checks only the 15 selected players, so it caught Shaw but missed three other DEF flags that moved in the same 15:19 refresh: Pau 75 to 0 percent and status d to i, Maatsen 25 to 0 percent and status d to i, Burn return date 19 Sep to 12 Oct. All three were live transfer candidates in the same cycle, so the optimizer could have bought a player whose p_start had just gone to 0.0 with no gate firing. Widen the gate to every player the optimizer may transfer in, or have it diff the whole pool and report by position. | agents/finalizer.md section 1; data/analysis/gw5/inputs-DEF.json | open |",
+  "gold": "FAIL",
+  "source": "contradicted by its own call-24 grep of the decisions; verifier a7b24ed: that part FALSE"
+ },
+ {
+  "item": "J1",
+  "label": "gw5-mid Ndiaye flat 0.78",
+  "case": "gw5-mid",
+  "ids": [
+   237
+  ],
+  "gold": "FAIL",
+  "source": "backlog row 98 (A3-MID GW5): Foden suspended until 17 Oct, Doku back 20 Sep, Ndiaye flat"
+ },
+ {
+  "item": "J1",
+  "label": "gw6-mid Ndiaye ramp",
+  "case": "gw6-mid",
+  "ids": [
+   237
+  ],
+  "gold": "PASS",
+  "source": "plan 03 §6"
+ },
+ {
+  "item": "J2",
+  "label": "gw6-mid Scott and Ndiaye with research",
+  "case": "gw6-mid",
+  "ids": [
+   69,
+   237
+  ],
+  "research": [
+   "data/analysis/gw6/research-scott.md",
+   "data/analysis/gw6/research-ndiaye.md"
+  ],
+  "gold": "PASS",
+  "source": "plan 03 §6"
+ },
+ {
+  "item": "J2",
+  "label": "synthetic Scott ramp without citation",
+  "case": "gw6-mid",
+  "ids": [
+   69
+  ],
+  "research": [
+   "data/analysis/gw6/research-scott.md"
+  ],
+  "row_override": "judge-fail-scott.json",
+  "gold": "FAIL",
+  "source": "synthetic"
+ }
+]
