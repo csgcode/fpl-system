@@ -369,7 +369,8 @@ Mechanics:
 - data/decisions/gw{N}/predictions.lock.json is written by `fpl plan` only
   before the GW deadline; a re-run plan replaces it when the players files
   changed, archiving the old one as predictions.lock.v{k}.json. Never edited
-  by hand; committed in the cycle commit. `calibrate` scores it first.
+  by hand; committed in the cycle commit, together with any archived
+  predictions.lock.v{k}.json. `calibrate` scores it first.
 - A re-run squad optimizer (revision loop, REOPEN) archives the previous
   squad-proposal.md as squad-proposal.v{k}.md before writing the new one.
 - data/executor/gw{N}/runs.jsonl is append-only: the CLI adds a line per run
