@@ -513,18 +513,29 @@ class FplDataService:
     def _cached_bootstrap(self, gw: int) -> Bootstrap:
         return load_cached_bootstrap(self._store, gw)
 
-    def _cached_deadline(self, gw: int, event: int) -> datetime | None:
+    def _readable_cached_bootstrap(self, gw: int) -> Bootstrap | None:
+        """The cached bootstrap, or None when it is missing or unreadable —
+        a corrupt snapshot must not block the refetch that replaces it."""
         if not self._store.exists(gw, "bootstrap"):
             return None
-        return self._cached_bootstrap(gw).deadline_for(event)
+        try:
+            return self._cached_bootstrap(gw)
+        except ValueError:
+            return None
+
+    def _cached_deadline(self, gw: int, event: int) -> datetime | None:
+        bootstrap = self._readable_cached_bootstrap(gw)
+        return None if bootstrap is None else bootstrap.deadline_for(event)
 
     def _round_settled(self, gw: int, event: int) -> tuple[bool, str]:
         """Picks for an event keep changing (automatic subs, multipliers,
         entry_history) until the round is processed, so they are final only
         once the cached gw bootstrap shows the event finished and data-checked."""
-        if not self._store.exists(gw, "bootstrap"):
-            return False, f"no cached gw{gw} bootstrap shows event {event} data_checked"
-        bootstrap = self._cached_bootstrap(gw)
+        bootstrap = self._readable_cached_bootstrap(gw)
+        if bootstrap is None:
+            return False, (
+                f"no readable cached gw{gw} bootstrap shows event {event} data_checked"
+            )
         settled = next((e for e in bootstrap.events if e.id == event), None)
         if settled is not None and settled.finished and settled.data_checked:
             return True, self.data_checked_basis(gw, event)

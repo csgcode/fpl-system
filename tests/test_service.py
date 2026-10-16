@@ -801,7 +801,7 @@ def test_picks_without_a_cached_bootstrap_are_not_final(tmp_path):
 
     meta = store.meta(8, "picks-77-e7")
     assert meta["final"] is False
-    assert meta["reason"] == "no cached gw8 bootstrap shows event 7 data_checked"
+    assert meta["reason"] == "no readable cached gw8 bootstrap shows event 7 data_checked"
 
 
 def test_summaries_into_a_past_gw_refuse_after_its_deadline(tmp_path):
@@ -880,6 +880,31 @@ def test_flags_refresh_learns_a_postponed_deadline(tmp_path):
 
     assert gateway.calls == [BOOTSTRAP_URL]
     assert [p.id for p in check.players] == [1]
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
+
+
+@pytest.mark.parametrize("corrupt", ["{not json", '{"events": "nope"}'])
+def test_unreadable_cached_bootstrap_means_deadline_unknown(tmp_path, corrupt):
+    summary_url = f"{BASE_URL}/element-summary/1/"
+    service, gateway, store, _ = make_service(
+        tmp_path,
+        {
+            summary_url: element_summary_payload(),
+            BOOTSTRAP_URL: deadline_bootstrap_payload(8, OPEN_DEADLINE),
+            PICKS_E7_URL: event_picks_payload(),
+        },
+    )
+    seed_deadline_bootstrap(store, 8, {8: OPEN_DEADLINE})
+    store.path(8, "bootstrap").write_text(corrupt)
+
+    service.player_summaries(gw=8, player_ids=[1], force=True)
+    service.picks(gw=8, team_id=77, event=7)
+    assert store.meta(8, "picks-77-e7")["reason"] == (
+        "no readable cached gw8 bootstrap shows event 7 data_checked"
+    )
+    service.bootstrap(gw=8, force=True)
+
+    assert gateway.calls == [summary_url, PICKS_E7_URL, BOOTSTRAP_URL]
     assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
 
 
