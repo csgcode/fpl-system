@@ -585,6 +585,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   1. Dev run now (no record): `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw backtest --gw 7 --rounds 3-6 --analysis-root /Users/gokul/Dev/Personal/fpl-system/data/analysis --retro-root /Users/gokul/Dev/Personal/fpl-system/data/retro --decisions-root /Users/gokul/Dev/Personal/fpl-system/data/decisions --max-ledger-n-gap 10`.
   2. Round-7 actuals (data operation, network, public endpoints; skip when `MAIN/data/raw/gw8/event-live-e7.json` already exists and is final): once round 7 is data-checked, from the WS worktree with S.1–S.2 built: `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw bootstrap --gw 8` then `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw event-live --gw 8 --round 7`. The second prints `(fetched)` and writes a final sidecar into main's `data/raw/gw8/`; the GW8 collector and retro then find both snapshots cached (the collector's `bootstrap --gw 8` refetches and archives ours only when it is over 24h old). Until WS merges, main's `calibrate` refetches an event-live snapshot older than 24h (no `final` sidecar yet): run this step within 24h before the GW8 retro, or rely on the retro's own fetch, which is final under the Shared-definitions rule because the collector's `bootstrap --gw 8` precedes it.
   3. Recorded run: the standard gate invocation (Shared definitions). With only the `baseline` entry in the manifest it writes `baseline.json` and `combined.json`.
+- **Note:** `baseline.json` scores today's code on the recorded inputs, not the decisions as made. Measured code drift against the decision records is 0.047–0.051 points per player-round. The record's reading and the §8 text (Task 7.1) say so.
 - **Verify:** `uv run python -m fpl gates --gw 8 --summary` lists `baseline`; then `uv run pytest -q` (phase end, WB).
 
 ### Phase 2 — Prior-weight calibration and promoted clubs (WB)
@@ -638,6 +639,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `test_inputs_policy_drop_promoted`: `score_round(..., inputs_policy="drop_promoted")` strips rows whose club is in `data.promoted`; `drop_no_history` strips ids whose summary has no `history_past` minutes.
   - `test_slice_gate_and_hypothesis_fields`: with `--gate-slice promoted`, the comparison also applies the five rules to the promoted lines (rule 3 pooled across positions when the slice has under `SLICE_MIN_POSITION_N = 30` lines); the record gets `slice_verdict` and `hypothesis`. `hypothesis == "supported"` iff the baseline slice bias > 0, the variant slice |bias| < the baseline slice |bias|, and the overall verdict is PASS; else `"not supported"`.
 - **Implement:** `strip_attack_mult`; `inputs_policy` parameter (`keep`, `drop_promoted`, `drop_no_history`); CLI flags `--inputs-policy` and `--gate-slice promoted|no_history`. `ModelConfig` does not hold the policy.
+- **Note:** `--inputs-policy` and `--gate-slice` must also be accepted by the manifest entry parser (`_entry_parser` in fpl/backtest.py), not only by the CLI; otherwise a manifest entry using them is refused as an unknown argument.
 - **Verify:** `uv run pytest tests/test_backtest.py tests/test_backtest_cli.py -q`
 
 ### Task 2.5: Promoted-club and no-history gates
@@ -743,6 +745,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `current_totals(history, config, ratings, team_names, base) -> _Totals` is a module helper used by `_effective_rates`.
   - The blend's `w_prior` uses raw current minutes, or `m_eff = w_minutes` when `blend_on_effective_minutes`. `EffectiveRates.current_minutes` stays raw. Bonus and the observed DefCon hit rate stay unweighted. The DefCon P(hit) blend uses the same `w_prior` as the rates.
   - `build_predictions` passes `fixtures.ratings`, `fixtures.base_lambda` and `bootstrap.team_by_id()` short names to `_effective_rates`. No import of `fixture_ratings`.
+- **Note:** the new `ModelConfig` fields change `DEFAULT_CONFIG.digest()` although the output is unchanged; update the hard-coded `044ed4c1` in tests/test_ep.py. A digest change in the middle of a cycle is fine only if every players-*.json of that cycle is regenerated together, because `objective` refuses mixed digests (Task 4.6b).
 - **Verify:** `uv run pytest tests/test_ep.py -q`
 
 ### Task 3.5: Gate the half-life and the adjustment
@@ -865,6 +868,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - the base rate for each round comes from the other rounds (0.5 both ways), so `base_rate_brier == 0.25`;
   - `p4_skill == pytest.approx(1 - 0.145/0.25)` (0.42).
 - **Implement:** `score_round` copies `doc["p4_gw"][0]` onto `BacktestLine.p4`. `p4_calibration(lines)` returns per position: n, `p4_brier`, `base_rate_brier` (base rate computed leave-one-round-out and labelled so), skill, and a 5-bin reliability table (mean p4 against observed rate). The comparison and record carry it under `p4`.
+- **Note:** calibration entries in the manifest (`argv = []`) are recorded today with `comparison: null`, but Task 4.8's test reads `record["comparison"]["p4"]`. This task must give a calibration record a comparison holding `p4`, or move `p4` to its own record field and change 4.8's test to match.
 - **Verify:** `uv run pytest tests/test_backtest.py -q`
 
 ### Task 4.6: Tie-break move inside `objective`'s greedy reference
@@ -962,7 +966,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `window 3, min starts 2: n <n>, slope <β> [lo, hi] (cluster), r <r> — significant|not significant`;
   - one line per position;
   - the same at window 1 and window 2, below, as sensitivity;
-  - exit 0 when window 3 is significant, 2 when not. Ledgers for rounds ≥ gw are ignored.
+  - exit 0 when window 3 is significant, 3 when not. Ledgers for rounds ≥ gw are ignored.
 - **Implement:** `register(add)`: `add("persistence", "does a player's recent EP residual predict his next one", cached=False)` with `--window` (default 3), `--min-starts` (default 2), `--retro-root` (default `data/retro`), `--format`. Load with `calibrate.load_report`. Exit 0 when significant, 3 when not (argparse uses 2 for usage errors); Task 5.3 branches on the record's `significant` field, with the exit code as a convenience.
 - **Verify:** `uv run pytest tests/test_persistence_cli.py -q`
 
@@ -977,6 +981,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - §10 notes that GW1–2 ledgers score LLM-computed EP and GW3+ score code EP, so the pooled residuals mix model versions; `objective`'s prior-only reading builds predictions at prior weight 1, so the form term is 0 there by construction. The numbers come from `fpl gates --render`.
   - **`significant: false`:** §10 says "no form term". Skip Tasks 5.4 and 5.5. Task 7.3 gives the row the status from `fpl gates --summary`.
   - **`significant: true`:** do Tasks 5.4 and 5.5.
+- **Note:** a persistence record needs the `GateRecord` schema extended (it has `extra="forbid"` and required comparison-style fields), and `gates._headline` / `gates._render_row` must handle a persistence comparison. `fpl persistence` exits 3 when the result is not significant, which is what today's real data gives; the recording step must not treat exit 3 as a failure.
 - **Verify:** `uv run pytest tests/test_persistence_cli.py -q && grep -n "^## 10" docs/ep-model.md`
 
 ### Task 5.4 (only if 5.3 is significant): Shrunk form term
@@ -1093,6 +1098,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `team_share.annotate(documents, ...)` sets `share_flag` on each document; then `write_predictions`. `build_predictions` stays pure; the backtest is untouched.
   - agents/player-analyst.md, Call 4 paragraph, add: "A `share check` warning or a `share` flag is evidence about the rates. Act on it only for a row where you set `xg90`, `xa90` or `attack_mult`. Never file a backlog row per flag."
   - docs/ep-model.md §4 (Task 7.1) says the flag is a reading aid, never an override reason on its own.
+- **Note:** `fixture_ratings._side_xg` raises a plain `ValueError` on a summary row with no `was_home`; catch it as a skip warning too, so `fpl ep` (live cycle step 3) never fails on the cross-check. The club xG map is built from `RatingRun.matches` as `{(m.fixture, "H"): m.xg_home, (m.fixture, "A"): m.xg_away}`.
 - **Verify:** `uv run pytest tests/test_ep_cli.py tests/test_team_share.py tests/test_analyst_view_golden.py tests/evals/test_player_analyst_spec_markers.py -q`, then `uv run pytest -q` (phase end).
 
 ### Phase S — Fetch policy and season store (WS)
