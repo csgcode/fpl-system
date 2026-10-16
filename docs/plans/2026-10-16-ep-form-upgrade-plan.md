@@ -746,6 +746,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - The blend's `w_prior` uses raw current minutes, or `m_eff = w_minutes` when `blend_on_effective_minutes`. `EffectiveRates.current_minutes` stays raw. Bonus and the observed DefCon hit rate stay unweighted. The DefCon P(hit) blend uses the same `w_prior` as the rates.
   - `build_predictions` passes `fixtures.ratings`, `fixtures.base_lambda` and `bootstrap.team_by_id()` short names to `_effective_rates`. No import of `fixture_ratings`.
 - **Note:** the new `ModelConfig` fields change `DEFAULT_CONFIG.digest()` although the output is unchanged; update the hard-coded `044ed4c1` in tests/test_ep.py. A digest change in the middle of a cycle is fine only if every players-*.json of that cycle is regenerated together, because `objective` refuses mixed digests (Task 4.6b).
+- **Note:** when `half_life_matches` joins `ModelConfig`, validate that it is greater than 0 or None. `match_weights` divides by it, and a negative value gives old matches a weight above 1.
 - **Verify:** `uv run pytest tests/test_ep.py -q`
 
 ### Task 3.5: Gate the half-life and the adjustment
