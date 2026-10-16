@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from fpl.api import BASE_URL, FplApi
 from fpl.repository import PLAYERS_SLIM_COLUMNS
-from fpl.service import FplDataService, GameweekMismatchError
+from fpl.service import FplDataService, GameweekMismatchError, PostDeadlineError
 from fpl.store import SnapshotStore
 from tests.factories import (
     bootstrap_payload,
@@ -816,10 +816,11 @@ def test_summaries_into_a_past_gw_refuse_after_its_deadline(tmp_path):
     )
     seed_deadline_bootstrap(store, 6, {6: PASSED_DEADLINE})
 
-    with pytest.raises(ValueError, match="--allow-post-deadline") as excinfo:
+    with pytest.raises(PostDeadlineError) as excinfo:
         service.player_summaries(gw=6, player_ids=[1], force=True)
     assert "gw6 deadline (2026-08-20T17:30:00+00:00) has passed" in str(excinfo.value)
-    with pytest.raises(ValueError, match="--allow-post-deadline"):
+    assert "--allow-post-deadline" not in str(excinfo.value)
+    with pytest.raises(PostDeadlineError):
         service.fixtures(gw=6)
     assert gateway.calls == []
     assert not store.exists(6, "players/summary-1")
@@ -846,8 +847,6 @@ def test_bootstrap_refresh_learns_a_postponed_deadline(tmp_path):
 
 
 def test_bootstrap_refresh_refuses_a_passed_deadline_in_the_fresh_payload(tmp_path):
-    from fpl.service import PostDeadlineError
-
     service, gateway, store, _ = make_service(
         tmp_path, {BOOTSTRAP_URL: deadline_bootstrap_payload(6, PASSED_DEADLINE)}
     )

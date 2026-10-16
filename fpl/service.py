@@ -87,8 +87,7 @@ class PostDeadlineError(ValueError):
     def __init__(self, gw: int, deadline: datetime) -> None:
         super().__init__(
             f"gw{gw} deadline ({deadline.isoformat()}) has passed — its snapshots "
-            f"are the record of that gameweek and are not refetched; pass "
-            f"--allow-post-deadline to fetch into gw{gw} anyway"
+            f"are the record of that gameweek and are not refetched"
         )
         self.gw = gw
         self.deadline = deadline

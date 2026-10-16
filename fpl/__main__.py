@@ -109,6 +109,7 @@ from fpl.service import (
     DEFAULT_MAX_AGE_HOURS,
     FetchEvent,
     FplDataService,
+    PostDeadlineError,
     load_cached_bootstrap,
     load_cached_summaries,
 )
@@ -771,6 +772,11 @@ def main(
             f"error: payload failed validation ({exc.error_count()} problems); "
             f"first: {exc.errors()[0].get('loc')} {exc.errors()[0].get('msg')}"
         )
+        return EXIT_ERROR
+    except PostDeadlineError as exc:
+        _stderr(f"error: {exc}")
+        if hasattr(args, "allow_post_deadline"):
+            _stderr(f"hint: pass --allow-post-deadline to fetch into gw{exc.gw} anyway")
         return EXIT_ERROR
     except ValueError as exc:
         _stderr(f"error: {exc}")

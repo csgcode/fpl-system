@@ -1261,3 +1261,14 @@ def test_flags_refreshes_a_postponed_deadline(tmp_path, capsys):
 
     assert gateway.calls == [BOOTSTRAP_URL]
     assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
+
+
+def test_flags_refusal_after_the_deadline_offers_no_override(tmp_path, capsys):
+    run_at_clock, gateway, _ = post_deadline_setup(tmp_path)
+
+    assert run_at_clock(["flags", "--gw", "6", "--ids", "1"]) == 1
+
+    err = capsys.readouterr().err
+    assert "gw6 deadline" in err
+    assert "--allow-post-deadline" not in err
+    assert gateway.calls == [BOOTSTRAP_URL]
