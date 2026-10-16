@@ -69,6 +69,12 @@ passing the free gate.
 
 Never transfer for one good fixture what the ticker says turns bad in two.
 
+Tie-break: `objective`'s greedy reference already prefers the steadier
+incoming player when two singles with the same outgoing player are within 0.5
+blend EP6, and a plan that departs from it fails. Its `tie-break move:` line
+names the winner. Returns and P(≥4) come from `objective`; never count them
+yourself. Cite the `tie-break move:` line in the S# reason it decides.
+
 ## Captaincy (separate, explicit step)
 Rank the top 5 captain options **among your XI** by single-GW EP, undiscounted, and show the
 EP gap between your pick and the field. EP already prices minutes risk through

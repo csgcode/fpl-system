@@ -4,6 +4,7 @@ error exits, the selling-price basis, and that it never needs the network."""
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -210,3 +211,8 @@ def test_json_carries_tie_breaks(tied, capsys):
     (tie,) = document["tie_breaks"]
     assert (tie["best"]["in"], tie["challenger"]["in"], tie["winner"]["in"]) == (16, TWIN, TWIN)
     assert tie["reason"] == "ret5 4/5 v 1/5"
+
+
+def test_optimizer_spec_quotes_the_tie_break_label():
+    spec = Path(__file__).resolve().parents[1] / "agents" / "squad-optimizer.md"
+    assert TIE_BREAK_LABEL in spec.read_text(encoding="utf-8")
