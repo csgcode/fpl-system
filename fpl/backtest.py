@@ -563,7 +563,7 @@ def check_ledger_gap(checks: Mapping[int, RoundCheck], limit: int | None) -> Non
     over = [(r, c.delta_n) for r, c in checks.items()
             if c.delta_n is not None and abs(c.delta_n) > limit]
     if over:
-        raise ValueError("ledger n gap: " + ", ".join(f"round {r} Δn {_signed_int(dn)}"
+        raise ValueError("ledger n gap: " + ", ".join(f"round {r} Δn {signed(dn, 0)}"
                                                      for r, dn in over)
                          + f" exceeds --max-ledger-n-gap {limit} — the backtest does not "
                            "score the players the calibration ledger scored")
@@ -1092,12 +1092,8 @@ def _check_cells(check: RoundCheck | None) -> tuple[str, str, str]:
     if check is None:
         return "-", "-", "-"
     return ("-" if check.ledger_n is None else str(check.ledger_n),
-            "-" if check.delta_n is None else _signed_int(check.delta_n),
+            "-" if check.delta_n is None else signed(check.delta_n, 0),
             "-" if check.code_drift is None else f"{check.code_drift:.3f}")
-
-
-def _signed_int(value: int) -> str:
-    return f"{value:+d}".replace("-", "−")
 
 
 def _checks_document(checks: Mapping[int, RoundCheck]) -> dict[str, Any]:
