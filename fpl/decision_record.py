@@ -14,11 +14,13 @@ import json
 import subprocess
 import tarfile
 import tempfile
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 from fpl.calibrate import PREDICTION_POSITIONS, PlayerPrediction, load_predictions
+from fpl.clock import utcnow
 
 LOCK_FILENAME = "predictions.lock.json"
 LOCK_SCHEMA_VERSION = 1
@@ -85,10 +87,21 @@ def _lock_document(analysis_dir: Path, gw: int) -> dict | None:
     }
 
 
-def write_lock(analysis_dir: Path, lock_path: Path, gw: int) -> list[str]:
+def write_lock(
+    analysis_dir: Path,
+    lock_path: Path,
+    gw: int,
+    *,
+    deadline: datetime,
+    now: Callable[[], datetime] = utcnow,
+) -> list[str]:
     """Locks the gw's prediction files: their sha256 and each row's
-    [ep_gw[0], p_start]. Write-once — an existing lock is never replaced.
-    Returns warnings; a lock that cannot be built is a warning, not an error."""
+    [ep_gw[0], p_start]. Write-once — an existing lock is never replaced —
+    and only before the gw's deadline, so a lock is never built from files
+    rewritten after the decision. Returns warnings; a lock that cannot be
+    built is a warning, not an error."""
+    if now() >= deadline:
+        return [f"gw{gw} deadline passed — predictions lock not written"]
     try:
         document = _lock_document(analysis_dir, gw)
     except (OSError, ValueError, TypeError, KeyError, IndexError) as exc:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -17,6 +18,15 @@ from tests.gitrepo import commit_files, init_repo
 
 MID = "data/analysis/gw6/players-MID.json"
 FINAL = "data/decisions/gw6/final.md"
+DEADLINE = datetime(2026, 8, 22, 12, 0, tzinfo=UTC)
+
+
+def before_deadline():
+    return DEADLINE - timedelta(hours=1)
+
+
+def lock(analysis_dir, lock_path, gw, *, now=before_deadline):
+    return write_lock(analysis_dir, lock_path, gw, deadline=DEADLINE, now=now)
 
 
 @pytest.fixture
@@ -109,7 +119,7 @@ def test_write_lock_records_hashes_and_rows(tmp_path):
                                 "FWD": [players_row(2, 4.25, 0.5)]})
     lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
 
-    assert write_lock(analysis_dir, lock_path, 2) == []
+    assert lock(analysis_dir, lock_path, 2) == []
 
     def digest(name):
         return hashlib.sha256((analysis_dir / name).read_bytes()).hexdigest()
@@ -127,13 +137,13 @@ def test_write_lock_is_write_once(tmp_path):
     analysis_dir = tmp_path / "analysis" / "gw2"
     seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
     lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
-    write_lock(analysis_dir, lock_path, 2)
+    lock(analysis_dir, lock_path, 2)
     first = lock_path.read_bytes()
 
-    assert write_lock(analysis_dir, lock_path, 2) == []
+    assert lock(analysis_dir, lock_path, 2) == []
 
     seed_players(analysis_dir, {"MID": [players_row(1, 5.0, 0.9)]})
-    warnings = write_lock(analysis_dir, lock_path, 2)
+    warnings = lock(analysis_dir, lock_path, 2)
 
     assert lock_path.read_bytes() == first
     assert len(warnings) == 1 and str(lock_path) in warnings[0]
@@ -142,7 +152,19 @@ def test_write_lock_is_write_once(tmp_path):
 def test_write_lock_without_players_files_writes_nothing(tmp_path):
     lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
 
-    warnings = write_lock(tmp_path / "analysis" / "gw2", lock_path, 2)
+    warnings = lock(tmp_path / "analysis" / "gw2", lock_path, 2)
 
     assert warnings == ["no players-*.json for gw2 — predictions lock not written"]
+    assert not lock_path.exists()
+
+
+@pytest.mark.parametrize("now", [DEADLINE, DEADLINE + timedelta(days=30)])
+def test_write_lock_after_the_deadline_writes_nothing(tmp_path, now):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+
+    warnings = lock(analysis_dir, lock_path, 2, now=lambda: now)
+
+    assert warnings == ["gw2 deadline passed — predictions lock not written"]
     assert not lock_path.exists()

@@ -416,7 +416,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan_cmd.add_argument(
         "--analysis-root", type=Path, default=ANALYSIS_ROOT,
         help=f"root holding gw{{N}}/players-*.json, locked once into "
-             f"{LOCK_FILENAME} beside final.md",
+             f"{LOCK_FILENAME} beside final.md before the gw's deadline",
     )
     plan_cmd.add_argument("--format", choices=("table", "json"), default="table")
     plan_cmd.add_argument(
@@ -1354,7 +1354,8 @@ def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         args.out.write_text(document + "\n", encoding="utf-8")
         print(f"wrote {args.out}")
     for warning in write_lock(
-        args.analysis_root / f"gw{gw}", final_path.parent / LOCK_FILENAME, gw
+        args.analysis_root / f"gw{gw}", final_path.parent / LOCK_FILENAME, gw,
+        deadline=plan.deadline,
     ):
         _stderr(f"WARNING: {warning}")
     if args.format == "json":
