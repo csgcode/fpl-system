@@ -33,7 +33,10 @@ analysis files but must form independent judgments.
    the goal, but knowingly running differential risk must be deliberate.)
 6. Fixture myopia: does the squad decay badly after the 6-GW window right
    when we'd have no free transfers to fix it?
-7. Hit justification: any −4 whose numeric case is flimsy?
+7. Hit justification: any −4 whose numeric case is flimsy, or whose gross
+   gain changes sign on prior-only rates (retro C14)? Reproduce the
+   prior-only view with
+   `uv run python -m fpl ep --gw N --position POS --prior-weight 1.0 --out <scratch>/players-POS-prior.json`.
 8. Captaincy: is the pick the highest undiscounted single-GW EP? A lower pick
    is justified only by the optimizer's tiebreak — within 0.5 EP, prefer
    `p_start_gw[0]` ≥ 0.85. Never weight EP by the `uncertainty` tag.

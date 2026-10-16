@@ -716,8 +716,137 @@ def test_players_minutes_appends_this_seasons_minutes_per_round(tmp_path, capsys
     rows = list(csv.reader(io.StringIO(capsys.readouterr().out)))
     assert rows[0][-1] == "minutes_by_round"
     by_name = {row[1]: row[-1] for row in rows[1:]}
-    assert by_name["Alpha"] == "90,0"
+    assert by_name["Alpha"] == ""
     assert by_name["Beta"] == "no summary"
+
+
+def seed_minutes(tmp_path, gw, history):
+    store = SnapshotStore(tmp_path)
+    store.save(
+        gw, "bootstrap",
+        bootstrap_payload(elements=[
+            player_payload(id=1, web_name="Alpha", element_type=3),
+            player_payload(id=2, web_name="Beta", element_type=3),
+        ]),
+        "seed://test",
+    )
+    store.save(gw, "players/summary-1", element_summary_payload(history=history),
+               "seed://test")
+
+
+def players_csv(tmp_path, capsys, *argv):
+    assert run(["players", *argv], tmp_path, FakeGateway({})) == 0
+    return list(csv.reader(io.StringIO(capsys.readouterr().out)))
+
+
+def test_players_minutes_label_names_the_completed_rounds(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [
+        match_record_payload(round=2, minutes=0, fixture=12),
+        match_record_payload(round=1, minutes=90, fixture=3),
+    ])
+    rows = players_csv(tmp_path, capsys, "--gw", "3", "--position", "MID", "--minutes",
+                       "--format", "csv")
+    assert rows[0][-1] == "minutes_r1-r2"
+    assert {row[1]: row[-1] for row in rows[1:]}["Alpha"] == "90,0"
+
+
+def test_players_minutes_pads_rounds_without_a_fixture_row(tmp_path, capsys):
+    seed_minutes(tmp_path, 5, [
+        match_record_payload(round=3, minutes=90, fixture=30),
+        match_record_payload(round=4, minutes=12, fixture=40),
+    ])
+    rows = players_csv(tmp_path, capsys, "--gw", "5", "--position", "MID", "--minutes",
+                       "--format", "csv")
+    assert rows[0][-1] == "minutes_r1-r4"
+    assert {row[1]: row[-1] for row in rows[1:]}["Alpha"] == "-,-,90,12"
+
+
+def test_players_minutes_sums_a_double_gameweek(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [
+        match_record_payload(round=1, minutes=90, fixture=1),
+        match_record_payload(round=2, minutes=90, fixture=2),
+        match_record_payload(round=2, minutes=30, fixture=3),
+    ])
+    rows = players_csv(tmp_path, capsys, "--gw", "3", "--position", "MID", "--minutes",
+                       "--format", "csv")
+    assert {row[1]: row[-1] for row in rows[1:]}["Alpha"] == "90,120"
+
+
+def test_players_minutes_ignores_rounds_after_the_last_completed_one(tmp_path, capsys):
+    seed_minutes(tmp_path, 2, [
+        match_record_payload(round=1, minutes=90, fixture=1),
+        match_record_payload(round=2, minutes=45, fixture=2),
+    ])
+    rows = players_csv(tmp_path, capsys, "--gw", "2", "--position", "MID", "--minutes",
+                       "--format", "csv")
+    assert rows[0][-1] == "minutes_r1"
+    assert {row[1]: row[-1] for row in rows[1:]}["Alpha"] == "90"
+
+
+def test_players_minutes_last_keeps_the_latest_rounds(tmp_path, capsys):
+    seed_minutes(tmp_path, 6, [match_record_payload(round=r, minutes=10 * r, fixture=r)
+                               for r in range(1, 6)])
+    rows = players_csv(tmp_path, capsys, "--gw", "6", "--position", "MID", "--minutes",
+                       "--minutes-last", "2", "--format", "csv")
+    assert rows[0][-1] == "minutes_r4-r5"
+    assert {row[1]: row[-1] for row in rows[1:]}["Alpha"] == "40,50"
+
+
+def test_players_minutes_last_beyond_the_season_keeps_every_round(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [match_record_payload(round=1, minutes=90, fixture=1)])
+    rows = players_csv(tmp_path, capsys, "--gw", "3", "--position", "MID", "--minutes",
+                       "--minutes-last", "6", "--format", "csv")
+    assert rows[0][-1] == "minutes_r1-r2"
+
+
+def test_players_minutes_last_must_be_positive(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [])
+    with pytest.raises(SystemExit):
+        run(["players", "--gw", "3", "--minutes", "--minutes-last", "0"], tmp_path,
+            FakeGateway({}))
+
+
+def test_players_minutes_json_maps_round_to_minutes(tmp_path, capsys):
+    seed_minutes(tmp_path, 4, [
+        match_record_payload(round=1, minutes=90, fixture=1),
+        match_record_payload(round=3, minutes=5, fixture=3),
+    ])
+    assert run(["players", "--gw", "4", "--position", "MID", "--minutes", "--format", "json"],
+               tmp_path, FakeGateway({})) == 0
+    records = {r["name"]: r for r in json.loads(capsys.readouterr().out)}
+    assert records["Alpha"]["minutes_by_round"] == {"1": 90, "2": "-", "3": 5}
+    assert records["Beta"]["minutes_by_round"] == "no summary"
+
+
+def test_players_fields_choose_and_order_the_columns(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [match_record_payload(round=1, minutes=90, fixture=1)])
+    rows = players_csv(tmp_path, capsys, "--gw", "3", "--position", "MID",
+                       "--fields", "name,id,status", "--minutes", "--format", "csv")
+    assert rows[0] == ["name", "id", "status", "minutes_r1-r2"]
+    assert rows[1][:3] == ["Alpha", "1", "a"]
+
+
+def test_players_fields_apply_to_json(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [])
+    assert run(["players", "--gw", "3", "--fields", "id,price", "--format", "json"],
+               tmp_path, FakeGateway({})) == 0
+    records = json.loads(capsys.readouterr().out)
+    assert all(list(r) == ["id", "price"] for r in records)
+
+
+def test_players_unknown_field_refuses_and_lists_the_valid_names(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [])
+    assert run(["players", "--gw", "3", "--fields", "id,goals", "--format", "csv"],
+               tmp_path, FakeGateway({})) == 1
+    err = capsys.readouterr().err
+    assert "unknown field 'goals'" in err
+    assert "penalties_order" in err
+
+
+def test_players_fields_need_csv_or_json(tmp_path, capsys):
+    seed_minutes(tmp_path, 3, [])
+    assert run(["players", "--gw", "3", "--fields", "id"], tmp_path, FakeGateway({})) == 1
+    assert "--format csv or json" in capsys.readouterr().err
 
 
 # --- bootstrap: current GW status line ------------------------------------

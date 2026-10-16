@@ -364,3 +364,39 @@ def test_load_report_round_trips_and_gates_schema_version(tmp_path):
     path.write_text(json.dumps(stale), encoding="utf-8")
     with pytest.raises(ValueError, match="schema_version"):
         load_report(path)
+
+
+# --- squad misses ---------------------------------------------------------
+
+
+def test_squad_misses_use_the_unrounded_error():
+    from fpl.calibrate import build_report, squad_misses
+    from tests.factories import live_element_payload
+
+    ep = {i: 3.0 for i in range(1, 16)} | {1: 5.998, 2: 5.0}
+    actual = {i: 3 for i in range(1, 16)} | {1: 9, 2: 8}
+    rows = predictions(*[prediction_row(id=i, name=f"P{i}", position=3, ep_gw=[ep[i]] * 6)
+                         for i in range(1, 16)])
+    live = live_of(*[live_element_payload(element_id=i, total_points=actual[i])
+                     for i in range(1, 16)])
+    misses = squad_misses(build_report(rows, live, match_round=1, picks=squad_picks()))
+    assert [(m.id, m.slot, m.error) for m in misses] == [(1, 1, pytest.approx(3.002))]
+
+
+def test_squad_misses_skip_rows_without_prediction():
+    from fpl.calibrate import build_report, squad_misses
+    from tests.factories import live_element_payload
+
+    rows = predictions(*[prediction_row(id=i, name=f"P{i}", position=3, ep_gw=[3.0] * 6)
+                         for i in range(2, 16)])
+    live = live_of(*[live_element_payload(element_id=i, total_points=12 if i < 3 else 3)
+                     for i in range(1, 16)])
+    misses = squad_misses(build_report(rows, live, match_round=1, picks=squad_picks()))
+    assert [m.id for m in misses] == [2]
+
+
+def test_squad_misses_without_squad_is_empty():
+    from fpl.calibrate import build_report, squad_misses
+
+    rows, live = full_squad_inputs()
+    assert squad_misses(build_report(rows, live, match_round=1)) == ()

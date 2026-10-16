@@ -30,6 +30,7 @@ from fpl.ep import (
     inspect_fixtures,
     interpolate,
     league_bonus_per_start,
+    names_match,
     p_sixty,
     parse_fixtures,
     parse_inputs,
@@ -623,6 +624,72 @@ def test_build_refuses_name_mismatch_wrong_position_and_unknown_id():
         build_predictions(bootstrap, {}, fixtures_doc(), inputs_doc("MID", [judged(), judged(id=2, name="Keeper")]), gw=GW)
     with pytest.raises(ValueError, match="99"):
         build_predictions(bootstrap, {}, fixtures_doc(), inputs_doc("MID", [judged(), judged(id=99, name=None)]), gw=GW)
+
+
+ACCENT_PAIRS = [
+    ("Lindelof", "Lindelöf"), ("F.Kadioglu", "F.Kadıoğlu"), ("Diakite", "Diakité"),
+    ("Muharemovic", "Muharemović"), ("Guehi", "Guéhi"), ("Ruben", "Rúben"),
+    ("Ait-Nouri", "Aït-Nouri"), ("Dedic", "Dedić"), ("Schar", "Schär"),
+    ("Milenkovic", "Milenković"), ("Munoz", "Muñoz"), ("Petrovic", "Petrović"),
+    ("Hornicek", "Horníček"), ("Joao Pedro", "João Pedro"), ("Sesko", "Šeško"),
+    ("Gyokeres", "Gyökeres"), ("Rodriguez", "Rodríguez"),
+]
+
+
+@pytest.mark.parametrize("typed, web_name", ACCENT_PAIRS)
+def test_names_match_ignores_accents_on_the_real_pairs(typed, web_name):
+    assert names_match(typed, web_name)
+
+
+@pytest.mark.parametrize("typed, web_name", [
+    ("odegaard", "Ødegaard"), ("Sorloth", "Sørloth"), ("Mlynski", "Młyński"),
+    ("Dordevic", "Đorđević"), ("Gross", "Groß"), ("Aebischer", "Æbischer"),
+    ("Joao  Pedro", "João Pedro"), ("SAKA", "Saka"),
+])
+def test_names_match_folds_letters_without_a_decomposition(typed, web_name):
+    assert names_match(typed, web_name)
+
+
+@pytest.mark.parametrize("typed, web_name", [
+    ("Saka", "Salah"), ("Joao", "João Pedro"), ("Sesko", "Seskos"),
+])
+def test_names_match_still_refuses_different_names(typed, web_name):
+    assert not names_match(typed, web_name)
+
+
+def test_build_accepts_an_accent_free_name_and_keeps_the_web_name():
+    bootstrap = make_bootstrap([player(web_name="Šeško")])
+    result = build_predictions(bootstrap, {1: summary()}, fixtures_doc(),
+                               inputs_doc("MID", [judged(name="Sesko")]), gw=GW)
+    assert result.rows[0].name == "Šeško"
+
+
+def test_build_refuses_a_wrong_name_even_without_accents():
+    bootstrap = make_bootstrap([player(web_name="Salah")])
+    with pytest.raises(ValueError, match="does not match"):
+        build_predictions(bootstrap, {1: summary()}, fixtures_doc(),
+                          inputs_doc("MID", [judged(name="Saka")]), gw=GW)
+
+
+def test_build_warns_when_p_start_differs_from_the_first_gameweek():
+    bootstrap = make_bootstrap([player()])
+    result = build_predictions(
+        bootstrap, {1: summary()}, fixtures_doc(),
+        inputs_doc("MID", [judged(p_start=0.6, p_start_gw=[0.9] * HORIZON)]), gw=GW,
+    )
+    assert "id 1 Alpha: p_start 0.60 ignored, p_start_gw[0] is 0.90" in result.warnings
+    assert result.rows[0].p_start == 0.9
+
+
+@pytest.mark.parametrize("p_start, gw0", [(0.9, 0.9), (0.9, 0.904), (0.9, None)])
+def test_build_is_silent_when_p_start_agrees_or_is_flat(p_start, gw0):
+    bootstrap = make_bootstrap([player()])
+    extra = {} if gw0 is None else {"p_start_gw": [gw0] * HORIZON}
+    result = build_predictions(
+        bootstrap, {1: summary()}, fixtures_doc(),
+        inputs_doc("MID", [judged(p_start=p_start, **extra)]), gw=GW,
+    )
+    assert not any("ignored" in w for w in result.warnings)
 
 
 def test_build_refuses_document_gameweek_or_position_mismatch():

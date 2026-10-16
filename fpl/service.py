@@ -184,7 +184,7 @@ class FplDataService:
         api: FplApi,
         store: SnapshotStore,
         now: Callable[[], datetime] = utcnow,
-        throttle_s: float = 0.3,
+        throttle_s: float = 0.1,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._api = api

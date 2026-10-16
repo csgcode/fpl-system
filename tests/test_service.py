@@ -338,6 +338,25 @@ def test_summaries_throttle_only_between_network_fetches(tmp_path):
     assert sleep.calls == []
 
 
+def test_summaries_default_throttle_is_a_tenth_of_a_second(tmp_path):
+    responses = {
+        BOOTSTRAP_URL: bootstrap_payload(),
+        f"{BASE_URL}/element-summary/1/": element_summary_payload(),
+        f"{BASE_URL}/element-summary/2/": element_summary_payload(),
+    }
+    clock = FakeClock()
+    sleep = SpySleep()
+    service = FplDataService(
+        FplApi(FakeGateway(responses)),
+        SnapshotStore(tmp_path, now=clock),
+        now=clock,
+        sleep=sleep,
+    )
+
+    service.player_summaries(gw=2, player_ids=[1, 2])
+    assert sleep.calls == [0.1]
+
+
 def test_summaries_dedupe_ids(tmp_path):
     responses = {
         BOOTSTRAP_URL: bootstrap_payload(),

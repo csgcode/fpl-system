@@ -181,8 +181,8 @@ bad ranges and mismatched names refuse with the offending row.
 | Field | Required | Meaning |
 |---|---|---|
 | `id` | yes | bootstrap element id; must be this position |
-| `name` | no | if present must equal bootstrap `web_name` — guards id typos |
-| `p_start` | yes | P(starts) for a window fixture; 0–1 |
+| `name` | no | if present must equal bootstrap `web_name`, ignoring accents and case — guards id typos; the output always carries `web_name` |
+| `p_start` | yes | P(starts) for a window fixture; 0–1. With `p_start_gw` present it is unused: set it to `p_start_gw[0]`, or `ep` warns that it was ignored |
 | `p_start_gw` | no | always six values, one per window gameweek (the surplus is ignored at the season's tail); overrides `p_start` per gameweek |
 | `uncertainty` | yes | LOW / MED / HIGH — rate risk (agents/player-analyst.md); passed through, never used in the arithmetic |
 | `notes` | no | analyst prose, copied to the output |

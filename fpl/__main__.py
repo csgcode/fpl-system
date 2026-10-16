@@ -19,6 +19,7 @@ import json
 import os
 import sys
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -42,8 +43,10 @@ from fpl.calibrate import (
     build_report,
     load_predictions,
     load_report,
+    squad_misses,
 )
 from fpl.capture import is_git_ignored, parse_curl
+from fpl.corrections import agent_corrections, build_digest
 from fpl.ep import (
     EpResult,
     build_predictions,
@@ -101,7 +104,6 @@ from fpl.repository import (
     PlayerRepository,
     PlayerRow,
     slim_record,
-    slim_values,
 )
 from fpl.service import (
     DEFAULT_MAX_AGE_HOURS,
@@ -161,6 +163,7 @@ PROPOSAL_FILENAME = "squad-proposal.md"
 SUGGESTIONS_PATH = Path("data/suggestions.md")
 PLAN_FILENAME = "plan.json"
 COST_ROOT = Path("data/cost")
+RETRO_ROOT = Path("data/retro")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -531,8 +534,31 @@ def build_parser() -> argparse.ArgumentParser:
     players.add_argument("--format", choices=("table", "csv", "json"), default="table")
     players.add_argument(
         "--minutes", action="store_true",
-        help="append this season's minutes per round from cached element summaries",
+        help="append minutes per completed round (1..N-1) from cached element summaries: "
+             "one entry per round, '-' for no fixture row, double gameweeks summed",
     )
+    players.add_argument(
+        "--minutes-last", type=_positive_int, metavar="K",
+        help="with --minutes, only the last K completed rounds",
+    )
+    players.add_argument(
+        "--fields",
+        help="comma-separated columns to print, in order (csv/json); default: all",
+    )
+
+    corrections = add(
+        "corrections",
+        "retro corrections: the latest status table plus every active rule's text, "
+        "or with --agent only the active corrections addressed to that agent",
+        cached=False,
+    )
+    corrections.add_argument(
+        "--round", type=_gameweek,
+        help="the round under review: read retros of earlier rounds (default: N-1); "
+             "not with --agent, which reads every retro before GW N",
+    )
+    corrections.add_argument("--agent", help="agent code, e.g. A3 or CODE")
+    corrections.add_argument("--retro-root", type=Path, default=RETRO_ROOT)
     return parser
 
 
@@ -545,6 +571,16 @@ def _gameweek(raw: str) -> int:
         raise argparse.ArgumentTypeError(
             f"gameweek must be between {MIN_GW} and {MAX_GW}, got {value}"
         )
+    return value
+
+
+def _positive_int(raw: str) -> int:
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid count: {raw!r}") from exc
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"must be at least 1, got {raw}")
     return value
 
 
@@ -685,6 +721,8 @@ def main(
             return run_final_check(args)
         if args.command == "objective":
             return objective_report.run(args.data_root, args)
+        if args.command == "corrections":
+            return run_corrections(args)
         if args.command == "fixtures-rate":
             return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:
@@ -836,9 +874,11 @@ def run_command(
             min_ownership_pct=args.min_ownership,
             shortlisted_only=args.shortlist,
         )
+        fields = _player_fields(args.fields, args.format)
         rows = PlayerRepository(store).query(gw, player_filter, args.sort, args.limit)
-        minutes = _minutes_by_round(store, gw, rows) if args.minutes else None
-        print_players(rows, args.format, minutes)
+        minutes = (_minutes_by_round(store, gw, rows, args.minutes_last)
+                   if args.minutes else None)
+        print_players(rows, args.format, minutes, fields)
     return EXIT_OK
 
 
@@ -1020,17 +1060,71 @@ def run_ep_check(
     return EXIT_OK
 
 
-def _minutes_by_round(store: SnapshotStore, gw: int, rows: list[PlayerRow]) -> dict[int, str]:
+NO_FIXTURE = "-"
+NO_SUMMARY = "no summary"
+
+
+@dataclass(frozen=True)
+class MinutesView:
+    """Minutes per completed round. A player maps each round in `rounds` to
+    its minutes (double gameweeks summed) or NO_FIXTURE, or is NO_SUMMARY."""
+
+    rounds: tuple[int, ...]
+    by_player: dict[int, dict[int, int | str] | str]
+
+    @property
+    def label(self) -> str:
+        if not self.rounds:
+            return MINUTES_COLUMN
+        first, last = self.rounds[0], self.rounds[-1]
+        return f"minutes_r{first}" if first == last else f"minutes_r{first}-r{last}"
+
+    def joined(self, player_id: int) -> str:
+        minutes = self.by_player[player_id]
+        if isinstance(minutes, str):
+            return minutes
+        return ",".join(str(minutes[r]) for r in self.rounds)
+
+    def keyed(self, player_id: int) -> dict[str, int | str] | str:
+        minutes = self.by_player[player_id]
+        if isinstance(minutes, str):
+            return minutes
+        return {str(r): minutes[r] for r in self.rounds}
+
+
+def _minutes_by_round(
+    store: SnapshotStore, gw: int, rows: list[PlayerRow], last: int | None = None
+) -> MinutesView:
+    """Rounds 1..gw-1 (the last `last` of them when given)."""
+    first = 1 if last is None else max(1, gw - last)
+    rounds = tuple(range(first, gw))
     summaries = load_cached_summaries(store, gw, [row.player.id for row in rows])
-    result = {}
+    result: dict[int, dict[int, int | str] | str] = {}
     for row in rows:
         summary = summaries.get(row.player.id)
         if summary is None:
-            result[row.player.id] = "no summary"
+            result[row.player.id] = NO_SUMMARY
             continue
-        history = sorted(summary.history, key=lambda m: (m.round or 0, m.fixture))
-        result[row.player.id] = ",".join(str(m.minutes) for m in history) or "-"
-    return result
+        played: dict[int, int] = {}
+        for match in summary.history:
+            if match.round is not None:
+                played[match.round] = played.get(match.round, 0) + match.minutes
+        result[row.player.id] = {r: played.get(r, NO_FIXTURE) for r in rounds}
+    return MinutesView(rounds, result)
+
+
+def _player_fields(raw: str | None, fmt: str) -> tuple[str, ...]:
+    if raw is None:
+        return PLAYERS_SLIM_COLUMNS
+    if fmt not in ("csv", "json"):
+        raise ValueError("--fields needs --format csv or json")
+    fields = tuple(part.strip() for part in raw.split(",") if part.strip())
+    for name in fields:
+        if name not in PLAYERS_SLIM_COLUMNS:
+            raise ValueError(
+                f"unknown field {name!r}; valid: {','.join(PLAYERS_SLIM_COLUMNS)}"
+            )
+    return fields
 
 
 def print_ep(result: EpResult, limit: int) -> None:
@@ -1103,34 +1197,12 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
     minutes = report.minutes
     print(
         f"minutes: brier {minutes.brier:.4f}, expected starts "
-        f"{minutes.expected_starts:.1f}, actual {minutes.actual_starts}"
+        f"{minutes.expected_starts:.1f}, actual {minutes.actual_starts}, "
+        f"gap {minutes.expected_starts - minutes.actual_starts:+.1f}"
     )
     if report.defcon:
         hits = sum(1 for line in report.defcon if line.hit)
         print(f"defcon: {hits}/{len(report.defcon)} hits (players with 60'+)")
-    squad = report.squad
-    if squad is not None:
-        print(
-            f"squad XI (captain doubled): predicted "
-            f"{squad.predicted_xi_total:.2f}, actual {squad.actual_xi_total}; "
-            f"bench stranded {squad.bench_points_stranded}"
-        )
-        captain = squad.captain
-        print(
-            f"captain: {captain.chosen_name} {captain.chosen_actual} pts; "
-            f"hindsight best in XI: {captain.hindsight_best_name} "
-            f"{captain.hindsight_best_actual} (forgone {captain.forgone})"
-        )
-        print("squad rows (slot role id name pred act min):")
-        for line in squad.players:
-            flag = "C" if line.captain else ("VC" if line.vice else "")
-            pred = "-" if line.predicted is None else f"{line.predicted:.2f}"
-            act = "-" if line.actual is None else str(line.actual)
-            mins = "-" if line.minutes is None else str(line.minutes)
-            print(
-                f"  {line.slot:>3} {line.role:<5} {line.id:>4}  {line.name:<20.20} "
-                f"pred {pred:>6}  act {act:>3}  min {mins:>3}  {flag}".rstrip()
-            )
     cumulative = report.cumulative
     if cumulative is not None and len(cumulative.rounds) > 1:
         rounds = ",".join(str(r) for r in cumulative.rounds)
@@ -1139,6 +1211,8 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
             f"bias={cumulative.overall.bias:.2f} mae={cumulative.overall.mae:.2f} "
             f"brier={cumulative.minutes_brier:.4f}"
         )
+    if report.squad is not None:
+        _print_squad(report)
     under = sorted(
         (line for line in report.players if line.error > 3),
         key=lambda line: line.error,
@@ -1150,6 +1224,43 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
     )
     _print_misses("under-predicted (err > +3)", under)
     _print_misses("over-predicted (err < -3)", over)
+
+
+def _print_squad(report: CalibrationReport) -> None:
+    squad = report.squad
+    assert squad is not None
+    print(
+        f"squad XI (captain doubled): predicted "
+        f"{squad.predicted_xi_total:.2f}, actual {squad.actual_xi_total}; "
+        f"bench stranded {squad.bench_points_stranded}"
+    )
+    captain = squad.captain
+    print(
+        f"captain: {captain.chosen_name} {captain.chosen_actual} pts; "
+        f"hindsight best in XI: {captain.hindsight_best_name} "
+        f"{captain.hindsight_best_actual} (forgone {captain.forgone})"
+    )
+    joined = {line.id: line for line in report.players}
+    misses = squad_misses(report)
+    missed = {miss.id for miss in misses}
+    print("squad rows (slot role id name pred act err start p_start min; * = |err| > 3):")
+    for line in squad.players:
+        flag = "C" if line.captain else ("VC" if line.vice else "")
+        pred = "-" if line.predicted is None else f"{line.predicted:.2f}"
+        act = "-" if line.actual is None else str(line.actual)
+        mins = "-" if line.minutes is None else str(line.minutes)
+        player = joined.get(line.id) if line.predicted is not None else None
+        err = "-" if player is None else f"{player.error:+.2f}"
+        start = "-" if player is None else ("Y" if player.started else "N")
+        p_start = "-" if player is None else f"{player.p_start:.2f}"
+        star = "*" if line.id in missed else " "
+        print(
+            f"  {line.slot:>3} {line.role:<5} {line.id:>4}  {line.name:<20.20} "
+            f"pred {pred:>6}  act {act:>3}  err {err:>6}{star} start {start}  "
+            f"p_start {p_start}  min {mins:>3}  {flag}".rstrip()
+        )
+    listed = ", ".join(f"{m.slot} {m.name} {m.error:+.2f}" for m in misses)
+    print(f"squad misses (|err| > 3): {listed or 'none'}")
 
 
 MISS_ROWS_SHOWN = 8
@@ -1195,6 +1306,51 @@ def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     else:
         free_now = previous_state.free_transfers_banked if previous_state else None
         print_plan(plan, free_now=free_now)
+    return EXIT_OK
+
+
+def run_corrections(args: argparse.Namespace) -> int:
+    root: Path = args.retro_root
+    if args.agent is not None:
+        if args.round is not None:
+            raise ValueError("--round applies to the retro digest only, not with --agent")
+        return _print_agent_corrections(root, args.gw, args.agent)
+    before = args.round if args.round is not None else args.gw - 1
+    digest = build_digest(root, before_round=before)
+    if digest.latest is None:
+        print(f"corrections: none (no retro before round {before})")
+        return EXIT_OK
+    span = (digest.sources[0] if len(digest.sources) == 1
+            else f"{digest.sources[0]}–{digest.sources[-1]}")
+    print(f"corrections — status from {root / digest.latest}; rules from {span}")
+    print("| C# | Agent | Status | Evidence |")
+    print("|---|---|---|---|")
+    for row in digest.rows:
+        print(row.line)
+    for rule in digest.new:
+        print(f"| C{rule.number} | {', '.join(rule.agents)} | new in {rule.source} | – |")
+    print(f"active rules: {len(digest.active)}")
+    for rule in digest.active:
+        print(f"{rule.text}  [{rule.source}]")
+    for number in digest.missing:
+        _stderr(f"warning: C{number} has a status row but no rule text")
+    return EXIT_OK
+
+
+def _print_agent_corrections(root: Path, gw: int, agent: str) -> int:
+    view = agent_corrections(root, gw=gw, agent=agent)
+    if view.latest is None:
+        print("no retro yet")
+        return EXIT_OK
+    print(f"corrections for {agent} from {root / view.latest}: "
+          f"{len(view.active)} active, {len(view.retired)} retired")
+    for correction in view.active:
+        rule = correction.rule
+        print(f"C{rule.number} [{correction.status}] defined in {root / rule.source}")
+        print(rule.text)
+        print()
+    retired = "; ".join(f"C{row.number} {row.status}" for row in view.retired)
+    print(f"retired (not shown): {retired or 'none'}")
     return EXIT_OK
 
 
@@ -1985,33 +2141,38 @@ MINUTES_COLUMN = "minutes_by_round"
 
 
 def print_players(
-    rows: list[PlayerRow], fmt: str, minutes: dict[int, str] | None = None
+    rows: list[PlayerRow], fmt: str, minutes: MinutesView | None = None,
+    fields: tuple[str, ...] = PLAYERS_SLIM_COLUMNS,
 ) -> None:
     if fmt == "json":
-        records = [slim_record(row) for row in rows]
-        if minutes is not None:
-            for record in records:
-                record[MINUTES_COLUMN] = minutes[record["id"]]
+        records = []
+        for row in rows:
+            full = slim_record(row)
+            record = {name: full[name] for name in fields}
+            if minutes is not None:
+                record[MINUTES_COLUMN] = minutes.keyed(row.player.id)
+            records.append(record)
         print(json.dumps(records, indent=1))
     elif fmt == "csv":
         writer = csv.writer(sys.stdout)
-        header = list(PLAYERS_SLIM_COLUMNS)
+        header = list(fields)
         if minutes is not None:
-            header.append(MINUTES_COLUMN)
+            header.append(minutes.label)
         writer.writerow(header)
         for row in rows:
-            values = slim_values(row)
+            full = slim_record(row)
+            values = [full[name] for name in fields]
             if minutes is not None:
-                values.append(minutes[row.player.id])
+                values.append(minutes.joined(row.player.id))
             writer.writerow(values)
     else:
-        tail = f"  {MINUTES_COLUMN}" if minutes is not None else ""
+        tail = f"  {minutes.label}" if minutes is not None else ""
         print(f"{'id':>4}  {'name':<20} {'team':<4} {'pos':<3} {'price':>5} "
               f"{'st':<2} {'own%':>5} {'form':>5} {'pts':>4} {'pen':>3}{tail}")
         for row in rows:
             p = row.player
             pen = p.penalties_order if p.penalties_order is not None else ""
-            extra = f"  {minutes[p.id]}" if minutes is not None else ""
+            extra = f"  {minutes.joined(p.id)}" if minutes is not None else ""
             print(f"{p.id:>4}  {p.web_name:<20.20} {row.team_short_name:<4} "
                   f"{p.element_type.name:<3} {p.price_m:>5.1f} {p.status.value:<2} "
                   f"{p.selected_by_percent:>5.1f} {p.form:>5.1f} {p.total_points:>4} {pen:>3}{extra}")

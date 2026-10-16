@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+import unicodedata
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -699,6 +700,23 @@ def _score_fixture(
     )
 
 
+P_START_TOLERANCE = 0.005
+# Letters NFKD leaves whole: they carry no combining mark to drop.
+_FOLDED_LETTERS = str.maketrans({"ı": "i", "ø": "o", "ł": "l", "đ": "d", "ß": "ss",
+                                 "æ": "ae", "œ": "oe"})
+
+
+def _fold_name(name: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", name.casefold())
+    bare = "".join(c for c in decomposed if not unicodedata.combining(c))
+    return " ".join(bare.translate(_FOLDED_LETTERS).split())
+
+
+def names_match(typed: str, web_name: str) -> bool:
+    """Equal ignoring accents, case and repeated whitespace."""
+    return _fold_name(typed) == _fold_name(web_name)
+
+
 def build_predictions(
     bootstrap: Bootstrap,
     summaries: Mapping[int, ElementSummary],
@@ -732,10 +750,16 @@ def build_predictions(
                 f"id {entry.id} {player.web_name} has position "
                 f"{player.element_type.name}, not {position.name}"
             )
-        if entry.name is not None and entry.name != player.web_name:
+        if entry.name is not None and not names_match(entry.name, player.web_name):
             raise ValueError(
                 f"id {entry.id}: inputs name {entry.name!r} does not match "
                 f"bootstrap web_name {player.web_name!r}"
+            )
+        if (entry.p_start_gw is not None
+                and abs(entry.p_start - entry.p_start_gw[0]) > P_START_TOLERANCE):
+            warnings.append(
+                f"id {entry.id} {player.web_name}: p_start {entry.p_start:.2f} ignored, "
+                f"p_start_gw[0] is {entry.p_start_gw[0]:.2f}"
             )
 
     position_players = [p for p in bootstrap.elements if p.element_type == position]

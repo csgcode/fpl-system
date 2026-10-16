@@ -54,7 +54,7 @@ A player is shortlisted when they hold a playing position, `status` is not in
 
 ## Tooling
 Run from the repo root. `bootstrap` must run first; every other command
-depends on its snapshot. `summaries --shortlist` takes 3–4 minutes: run it
+depends on its snapshot. `summaries --shortlist` takes about a minute: run it
 with the Bash tool's `timeout` parameter set to 600000 so it is not
 backgrounded, and only run `prior-season` after it has finished —
 prior-season reads the summaries cache and reports empty coverage otherwise.

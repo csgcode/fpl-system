@@ -19,43 +19,60 @@ contracts live in docs/ep-model.md and run as code.
 | `uncertainty`, `notes` | schema, sorting, per-term breakdown |
 | players-{pos}.md: ranking and call-outs | players-{pos}.json |
 
-## Procedure — five tool calls
+## Procedure — six tool calls, at most 10 tool calls in all (one ep rerun and one summaries fetch included)
 
-**Call 1 — one Bash, every read.** (POS = your position, N = this GW.)
+POS = your position, N = this GW. Each call's output stays inline; never
+redirect it to a file and page through it.
+
+**Call 1 — evidence, one Bash.**
 
 ```
-uv run python -m fpl players --gw N --position POS --minutes --format csv
-awk '/^\*\*C[0-9]+ — .*A3/{p=1} p&&/^$/{p=0} p' data/retro/gw*.md
+uv run python -m fpl players --gw N --position POS --status a,d,i,s,n --minutes --minutes-last 6 --fields id,name,team,price,status,chance_of_playing,news,minutes,starts,xG,xA,penalties_order,direct_freekicks_order,corners_and_indirect_freekicks_order --format csv
+```
+
+The whole position with status, news, chance_of_playing, season totals,
+set-piece orders and minutes in each of the last six rounds — the minutes
+model's evidence. The minutes column header names its rounds (e.g.
+`minutes_r1-r5`); `-` means the player had no fixture row that round, and a
+double gameweek is summed.
+
+**Call 2 — context, one Bash.**
+
+```
+uv run python -m fpl corrections --gw N --agent A3
 python3 -c "import json;d=json.load(open('data/analysis/gw{N}/fixtures.json'));print(' '.join(f\"{c}:{r['att']}/{r['defw']}\" for c,r in sorted(d['ratings'].items())))"
-python3 -c "import json;[print(r['id'],r['name'],r['p_start'],r['ep_total6'],r['uncertainty']) for r in json.load(open('data/analysis/gw{N-1}/players-POS.json'))]"
+python3 -c "import json;[print(r['id'],r['name'],r['p_start'],'/'.join(map(str,r.get('p_start_gw',[])))or'-',r['uncertainty'],','.join(r.get('overrides',{}))or'-',r.get('notes','')) for r in json.load(open('data/analysis/gw{N-1}/inputs-POS.json'))['players']]"
+find data/analysis/gwN -name 'research-*.md' | sort | while read -r f; do echo "== $f"; sed -n '1p;/^## Verdict/,/^## [^V]/p' "$f"; done
 ```
 
-Line 1 is the whole position with status, news, chance_of_playing, season
-totals, set-piece orders and this season's minutes per round — the minutes
-model's evidence. Line 2 is every correction addressed to you, whole. Line 3
-is the fixture analyst's ATT/DEFW rating per club, from fixtures.json (for
-override decisions on promoted clubs and attack indices). Line 4 is last GW's
-judgment, one line per player: update it, do not rebuild it. Skip line 4 at
-GW1; skip line 2 when data/retro is empty.
+Line 1 prints only the corrections that bind you now — each active one with
+its status and full text — and names the retired ones without their text.
+Line 2 is the fixture analyst's ATT/DEFW rating per club, from fixtures.json
+(for override decisions on promoted clubs and attack indices). Line 3 is last
+GW's judgment, one line per player — id, name, p_start, p_start_gw (`-` when
+flat), uncertainty, override keys (`-` when none), notes: update it, do not
+rebuild it. Skip line 3 at GW1. Line 4 prints the title and Verdict of each
+research file, if any.
 
-**Call 2 — Write data/analysis/gwN/inputs-POS.json.** Contract in
+**Call 3 — Write data/analysis/gwN/inputs-POS.json.** Contract in
 docs/ep-model.md §3. Every player of your position priced above £4.5m with
 status `a` or `d` must have a row, or the command refuses and lists them.
 Players at or below £4.5m, or unavailable, that you leave out are excluded
-and counted.
+and counted. Copy names from the CSV (accents may be dropped). With
+`p_start_gw`, set `p_start` to `p_start_gw[0]`.
 
-**Call 3 — Bash:** `uv run python -m fpl ep --gw N --position POS`. Read the
+**Call 4 — Bash:** `uv run python -m fpl ep --gw N --position POS`. Read the
 table. If a p_start or an override looks wrong in the light of the numbers,
-fix the inputs and rerun — one loop at most. A refusal naming an override
+fix the inputs and rerun — one rerun at most. A refusal naming an override
 field is a unit slip (0.50 typed as 50): fix the number, never argue with the
 bound. If it lists missing summaries for players you care about, run the
-printed `summaries --ids` command and rerun.
+printed `summaries --ids` command once and rerun.
 
-**Call 4 — Write data/analysis/gwN/players-POS.md** (template below).
+**Call 5 — Write data/analysis/gwN/players-POS.md** (template below).
 
-**Call 5 — ONE Bash invocation**, only if you have a finding outside your
+**Call 6 — ONE Bash invocation**, only if you have a finding outside your
 remit (model arithmetic, CLI or ledger, agent spec, data quirk); with none,
-return after Call 4. Append to docs/backlog.md in this exact form — a quoted
+return after Call 5. Append to docs/backlog.md in this exact form — a quoted
 heredoc, never `printf`/`echo` (apostrophes and backticks break them); one
 heredoc, one line per row:
 
@@ -74,7 +91,10 @@ fields), WORKFLOW (agent specs, CLAUDE.md, orchestration) or DATA (API quirks,
 snapshot quality), `<evidence path>` the players-POS.md section or the input
 file the finding came from. A cell never contains `|` or a newline. Never read
 docs/backlog.md — the form above is the whole format — and never edit
-existing rows. Then return.
+existing rows. A row cites evidence you saw in this run (a command output or a
+file you read). Never describe another agent's behaviour, spec or decisions
+you have not read this run. Never file a row about a correction that Call 2
+did not print. Then return.
 
 ## Judgment guidance
 
@@ -92,6 +112,20 @@ Say explicitly when a 0.6×-minutes premium loses to a nailed mid-price player.
   known.
 - Minutes risk lives only in `p_start` / `p_start_gw`. Never raise
   `uncertainty` for it.
+
+Availability rules — the news line sets hard limits:
+- Status `i`, `s`, `u` or `n`, or chance 0 → `p_start_gw[0]` = 0, unless the
+  news gives a return date on or before the club's GW N kickoff.
+- "Expected back D" or "Suspended until D" → 0 for every gameweek whose
+  fixtures all kick off before D.
+- `d` with X% → `p_start_gw[0]` ≤ X/100.
+- Unknown return date → 0 for GW N. Any later value is a guess: ramp it no
+  faster than the dated returns you rated, and write "guess" in the notes. A
+  research verdict replaces the guess.
+
+Research files — `data/analysis/gwN/research-*.md` are optional evidence
+written for the user. Read only their title and Verdict (Call 2). When one
+changes a row, cite the file in that row's notes. Never edit them.
 
 Uncertainty tag — rate risk only: how far this player's per-90 rates may be
 off. LOW = a settled role with a solid PL sample; MED = a thin sample or a
@@ -119,19 +153,28 @@ Data traps (verified 2026/27):
   Never scale a rate by hand to compensate.
 - `history_past` reports DefCon as 0 for seasons before 2024/25; the code
   treats those seasons as missing for dc90, so they need no `dc90` override.
+- Drop carried-over `dc90` overrides whose reason is pre-2024/25 DefCon — the
+  code handles it.
+- `bonus_per_start` is shrunk toward the position mean in code; override it
+  only for a role change.
 
-Corrections from data/retro: apply the ones addressed to A3 that concern
-judgment — p_start discipline, uncertainty tags, override policy. A correction
-to the arithmetic is a code change (docs/ep-model.md §5); do not emulate it
-through inputs.
+Corrections from data/retro: Call 2 prints only active corrections. Apply
+those that concern judgment — p_start discipline, override policy; C7 no
+longer applies. A correction to the arithmetic is a code change
+(docs/ep-model.md §5): say so in Retro compliance and do not emulate it
+through overrides.
 
 ## Off limits
 - Computing EP, per-90 rates or blends yourself, or any script that reproduces
   the formula.
 - Reading bootstrap.json, whole retro files, whole fixtures.md, or last GW's
-  players-POS.json whole — Call 1 has the views you need.
+  inputs-POS.json or players-POS.json whole — Calls 1 and 2 have the views you
+  need.
+- Reading element summaries, event-live files or the calibration ledgers
+  (data/retro/*-calibration.json) — the CLI views carry what you need, and the
+  retro owns the calibration ledgers.
 - Editing players-POS.json by hand. It is derived: change the inputs, rerun.
-- Reading docs/backlog.md — Call 5 carries the format and is append-only.
+- Reading docs/backlog.md — Call 6 carries the format and is append-only.
 
 ## Output
 
@@ -151,15 +194,42 @@ Written by `fpl ep`, never by you.
 ## Overrides                — one line each: player, override, reason
 ## Nailed cheap beats rotating premium   — ≤ 5 cases
 ## Retro compliance         — one line per active A3 correction
-## Escalations              — freshness-gate candidates only (flags added in the
-                              last 48h, unresolved doubts), ≤ 5. Model or code
+## Escalations              — ≤ 5 unresolved doubts the optimizer should know: a
+                              flag you could not price confidently. Never date a
+                              flag by news_added. Model or code
                               gaps go to docs/backlog.md, not here
 ```
 
-Return to the orchestrator, ≤ 15 lines: both file paths, top 5 by EP6,
-override count, escalations, backlog rows appended (or none).
+Return to the orchestrator: both file paths, top 5 by EP6, override count,
+escalations, backlog rows appended (or none). Return plain lines, no tables or
+headings, ≤ 15 lines in all.
+
+## REOPEN mode
+
+The finalizer's freshness gate found flags that moved after your analysis.
+The prompt says `Mode: REOPEN` and names the delta file
+`data/raw/gwN/flags-delta-<stamp>.json`. At most 6 tool calls in all:
+
+1. One Bash (DELTA = the named file):
+   ```
+   python3 -c "import json;d=json.load(open('DELTA'));[print(c['id'],c['web_name'],'; '.join(f\"{x['field']}: {x['before']} -> {x['after']}\" for x in c['changes'])) for c in d['pool'] if c['position']=='POS']"
+   python3 -c "import json;ids={c['id'] for c in json.load(open('DELTA'))['pool'] if c['position']=='POS'};[print(json.dumps(r,ensure_ascii=False)) for r in json.load(open('data/analysis/gwN/inputs-POS.json'))['players'] if r['id'] in ids]"
+   uv run python -m fpl corrections --gw N --agent A3
+   ```
+2. Change only those rows, plus same-club same-position teammates whose
+   competition the change moves. Apply the availability rules above. If `ep`
+   refuses a player newly inside the `a`/`d` band, add a row for him.
+3. `uv run python -m fpl ep --gw N --position POS`.
+4. In players-POS.md, replace the Top 15 block with the new ep table rows
+   and edit only the Minutes calls and Escalations lines. Replace, don't
+   append. Keep ≤ 120 lines and ≤ 5 escalations. Copy prices from the ep
+   table.
+5. Return per changed player its old → new p_start_gw and EP6. Return plain
+   lines, no tables or headings, ≤ 10 lines in all.
+
+Never read bootstrap.json, its .archive copies or docs/backlog.md.
 
 ## Rules
 - Never commit to git — the orchestrator owns the cycle commit.
-- Findings outside your remit reach docs/backlog.md through Call 5 only. Never
+- Findings outside your remit reach docs/backlog.md through Call 6 only. Never
   act on them.

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
@@ -360,6 +361,32 @@ def _squad_section(
             forgone=(hindsight.actual or 0) - chosen_actual,
         ),
         bench_points_stranded=sum(line.actual or 0 for line in bench),
+    )
+
+
+SQUAD_MISS_THRESHOLD = 3.0
+
+
+@dataclass(frozen=True)
+class SquadMiss:
+    id: int
+    name: str
+    slot: int
+    error: float
+
+
+def squad_misses(report: CalibrationReport) -> tuple[SquadMiss, ...]:
+    """Squad rows, in slot order, whose ledger error exceeds the threshold in
+    absolute value. The ledger keeps three decimals, so 5.998 → 9 (+3.002)
+    is a miss although it prints as +3.00."""
+    if report.squad is None:
+        return ()
+    errors = {line.id: line.error for line in report.players}
+    return tuple(
+        SquadMiss(line.id, line.name, line.slot, errors[line.id])
+        for line in report.squad.players
+        if line.predicted is not None and line.id in errors
+        and abs(errors[line.id]) > SQUAD_MISS_THRESHOLD
     )
 
 

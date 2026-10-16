@@ -128,7 +128,7 @@ def test_calibrate_prints_one_row_per_squad_slot(tmp_path, capsys):
     captain_row = next(row for row in rows if " P1 " in row)
     tokens = captain_row.split()
     assert tokens[-1] == "C" and tokens[1] == "XI"
-    assert (tokens[5], tokens[7], tokens[9]) == ("3.50", "1", "90")
+    assert (tokens[5], tokens[7], tokens[-2]) == ("3.50", "1", "90")
     vice_row = next(row for row in rows if " P2 " in row)
     assert vice_row.endswith("VC")
     bench_row = next(row for row in rows if " P12 " in row)
@@ -196,3 +196,74 @@ def test_calibrate_pools_prior_rounds_into_cumulative(tmp_path):
     )
     assert document["cumulative"]["rounds"] == [1, 2]
     assert document["cumulative"]["overall"]["n"] == 16
+
+
+def output_lines(tmp_path, capsys, **kwargs):
+    data_root, gateway, argv = setup_round(tmp_path, **kwargs)
+    assert run(argv, data_root, gateway) == 0
+    return capsys.readouterr().out.splitlines()
+
+
+def test_table_prints_aggregates_and_cumulative_contiguously(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path)
+    assert run(argv, data_root, gateway) == 0
+    write_final(tmp_path / "decisions", 2)
+    write_analysis(tmp_path / "analysis", 2,
+                   {"MID": [prediction_row(id=i, name=f"P{i}") for i in range(1, 16)]})
+    seed_bootstrap(data_root, checked_rounds=(1, 2))
+    gateway.responses[f"{BASE_URL}/event/2/live/"] = event_live_payload(
+        [live_element_payload(element_id=i, total_points=3) for i in range(1, 16)])
+    capsys.readouterr()
+    assert run([arg if arg != "1" else "2" for arg in argv], data_root, gateway) == 0
+    lines = capsys.readouterr().out.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.startswith("group"))
+    end = next(i for i, line in enumerate(lines) if line.startswith("cumulative"))
+    assert all(not line.startswith("squad") for line in lines[start:end + 1])
+    assert lines[end + 1].startswith("squad XI")
+    assert lines[end + 2].startswith("captain:")
+    assert lines[end + 3].startswith("squad rows")
+
+
+def test_minutes_line_prints_gap(tmp_path, capsys):
+    lines = output_lines(tmp_path, capsys)
+    minutes = next(line for line in lines if line.startswith("minutes:"))
+    # 15 players at p_start 0.9 → 13.5 expected; all 15 started
+    assert minutes.endswith("expected starts 13.5, actual 15, gap -1.5")
+
+
+def test_squad_rows_carry_err_start_and_p_start(tmp_path, capsys):
+    lines = output_lines(tmp_path, capsys)
+    assert ("squad rows (slot role id name pred act err start p_start min; "
+            "* = |err| > 3):") in lines
+    rows = block_after("\n".join(lines), "squad rows")
+    captain = next(row for row in rows if " P1 " in row).split()
+    assert captain[:3] == ["1", "XI", "1"]
+    assert captain[4:] == ["pred", "3.50", "act", "1", "err", "-2.50", "start", "Y",
+                           "p_start", "0.90", "min", "90", "C"]
+
+
+def test_squad_row_star_marks_err_over_3_even_when_it_prints_3_00(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path, points=lambda i: 6 if i == 4 else 3)
+    rows_path = tmp_path / "analysis" / "gw1" / "players-MID.json"
+    rows = json.loads(rows_path.read_text(encoding="utf-8"))
+    rows[3]["ep_gw"] = [2.998] * 6
+    rows_path.write_text(json.dumps(rows), encoding="utf-8")
+    assert run(argv, data_root, gateway) == 0
+    squad = block_after(capsys.readouterr().out, "squad rows")
+    row = next(r for r in squad if " P4 " in r)
+    assert "err  +3.00* start" in row
+    assert all("*" not in r for r in squad if " P4 " not in r)
+
+
+def test_squad_misses_line_lists_starred_rows_in_slot_order(tmp_path, capsys):
+    lines = output_lines(tmp_path, capsys, points=lambda i: {3: 12, 9: 0}.get(i, 3))
+    rows_end = next(i for i, line in enumerate(lines) if line.startswith("squad rows")) + 16
+    assert lines[rows_end] == "squad misses (|err| > 3): 3 P3 +8.50, 9 P9 -3.50"
+
+
+def test_squad_misses_none(tmp_path, capsys):
+    lines = output_lines(tmp_path, capsys, points=lambda i: 3)
+    assert "squad misses (|err| > 3): none" in lines
+    tails = [i for i, line in enumerate(lines) if "-predicted (err" in line]
+    misses_at = lines.index("squad misses (|err| > 3): none")
+    assert all(i > misses_at for i in tails)

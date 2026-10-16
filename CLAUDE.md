@@ -69,6 +69,9 @@ Scoring context that changes valuation this season:
    A `**C<n> — CODE (fpl/ep.py): …**` correction in the retro is outside the
    GW cycle: the orchestrator surfaces it to the user, who ships it as a code
    change with tests (docs/ep-model.md §5). No agent acts on it.
+   Run it once the data collector (step 1) has written
+   data/raw/gw{N}/bootstrap.json: calibrate reads that snapshot's
+   data_checked flag.
    Step 2 starts only after step 0 has returned: fixtures-rate needs the
    retro's event-live snapshot, and the fixture analyst needs its corrections.
 1–6. As above, but squad-optimizer proposes TRANSFERS plus captain and bench
@@ -168,6 +171,8 @@ before it writes final.md. The diff is CODE: `flags` compares `status`,
 before its refresh and exits 3 when a gate id changed. On exit 3 the finalizer
 returns REOPEN with the printed delta; you re-run the affected analysis and
 then re-run the finalizer. REOPEN cycles are exempt from the one-revision cap.
+On REOPEN, re-run the player analyst for each affected position in its REOPEN
+mode with the flags-delta path.
 
 `flags` exits 5 when its baseline is over 24h old; the data collector then
 runs again first.
@@ -227,10 +232,13 @@ skip in meta.md.
 The orchestrator performs no analysis, coding, or data work itself. Every
 workflow step above runs as a subagent.
 
-Invocation mechanism: read the agent's .md file, then spawn a subagent via the
-Agent tool with `subagent_type: general-purpose`, the `model:` value from that
-file's YAML frontmatter, and the file body below the frontmatter as the
-subagent prompt.
+Invocation mechanism: read only the `model:` value from the agent file's YAML
+frontmatter (`grep -m1 '^model:' agents/<name>.md`), never the whole file. Spawn
+a subagent via the Agent tool with `subagent_type: general-purpose` and that
+model. The prompt is a short brief, not the spec retyped: the GW number, an
+instruction to read `agents/<name>.md` in full first and follow it, any
+cycle-specific inputs (the position for player-analyst, review.md on a REVISE
+loop, the printed delta on a REOPEN), and the no-`git commit` rule.
 
 Subagents never run `git commit` — the orchestrator makes exactly one commit
 per GW cycle, plus a separate `gw{N}: correct record — <why>` commit after a
@@ -266,12 +274,13 @@ All FPL API access goes through the deterministic CLI
 | `picks --team-id <id> --event M` | our actual picks, captain, active chip for GW M | cached |
 | `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
 | `actuals --round R --ids <ids>` | per-player ACTUAL points, goals, assists, bonus, BPS, xG, xA and DefCon count for a completed round; sums double-gameweek rows | always refreshes |
-| `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON | cached |
+| `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON; squad rows print err, start and p_start, with `*` on \|err\| > 3 (unrounded), plus a `squad misses` line | cached |
 | `flags --ids <ids> [--baseline <bootstrap.json>]` | the pre-deadline freshness gate: refreshes bootstrap, prints flags for `--ids` plus their status/chance/news delta against the baseline (default: the bootstrap cached just before the refresh) and an informational whole-pool delta by position; writes flags-delta-<stamp>.json. Exit 0 = no `--ids` change, 3 = a `--ids` player changed, 4 = no baseline, 5 = baseline over 24h old | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
 | `fixtures-rate [--priors <p> --analysis-root <p> --format table\|json]` | compiles club-priors.json + cached summaries + event-live snapshots into fixtures.json + fixtures-tables.md; refuses without priors or an event-live round. Formula: docs/ep-model.md §6 | local only |
 | `prior-season` | writes prior-season.json from cached summaries | local only |
-| `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--minutes]` | filtered read over the cached bootstrap; `--minutes` appends this season's minutes per round from cached summaries | local only |
+| `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--fields <cols>] [--minutes [--minutes-last K]]` | filtered read over the cached bootstrap; `--fields` picks and orders the csv/json columns; `--minutes` appends minutes per completed round from cached summaries, one entry per round (`-` = no fixture row, double gameweeks summed) under a header naming the rounds, `--minutes-last` keeps the last K | local only |
+| `corrections [--round M] [--agent <code>] [--retro-root <p>]` | retro corrections from data/retro/gw*.md. Without `--agent`: the latest status table verbatim, rules new in it, and the text of every active rule, from the retros before round M (default N−1). With `--agent` (A3 now; usable by any agent code): only the active corrections addressed to that agent, with status and source, from every retro before GW N; retired ones are named, not shown | local only |
 | `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --format table\|json --limit N --allow-missing-ids <ids>] \| --check` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes nothing. Contracts and formula: docs/ep-model.md | local only |
 | `plan [--from-final <path>] [--prev-final <path>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON | local only |
 | `final-check [--proposal <p>] [--final <p>] [--prev-final <p>] [--suggestions <p>]` | carry rules for final.md: the proposal's STATE parses; its ledger is present and drops nothing against the previous final.md; final.md's STATE equals the proposal's; explicit chip keys; ledger verbatim; STATE last. Exit 0/1 | local only |
@@ -372,7 +381,7 @@ CODE C# into the backlog so it is the single triage list.
 
 Row format, agent codes, kind and status vocabulary, and the append snippet
 live at the top of docs/backlog.md. Mirrors, changed together with that file:
-agents/retro-analyst.md Call 4, agents/player-analyst.md Call 5 and
+agents/retro-analyst.md Call 4, agents/player-analyst.md Call 6 and
 agents/fixture-analyst.md § Rules carry the snippet verbatim and restate the
 kind list, because those agents may not read the file; the `## Corrections`
 legend in agents/retro-analyst.md restates the agent codes.
