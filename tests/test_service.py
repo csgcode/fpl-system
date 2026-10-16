@@ -525,6 +525,14 @@ def test_prior_season_reports_empty_result(tmp_path):
     assert (result.players, result.missing_summaries) == (0, 0)
 
 
+def seed_checked_bootstrap(store, gw, *, checked=(), unchecked=()):
+    events = [
+        event_payload(id=r, finished=True, data_checked=r in checked, is_next=False)
+        for r in sorted({*checked, *unchecked})
+    ] + [event_payload(id=gw, is_next=True)]
+    store.save(gw, "bootstrap", bootstrap_payload(events=events), "seed://test")
+
+
 def test_event_live_fetches_once_then_serves_from_cache(tmp_path):
     from tests.factories import event_live_payload, live_element_payload
 
@@ -532,6 +540,7 @@ def test_event_live_fetches_once_then_serves_from_cache(tmp_path):
     service, gateway, store, _ = make_service(
         tmp_path, {url: event_live_payload([live_element_payload(element_id=7)])}
     )
+    seed_checked_bootstrap(store, 2, checked=(1,))
     live = service.event_live(gw=2, event=1)
     assert live.by_id()[7].total_points == 6
     service.event_live(gw=2, event=1)
@@ -549,6 +558,7 @@ def _final_event_live_service(tmp_path):
         tmp_path,
         {EVENT_LIVE_E7_URL: event_live_payload([live_element_payload(element_id=7)])},
     )
+    seed_checked_bootstrap(store, 8, checked=(7,))
     store.save(
         8, "event-live-e7", event_live_payload([live_element_payload(element_id=7)]),
         EVENT_LIVE_E7_URL, final=True, basis="bootstrap gw8 shows event 7 data_checked",
@@ -590,13 +600,71 @@ def test_non_final_snapshot_still_honours_max_age(tmp_path):
     service, gateway, store, clock = make_service(
         tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
     )
+    seed_checked_bootstrap(store, 8, checked=(7,))
+    store.save(8, "event-live-e7", event_live_payload(), EVENT_LIVE_E7_URL)
     service.event_live(gw=8, event=7)
     clock.advance(hours=25)
     service.event_live(gw=8, event=7)
 
-    assert gateway.calls == [EVENT_LIVE_E7_URL, EVENT_LIVE_E7_URL]
-    assert [e.final for e in service.take_fetch_log()] == [False, False]
-    assert store.is_final(8, "event-live-e7") is False
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+    assert [e.final for e in service.take_fetch_log()] == [False, True]
+    assert store.is_final(8, "event-live-e7") is True
+
+
+def test_event_live_refuses_a_round_that_is_not_data_checked(tmp_path):
+    from tests.factories import event_live_payload
+
+    service, gateway, store, _ = make_service(
+        tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
+    )
+    seed_checked_bootstrap(store, 8, unchecked=(7,))
+
+    with pytest.raises(ValueError, match="bootstrap --gw 8 --force"):
+        service.event_live(gw=8, event=7)
+    assert gateway.calls == []
+    assert not store.exists(8, "event-live-e7")
+
+
+def test_event_live_refuses_a_round_missing_from_the_bootstrap(tmp_path):
+    service, gateway, store, _ = make_service(tmp_path, {})
+    seed_checked_bootstrap(store, 8, checked=(6,))
+
+    with pytest.raises(ValueError, match="no event 7"):
+        service.event_live(gw=8, event=7)
+    assert gateway.calls == []
+
+
+def test_event_live_needs_a_cached_bootstrap(tmp_path):
+    from fpl.store import SnapshotMissingError
+
+    service, gateway, _, _ = make_service(tmp_path, {})
+
+    with pytest.raises(SnapshotMissingError) as excinfo:
+        service.event_live(gw=8, event=7)
+    assert excinfo.value.fetch_hint == "bootstrap --gw 8"
+    assert gateway.calls == []
+
+
+def test_event_live_fetched_after_the_check_is_final_with_its_basis(tmp_path):
+    from tests.factories import event_live_payload
+
+    service, _, store, clock = make_service(
+        tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
+    )
+    seed_checked_bootstrap(store, 8, checked=(7,))
+    bootstrap_time = clock.now
+    clock.advance(hours=30)
+
+    service.event_live(gw=8, event=7)
+
+    meta = store.meta(8, "event-live-e7")
+    assert meta["final"] is True
+    assert meta["basis"] == (
+        f"bootstrap gw8 fetched {bootstrap_time.isoformat()} shows event 7 data_checked"
+    )
+    assert "reason" not in meta
+    (event,) = service.take_fetch_log()
+    assert (event.fetched, event.final) == (True, True)
 
 
 def test_final_when_decides_finality_at_fetch_time(tmp_path):
@@ -624,6 +692,7 @@ def test_final_when_decides_finality_at_fetch_time(tmp_path):
     assert (event.fetched, event.final) == (True, True)
 
     clock.advance(hours=72)
+    seed_checked_bootstrap(store, 8, checked=(7,))
     service.event_live(gw=8, event=7)
     assert gateway.calls == [EVENT_LIVE_E7_URL]
 

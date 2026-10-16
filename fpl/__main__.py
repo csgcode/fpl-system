@@ -228,6 +228,13 @@ def build_parser() -> argparse.ArgumentParser:
     actuals.add_argument(
         "--ids", type=_id_list, required=True, help="comma-separated player ids"
     )
+    event_live = add(
+        "event-live", "fetch one data-checked round's live stats (final once fetched)"
+    )
+    event_live.add_argument(
+        "--round", type=_gameweek, required=True,
+        help="data-checked gameweek to fetch, before --gw",
+    )
     add("slim-csv", "write players-slim.csv from cached bootstrap", cached=False)
     add(
         "prior-season",
@@ -843,6 +850,14 @@ def run_command(
                   f"{line.bps:>5}  {line.expected_goals:>5.2f}  "
                   f"{line.expected_assists:>5.2f}  {line.defensive_contribution:>3.0f}  "
                   f"{'' if line.matched else 'no match'}")
+    elif args.command == "event-live":
+        if args.round >= gw:
+            raise ValueError(f"--round {args.round} must be before --gw {gw}")
+        live = service.event_live(
+            gw, event=args.round, max_age_hours=args.max_age, force=args.force
+        )
+        print(f"{store.path(gw, f'event-live-e{args.round}')} "
+              f"({len(live.elements)} players) {_cache_note(service)}")
     elif args.command == "slim-csv":
         print(f"wrote {service.export_players_csv(gw)}")
     elif args.command == "prior-season":
@@ -861,7 +876,7 @@ def run_command(
     elif args.command == "plan":
         return run_plan(store, gw, args)
     elif args.command == "calibrate":
-        return run_calibrate(service, store, gw, args)
+        return run_calibrate(service, gw, args)
     elif args.command == "ep":
         return run_ep(store, gw, args)
     elif args.command == "players":
@@ -932,19 +947,8 @@ def _flag_change_line(change: FlagChange) -> str:
     return f"{change.id:>4} {change.web_name}: {fields}"
 
 
-def run_calibrate(
-    service: FplDataService, store: SnapshotStore, gw: int, args: argparse.Namespace
-) -> int:
-    bootstrap = load_cached_bootstrap(store, gw)
-    event = next((e for e in bootstrap.events if e.id == args.round), None)
-    if event is None:
-        raise ValueError(f"cached bootstrap has no event {args.round}")
-    if not event.data_checked:
-        raise ValueError(
-            f"round {args.round} is not data-checked yet — bonus points are not "
-            f"final. Refetch once FPL marks it checked: "
-            f"python -m fpl bootstrap --gw {gw} --force"
-        )
+def run_calibrate(service: FplDataService, gw: int, args: argparse.Namespace) -> int:
+    service.data_checked_basis(gw, args.round)
     predictions = load_predictions(args.analysis_root / f"gw{args.round}")
     live = service.event_live(
         gw, event=args.round, max_age_hours=args.max_age, force=args.force

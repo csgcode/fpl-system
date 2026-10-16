@@ -300,6 +300,9 @@ class FplDataService:
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
     ) -> EventLive:
+        """One round's live stats, only once the round is data-checked. Every
+        snapshot fetched here is final (see data_checked_basis)."""
+        basis = self.data_checked_basis(gw, event)
         return self._load_or_fetch(
             gw,
             f"event-live-e{event}",
@@ -307,7 +310,26 @@ class FplDataService:
             EventLive.model_validate,
             max_age_hours,
             force,
+            final_when=lambda _: (True, basis),
         )
+
+    def data_checked_basis(self, gw: int, event: int) -> str:
+        """Why a live snapshot of `event` fetched now is final: the cached gw
+        bootstrap, fetched before it, shows the round data-checked, and
+        data_checked never reverts. Refuses while it does not."""
+        bootstrap = self._cached_bootstrap(gw)
+        checked = next((e for e in bootstrap.events if e.id == event), None)
+        if checked is None:
+            raise ValueError(f"cached bootstrap has no event {event}")
+        if not checked.data_checked:
+            raise ValueError(
+                f"round {event} is not data-checked yet — bonus points are not "
+                f"final. Refetch once FPL marks it checked: "
+                f"python -m fpl bootstrap --gw {gw} --force"
+            )
+        fetched_at = self._store.fetched_at(gw, "bootstrap")
+        when = fetched_at.isoformat() if fetched_at else "at an unknown time"
+        return f"bootstrap gw{gw} fetched {when} shows event {event} data_checked"
 
     def player_summaries(
         self,

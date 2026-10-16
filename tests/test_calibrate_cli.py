@@ -267,3 +267,17 @@ def test_squad_misses_none(tmp_path, capsys):
     tails = [i for i, line in enumerate(lines) if "-predicted (err" in line]
     misses_at = lines.index("squad misses (|err| > 3): none")
     assert all(i > misses_at for i in tails)
+
+
+def test_calibrate_reuses_the_final_snapshot(tmp_path):
+    data_root, gateway, argv = setup_round(tmp_path)
+    assert run(["event-live", "--gw", "2", "--round", "1"], data_root, gateway) == 0
+    assert SnapshotStore(data_root).is_final(2, "event-live-e1")
+    meta_path = data_root / "gw2" / ".meta" / "event-live-e1.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["fetched_at"] = "2026-01-01T00:00:00+00:00"
+    meta_path.write_text(json.dumps(meta), encoding="utf-8")
+
+    assert run(argv, data_root, gateway) == 0
+
+    assert gateway.calls == [LIVE_1_URL]

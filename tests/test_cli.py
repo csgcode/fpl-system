@@ -1083,3 +1083,87 @@ def test_cache_note_of_a_final_snapshot_with_unknown_age():
     assert _format_fetch_log(
         [FetchEvent("event-live-e7", fetched=False, final=True)]
     ) == "(cached, age unknown, final)"
+
+
+# --- event-live ------------------------------------------------------------
+
+EVENT_LIVE_E7_URL = f"{BASE_URL}/event/7/live/"
+
+
+def event_live_setup(tmp_path, *, checked=True):
+    from tests.factories import event_live_payload, live_element_payload
+    from tests.test_service import seed_checked_bootstrap
+    from tests.test_store import FakeClock
+
+    clock = FakeClock()
+    store = SnapshotStore(tmp_path, now=clock)
+    seed_checked_bootstrap(
+        store, 8, checked=(7,) if checked else (), unchecked=() if checked else (7,)
+    )
+    bootstrap_time = clock.now
+    clock.advance(hours=2)
+    gateway = FakeGateway(
+        {EVENT_LIVE_E7_URL: event_live_payload([live_element_payload(element_id=7)])}
+    )
+
+    def run_at_clock(argv):
+        def factory(_: SnapshotStore) -> FplDataService:
+            return FplDataService(
+                FplApi(gateway), SnapshotStore(tmp_path, now=clock), now=clock,
+                throttle_s=0.0, sleep=lambda _: None,
+            )
+
+        return main(["--data-root", str(tmp_path), *argv], service_factory=factory)
+
+    return run_at_clock, gateway, store, clock, bootstrap_time
+
+
+def test_event_live_refuses_before_data_checked(tmp_path, capsys):
+    run_at_clock, gateway, store, _, _ = event_live_setup(tmp_path, checked=False)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 1
+
+    err = capsys.readouterr().err
+    assert "data-checked" in err
+    assert "bootstrap --gw 8 --force" in err
+    assert gateway.calls == []
+    assert not store.exists(8, "event-live-e7")
+
+
+def test_event_live_saves_final_with_basis(tmp_path, capsys):
+    run_at_clock, gateway, store, _, bootstrap_time = event_live_setup(tmp_path)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 0
+
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+    assert (tmp_path / "gw8" / "event-live-e7.json").is_file()
+    meta = store.meta(8, "event-live-e7")
+    assert meta["final"] is True
+    assert bootstrap_time.isoformat() in meta["basis"]
+    out = capsys.readouterr().out
+    assert out.splitlines()[0] == (
+        f"{tmp_path / 'gw8' / 'event-live-e7.json'} (1 players) (fetched)"
+    )
+
+
+def test_event_live_second_run_is_a_final_cache_hit_at_any_age(tmp_path, capsys):
+    run_at_clock, gateway, _, clock, _ = event_live_setup(tmp_path)
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 0
+    capsys.readouterr()
+    clock.advance(hours=72)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 0
+
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+    assert capsys.readouterr().out.splitlines()[0].endswith(
+        "(cached, age 72.0h, final)"
+    )
+
+
+def test_event_live_round_must_be_before_gw(tmp_path, capsys):
+    run_at_clock, gateway, _, _, _ = event_live_setup(tmp_path)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "8"]) == 1
+
+    assert "--round 8 must be before --gw 8" in capsys.readouterr().err
+    assert gateway.calls == []
