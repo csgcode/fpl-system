@@ -488,6 +488,10 @@ def build_parser() -> argparse.ArgumentParser:
     ep.add_argument("--inputs", type=Path, help="default: <analysis-root>/gw{N}/inputs-{POS}.json")
     ep.add_argument("--fixtures", type=Path, help="default: <analysis-root>/gw{N}/fixtures.json")
     ep.add_argument("--out", type=Path, help="default: <analysis-root>/gw{N}/players-{POS}.json")
+    ep.add_argument(
+        "--decisions-root", type=Path, default=DECISIONS_ROOT,
+        help=f"root holding gw{{N}}/{FINAL_FILENAME}; once it exists only --out may be written",
+    )
     ep.add_argument("--format", choices=("table", "json"), default="table")
     ep.add_argument("--limit", type=int, default=15, help="rows shown in the table")
     ep.add_argument(
@@ -1008,6 +1012,11 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         return run_ep_check(store, gw, args, fixtures_path)
     if position is None:
         raise ValueError("--position is required unless --check is given")
+    if args.out is None and (args.decisions_root / f"gw{gw}" / FINAL_FILENAME).is_file():
+        raise ValueError(
+            f"gw{gw} is decided ({FINAL_FILENAME} exists): players-{position.name}.json "
+            "is the decision record; write a what-if with --out"
+        )
     inputs_path = args.inputs or analysis_dir / f"inputs-{position.name}.json"
     out_path = args.out or analysis_dir / f"players-{position.name}.json"
     inputs = load_inputs(inputs_path)

@@ -49,7 +49,8 @@ def seed(root):
         (gw_dir / f"inputs-{name}.json").write_text(json.dumps(
             {"schema_version": 1, "gw": GW, "position": name, "players": inputs}))
         assert main(["--data-root", str(root / "data" / "raw"), "ep", "--gw", str(GW),
-                     "--position", name, "--analysis-root", str(root / "data" / "analysis")]) == 0
+                     "--position", name, "--analysis-root", str(root / "data" / "analysis"),
+                     "--decisions-root", str(root / "data" / "decisions")]) == 0
     final = root / "data" / "decisions" / f"gw{GW - 1}" / "final.md"
     final.parent.mkdir(parents=True)
     # state_block captains id 14 and vices id 13: both must start.
