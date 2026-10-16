@@ -273,7 +273,8 @@ All FPL API access goes through the deterministic CLI
 | `entry --team-id <id>` | bank + team value only — squad comes from `picks` | cached |
 | `picks --team-id <id> --event M` | our actual picks, captain, active chip for GW M | cached |
 | `entry-history --team-id <id>` | per-GW points, rank, bank, value | cached |
-| `actuals --round R --ids <ids>` | per-player ACTUAL points, goals, assists, bonus, BPS, xG, xA and DefCon count for a completed round; sums double-gameweek rows | always refreshes |
+| `actuals --round R --ids <ids>` | per-player ACTUAL points, goals, assists, bonus, BPS, xG, xA and DefCon count for a completed round, read from the round's final event-live snapshot (in gw N, else gw R+1) that `calibrate` or `event-live` saved; refuses when there is none; a double gameweek arrives already summed | local only |
+| `event-live --round R` | fetches the live stats of completed round R into gw N; refuses until the cached gw N bootstrap shows round R data-checked (refresh it with `bootstrap --force`). The saved snapshot is final: served at any age, refetched only with `--force` (the old copy is archived) | cached (final) |
 | `calibrate --round M [--analysis-root <p> --decisions-root <p> --retro-root <p> --predictions-from commit\|worktree --format table\|json]` | joins gw{M} EP predictions vs the round's actuals (one event-live fetch); refuses until the round is data-checked; writes data/retro/gw{M}-calibration.json. `--predictions-from commit` (default) scores the decision record — data/decisions/gw{M}/predictions.lock.json, else the commit that first added that round's final.md — and prints one `predictions:` line, with one WARNING when prediction files changed after the decision; `worktree` scores the files on disk. The table prints aggregates, the 15 squad rows, captain hindsight, and the pool's under- and over-predicted players, so the retro never opens the JSON; squad rows print err, start and p_start, with `*` on \|err\| > 3 (unrounded), plus a `squad misses` line | cached |
 | `flags --ids <ids> [--baseline <bootstrap.json>]` | the pre-deadline freshness gate: refreshes bootstrap, prints flags for `--ids` plus their status/chance/news delta against the baseline (default: the bootstrap cached just before the refresh) and an informational whole-pool delta by position; writes flags-delta-<stamp>.json. Exit 0 = no `--ids` change, 3 = a `--ids` player changed, 4 = no baseline, 5 = baseline over 24h old | always refreshes |
 | `slim-csv` | writes players-slim.csv from cached bootstrap | local only |
@@ -291,6 +292,8 @@ All FPL API access goes through the deterministic CLI
 | `make-transfers --team-id <id> --from-plan <plan.json> [--apply --approve <transfer id>]` | transfer POST; dry-run without `--apply`; `--apply` needs the user-approved transfer id | write (auth) |
 | `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). The only command with no `--gw` | local only |
 | `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`, else the `FPL_TRANSCRIPTS_ROOT` env var). `--list` indexes sessions by the GW tags of their cycle spawns — a GW{N} retro or usage-ledger spawn counts toward the next cycle, not GW{N} — by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn/commit timeline and the window to use verbatim (end = first human prompt after both the last cycle agent finished and the last `gw{N}:` commit); the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
+| `store sync\|verify\|status\|rebuild [--store <p>]` | the local season store, a SQLite file (default data/store/season-2026-27.sqlite) built from data/raw. `sync` takes in what changed; `rebuild` starts again from nothing; `verify` checks the store matches data/raw and equals a fresh build; `status` summarises what it holds. `verify` and `status` write nothing. Exit 3 when a player's season totals in the bootstrap differ from the sum of his stored rounds | local only |
+| `history [--position POS] [--ids <ids>] [--last K] [--per match\|round] [--past [--season YYYY/YY]] [--min-minutes M] [--group-by team] [--format table\|csv\|json] [--fields <cols>] [--store <p>]` | read-only views over the season store, for the players in the gw N bootstrap: one row per match of the completed rounds before GW N (`--last K` keeps the last K rounds; `--per round` adds a double gameweek's matches together), or with `--past` one row per past season. `--min-minutes` drops shorter rows; `--group-by team` then adds them up to one row per club (a match counts for the club he played for, a past season for his current club). `--fields` works as in `players`; an unknown field lists the valid ones. Refuses when the store is behind data/raw (run `store sync`) | local only |
 
 Authenticated write mechanics (details: docs/api-write.md):
 - Credentials live in git-ignored data/auth.json (template:
@@ -342,6 +345,15 @@ Mechanics:
 - Cached commands refetch only when the snapshot is older than `--max-age`
   (default 24h) or `--force` is given, and print `(fetched)` or
   `(cached, age Xh)` so staleness is never silent.
+- A final snapshot never goes stale: an event-live round fetched once the
+  round is data-checked, or our picks for a finished, data-checked round. It
+  is served at any age, printed as `(cached, age Xh, final)`, and refetched
+  only with `--force`.
+- `bootstrap`, `fixtures` and `summaries` refuse to fetch into a GW whose
+  deadline has passed, so a past GW's snapshots keep showing the state before
+  its deadline; `--allow-post-deadline` overrides. A bootstrap refresh,
+  including the one `flags` makes, refuses before saving when the fresh copy
+  shows the deadline passed.
 - Refreshed snapshots are archived, never destroyed.
 - `bootstrap` refuses when `--gw` differs from the API's next GW, unless
   `--allow-gw-mismatch` is passed.
@@ -366,6 +378,8 @@ Mechanics:
   to regenerate only until final.md exists for that GW (`ep` refuses
   afterwards).
 - data/analysis/club-priors.json is written once at GW1 and never overwritten.
+- data/store/ is derived from data/raw and git-ignored; rebuild it with
+  `fpl store rebuild`.
 - data/decisions/gw{N}/predictions.lock.json is written by `fpl plan` only
   before the GW deadline; a re-run plan replaces it when the players files
   changed, archiving the old one as predictions.lock.v{k}.json. Never edited

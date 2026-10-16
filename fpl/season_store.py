@@ -809,6 +809,14 @@ class StoredMatch(MatchRecord):
     opponent_team: int | None = None
 
 
+class PlayerMatch(StoredMatch):
+    """A stored match row with its player and the club he played for."""
+
+    element: int
+    team: int | None
+    kickoff_time: datetime | None
+
+
 class PlayerState(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -944,6 +952,25 @@ class SeasonReader:
                 found.setdefault(row["element"], []).append(
                     StoredMatch.model_validate({name: row[name] for name in _MATCH_COLUMNS}))
         return {element: tuple(rows) for element, rows in found.items()}
+
+    def matches(self, as_of: int, first: int = 1) -> tuple[PlayerMatch, ...]:
+        """Every stored match row of rounds first..as_of-1, with the club the
+        player played for (None when the side was unresolved)."""
+        self._require_rounds(as_of)
+        columns = ("element", "team", "kickoff_time", *_MATCH_COLUMNS)
+        return tuple(
+            PlayerMatch.model_validate({name: row[name] for name in columns})
+            for row in self._con.execute(
+                f"SELECT {', '.join(columns)} FROM player_rounds "
+                "WHERE round >= ? AND round < ? ORDER BY element, kickoff_time, fixture",
+                (first, as_of),
+            )
+        )
+
+    def clubs(self) -> dict[int, str]:
+        """club id → short name, from the latest bootstrap."""
+        return {row["id"]: row["short_name"]
+                for row in self._con.execute("SELECT id, short_name FROM clubs")}
 
     def past(self, ids: Iterable[int]) -> dict[int, tuple[PastSeason, ...]]:
         """Every past season of each id that has a summary on file; an id
