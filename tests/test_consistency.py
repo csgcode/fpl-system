@@ -7,7 +7,9 @@ import math
 
 import pytest
 
-from fpl.consistency import FixtureMeans, p_at_least
+from fpl.consistency import FixtureMeans, p_at_least, returns_last5
+from fpl.models import MatchRecord
+from tests.factories import match_record_payload
 
 
 def test_goal_only_forward_returns_on_any_goal() -> None:
@@ -87,3 +89,30 @@ def test_out_of_range_p_start_refuses() -> None:
 def test_points_per_event_must_be_a_non_negative_integer(value: object) -> None:
     with pytest.raises(ValueError, match="cs_pts"):
         FixtureMeans(goal_pts=4, cs_pts=value)  # type: ignore[arg-type]
+
+
+def _match(round_: int | None, points: int, minutes: int = 90) -> MatchRecord:
+    return MatchRecord.model_validate(
+        match_record_payload(round=round_, total_points=points, minutes=minutes)
+    )
+
+
+def test_returns_last5_counts_rounds_at_four_or_more() -> None:
+    rows = [
+        _match(2, 6),
+        _match(3, 2),
+        _match(4, 2),
+        _match(4, 3),
+        _match(5, 0, minutes=0),
+        _match(7, 4),
+        _match(None, 9),
+    ]
+
+    assert returns_last5(rows, gw=8) == (2, 4)
+
+
+def test_returns_last5_window_starts_at_round_one_early_in_the_season() -> None:
+    rows = [_match(1, 5), _match(2, 1)]
+
+    assert returns_last5(rows, gw=3) == (1, 2)
+    assert returns_last5([], gw=1) == (0, 0)

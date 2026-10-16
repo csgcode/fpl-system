@@ -22,13 +22,20 @@ Left out, with the direction each omission biases P(X ≥ k):
 - penalty saves: biases GKP down, slightly.
 
 Inputs are plain floats so the module stays independent of `fpl.ep`.
+
+`returns_last5` is the observed counterpart: how many of a player's last five
+rounds reached the return threshold, from raw match points. It is a display
+column, never an EP input.
 """
 
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Sequence
+from collections import defaultdict
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, fields
+
+from fpl.models import MatchRecord
 
 MAX_POINTS = 40
 MAX_GOALS = 10
@@ -37,6 +44,8 @@ DEFCON_PTS = 2
 SAVES_PER_POINT = 3
 APPEARANCE_PTS_60 = 2
 APPEARANCE_PTS_SHORT = 1
+RETURN_POINTS = 4
+RETURN_WINDOW = 5
 
 _PROBABILITIES = ("p60", "p_cs", "p_defcon")
 _MEANS = ("goal_mean", "assist_mean", "saves_mean")
@@ -80,6 +89,19 @@ def p_at_least(fixtures: Sequence[FixtureMeans], p_start: float, k: int) -> floa
         pmf = _convolve(pmf, fixture_pmf(fixture))
     tail = sum(pmf[max(k, 0) :]) if k <= MAX_POINTS else 0.0
     return p_start * min(tail, 1.0)
+
+
+def returns_last5(history: Iterable[MatchRecord], gw: int) -> tuple[int, int]:
+    """(k, n) over rounds max(1, gw − 5)..gw − 1: n rounds with a match row,
+    k of them totalling ≥ RETURN_POINTS. A double gameweek's rows are summed
+    first; a 0-minute row still counts in n."""
+    first = max(1, gw - RETURN_WINDOW)
+    totals: defaultdict[int, int] = defaultdict(int)
+    for row in history:
+        if row.round is not None and first <= row.round <= gw - 1:
+            totals[row.round] += row.total_points
+    returns = sum(1 for points in totals.values() if points >= RETURN_POINTS)
+    return returns, len(totals)
 
 
 def fixture_pmf(fm: FixtureMeans) -> Pmf:
