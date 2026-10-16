@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
 from fpl.__main__ import main
 from fpl.api import FplApi
+from fpl.clock import REPLAY_ENV, write_clock
 from fpl.plan import SCHEMA_VERSION
 from fpl.service import FplDataService
 from fpl.store import SnapshotStore
@@ -23,6 +25,11 @@ class NoNetworkGateway:
 
 
 def run(argv, tmp_path):
+    """Reads predictions from <tmp>/analysis unless argv names a root, so no
+    test locks the repo's own analysis files."""
+    if "plan" in argv and "--analysis-root" not in argv:
+        argv = [*argv, "--analysis-root", str(tmp_path / "analysis")]
+
     def factory(store: SnapshotStore) -> FplDataService:
         return FplDataService(FplApi(NoNetworkGateway()), store)
 
@@ -380,3 +387,98 @@ def test_final_without_picks_refuses(tmp_path, capsys):
     final = seed(tmp_path, final=state_block(2, [], include_picks=False))
     assert run(["plan", "--gw", "2", "--from-final", str(final)], tmp_path) == 1
     assert "no 'picks:' section" in capsys.readouterr().err
+
+
+# --- the predictions lock -----------------------------------------------------
+
+
+def seed_players(tmp_path: Path) -> Path:
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    analysis_dir.mkdir(parents=True)
+    for position in ("GKP", "DEF", "MID", "FWD"):
+        rows = [{"id": 1, "ep_gw": [3.0], "p_start": 0.9}] if position == "MID" else []
+        (analysis_dir / f"players-{position}.json").write_text(json.dumps(rows), encoding="utf-8")
+    return analysis_dir
+
+
+DEADLINE = datetime(2026, 8, 22, 12, 0, tzinfo=UTC)
+LOCK = Path("decisions") / "gw2" / "predictions.lock.json"
+
+
+@pytest.fixture
+def pin_clock(tmp_path, monkeypatch):
+    """Pins the CLI clock through the replay clock file; the test bootstrap's
+    gw2 deadline is DEADLINE."""
+    clock_dir = tmp_path / "clock"
+    clock_dir.mkdir()
+    monkeypatch.setenv(REPLAY_ENV, str(clock_dir))
+
+    def pin(now: datetime) -> None:
+        write_clock(clock_dir, now, anchored_at=datetime.now(UTC))
+
+    return pin
+
+
+def lock_argv(tmp_path, final):
+    return ["plan", "--gw", "2", "--from-final", str(final),
+            "--analysis-root", str(tmp_path / "analysis"), "--format", "json"]
+
+
+def test_plan_writes_the_lock_next_to_final_md(tmp_path, capsys, pin_clock):
+    pin_clock(DEADLINE - timedelta(hours=1))
+    final = seed(tmp_path)
+    seed_players(tmp_path)
+
+    code = run(["plan", "--gw", "2", "--from-final", str(final),
+                "--analysis-root", str(tmp_path / "analysis"),
+                "--out", str(tmp_path / "plan.json"), "--format", "json"], tmp_path)
+
+    assert code == 0
+    lock = json.loads((tmp_path / LOCK).read_text())
+    assert lock["gw"] == 2 and lock["rows"] == {"1": [3.0, 0.9]}
+    captured = capsys.readouterr()
+    assert plan_json_text(captured.out)["gw"] == 2
+    assert captured.err == ""
+
+
+def test_plan_without_players_files_warns_and_writes_no_lock(tmp_path, capsys, pin_clock):
+    pin_clock(DEADLINE - timedelta(hours=1))
+    final = seed(tmp_path)
+
+    code = run(["plan", "--gw", "2", "--from-final", str(final), "--format", "json"], tmp_path)
+
+    assert code == 0
+    assert not (tmp_path / LOCK).exists()
+    captured = capsys.readouterr()
+    assert captured.err.splitlines() == [
+        "WARNING: no players-*.json for gw2 — predictions lock not written"
+    ]
+    assert json.loads(captured.out)["gw"] == 2
+
+
+def test_plan_after_the_deadline_writes_no_lock_and_warns(tmp_path, capsys, pin_clock):
+    final = seed(tmp_path)
+    seed_players(tmp_path)
+
+    pin_clock(DEADLINE + timedelta(days=30))
+    assert run(lock_argv(tmp_path, final), tmp_path) == 0
+    after = capsys.readouterr()
+
+    assert not (tmp_path / LOCK).exists()
+    assert after.err.splitlines() == [
+        "WARNING: gw2 deadline passed — predictions lock not written"
+    ]
+
+    pin_clock(DEADLINE - timedelta(hours=1))
+    assert run(lock_argv(tmp_path, final), tmp_path) == 0
+    before = capsys.readouterr()
+
+    assert (tmp_path / LOCK).exists()
+    assert before.err == ""
+    unaged = [{k: v for k, v in json.loads(out).items() if k != "bootstrap_snapshot_age_hours"}
+              for out in (after.out, before.out)]
+    assert unaged[0] == unaged[1]
+
+
+def plan_json_text(out: str) -> dict:
+    return json.loads(out[out.index("{") :])

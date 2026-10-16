@@ -200,13 +200,19 @@ def prepare(case: LiveCase, *, tmp_parent: Path | None = None, sync: bool = True
 
 def check_validity(prepared: Prepared) -> None:
     """A ledger the run wrote must be the committed one: otherwise the
-    replay is not faithful and the run grades nothing."""
+    replay is not faithful and the run grades nothing. Where the predictions
+    came from is not compared: the workspace has its own decision commit, and
+    a regenerated committed ledger records drift the workspace need not have."""
     path = prepared.ws.root / f"data/retro/gw{prepared.case.round}-calibration.json"
     if not path.is_file():
         return
-    written = json.loads(path.read_text("utf-8"))
-    if written != json.loads(prepared.truth.model_dump_json()):
+    written = _without_provenance(json.loads(path.read_text("utf-8")))
+    if written != _without_provenance(json.loads(prepared.truth.model_dump_json())):
         raise RunInvalid(f"the workspace ledger {path.name} differs from the committed one")
+
+
+def _without_provenance(ledger: dict) -> dict:
+    return {k: v for k, v in ledger.items() if k not in ("predictions_source", "drifted")}
 
 
 def retro_run(prepared: Prepared, transcript: Transcript, instructions: str) -> RetroRun:

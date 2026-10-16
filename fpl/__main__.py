@@ -46,6 +46,12 @@ from fpl.calibrate import (
     squad_misses,
 )
 from fpl.capture import is_git_ignored, parse_curl
+from fpl.decision_record import (
+    LOCK_FILENAME,
+    RecordPredictions,
+    record_predictions,
+    write_lock,
+)
 from fpl.corrections import agent_corrections, build_digest
 from fpl.ep import (
     EpResult,
@@ -407,6 +413,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--prev-final", type=Path,
         help="previous gameweek's final.md (default: the gw{N-1} sibling)",
     )
+    plan_cmd.add_argument(
+        "--analysis-root", type=Path, default=ANALYSIS_ROOT,
+        help=f"root holding gw{{N}}/players-*.json, locked once into "
+             f"{LOCK_FILENAME} beside final.md before the gw's deadline",
+    )
     plan_cmd.add_argument("--format", choices=("table", "json"), default="table")
     plan_cmd.add_argument(
         "--out", type=Path, help="also write the JSON document to this path"
@@ -460,6 +471,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--retro-root", type=Path, default=Path("data/retro"),
         help="where gw{M}-calibration.json ledgers live",
     )
+    calibrate.add_argument(
+        "--predictions-from", choices=("commit", "worktree"), default="commit",
+        help="commit (default): the gw's predictions lock, else its decision commit; "
+             "worktree: the files on disk",
+    )
     calibrate.add_argument("--format", choices=("table", "json"), default="table")
 
     # Local-only: expected points are a pure function of the analysts'
@@ -483,6 +499,10 @@ def build_parser() -> argparse.ArgumentParser:
     ep.add_argument("--inputs", type=Path, help="default: <analysis-root>/gw{N}/inputs-{POS}.json")
     ep.add_argument("--fixtures", type=Path, help="default: <analysis-root>/gw{N}/fixtures.json")
     ep.add_argument("--out", type=Path, help="default: <analysis-root>/gw{N}/players-{POS}.json")
+    ep.add_argument(
+        "--decisions-root", type=Path, default=DECISIONS_ROOT,
+        help=f"root holding gw{{N}}/{FINAL_FILENAME}; once it exists only --out may be written",
+    )
     ep.add_argument("--format", choices=("table", "json"), default="table")
     ep.add_argument("--limit", type=int, default=15, help="rows shown in the table")
     ep.add_argument(
@@ -932,6 +952,11 @@ def _flag_change_line(change: FlagChange) -> str:
     return f"{change.id:>4} {change.web_name}: {fields}"
 
 
+def _record_name(source: str) -> str:
+    kind, _, ident = source.partition(" ")
+    return f"{'predictions lock' if kind == 'lock' else 'decision commit'} {ident}"
+
+
 def run_calibrate(
     service: FplDataService, store: SnapshotStore, gw: int, args: argparse.Namespace
 ) -> int:
@@ -945,19 +970,26 @@ def run_calibrate(
             f"final. Refetch once FPL marks it checked: "
             f"python -m fpl bootstrap --gw {gw} --force"
         )
-    predictions = load_predictions(args.analysis_root / f"gw{args.round}")
+    if args.predictions_from == "commit":
+        record = record_predictions(args.analysis_root, args.decisions_root, args.round)
+    else:
+        record = RecordPredictions(
+            load_predictions(args.analysis_root / f"gw{args.round}"), "worktree", ()
+        )
     live = service.event_live(
         gw, event=args.round, max_age_hours=args.max_age, force=args.force
     )
     cache_note = _cache_note(service)
     report = build_report(
-        predictions,
+        record.predictions,
         live,
         match_round=args.round,
         picks=_calibration_picks(
             args.decisions_root / f"gw{args.round}" / FINAL_FILENAME, args.round
         ),
         prior_reports=_prior_reports(args.retro_root, args.round),
+        predictions_source=record.source,
+        drifted=record.drifted,
     )
     document = report.model_dump_json(indent=1)
     # The ledger is derived — a pure function of the analysis files, final.md
@@ -972,6 +1004,12 @@ def run_calibrate(
     print(f"wrote {ledger_path}")
     for warning in report.warnings:
         _stderr(f"WARNING: {warning}")
+    if report.drifted:
+        _stderr(
+            f"WARNING: {_files(len(report.drifted), 'prediction file')} changed after "
+            f"{_record_name(report.predictions_source)} — calibrated the "
+            f"decision record: {', '.join(report.drifted)}"
+        )
     return EXIT_OK
 
 
@@ -989,6 +1027,11 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         return run_ep_check(store, gw, args, fixtures_path)
     if position is None:
         raise ValueError("--position is required unless --check is given")
+    if args.out is None and (args.decisions_root / f"gw{gw}" / FINAL_FILENAME).is_file():
+        raise ValueError(
+            f"gw{gw} is decided ({FINAL_FILENAME} exists): players-{position.name}.json "
+            "is the decision record; write a what-if with --out"
+        )
     inputs_path = args.inputs or analysis_dir / f"inputs-{position.name}.json"
     out_path = args.out or analysis_dir / f"players-{position.name}.json"
     inputs = load_inputs(inputs_path)
@@ -1179,12 +1222,21 @@ def _prior_reports(retro_root: Path, match_round: int) -> tuple[CalibrationRepor
     return tuple(report for report in reports if report.round != match_round)
 
 
+def _files(count: int, noun: str = "file") -> str:
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+
+
 def print_calibration(report: CalibrationReport, cache_note: str) -> None:
     print(
         f"round {report.round} calibration — {report.overall.n} players "
         f"matched, {len(report.unmatched_prediction_ids)} unmatched "
         f"{cache_note}".rstrip()
     )
+    if report.predictions_source == "worktree":
+        print("predictions: worktree")
+    else:
+        drift = _files(len(report.drifted)) if report.drifted else "none"
+        print(f"predictions: {report.predictions_source} (drift: {drift})")
 
     def agg_line(name: str, agg: Aggregate) -> None:
         print(f"{name:<14} {agg.n:>4} {agg.bias:>7.2f} {agg.mae:>6.2f}")
@@ -1301,6 +1353,11 @@ def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(document + "\n", encoding="utf-8")
         print(f"wrote {args.out}")
+    for warning in write_lock(
+        args.analysis_root / f"gw{gw}", final_path.parent / LOCK_FILENAME, gw,
+        deadline=plan.deadline,
+    ):
+        _stderr(f"WARNING: {warning}")
     if args.format == "json":
         print(document)
     else:

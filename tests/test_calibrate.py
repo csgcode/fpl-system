@@ -366,6 +366,35 @@ def test_load_report_round_trips_and_gates_schema_version(tmp_path):
         load_report(path)
 
 
+def test_report_carries_predictions_source_and_drift():
+    from fpl.calibrate import build_report
+    from tests.factories import live_element_payload
+
+    report = build_report(
+        predictions(prediction_row(id=1, position=3, ep_gw=[4.0] * 6)),
+        live_of(live_element_payload(element_id=1, total_points=9)),
+        match_round=1,
+        predictions_source="commit b28927f1a2b3",
+        drifted=("data/analysis/gw6/players-MID.json",),
+    )
+    assert report.predictions_source == "commit b28927f1a2b3"
+    assert report.drifted == ("data/analysis/gw6/players-MID.json",)
+
+
+def test_old_ledger_without_source_still_loads(tmp_path):
+    from fpl.calibrate import load_report
+
+    document = json.loads(small_report(1, points=6).model_dump_json())
+    document.pop("predictions_source", None)
+    document.pop("drifted", None)
+    path = tmp_path / "gw1-calibration.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+
+    report = load_report(path)
+    assert report.predictions_source == "worktree"
+    assert report.drifted == ()
+
+
 # --- squad misses ---------------------------------------------------------
 
 

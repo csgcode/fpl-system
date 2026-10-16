@@ -342,10 +342,12 @@ def test_load_views_prior_equals_the_ep_cli_at_prior_weight_one(tmp_path, capsys
     store, analysis = _seed(tmp_path)
     gw_dir = analysis / f"gw{GW}"
     assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
-                 "--position", "MID", "--analysis-root", str(analysis)]) == 0
+                 "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions")]) == 0
     prior_out = tmp_path / "prior-MID.json"
     assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
                  "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions"),
                  "--prior-weight", "1.0", "--out", str(prior_out)]) == 0
     capsys.readouterr()
     blend, prior = load_views(store, analysis, GW)
@@ -366,6 +368,7 @@ def test_load_views_allows_unjudged_players_the_blend_view_lacks(tmp_path):
     store, analysis = _seed(tmp_path, extra_player=True)
     assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
                  "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions"),
                  "--allow-missing-ids", "3"]) == 0
     blend, prior = load_views(store, analysis, GW)
     assert 3 not in blend and 3 not in prior and 1 in prior
