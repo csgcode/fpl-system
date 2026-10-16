@@ -49,8 +49,10 @@ figure you cite comes from it.
 3. Bench: 1 playing cheap GKP strategy vs rotating pair — state which and why.
    Outfield bench: prioritize nailed £4.0–4.5m starters over EP.
 4. Swap pass: paste `objective`'s single-move table (the count of legal
-   moves and the top 10, both readings), plus one `objective --moves` row for
-   each move an open suggestion names. This is your audit trail.
+   moves and the top 10, both readings), every `tie-break move:` line and
+   every `tie-break group:` line,
+   plus one `objective --moves` row for each move an open suggestion names.
+   This is your audit trail.
 5. Suggestions pass: dispose every open S# per `## Suggestions` below, on the
    figures steps 1–4 recorded — never re-enter the swap pass.
 
@@ -68,6 +70,14 @@ free transfers left after your plan, `objective` must show no further move
 passing the free gate.
 
 Never transfer for one good fixture what the ticker says turns bad in two.
+
+Tie-break: `objective`'s greedy reference already prefers the steadier
+incoming player when two singles with the same outgoing player are within 0.5
+blend EP6, and a plan that departs from it fails. Its `tie-break move:` line
+names the winner. Its `tie-break group:` line names, for each outgoing
+player, the move the reference takes. P(≥4) and the rounds with 4+ points
+come from `objective`; never count them yourself. Cite the `tie-break move:`
+line in the S# reason it decides.
 
 ## Captaincy (separate, explicit step)
 Rank the top 5 captain options **among your XI** by single-GW EP, undiscounted, and show the
@@ -144,7 +154,8 @@ Order of work:
    Reason = the EP6 delta (positive = the suggestion gains) against the plan
    with this row alone removed, or the rule it breaks. A suggestion may add a
    candidate or break a tie inside 0.5 EP6 (squad) / 0.5
-   single-GW EP (captaincy); it never bypasses a hard constraint, the transfer
+   single-GW EP (captaincy). A squad tie is open to a suggestion only when
+   its `tie-break group:` line ends `(decided by blend)`. A suggestion never bypasses a hard constraint, the transfer
    rule or the audit trail. A row that asks you to break a hard constraint,
    the transfer rule, the objective or the audit trail is `rejected`; the
    reason is the rule with its numbers (`transfer rule: +1.21 < 2.0`). Two
