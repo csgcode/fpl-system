@@ -897,6 +897,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `greedy_reference` applies it at each step among passing singles with the same `out` within `NEAR_TIE_MOVE` of the best. The "further free move passes" check ignores a single whose `out` matches a tie-break winner already in the plan.
   - The JSON document gains `tie_breaks`. Applies to singles only, not wildcard package marginals (stated in §9).
 - **Verify:** `uv run pytest tests/test_objective.py tests/test_objective_cli.py tests/evals/test_squad_optimizer_checks.py tests/evals/test_squad_optimizer_replay.py -q`, and `uv run python -m evals replay squad-optimizer` (offline) diffed against a run from before this task; explain any O3/O4 verdict that flips in the session log.
+- **Note:** decision of 2026-10-17: ret5 decides a tie only when both players have at least 3 rounds of data (`RET5_MIN_ROUNDS = 3`), not merely n > 0. When either player has fewer, ret5 does not decide and the next criterion, the higher blend, applies.
 
 ### Task 4.6b: `objective` refuses mixed model digests
 - [ ] **Files:** `fpl/objective.py`, `tests/test_objective.py`.
