@@ -6,15 +6,18 @@ input was fetched before the deadline, no element summary holds the round
 itself, the actuals are final, and the inputs on disk still match the
 round's decision commit. A loaded round is then scored under a model
 variant, one line per (player, round), exactly as the calibration ledger
-scores what `fpl ep` would have written.
+scores what `fpl ep` would have written. A gated run can be written once
+as a gate record (fpl/gates.py), singly or in manifest order.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
+import subprocess
 import sys
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from dataclasses import asdict, dataclass, fields, replace
@@ -24,9 +27,9 @@ from pathlib import Path
 from types import NoneType
 from typing import Any, TypeVar, get_args, get_type_hints
 
-from fpl import calibrate, ep, fixture_ratings
+from fpl import calibrate, ep, fixture_ratings, gates
 from fpl.calibrate import Aggregate, PlayerLine, PlayerPrediction
-from fpl.decision_record import decision_commit, drifted, repo_root
+from fpl.decision_record import decision_commit, drifted, record_predictions, repo_root
 from fpl.ep import (
     DEFAULT_CONFIG,
     FixturesDocument,
@@ -39,6 +42,7 @@ from fpl.ep import (
 from fpl.models import Bootstrap, ElementSummary, EventLive, PLAYING_POSITIONS, Position
 from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.state import MAX_GW, MIN_GW
+from fpl.gates import GateRecord, ManifestEntry, signed, value_text
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
@@ -55,11 +59,6 @@ RETRO_ROOT = Path("data/retro")
 MAX_SWEEP_KEYS = 2
 
 GridValue = TypeVar("GridValue", bound=Hashable)
-
-
-def signed(value: float, digits: int) -> str:
-    """`value` to `digits` places with an explicit sign, minus as U+2212."""
-    return f"{value:+.{digits}f}".replace("-", "\u2212")
 
 
 @dataclass(frozen=True)
@@ -504,6 +503,106 @@ def _relative(path: Path, repo: Path) -> str | None:
         return None
 
 
+@dataclass(frozen=True)
+class RoundCheck:
+    """A round's backtest n against its calibration ledger's, and how far
+    today's code moves the baseline from the decision record."""
+
+    n: int
+    ledger_n: int | None
+    code_drift: float | None
+
+    @property
+    def delta_n(self) -> int | None:
+        return None if self.ledger_n is None else self.n - self.ledger_n
+
+
+def code_drift(lines: Sequence[BacktestLine], analysis_root: Path, decisions_root: Path,
+               gw: int) -> float | None:
+    """Mean |predicted − the decision record's ep_gw[0]| over the ids both
+    hold, or None when the round has no readable decision record."""
+    try:
+        record = record_predictions(analysis_root, decisions_root, gw)
+    except (ValueError, OSError, subprocess.CalledProcessError):
+        return None
+    recorded = {p.id: p.predicted for p in record.predictions}
+    gaps = [abs(line.predicted - recorded[line.id]) for line in lines if line.id in recorded]
+    return sum(gaps) / len(gaps) if gaps else None
+
+
+def round_checks(lines: Sequence[BacktestLine], rounds: Sequence[int], *, retro_root: Path,
+                 analysis_root: Path, decisions_root: Path,
+                 warnings: list[str]) -> dict[int, RoundCheck]:
+    per_round = _by_round(lines)
+    checks: dict[int, RoundCheck] = {}
+    for r in rounds:
+        round_lines = per_round.get(r, [])
+        checks[r] = RoundCheck(
+            n=len(round_lines),
+            ledger_n=_ledger_n(retro_root / f"gw{r}-calibration.json", warnings),
+            code_drift=code_drift(round_lines, analysis_root, decisions_root, r),
+        )
+    return checks
+
+
+def _ledger_n(path: Path, warnings: list[str]) -> int | None:
+    if not path.is_file():
+        return None
+    try:
+        return calibrate.load_report(path).overall.n
+    except ValueError as exc:
+        warnings.append(f"ledger {path} unreadable, ledger_n not compared: {exc}")
+        return None
+
+
+def check_ledger_gap(checks: Mapping[int, RoundCheck], limit: int | None) -> None:
+    if limit is None:
+        return
+    over = [(r, c.delta_n) for r, c in checks.items()
+            if c.delta_n is not None and abs(c.delta_n) > limit]
+    if over:
+        raise ValueError("ledger n gap: " + ", ".join(f"round {r} Δn {_signed_int(dn)}"
+                                                     for r, dn in over)
+                         + f" exceeds --max-ledger-n-gap {limit} — the backtest does not "
+                           "score the players the calibration ledger scored")
+
+
+@dataclass(frozen=True)
+class Combined:
+    overrides: dict[str, Any]
+    config: ModelConfig
+    reverted: tuple[str, ...]
+    comparison: Comparison | None
+
+
+def combine(base: ModelConfig, passes: Sequence[tuple[str, Mapping[str, Any]]],
+            judge: Callable[[ModelConfig], Comparison]) -> Combined:
+    """Every passing entry's ship value overlaid on `base` and judged
+    together. While the combination fails, the last remaining entry is
+    dropped and named in `reverted`; with nothing left, `base` ships."""
+    kept = list(passes)
+    reverted: list[str] = []
+    while kept:
+        overrides: dict[str, Any] = {}
+        for _, ship in kept:
+            overrides.update(ship)
+        config = _overlay(base, overrides)
+        comparison = judge(config)
+        if comparison.beats:
+            return Combined(overrides, config, tuple(reverted), comparison)
+        reverted.append(kept.pop()[0])
+    return Combined({}, base, tuple(reverted), None)
+
+
+def _overlay(config: ModelConfig, overrides: Mapping[str, Any]) -> ModelConfig:
+    try:
+        return replace(config, **overrides)
+    except TypeError:
+        valid = ", ".join(f.name for f in fields(config))
+        raise ValueError(f"overrides {dict(overrides)!r} are not all ModelConfig fields "
+                         f"({valid})") from None
+
+
 ConfigValue = float | bool | None
 
 
@@ -532,30 +631,61 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
                    help="add the baseline tables to a sweep and per-position and slice deltas")
     p.add_argument("--format", choices=("table", "json"), default="table")
     p.add_argument("--out", type=Path, help="also write the JSON document here")
+    p.add_argument("--max-ledger-n-gap", type=int, metavar="N",
+                   help="exit 1 when a round's n differs from its calibration ledger's by more "
+                        "than N")
+    p.add_argument("--record", metavar="NAME",
+                   help="write this run's gate record to <gates-root>/NAME.json (once)")
+    p.add_argument("--manifest", type=Path, help="gate manifest run by --record-all")
+    p.add_argument("--record-all", action="store_true",
+                   help="record every manifest entry that has no record, in order, then "
+                        "rewrite combined.json")
+    p.add_argument("--force", action="store_true",
+                   help="archive existing records and record them again")
+    p.add_argument("--gates-root", type=Path, default=gates.GATES_ROOT,
+                   help="where gate records live")
 
 
 def run(data_root: Path, args: argparse.Namespace) -> int:
     rounds = parse_rounds(args.rounds, args.gw)
-    baseline = DEFAULT_CONFIG
-    fixed = _parse_sets(args.set, baseline)
-    sweep = parse_sweep(args.sweep, baseline)
-    both = sorted(fixed.keys() & sweep.keys())
-    if both:
-        raise ValueError(f"{', '.join(both)} given to both --set and --sweep")
-    if args.cv and not sweep:
-        raise ValueError("--cv selects a --sweep value; give --sweep")
+    _check_record_args(args)
+    if args.record_all:
+        entries = gates.load_manifest(args.manifest)
+        baseline = _recorded_baseline(args.gates_root)
+        for entry in entries:
+            _entry_variant(entry, baseline)
+    else:
+        baseline = DEFAULT_CONFIG
+        fixed = _parse_sets(args.set, baseline)
+        sweep = parse_sweep(args.sweep, baseline)
+        _check_variant(fixed, sweep, args.cv, recording=args.record is not None)
+        if args.record is not None and not args.force:
+            _refuse_existing(args.gates_root, args.record)
 
     drift_check = not args.no_drift_check
     data = [load_round(data_root=data_root, analysis_root=args.analysis_root,
                        actuals_root=data_root, gw=r, decisions_root=args.decisions_root,
                        drift_check=drift_check) for r in rounds]
-    report = _evaluate(data, baseline, fixed, sweep, cv=args.cv)
-    document = _document(args.gw, rounds, drift_check, data, report)
+    scorer = _Scorer(data)
+    checks = round_checks(scorer.lines(baseline), rounds, retro_root=args.retro_root,
+                          analysis_root=args.analysis_root,
+                          decisions_root=args.decisions_root, warnings=scorer.warnings)
+    context = _RecordContext(args, data_root, data, checks)
 
+    if args.record_all:
+        for line in [_header(rounds, drift_check),
+                     *_baseline_table(scorer.lines(baseline), checks)]:
+            print(line)
+        _print_warnings(scorer.warnings)
+        check_ledger_gap(checks, args.max_ledger_n_gap)
+        return _record_all(scorer, entries, baseline, context)
+
+    report = _evaluate(scorer, baseline, fixed, sweep, cv=args.cv)
+    document = _document(args.gw, rounds, drift_check, data, report, checks)
     if args.format == "json":
         print(json.dumps(document, indent=1, ensure_ascii=False))
     else:
-        for line in _table(rounds, drift_check, report, detail=args.detail):
+        for line in _table(rounds, drift_check, report, checks, detail=args.detail):
             print(line)
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -563,9 +693,227 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
                             encoding="utf-8")
         if args.format == "table":
             print(f"wrote {args.out}")
-    for warning in report.warnings:
-        print(f"WARNING: {warning}", file=sys.stderr)
+    _print_warnings(report.warnings)
+    check_ledger_gap(checks, args.max_ledger_n_gap)
+    if args.record is not None:
+        argv = ([a for text in args.set for a in ("--set", text)]
+                + [a for text in args.sweep for a in ("--sweep", text)]
+                + (["--cv"] if args.cv else []))
+        record = _record(context, args.record, "model", argv, report)
+        path = gates.write_record(args.gates_root, record, force=args.force)
+        if args.format == "table":
+            print(f"wrote {path}")
     return 0
+
+
+def _print_warnings(warnings: Sequence[str]) -> None:
+    for warning in warnings:
+        print(f"WARNING: {warning}", file=sys.stderr)
+
+
+def _check_record_args(args: argparse.Namespace) -> None:
+    if args.record is not None and args.record_all:
+        raise ValueError("--record and --record-all are exclusive")
+    if args.record_all != (args.manifest is not None):
+        raise ValueError("--record-all runs a --manifest; give both")
+    if args.force and args.record is None and not args.record_all:
+        raise ValueError("--force re-records; give --record or --record-all")
+    if args.record is not None:
+        gates.check_name(args.record)
+    if args.record_all:
+        given = [flag for flag, value in (("--set", args.set), ("--sweep", args.sweep),
+                                          ("--cv", args.cv), ("--out", args.out))
+                 if value]
+        if args.format == "json":
+            given.append("--format json")
+        if given:
+            raise ValueError(f"--record-all takes each variant from the manifest; drop "
+                             f"{', '.join(given)}")
+
+
+def _check_variant(fixed: Mapping[str, ConfigValue], sweep: Mapping[str, list[ConfigValue]],
+                   cv: bool, *, recording: bool) -> None:
+    both = sorted(fixed.keys() & sweep.keys())
+    if both:
+        raise ValueError(f"{', '.join(both)} given to both --set and --sweep")
+    if cv and not sweep:
+        raise ValueError("--cv selects a --sweep value; give --sweep")
+    if recording and sweep and not cv:
+        raise ValueError("a recorded sweep is gated on its leave-one-round-out lines; "
+                         "pass --cv")
+
+
+def _refuse_existing(root: Path, name: str) -> None:
+    path = gates.record_path(root, name)
+    if path.exists():
+        raise ValueError(f"{path} exists — gate records are written once; "
+                         "pass --force to archive it and record again")
+
+
+def _recorded_baseline(root: Path) -> ModelConfig:
+    """The `baseline` record's config, so a forced re-run reproduces the
+    records; production's config only before the first baseline record."""
+    record = gates.read_record(root, gates.BASELINE)
+    if record is None:
+        return DEFAULT_CONFIG
+    return _overlay(ModelConfig(), record.baseline_config)
+
+
+def _entry_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="manifest entry", add_help=False, allow_abbrev=False,
+                                exit_on_error=False)
+    p.add_argument("--set", action="append", default=[])
+    p.add_argument("--sweep", action="append", default=[])
+    p.add_argument("--cv", action="store_true")
+    return p
+
+
+def _entry_variant(entry: ManifestEntry, config: ModelConfig
+                   ) -> tuple[dict[str, ConfigValue], dict[str, list[ConfigValue]], bool]:
+    try:
+        parsed, unknown = _entry_parser().parse_known_args(list(entry.argv))
+        if unknown:
+            raise ValueError(f"unknown argument(s) {' '.join(unknown)}")
+        fixed = _parse_sets(parsed.set, config)
+        sweep = parse_sweep(parsed.sweep, config)
+        _check_variant(fixed, sweep, parsed.cv, recording=True)
+    except (argparse.ArgumentError, ValueError) as exc:
+        raise ValueError(f"manifest entry {entry.name}: {exc}") from None
+    return fixed, sweep, parsed.cv
+
+
+@dataclass(frozen=True)
+class _RecordContext:
+    args: argparse.Namespace
+    data_root: Path
+    data: Sequence[RoundData]
+    checks: Mapping[int, RoundCheck]
+
+
+def _record_all(scorer: _Scorer, entries: Sequence[ManifestEntry], base: ModelConfig,
+                context: _RecordContext) -> int:
+    """Each entry without a record, in manifest order, against `base`
+    overlaid with the ship values of earlier passing model entries that the
+    last combined record did not revert; then combined.json afresh."""
+    root, force = context.args.gates_root, context.args.force
+    previous = gates.read_record(root, gates.COMBINED)
+    reverted = set(previous.reverted or ()) if previous is not None else set()
+    records: dict[str, GateRecord] = {}
+    for index, entry in enumerate(entries):
+        existing = gates.read_record(root, entry.name)
+        if existing is not None and not force:
+            records[entry.name] = existing
+            print(f"{entry.name}: record exists — skipped")
+            continue
+        overlay: dict[str, Any] = {}
+        for earlier in entries[:index]:
+            record = records[earlier.name]
+            if (earlier.kind == "model" and record.verdict == "PASS"
+                    and earlier.name not in reverted):
+                overlay.update(record.ship_value or {})
+        entry_base = _overlay(base, overlay)
+        fixed, sweep, cv = _entry_variant(entry, entry_base)
+        report = _evaluate(scorer, entry_base, fixed, sweep, cv=cv)
+        document = _record(context, entry.name, entry.kind, entry.argv, report)
+        gates.write_record(root, document, force=force)
+        records[entry.name] = GateRecord.model_validate(document)
+        for line in gates.summary_lines([records[entry.name]]):
+            print(line)
+
+    passes = [(entry.name, records[entry.name].ship_value or {}) for entry in entries
+              if entry.kind == "model" and records[entry.name].verdict == "PASS"]
+    base_lines = scorer.lines(base)
+    result = combine(base, passes, lambda config: compare(base_lines, scorer.lines(config)))
+    document = _combined_record(context, Scored("baseline", {}, base, base_lines), result)
+    gates.write_record(root, document, force=True)
+    for line in gates.summary_lines([GateRecord.model_validate(document)]):
+        print(line)
+    _print_warnings(scorer.warnings)
+    return 0
+
+
+def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
+            report: Report) -> dict[str, Any]:
+    c = report.comparison
+    if report.ship is not None:
+        ship = report.ship.overrides
+    elif not report.sweep_keys and report.variants:
+        ship = report.variants[0].overrides
+    else:
+        ship = None
+    return {
+        **_record_base(context, name, kind, argv, report.baseline),
+        "grid": {key: list(values) for key, values in report.grid.items()} or None,
+        "picks": None if report.picks is None
+        else {str(r): s.overrides for r, s in sorted(report.picks.items())},
+        "ship_value": ship,
+        "comparison": None if c is None else comparison_document(c),
+        "verdict": None if c is None else ("PASS" if c.beats else "FAIL"),
+        "reasons": [] if c is None else list(c.reasons),
+    }
+
+
+def _combined_record(context: _RecordContext, baseline: Scored,
+                     result: Combined) -> dict[str, Any]:
+    c = result.comparison
+    return {
+        **_record_base(context, gates.COMBINED, "combined", (), baseline),
+        "grid": None,
+        "picks": None,
+        "ship_value": result.overrides,
+        "comparison": None if c is None else comparison_document(c),
+        "verdict": None if c is None else "PASS",
+        "reasons": [],
+        "shipped_config": asdict(result.config),
+        "reverted": list(result.reverted),
+    }
+
+
+def _record_base(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
+                 baseline: Scored) -> dict[str, Any]:
+    args = context.args
+    store = SnapshotStore(context.data_root)
+    actuals = {}
+    for d in context.data:
+        path = store.path(d.gw + 1, f"event-live-e{d.gw}")
+        actuals[str(d.gw)] = {"path": str(path),
+                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+    return {
+        "schema_version": gates.SCHEMA_VERSION,
+        "name": name,
+        "kind": kind,
+        "argv": list(argv),
+        "rounds": [d.gw for d in context.data],
+        "data": {
+            "data_root": str(context.data_root),
+            "analysis_root": str(args.analysis_root),
+            "decisions_root": str(args.decisions_root),
+            "retro_root": str(args.retro_root),
+            "drift_check": not args.no_drift_check,
+            "actuals": actuals,
+        },
+        "decision_commits": {str(d.gw): d.commit for d in context.data},
+        "code": _code_state(),
+        "baseline_config": asdict(baseline.config),
+        "baseline": _scored_document(baseline),
+        "round_checks": _checks_document(context.checks),
+        "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
+def _code_state() -> dict[str, Any]:
+    package = Path(__file__).resolve().parent
+    try:
+        head = _git(package, "rev-parse", "HEAD").strip()
+        dirty = bool(_git(package, "status", "--porcelain", "--", ".").strip())
+    except (OSError, subprocess.CalledProcessError):
+        return {"head": None, "dirty": None}
+    return {"head": head, "dirty": dirty}
+
+
+def _git(cwd: Path, *args: str) -> str:
+    return subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True,
+                          text=True).stdout
 
 
 def parse_rounds(text: str, gw: int) -> list[int]:
@@ -626,28 +974,38 @@ class Report:
     baseline: Scored
     variants: tuple[Scored, ...]
     sweep_keys: tuple[str, ...]
+    grid: dict[str, list[ConfigValue]]
     picks: dict[int, Scored] | None
     ship: Scored | None
     comparison: Comparison | None
     warnings: tuple[str, ...]
 
 
-def _evaluate(data: Sequence[RoundData], baseline: ModelConfig,
-              fixed: dict[str, ConfigValue], sweep: dict[str, list[ConfigValue]], *,
-              cv: bool) -> Report:
-    warnings: list[str] = [w for d in data for w in d.warnings]
-    cache: dict[ModelConfig, tuple[BacktestLine, ...]] = {}
+class _Scorer:
+    """Scores every loaded round under a config once; later requests for
+    the same config reuse the lines."""
 
-    def score(overrides: dict[str, ConfigValue]) -> Scored:
-        config = replace(baseline, **overrides)
-        if config not in cache:
+    def __init__(self, data: Sequence[RoundData]) -> None:
+        self._data = data
+        self._cache: dict[ModelConfig, tuple[BacktestLine, ...]] = {}
+        self.warnings: list[str] = [w for d in data for w in d.warnings]
+
+    def lines(self, config: ModelConfig) -> tuple[BacktestLine, ...]:
+        if config not in self._cache:
             lines: list[BacktestLine] = []
-            for round_data in data:
+            for round_data in self._data:
                 result = score_round(round_data, config)
                 lines += result.lines
-                warnings.extend(w for w in result.warnings if w not in warnings)
-            cache[config] = tuple(lines)
-        return Scored(_label(overrides), overrides, config, cache[config])
+                self.warnings.extend(w for w in result.warnings if w not in self.warnings)
+            self._cache[config] = tuple(lines)
+        return self._cache[config]
+
+
+def _evaluate(scorer: _Scorer, baseline: ModelConfig, fixed: dict[str, ConfigValue],
+              sweep: dict[str, list[ConfigValue]], *, cv: bool) -> Report:
+    def score(overrides: dict[str, ConfigValue]) -> Scored:
+        config = replace(baseline, **overrides)
+        return Scored(_label(overrides), overrides, config, scorer.lines(config))
 
     base = score({})
     if sweep:
@@ -668,13 +1026,19 @@ def _evaluate(data: Sequence[RoundData], baseline: ModelConfig,
         comparison = compare(base.lines, cv_lines)
     elif not sweep and variants:
         comparison = compare(base.lines, variants[0].lines)
-    return Report(base, variants, keys, picks, ship, comparison, tuple(warnings))
+    return Report(base, variants, keys, dict(sweep), picks, ship, comparison,
+                  tuple(scorer.warnings))
 
 
-def _table(rounds: list[int], drift_check: bool, report: Report, *, detail: bool) -> list[str]:
-    out = [f"rounds {_span(rounds)} · drift check: {'on' if drift_check else 'off'}"]
+def _header(rounds: list[int], drift_check: bool) -> str:
+    return f"rounds {_span(rounds)} · drift check: {'on' if drift_check else 'off'}"
+
+
+def _table(rounds: list[int], drift_check: bool, report: Report,
+           checks: Mapping[int, RoundCheck], *, detail: bool) -> list[str]:
+    out = [_header(rounds, drift_check)]
     if not report.sweep_keys or detail:
-        out += _baseline_table(report.baseline.lines)
+        out += _baseline_table(report.baseline.lines, checks)
     if report.sweep_keys:
         production = report.variants[0]
         base_mae = _mae(report.baseline.lines)
@@ -697,14 +1061,34 @@ def _table(rounds: list[int], drift_check: bool, report: Report, *, detail: bool
     return out
 
 
-def _baseline_table(lines: Sequence[BacktestLine]) -> list[str]:
-    rows = [("round", "n", "bias", "MAE")]
+def _baseline_table(lines: Sequence[BacktestLine],
+                    checks: Mapping[int, RoundCheck]) -> list[str]:
+    rows = [("round", "n", "bias", "MAE", "ledger_n", "Δn", "code_drift")]
     for r, per_round in sorted(_by_round(lines).items()):
-        rows.append(_aggregate_row(str(r), calibrate.aggregate(per_round)))
-    rows.append(_aggregate_row("baseline", calibrate.aggregate(lines)))
+        rows.append(_aggregate_row(str(r), calibrate.aggregate(per_round))
+                    + _check_cells(checks.get(r)))
+    rows.append(_aggregate_row("baseline", calibrate.aggregate(lines)) + ("", "", ""))
     groups = calibrate.grouped(lines, lambda line: line.position)
-    rows += [_aggregate_row(pos, groups[pos]) for pos in _positions(groups)]
-    return [f"{label:<9} {n:>4} {bias:>7} {mae:>6}" for label, n, bias, mae in rows]
+    rows += [_aggregate_row(pos, groups[pos]) + ("", "", "") for pos in _positions(groups)]
+    return [f"{label:<9} {n:>4} {bias:>7} {mae:>6} {ledger:>8} {dn:>4} {drift:>10}".rstrip()
+            for label, n, bias, mae, ledger, dn, drift in rows]
+
+
+def _check_cells(check: RoundCheck | None) -> tuple[str, str, str]:
+    if check is None:
+        return "-", "-", "-"
+    return ("-" if check.ledger_n is None else str(check.ledger_n),
+            "-" if check.delta_n is None else _signed_int(check.delta_n),
+            "-" if check.code_drift is None else f"{check.code_drift:.3f}")
+
+
+def _signed_int(value: int) -> str:
+    return f"{value:+d}".replace("-", "−")
+
+
+def _checks_document(checks: Mapping[int, RoundCheck]) -> dict[str, Any]:
+    return {str(r): {"n": c.n, "ledger_n": c.ledger_n, "delta_n": c.delta_n,
+                     "code_drift": c.code_drift} for r, c in sorted(checks.items())}
 
 
 def _aggregate_row(label: str, agg: Aggregate) -> tuple[str, str, str, str]:
@@ -734,12 +1118,13 @@ def _comparison_text(c: Comparison, *, detail: bool) -> list[str]:
 
 
 def _document(gw: int, rounds: list[int], drift_check: bool, data: Sequence[RoundData],
-              report: Report) -> dict[str, Any]:
+              report: Report, checks: Mapping[int, RoundCheck]) -> dict[str, Any]:
     return {
         "gw": gw,
         "rounds": rounds,
         "drift_check": drift_check,
         "decision_commits": {str(d.gw): d.commit for d in data},
+        "round_checks": _checks_document(checks),
         "baseline": _scored_document(report.baseline),
         "variants": [_scored_document(v) for v in report.variants],
         "sweep_keys": list(report.sweep_keys),
@@ -825,21 +1210,11 @@ def _parse_value(key: str, raw: str, types: dict[str, Any]) -> ConfigValue:
 
 
 def _label(overrides: Mapping[str, ConfigValue]) -> str:
-    if not overrides:
-        return "baseline"
-    return ",".join(f"{key}={_value_text(value)}" for key, value in overrides.items())
-
-
-def _value_text(value: ConfigValue) -> str:
-    if value is None:
-        return "none"
-    if isinstance(value, bool):
-        return str(value).lower()
-    return f"{value:g}"
+    return gates.overrides_text(overrides) or "baseline"
 
 
 def _pick_text(scored: Scored, keys: Sequence[str]) -> str:
-    return "/".join(_value_text(scored.overrides[key]) for key in keys)
+    return "/".join(value_text(scored.overrides[key]) for key in keys)
 
 
 def _span(rounds: list[int]) -> str:

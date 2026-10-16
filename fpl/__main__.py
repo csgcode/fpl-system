@@ -65,7 +65,7 @@ from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
-from fpl import backtest, objective_report
+from fpl import backtest, gates, objective_report
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -445,6 +445,7 @@ def build_parser() -> argparse.ArgumentParser:
     ))
 
     backtest.register(add)
+    gates.register(add)
 
     calibrate = add("calibrate", "join EP predictions vs a completed round's actuals")
     calibrate.add_argument(
@@ -734,6 +735,8 @@ def main(
             return objective_report.run(args.data_root, args)
         if args.command == "backtest":
             return backtest.run(args.data_root, args)
+        if args.command == "gates":
+            return gates.run(args)
         if args.command == "corrections":
             return run_corrections(args)
         if args.command == "fixtures-rate":

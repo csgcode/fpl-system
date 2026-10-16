@@ -14,6 +14,7 @@ import pytest
 
 from fpl.backtest import (
     BacktestLine,
+    code_drift,
     compare,
     cross_validate,
     load_round,
@@ -253,6 +254,38 @@ def test_load_round_outside_git_warns_once_that_drift_is_unchecked(world):
     _, raw, analysis = world
     data = _load(raw, analysis)
     assert len([w for w in data.warnings if "drift" in w]) == 1
+
+
+def _record_players(analysis: Path, ep_by_id: dict[int, float]) -> None:
+    for position in ("GKP", "DEF", "MID", "FWD"):
+        rows = [] if position != "MID" else [
+            {"id": pid, "name": f"P{pid}", "team": "TST", "price": 6.0, "p_start": 0.9,
+             "ep_gw": [ep], "uncertainty": "LOW"}
+            for pid, ep in ep_by_id.items()
+        ]
+        _write_json(analysis / f"gw{GW}" / f"players-{position}.json", rows)
+
+
+def test_code_drift_is_the_mean_gap_to_the_decision_record(world):
+    root, raw, analysis = world
+    data = _load(raw, analysis, drift_check=False)
+    [alpha] = score_round(data, DEFAULT_CONFIG).lines
+    init_repo(root)
+    _record_players(analysis, {1: alpha.predicted + 0.5, 99: 3.0})
+    final = root / "decisions" / f"gw{GW}" / "final.md"
+    final.parent.mkdir(parents=True)
+    final.write_text("# Final\n", encoding="utf-8")
+    _commit_world(root, "gw3: decision")
+    _record_players(analysis, {1: alpha.predicted})
+
+    assert code_drift([alpha], analysis, root / "decisions", GW) == pytest.approx(0.5, abs=1e-9)
+
+
+def test_code_drift_is_none_without_a_decision_record(world):
+    _, raw, analysis = world
+    data = _load(raw, analysis, drift_check=False)
+    lines = score_round(data, DEFAULT_CONFIG).lines
+    assert code_drift(lines, analysis, analysis.parent / "decisions", GW) is None
 
 
 def _add_beta(raw: Path, analysis: Path) -> None:

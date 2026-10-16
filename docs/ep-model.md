@@ -364,3 +364,11 @@ it is code.
 - **Reported, never priced:** near-tie XI↔bench pairs (formation-legal swaps
   within 0.25 GW-N EP, with each player's DefCon share of EP6) and dead bench
   slots (`p_start_gw[0]` < 0.5).
+
+## 8. Backtest
+
+Gate records live under `data/model/gates/`. The table between the markers
+below is generated from them by `fpl gates --render`; do not edit it by hand.
+
+<!-- gates:begin -->
+<!-- gates:end -->
