@@ -1,34 +1,54 @@
-# GW7 Squad Proposal (2026/27)
+# GW7 Squad Proposal (2026/27) — re-run, no chip
 
 Deadline 2026-10-17T10:00:00Z. Weekly cycle; squad from the STATE block of
 data/decisions/gw6/final.md. Selling prices relayed by the orchestrator
-(`my-team`, auth-check PASS today: 1 free transfer, sell sum 98.8, bank 0.3)
-and resolved per id from the GW6 sell column plus the bootstrap price moves
-since (Gabriel 8.0 → 7.9 is the only fall; the derived sum is 98.8, equal to
-the relayed figure). Budget 99.1.
+(`my-team`, auth-check PASS today: 1 free transfer, sell sum 98.8, bank 0.3),
+resolved per id from the GW6 sell column plus the bootstrap price moves since
+(Gabriel 8.0 → 7.9 is the only fall; derived sum 98.8 equals the relayed
+figure). Budget 99.1.
 
-**Decision: play the WILDCARD now (GW7), eight transfers, hit 0, bank 0.0.
-3-4-3, Haaland (C), Saka (V). Predicted GW7 57.49. The one-move no-chip
-alternative, Thiaw → Van Hecke, is +2.223 / +1.214 over GW7–12; the wildcard
-is +16.239 / +3.979, an edge of +14.016 blend / +2.765 prior-only over the
-chip gate's comparator (needs ≥ 6.0 / ≥ 0).**
+Re-run on a user directive: no chip of any kind this gameweek. The archived
+squad-proposal.v1.md proposed the set-1 wildcard; its wildcard package is off
+the table here and the wildcard is re-earmarked for GW8 (provisional). The
+no-chip plan is regraded from scratch below; the figures reproduce v1's
+no-chip rows exactly because the GW7 analysis files are unchanged.
+
+**Decision: one free transfer, Thiaw → Van Hecke (sell 5.0, buy 4.9),
+hit 0, bank 0.4, FT next 1. `chip: null`. 3-4-3, Haaland (C), Mbeumo (V).
+Predicted GW7 54.855. Plan gain +2.223 blend / +1.214 prior-only over
+GW7–12; banking the transfer fails the rule because this move passes the
+free gate.**
 
 ## Inputs read
 
 - data/analysis/gw7/players-{GKP,DEF,MID,FWD}.json (+ .md), fixtures.md,
-  fixtures-tables.md.
+  fixtures-tables.md — current; no analyst re-run.
 - data/retro/gw6.md via `fpl corrections --gw 7 --agent A4`: C5, C8, C14,
   C15, C20 active (C6, C16 retired).
-- data/suggestions.md (read through S8) and the GW6 ledger in
+- data/decisions/gw7/review.md (review of the wildcard proposal): F6 (GK2
+  dead, bboost blocked until repaired) and F1's two-sided price exposure
+  carry over to any plan; F2–F5 and F7–F9 concern wildcard pairs that are
+  not made here.
+- data/suggestions.md — S# set fixed at the cycle's first run: read through
+  S8 (rows added since wait for GW8). GW6 ledger in
   data/decisions/gw6/final.md.
 - Bootstrap chips: wildcard / freehit GW2–19, bboost / 3xc GW1–19 (set 1);
-  set 2 GW20–38. No chip used yet.
+  set 2 GW20–38. No chip used.
+- data/raw/gw7/players/summary-*.json for per-round points in the S8
+  comparison.
 
-Every EP figure below is printed by `fpl objective --gw 7 --sell … --bank 0.3
---free-transfers 1`; the wildcard squad search ran as scratch work in the
-session scratchpad and only the `objective` grades are cited.
+Every EP figure below is printed by `fpl objective --gw 7 --sell … --bank
+0.3 --free-transfers 1`.
 
-## Baseline and the no-chip plan
+## Budget skeleton (step 1)
+
+Weekly cycle, one free transfer: the premium structure is inherited, not
+re-chosen. Haaland £15.5m is the one premium; B.Fernandes / Saka are
+wildcard-scale moves (Tavernier → Saka needs £3.6m the bank does not hold,
+and a two-transfer funding route costs a hit the gate refuses below). The
+budget is exhausted to 0.4 after the plan (≤ 0.5 rule met).
+
+## Baseline and single moves (steps 2 and 4)
 
 ```
 sell basis: relayed (Σ sell 98.8 + bank 0.3 = 99.1)
@@ -56,270 +76,234 @@ legal single moves: 1555 (pool 417); top 20 by blend:
   20 | Tarkowski → Van Hecke | +0.572 | +0.380 | bank 1.5 | fails (blend < 2.0)
 ```
 
-Graded no-chip plans:
+Two of 1555 legal singles pass the free gate. Graded plans:
 
 | Plan | `objective --moves` | Verdict |
 |---|---|---|
-| bank the FT | `none` — blend +0.000 prior +0.000; FT next 2 | FAIL: further free move passes: Thiaw → Van Hecke +2.223 / +1.214 |
-| A: Thiaw → Van Hecke | +2.223 / +1.214; bank 0.4; transfers 1 (free 1, hits 0); FT next 1; GW7 XI 54.855 | PASS |
-| B: Schade → Sávio | +2.005 / +3.634; bank 0.0; GW7 XI 54.663 | FAIL: plan gain +2.005 below the greedy reference +2.223 |
-| A + B with a hit | gross +4.2 blend | fails the hit gate (needs ≥ 6.0) — not graded further |
+| bank the FT | `plan: none — blend +0.000 prior +0.000; bank 0.3; transfers 0 (free 1, hits 0); FT next 2` | FAIL: further free move passes: Thiaw → Van Hecke +2.223 / +1.214; plan gain +0.000 below the greedy reference +2.223 |
+| **A: Thiaw → Van Hecke** | `plan: Thiaw → Van Hecke — blend +2.223 prior +1.214; bank 0.4; transfers 1 (free 1, hits 0); FT next 1` | **PASS** |
+| B: Schade → Sávio | `plan: Schade → Sávio — blend +2.005 prior +3.634; bank 0.0; transfers 1 (free 1, hits 0); FT next 1` | FAIL: plan gain +2.005 below the greedy reference +2.223 |
+| A + B (one hit) | `plan: Thiaw → Van Hecke, Schade → Sávio — blend +4.228 prior +4.848; bank 0.1; transfers 2 (free 1, hits 4); FT next 1` | FAIL: Schade → Sávio +2.005 / +3.634 fails the hit gate (blend ≥ 6.0, prior > 0) |
 
-Plan A is the best legal no-chip plan and the chip gate's comparator. Plan B
-has three times A's prior-only gain but is refused by the 0.05 reference
-tolerance (backlog row).
+Plan A's full print:
 
-## Wildcard
+```
+plan: Thiaw → Van Hecke — blend +2.223 prior +1.214; bank 0.4; transfers 1 (free 1, hits 0); FT next 1
+  move Thiaw → Van Hecke: +2.223 / +1.214 — passes free gate
+after plan, best single: Schade → Sávio +2.005 / +3.634 — passes free gate
+reference (greedy): Thiaw → Van Hecke +2.223 / +1.214 — blend +2.223 prior +1.214
+verdict: PASS
+GW7 XI 3-4-3 54.855: Raya, Van Hecke, Gabriel, Tarkowski, Mbeumo, Groß, Tavernier, E.Le Fée, Haaland, Barry, Thiago; captain top 5: Haaland 6.579 0.93, Van Hecke 4.596 0.92, Barry 4.582 0.90, Mbeumo 4.572 0.93, Groß 4.435 0.93
+boundary pairs within 0.25: none
+bench: Dubravka 0.123 (p 0.03 — dead), Richards 3.089, Schade 2.761, Shaw 1.907
+```
 
-### Timing — GW7, not the GW8 earmark
+"After plan, best single" names Schade → Sávio as still passing the free
+gate, but no free transfer is left after plan A (FT next 1 is the accrual
+for GW8), so the rule's "no further move passing the free gate with free
+transfers left" clause is satisfied; as a paid second move it fails the hit
+gate (table above).
 
-GW6 deferred the wildcard to GW8 because the then-best rebuild leaned on
-HIGH-uncertainty rows (Davis, Greaves, Simms) and forecast only +8.0. Both
-conditions have reversed on the GW7 EP:
+### Why transfer rather than bank
 
-- every player bought is LOW uncertainty with p_start ≥ 0.88 (six at
-  0.92–0.94), all of them six-of-six starters this season;
-- the gain is +16.239 blend / +3.979 prior-only over GW7–12, against the
-  +14.016 / +2.765 edge the gate requires over plan A (+6.0 / ≥ 0);
-- the wildcard keeps the banked free transfer (FT unchanged at 1, so 2 at the
-  GW8 deadline), whereas plan A spends it;
-- the GW7 XI rises from 54.855 (plan A) to 57.492, and the fixture swing the
-  analyst flags from GW10 (MCI harder; ARS, BHA, LIV, LEE easier) is already
-  inside the scoring window, so waiting a week buys no fixture information.
+Banking is a valid outcome only when no move passes the free gate. One
+does, on both readings, so the rule makes the move. The cost of banking is
+measurable: 2.223 EP6 forgone on blend, 0.806 of it in GW7 alone (XI 54.855
+v 54.049). The case for holding — two free transfers at GW8 — is weakened by
+the wildcard earmark: a GW8 wildcard does not consume free transfers, and
+if it is not played, 1 free transfer at GW8 plus Van Hecke already in is
+the same squad position the 2-FT route would reach by making this move
+then.
 
-What waiting would buy is one more round of minutes evidence (C18 overshoot
-re-read at GW8). That is a calibration question, not an EP one; the gate is
-cleared by more than double on blend.
+### The move itself
 
-### Budget skeleton (step 1)
-
-Premiums (> £9m): Haaland £15.6m and Saka £9.6m; B.Fernandes £11.9m not taken.
-
-| Premium | Kept because | Checked against |
+| | Thiaw (NEW, id 445) | Van Hecke (TOT, id 112) |
 |---|---|---|
-| Haaland 35.06 | best build without him is +11.040 / +1.447 (B.Fernandes + João Pedro + Calafiori + Muharemović with the freed money): −5.2 blend, −2.5 prior against this plan | scratch search excluding id 411, graded on the same objective |
-| Saka 32.10 | best build without him is +13.251 / +5.064 (B.Fernandes + Gomez + Hill + Calafiori): −3.0 blend against this plan; the +1.1 prior does not cover it | scratch search excluding id 12 |
-| B.Fernandes 31.28 at £11.9m | Saka scores more for £2.3m less; the two together need the dead-GK2 money and a £4.0m DEF5 | no build with both inside 99.1 beat this plan |
+| Price | sell 5.0 | buy 4.9 |
+| EP6 (blend) | 20.20 | 23.47 |
+| ep_gw GW7–12 | 3.79, 3.17, 3.69, 3.46, 3.05, 3.04 | 4.60, 3.42, 3.97, 3.55, 4.26, 3.69 |
+| p_start | 0.92, LOW, 6/6 full 90s | 0.92, LOW, 6/6 full 90s, flag cleared (chance 100) |
+| Points R1–R6 | 3, 6, −1, 2, 4, 0 = 14 (1 return ≥ 5) | 1, 1, 8, 8, 6, 3 = 27 (3 returns ≥ 5) |
+| Club CS rank (GW7–12) | NEW 19; turns hard from GW10 (−0.70 Σλ_att, −0.14 ΣP(CS)) | TOT 4; GW10–12 swing −0.46 / −0.05 |
+| Largest EP term | appearance 11.04; defcon 4.82 | appearance 11.04; clean_sheet 6.44 over six rounds |
+| Price pressure this event | 17.4k out v 1.6k in (net −15.8k), no change yet | 22.1k out v 46.2k in (net +24.1k), no change yet |
 
-### Squad (step 2)
+- Not a one-fixture buy: Van Hecke leads Thiaw on every one of the six rows,
+  by 1.94 over GW10–12 (11.49 v 9.55) where NEW's ticker turns hard; TOT's
+  own swing is −0.46 and stays ahead.
+- C12: the GW7 TOT v COV (H) row is banded (P(CS) 0.41 ±), but Van Hecke's
+  single largest term is appearance, then a six-round clean-sheet term;
+  the banded row is not his largest term. His EP6 lead over Thiaw also holds
+  with GW7 removed (18.87 v 16.41).
+- C14: positive on both readings (+2.223 / +1.214); no hit involved.
+- Prior-only view: TOT's defence is rated on 3210 prior minutes
+  (prior_weight 0.526); the prior reading keeps the move positive.
+
+### Rejected moves
+
+| Move | Figure | Why rejected |
+|---|---|---|
+| Thiaw → Silva | +4.017 / −0.634 | prior sign flip (C14); below the 6.0 hit gate in any case |
+| Schade → Sávio (plan B) | +2.005 / +3.634 | FAIL on the greedy reference (0.218 below A); S8 also prefers A — Sávio 10 pts, 330', 0 returns v Van Hecke 27 pts, 3 returns |
+| Tarkowski → Hill | +1.744 / +1.458 | blend < 2.0 |
+| Shaw → Justin | +1.219 / +0.968 | blend < 2.0; Shaw is bench 3 at p 0.70 (d 75%), scored at 0 by the objective; a GW8 wildcard repairs DEF5 free |
+| Raya → Trafford | +0.662 / +0.460 | blend < 2.0 |
+| Any hit | best gross two-move +4.228 | hit gate needs ≥ 6.0 gross |
+| Free hit GW7 | not graded | user directive: no chip this GW |
+| Wildcard GW7 | v1 graded +16.239 / +3.979 (chip gate PASS) | user directive: no chip this GW; re-earmarked GW8, provisional |
+
+## Squad after the transfer (step 2)
 
 | Slot | Pos | Player | Id | Club | Price | GW7 EP | EP6 | p_start | Unc | Role |
 |---:|---|---|---:|---|---:|---:|---:|---:|---|---|
-| 1 | GKP | Trafford | 385 | LEE | 5.0 | 3.599 | 21.85 | 0.94 | LOW | XI · IN |
+| 1 | GKP | Raya | 1 | ARS | 6.0 | 3.343 | 21.18 | 0.94 | LOW | XI |
 | 2 | DEF | Van Hecke | 112 | TOT | 4.9 | 4.596 | 23.47 | 0.92 | LOW | XI · IN |
-| 3 | DEF | Silva | 566 | BOU | 5.0 | 4.479 | 25.39 | 0.92 | LOW | XI · IN |
-| 4 | DEF | Gabriel | 4 | ARS | 7.9 | 4.062 | 26.27 | 0.92 | LOW | XI |
-| 5 | MID | Saka | 12 | ARS | 9.6 | 4.878 | 32.10 | 0.92 | LOW | XI · Vice · IN |
-| 6 | MID | Sávio | 403 | TOT | 6.5 | 4.620 | 25.78 | 0.92 | LOW | XI · IN |
-| 7 | MID | Mbeumo | 427 | MUN | 7.9 | 4.572 | 28.79 | 0.93 | LOW | XI |
-| 8 | MID | Groß | 124 | BHA | 5.9 | 4.435 | 24.66 | 0.93 | LOW | XI |
+| 3 | DEF | Gabriel | 4 | ARS | 7.9 | 4.062 | 26.27 | 0.92 | LOW | XI |
+| 4 | DEF | Tarkowski | 229 | EVE | 6.1 | 3.793 | 22.90 | 0.92 | LOW | XI |
+| 5 | MID | Mbeumo | 427 | MUN | 7.9 | 4.572 | 28.79 | 0.93 | LOW | XI · Vice |
+| 6 | MID | Groß | 124 | BHA | 5.9 | 4.435 | 24.66 | 0.93 | LOW | XI |
+| 7 | MID | Tavernier | 68 | BOU | 6.0 | 4.274 | 24.32 | 0.90 | LOW | XI |
+| 8 | MID | E.Le Fée | 542 | SUN | 5.7 | 4.006 | 26.11 | 0.92 | LOW | XI |
 | 9 | FWD | Haaland | 411 | MCI | 15.5 | 6.579 | 35.06 | 0.93 | LOW | XI · Captain |
 | 10 | FWD | Barry | 249 | EVE | 5.6 | 4.582 | 25.38 | 0.90 | LOW | XI |
-| 11 | FWD | Gonzalo | 569 | FUL | 6.1 | 4.511 | 24.64 | 0.90 | LOW | XI · IN |
+| 11 | FWD | Thiago | 106 | BRE | 7.8 | 4.034 | 25.14 | 0.92 | LOW | XI |
 | 12 | GKP | Dubravka | 497 | TOT | 4.0 | 0.123 | 0.68 | 0.03 | HIGH | Bench GK |
-| 13 | MID | E.Le Fée | 542 | SUN | 5.7 | 4.006 | 26.11 | 0.92 | LOW | Bench 1 |
-| 14 | DEF | Justin | 332 | LEE | 4.5 | 3.637 | 21.77 | 0.88 | LOW | Bench 2 · IN |
-| 15 | DEF | Khalaili | 588 | CRY | 5.0 | 3.074 | 22.31 | 0.90 | LOW | Bench 3 · IN |
-| | | **Total** | | | **99.1** | | **364.26** | | | |
+| 13 | DEF | Richards | 202 | CRY | 4.9 | 3.089 | 22.19 | 0.92 | LOW | Bench 1 |
+| 14 | MID | Schade | 94 | BRE | 6.2 | 2.761 | 22.12 | 0.65 | LOW | Bench 2 |
+| 15 | DEF | Shaw | 423 | MUN | 4.3 | 1.907 | 11.96 | 0.70 | MED | Bench 3 |
+| | | **Total** | | | **98.7** | | | | | |
 
-Price = selling price for kept players, purchase price for ins. 2 GKP / 5 DEF
-/ 5 MID / 3 FWD. Club counts ARS 2, TOT 3 (Van Hecke, Sávio, Dubravka), LEE 2,
-all others 1. Bank 0.0 — the budget is exhausted (≤ 0.5 rule met).
+Price = selling price for kept players, purchase price for Van Hecke.
+GW7 EP and EP6 from data/analysis/gw7/players-{pos}.json; the XI rows sum
+to the objective's 48.276. 2 GKP / 5 DEF / 5 MID / 3 FWD.
+Club counts ARS 2, EVE 2, MUN 2, BRE 2, TOT 2 (Van Hecke, Dubravka), all
+others 1. Bank 0.4.
 
-### Bench strategy (step 3)
+## Bench strategy (step 3)
 
-One playing goalkeeper plus a dead £4.0m backup. Trafford is the position's
-top EP6 (21.85) on a 0.94 six-of-six start streak; a playing £4.5m second
-keeper (Kinsky, Leno) costs £0.5m the squad does not have without a DEF
-downgrade, and a rotating pair adds only the per-GW max over two similar
-keepers. Dubravka is kept rather than swapped for another £4.0m dead keeper:
-Dubravka → Steele grades +0.000 / +0.000 and would be a ninth POST for
-nothing. GK2 therefore stays dead (R1 carried; Bench check below) and is the
-first free-transfer repair candidate after the wildcard.
+One playing goalkeeper (Raya, 0.94) plus a dead £4.0m backup. Raya →
+Trafford grades +0.662 / +0.460, below the gate; a £4.5m playing second
+keeper needs a DEF downgrade and the objective scores GK2 at 0 either way.
+GK2 therefore stays dead (R1, review F6) and is the first repair candidate
+for the GW8 wildcard, or for the GW8 free transfer if the wildcard waits.
 
-Outfield bench: Justin £4.5m (0.88, six starts, 3 returns ≥ 5 in 6 rounds)
-and Khalaili £5.0m (0.90, 2 returns) are nailed cheap starters; E.Le Fée is
-the 3-5-2 swing man. No bench slot is a rotation risk.
-
-### Swap pass (step 4)
-
-The wildcard package, every pair graded by `objective --chip wildcard --moves`:
-
-```
-plan: Raya → Trafford, Tarkowski → Van Hecke, Thiaw → Silva, Tavernier → Saka, Schade → Sávio, Thiago → Gonzalo, Richards → Khalaili, Shaw → Justin — blend +16.239 prior +3.979; bank 0.0; transfers 8 under wildcard (FT unchanged (1)); chip gate: ≥ 6.0 over the greedy plan
-  move Raya → Trafford: +0.662 / +0.460 — chip package
-  move Tarkowski → Van Hecke: +0.403 / +0.415 — chip package
-  move Thiaw → Silva: +3.066 / -0.556 — chip package
-  move Tavernier → Saka: +8.588 / +3.458 — chip package
-  move Schade → Sávio: +2.076 / +3.634 — chip package
-  move Thiago → Gonzalo: +0.065 / -2.778 — chip package
-  move Richards → Khalaili: +0.247 / -1.713 — chip package
-  move Shaw → Justin: +0.804 / +1.205 — chip package
-after plan, best single: none legal
-reference (greedy): Thiaw → Van Hecke +2.223 / +1.214 — blend +2.223 prior +1.214
-verdict: PASS
-GW7 XI 3-4-3 57.492: Trafford, Van Hecke, Silva, Gabriel, Saka, Sávio, Mbeumo, Groß, Haaland, Barry, Gonzalo; captain top 5: Haaland 6.579 0.93, Saka 4.878 0.92, Sávio 4.620 0.92, Van Hecke 4.596 0.92, Barry 4.582 0.90
-boundary pairs within 0.25: none
-bench: Dubravka 0.123 (p 0.03 — dead), E.Le Fée 4.006, Justin 3.637, Khalaili 3.074
-```
-
-Alternative wildcard builds graded on the same command (all PASS the chip
-gate; none beats the plan on blend):
-
-| Build | Change against the plan | Blend / prior | Why not |
-|---|---|---|---|
-| V3 | sell Gabriel; Hill, Calafiori, Mukiele in; Wissa for Gonzalo | +15.843 / +5.575 | −0.40 blend, inside the 0.5 band; S8 settles it for Gabriel (ARS, 27 pts, 3 returns in 6) over Hill (14 pts, 0 returns) — see Suggestions |
-| V2 | Trafford + Kelleher pair; Khalaili for Tarkowski, Hill for Gabriel | +15.966 / +1.870 | −0.27 blend and −2.1 prior for a second keeper the objective scores at 0 |
-| keep Tarkowski | best build holding id 229 | +15.171 / +1.729 | −1.07 blend, −2.25 prior: holding him forces Gabriel out for Hill |
-| keep Tarkowski + Gabriel | best build holding 229 and 4 | +14.452 / +3.776 | −1.79 blend; needs a £4.0m DEF5 (Thomas, COV) and Gomez for Groß |
-| João Pedro | best build holding id 165 | +15.214 / +1.892 | −1.03 blend, −2.09 prior; he is MED at 0.86 and the squad loses Gabriel |
-| Calvert-Lewin for Gonzalo | 106:346 | +15.278 / +5.920 | −0.96 blend, outside the band; the prior gain does not move the gate |
-
-Single-pair notes:
-
-- Tavernier → Saka is the move: +8.588 / +3.458 on its own, positive on both
-  readings, and funded by Raya → Trafford (+0.662 / +0.460) and Tarkowski →
-  Van Hecke (+0.403 / +0.415).
-- Thiaw → Silva (+3.066 / −0.556), Thiago → Gonzalo (+0.065 / −2.778) and
-  Richards → Khalaili (+0.247 / −1.713) are blend-positive, prior-negative
-  pairs. C14 forbids sign-flipping hits; these are free wildcard pairs inside
-  a package that is +3.979 on prior-only. Each is the best affordable option
-  for its slot: no DEF within 0.5 EP6 of Silva costs ≤ £5.0m (Calafiori
-  24.01 is £0.9m more), no FWD within 0.5 of Gonzalo fits the bank (Wissa
-  £6.3m needs £0.2m; Calvert-Lewin graded above), and Khalaili over Richards
-  is the within-band call S7 and S8 both make (below).
-- Schade → Sávio (+2.076 / +3.634): Schade is `d` 75% (shoulder, 51' in GW6,
-  p_start 0.65 for GW7); Sávio is 0.92 on a four-start streak.
-- Shaw → Justin (+0.804 / +1.205): Shaw is `d` 75% at 0.70; Justin 0.88.
-
-### Never transfer for one good fixture
-
-No move above targets a GW7 fixture: Saka, Sávio, Silva, Van Hecke, Gonzalo
-and Trafford all keep their EP6 rank through GW12. The three GW7 promoted-club
-rows in the squad (Haaland v IPS, Van Hecke and Sávio v COV, Gonzalo v HUL)
-are attack-side or not a player's largest EP term; C12's defensive-term
-rule bites on none of them (Van Hecke's largest term is cs 6.4 over six
-rounds, not the GW7 row).
+Outfield bench: Richards £4.9m (0.92, 6/6 × 90, 18 pts) is the only nailed
+cover; Schade (0.65 for GW7, shoulder, d 75%; 0.85–0.88 from GW8) and Shaw
+(0.70, d 75%) are the two flagged rows. Both are wildcard-scale repairs:
+neither has a free move that passes the gate (Shaw → Justin +1.219 is the
+best).
 
 ## Starting XI — 3-4-3
 
 | Slot | Player | Pos | GW7 fixture | GW7 EP |
 |---:|---|---|---|---:|
-| 1 | Trafford | GKP | MUN (H) | 3.599 |
+| 1 | Raya | GKP | NFO (A) | 3.343 |
 | 2 | Van Hecke | DEF | COV (H) ± | 4.596 |
-| 3 | Silva | DEF | SUN (H) | 4.479 |
-| 4 | Gabriel | DEF | NFO (A) | 4.062 |
-| 5 | Saka (V) | MID | NFO (A) | 4.878 |
-| 6 | Sávio | MID | COV (H) ± | 4.620 |
-| 7 | Mbeumo | MID | LEE (A) | 4.572 |
-| 8 | Groß | MID | CRY (H) | 4.435 |
+| 3 | Gabriel | DEF | NFO (A) | 4.062 |
+| 4 | Tarkowski | DEF | CHE (H) | 3.793 |
+| 5 | Mbeumo (V) | MID | LEE (A) | 4.572 |
+| 6 | Groß | MID | CRY (H) | 4.435 |
+| 7 | Tavernier | MID | SUN (H) | 4.274 |
+| 8 | E.Le Fée | MID | BOU (A) | 4.006 |
 | 9 | Haaland (C) | FWD | IPS (H) ± | 6.579 |
 | 10 | Barry | FWD | CHE (H) | 4.582 |
-| 11 | Gonzalo | FWD | HUL (H) ± | 4.511 |
-| | XI total | | | 50.913 |
+| 11 | Thiago | FWD | LIV (H) | 4.034 |
+| | XI total | | | 48.276 |
 | | + captain | | | 6.579 |
-| | **Predicted GW7** | | | **57.492** |
+| | **Predicted GW7** | | | **54.855** |
 
-Boundary: `objective` reports no XI/bench pair within 0.25 (C20 does not
-bite). E.Le Fée 4.006 sits 0.505 below Gonzalo 4.511, so 3-4-3 beats 3-5-2.
+XI total 48.276 is the sum of the eleven `ep_gw[0]` rows and equals the
+objective's 54.855 less the captain's 6.579. Boundary: `objective` reports no
+XI/bench pair within 0.25 (C20 does not bite): Thiago 4.034 sits 0.945
+above Richards 3.089, so 3-4-3 holds over 4-4-2.
 
 ## Captain and vice
 
 Top 5 among the XI by single-GW EP, undiscounted (`captain top 5` line):
 
-| Rank | Player | GW7 EP | p_start_gw[0] |
-|---:|---|---:|---:|
-| 1 | Haaland | 6.579 | 0.93 |
-| 2 | Saka | 4.878 | 0.92 |
-| 3 | Sávio | 4.620 | 0.92 |
-| 4 | Van Hecke | 4.596 | 0.92 |
-| 5 | Barry | 4.582 | 0.90 |
+| Rank | Player | GW7 EP | p_start_gw[0] | Points R1–R6 |
+|---:|---|---:|---:|---|
+| 1 | Haaland | 6.579 | 0.93 | 45 |
+| 2 | Van Hecke | 4.596 | 0.92 | 1, 1, 8, 8, 6, 3 |
+| 3 | Barry | 4.582 | 0.90 | 8, 2, 2, 2, 6, 6 |
+| 4 | Mbeumo | 4.572 | 0.93 | 2, 11, 8, 2, 2, 8 |
+| 5 | Groß | 4.435 | 0.93 | 53 total |
 
-- **Captain Haaland** — gap to #2 is 1.701, far outside the 0.5 tie band.
-  The IPS (H) row is banded (±) but his EP6 lead holds on every row of the
-  window; C5 is about the 3xc, which is not played this week.
-- **Vice Saka** — second on EP, different club and fixture.
+- **Captain Haaland** — gap to #2 is 1.983, far outside the 0.5 tie band.
+  The IPS (H) row is banded (±) but he leads the field on every row of the
+  window; C5 concerns the 3xc, which stays earmarked for GW9 (BHA (H),
+  λ_att 2.09, not banded).
+- **Vice Mbeumo** — #2 to #4 sit inside 0.024 (4.596 / 4.582 / 4.572), all
+  at p_start ≥ 0.85, so the spec's tiebreak does not separate them. S8 breaks
+  the tie inside the 0.5 single-GW band: Mbeumo has the steadiest points
+  record of the three (33 pts, three returns of 8+, 6/6 × 90, p 0.93 the
+  highest) and his row does not lean on a banded promoted-club P(CS) as
+  Van Hecke's GW7 row does (COV (H) 0.41 ±). Different club and fixture
+  from the captain.
 
 ## Bench order
 
-| Slot | Player | Pos | GW7 EP | DefCon share |
+| Slot | Player | Pos | GW7 EP | p_start_gw[0] |
 |---:|---|---|---:|---:|
-| 12 | Dubravka | GKP | 0.123 | — |
-| 13 | E.Le Fée | MID | 4.006 | 0.067 |
-| 14 | Justin | DEF | 3.637 | 0.165 |
-| 15 | Khalaili | DEF | 3.074 | 0.161 |
+| 12 | Dubravka | GKP | 0.123 | 0.03 |
+| 13 | Richards | DEF | 3.089 | 0.92 |
+| 14 | Schade | MID | 2.761 | 0.65 |
+| 15 | Shaw | DEF | 1.907 | 0.70 |
 
-Gaps 0.369 and 0.563 are outside C8's 0.25 band, so EP order stands and no
-DefCon tie-break is needed.
+Gaps 0.328 and 0.854 are outside C8's 0.25 band; EP order stands and no
+DefCon tie-break is needed. Richards first: the only bench row above 0.85
+p_start and a DEF, so a single DEF absence keeps three defenders.
 
 ## Transfers
 
-| Out | In | Sell | Buy |
-|---|---|---:|---:|
-| Raya (ARS, GKP, id 1) | Trafford (LEE, GKP, id 385) | 6.0 | 5.0 |
-| Tarkowski (EVE, DEF, id 229) | Van Hecke (TOT, DEF, id 112) | 6.1 | 4.9 |
-| Thiaw (NEW, DEF, id 445) | Silva (BOU, DEF, id 566) | 5.0 | 5.0 |
-| Tavernier (BOU, MID, id 68) | Saka (ARS, MID, id 12) | 6.0 | 9.6 |
-| Schade (BRE, MID, id 94) | Sávio (TOT, MID, id 403) | 6.2 | 6.5 |
-| Thiago (BRE, FWD, id 106) | Gonzalo (FUL, FWD, id 569) | 7.8 | 6.1 |
-| Richards (CRY, DEF, id 202) | Khalaili (CRY, DEF, id 588) | 4.9 | 5.0 |
-| Shaw (MUN, DEF, id 423) | Justin (LEE, DEF, id 332) | 4.3 | 4.5 |
+| Out | In | Sell | Buy | Cost |
+|---|---|---:|---:|---:|
+| Thiaw (NEW, DEF, id 445) | Van Hecke (TOT, DEF, id 112) | 5.0 | 4.9 | 0 |
 
-Sells 46.3, buys 46.6, bank 0.3 → 0.0. Hit cost 0 under the wildcard. The
-banked free transfer is untouched: 1 carried + 1 accrued = 2 at the GW8
-deadline.
+Sells 5.0, buys 4.9, bank 0.3 → 0.4. One free transfer used; 1 accrues for
+GW8 (free_transfers_banked 1).
 
-Execution order: the wildcard rides the make-transfers POST
-(`chip: wildcard`); the lineup follows once the eight ins land. Price
-exposure overnight: Groß rose 0.1 this event and Gabriel fell 0.1; of the
-ins, none moved this event. A rise of 0.1 on any in before the POST breaks
-the bank (0.0) and `make-transfers` refuses — the fallback is Justin → a
-£4.4m DEF or Khalaili → Richards kept (drop that pair, bank 0.1), either of
-which is a new STATE and plan.json before any POST.
+Execution order: transfers first, then the lineup (the XI names Van Hecke).
+Price exposure overnight (review F1, two-sided): Van Hecke is a net riser
+this event (+24.1k) and Thiaw a net faller (−15.8k); a 0.1 rise on Van Hecke
+or a 0.1 fall on Thiaw each leave the bank at 0.3, and both together 0.2 —
+no combination of single-tick moves breaks the bank, so no fallback plan is
+needed. POST today anyway so the sell price is the one graded.
 
 ## Chips
 
-`chip: wildcard` this GW. Set-1 wildcard window GW2–19 (bootstrap), unused.
-Edge over the best no-chip plan: +14.016 blend / +2.765 prior-only (gate
-≥ 6.0 / ≥ 0). Note for the finalizer and plan-builder: `chips_used` stays
-empty in this STATE block — `plan` refuses a `chip` that is also listed as
-used inside the same window; the GW8 cycle records it.
+`chip: null` this GW — user directive, no chip of any kind. Set-1 windows
+from bootstrap: wildcard / freehit GW2–19, bboost / 3xc GW1–19; none used.
 
-Provisional chip plan: 3xc GW9 (Haaland v BHA (H), λ_att 2.09, not banded —
-C5 holds), freehit GW16 (placeholder), bboost GW19 (placeholder; needs GK2
-repaired by free transfer first — the bench is otherwise three playing
-starters).
+Provisional chip plan: wildcard GW8 (the v1 package cleared the chip gate on
+this week's EP by +14.016 / +2.765 over plan A; the GW8 cycle regrades it on
+GW8–13, which already spans the GW10 fixture swing the analyst flags — MCI
+harder, ARS / BHA / LIV easier), 3xc GW9 (Haaland v BHA (H), λ_att 2.09, not
+banded — C5 holds), freehit GW16 (placeholder), bboost GW19 (placeholder;
+needs GK2 repaired first). Van Hecke was in the v1 wildcard squad, so this
+move is a step toward it, not against it. Only one chip per gameweek; a
+GW8 wildcard and GW9 3xc do not clash.
 
 ## Money
 
-Bank 0.0. team_value 99.1 (Σ selling prices after the wildcard 99.1 + bank
-0.0; kept players keep their GW6 selling prices, ins are at purchase price).
-Sell basis relayed.
+Bank 0.4. team_value 99.1 (Σ selling prices after the transfer 98.7 + bank
+0.4; kept players keep their GW6 selling prices, Van Hecke at purchase
+price). Sell basis relayed.
 
-Gate ids: 385,112,566,4,12,403,427,124,411,249,569,497,542,332,588
+Gate ids: 1,112,4,229,427,124,68,542,411,249,106,497,202,94,423
 
 Bench check: Dubravka (12, 0.03) | none other
-
-## Rejected alternatives
-
-| Alternative | Figure | Why rejected |
-|---|---|---|
-| Plan A alone, wildcard at GW8 as earmarked | +2.223 / +1.214; GW7 XI 54.855 | the wildcard clears its gate by +14.016 / +2.765 now, on LOW rows; waiting costs 2.6 on GW7 and one free transfer |
-| Plan B (Schade → Sávio) | +2.005 / +3.634 | FAIL on the greedy reference (0.218 below A) |
-| Best paid single: Thiaw → Silva | +4.017 / −0.634 | prior sign flip; and below the 6.0 hit gate |
-| Free hit | not graded | the wildcard is the better chip for a permanent repair of GK2, DEF5 and the midfield |
-| Triple captain GW7 | not graded | C5: earmark stays GW9 on Haaland's own EP; the GW7 IPS row is banded |
 
 ## Accepted risks
 
 | # | Risk | Detail |
 |---|---|---|
-| R1 | GK2 dead | Dubravka 0.123 (p 0.03). Trafford is a six-of-six 90-minute starter; a Trafford absence leaves the GK slot empty. First repair candidate for the GW8 free transfers (2 available) |
-| R2 | Eight buys on six rounds of evidence | All LOW, p_start ≥ 0.88. Silva (att 5.4 of 25.39), Sávio (four starts) and Gonzalo carry thin points records — 0, 0 and 1 returns ≥ 5 in six rounds — and are prior-negative pairs (see Swap pass); the package is +3.979 on prior-only |
-| R3 | Template exposure | Unheld: João Pedro (CHE, 70.9%), Calafiori (52.7%), Groß held (41.3%). João Pedro's best build is −1.03 blend / −2.09 prior |
-| R4 | Overnight price break | Bank 0.0; any 0.1 rise on an in before the POST refuses the package (fallback above) |
-| R5 | Promoted-club rows | Haaland v IPS, Van Hecke and Sávio v COV, Gonzalo v HUL all banded ±; none is a defensive largest-term pick (C12) |
-| R6 | TOT at the club cap | Van Hecke, Sávio, Dubravka: a future TOT buy needs Dubravka out first |
+| R1 | GK2 dead | Dubravka 0.123 (p 0.03). Raya is a six-of-six starter; a Raya absence leaves the GK slot empty. First repair at the GW8 wildcard, or the GW8 free transfer if the wildcard waits (review F6) |
+| R2 | Bench rows flagged | Schade d 75% (0.65 for GW7) and Shaw d 75% (0.70); auto-sub cover is Richards alone. Scored at 0 by the objective; no free move from either passes the gate |
+| R3 | Template exposure | Unheld > 30%: João Pedro 70.9, Calafiori 52.7, Rogers 45.9, De Cuyper 37.3, Cherki 34.0, B.Fernandes 33.0 (review F3). Held: Haaland, Raya, Groß. No single move toward them passes the gate this week; the GW8 wildcard is the free moment to take cover |
+| R4 | Van Hecke's GW7 row banded | COV (H) P(CS) 0.41 ±; his largest term is appearance, the buy stands on EP6 with GW7 excluded (18.87 v 16.41) |
+| R5 | Promoted-club rows in the XI | Haaland v IPS, Van Hecke v COV, both banded; neither is a defensive largest-term pick (C12) |
+| R6 | Free transfer spent before a possible wildcard | 1 FT at GW8 instead of 2. Costless if the wildcard is played; if not, the move's +2.223 / +1.214 is banked EP rather than a banked transfer |
 
 ## Suggestions
 
@@ -332,52 +316,45 @@ Read data/suggestions.md through S8
 | S3 | 6 | followed | Ndiaye → Groß made; marginal +2.503 blend / +0.665 prior against the plan without this sale (Scott + Anderson → E.Le Fée + Schade, +11.946 / +4.545), so the below-threshold clause was not needed |
 | S4 | 6 | followed | Anderson → Schade made; marginal +2.488 blend / +0.757 prior against the plan without this sale (Scott + Ndiaye → E.Le Fée + Groß, +11.961 / +4.453); clears the gate on both readings, below-threshold clause not needed |
 | S5 | 6 | followed | Scott → E.Le Fée made; EP6 0.00 for GW6–11 (status i, 0%); marginal +2.503 / +0.675 against the plan without this sale (Ndiaye + Anderson → E.Le Fée + Schade, +11.946 / +4.535) |
-| S6 | 7 | followed | wildcard played at GW7 on the fresh EP: +16.239 blend / +3.979 prior over GW7–12, +14.016 / +2.765 over the best no-chip plan, every buy LOW at p_start ≥ 0.88, the GW6 reason for GW8 (HIGH rows) gone; GW7 XI 57.49 after GW6's 56.18; 60 per GW stays unreachable, the best legal build tops out at 57.49 on GW7 (objective prints no GW8 XI total — backlog row) |
-| S7 | 7 | standing | honoured: of the named fallers Richards, Thiago and Shaw are sold in the wildcard (Ndiaye and Anderson went at GW6); Mbeumo held — the best same-price alternative Gibbs-White is −2.82 EP6, not small; within the band the policy settled Richards → Khalaili (+0.247 blend) alongside S8; policy stays live for the GW8 free transfers |
-| S8 | 7 | standing | honoured within the band: Gabriel (ARS, 3 returns in 6) kept over the V3 build's Hill/Calafiori/Mukiele (−0.40 blend, inside 0.5); Khalaili (7, 6 pts in R4–R5) over Richards (+0.247); outside the band EP wins: Tarkowski held costs −1.07 / −2.25, João Pedro −1.03 / −2.09, Calvert-Lewin for Gonzalo −0.96; Silva, Sávio and Gonzalo bought on EP despite thin records (0, 0, 1 returns) because no steadier player sits within 0.5 EP6 at their price |
+| S6 | 6 | standing | honoured: the wildcard is not played at GW7 by user directive (chip null), so its timing moves to GW8, inside this row's window; the GW7 EP cleared the chip gate (v1: +16.239 / +3.979, +14.016 / +2.765 over plan A) and the GW8 cycle regrades it; the free move Thiaw → Van Hecke +2.223 / +1.214 lifts GW7 to 54.86 from 54.05; 60 per GW stays unreachable (best legal GW7 build 57.49). Completes `followed` at a GW8 wildcard, or `expired` after GW8 |
+| S7 | 7 | standing | honoured: the one legal free move sells a faller — Thiaw (17.4k out v 1.6k in this event, sold at 5.0 before a drop) — though he is not a named row; of the named fallers Richards (0.6% owned, net −406), Thiago (net −34.5k), Shaw (net −62.7k) and Mbeumo (net −18.7k) have no move passing the gate (Shaw → Justin +1.219 / +0.968, Richards → Silva +2.366 / −1.943 sign flip, Thiago and Mbeumo absent from the top 20), none within 0.5 of plan A, so no in-band tie to settle; Gabriel (−0.1 this event, net −94k) held, no DEF move from him in the top 20; policy stays live for GW8 |
+| S8 | 7 | standing | honoured: Van Hecke (27 pts, 3 returns ≥ 5, 6/6 × 90, TOT CS rank 4) over Sávio (10 pts, 0 returns, 330', TOT ATT rank 16) inside the 0.5 band on the package delta (+2.223 v +2.005 blend), the same way the objective's greedy reference falls; vice tie inside 0.5 single-GW EP broken to Mbeumo 4.572 (33 pts, three 8+ returns, p 0.93) over Van Hecke 4.596 (banded COV row) and Barry 4.582; the GW6 buys E.Le Fée, Groß and Schade are held because no move from them passes the gate (Schade → Sávio FAIL on reference, Schade → Stach +0.740 / −0.427) |
 
 Malformed: none
 
 ## STATE
 
 ```yaml
-# free_transfers_banked = FTs available at the GW8 deadline: 1 at GW7, wildcard played (none used), 1 accrues.
-# team_value on the selling-price basis: kept players at GW6 sell prices + ins at purchase price = 99.1, bank 0.0.
-# chips_used stays empty: `plan` refuses a chip listed as used inside its own window; the GW8 cycle records the wildcard.
+# free_transfers_banked = FTs available at the GW8 deadline: 1 at GW7, 1 used, 1 accrues.
+# team_value on the selling-price basis: kept players at GW6 sell prices + Van Hecke at purchase price = 98.7, bank 0.4.
 gw: 7
 team_id: 8455344
 team_value: 99.1
-bank: 0.0
-free_transfers_banked: 2
-chip: wildcard
+bank: 0.4
+free_transfers_banked: 1
+chip: null
 chips_used: []
 transfers_made:
-  - {out: Raya, in: Trafford, cost: 0}
-  - {out: Tarkowski, in: Van Hecke, cost: 0}
-  - {out: Thiaw, in: Silva, cost: 0}
-  - {out: Tavernier, in: Saka, cost: 0}
-  - {out: Schade, in: Sávio, cost: 0}
-  - {out: Thiago, in: Gonzalo, cost: 0}
-  - {out: Richards, in: Khalaili, cost: 0}
-  - {out: Shaw, in: Justin, cost: 0}
+  - {out: Thiaw, in: Van Hecke, cost: 0}
 chip_plan:
+  - {chip: wildcard, gw: 8, status: provisional}
   - {chip: 3xc, gw: 9, status: provisional}
   - {chip: freehit, gw: 16, status: provisional}
   - {chip: bboost, gw: 19, status: provisional}
 picks:
-  - {id: 385, name: Trafford, position: 1, captain: false, vice: false}
+  - {id: 1, name: Raya, position: 1, captain: false, vice: false}
   - {id: 112, name: Van Hecke, position: 2, captain: false, vice: false}
-  - {id: 566, name: Silva, position: 3, captain: false, vice: false}
-  - {id: 4, name: Gabriel, position: 4, captain: false, vice: false}
-  - {id: 12, name: Saka, position: 5, captain: false, vice: true}
-  - {id: 403, name: Sávio, position: 6, captain: false, vice: false}
-  - {id: 427, name: Mbeumo, position: 7, captain: false, vice: false}
-  - {id: 124, name: Groß, position: 8, captain: false, vice: false}
+  - {id: 4, name: Gabriel, position: 3, captain: false, vice: false}
+  - {id: 229, name: Tarkowski, position: 4, captain: false, vice: false}
+  - {id: 427, name: Mbeumo, position: 5, captain: false, vice: true}
+  - {id: 124, name: Groß, position: 6, captain: false, vice: false}
+  - {id: 68, name: Tavernier, position: 7, captain: false, vice: false}
+  - {id: 542, name: E.Le Fée, position: 8, captain: false, vice: false}
   - {id: 411, name: Haaland, position: 9, captain: true, vice: false}
   - {id: 249, name: Barry, position: 10, captain: false, vice: false}
-  - {id: 569, name: Gonzalo, position: 11, captain: false, vice: false}
+  - {id: 106, name: Thiago, position: 11, captain: false, vice: false}
   - {id: 497, name: Dubravka, position: 12, captain: false, vice: false}
-  - {id: 542, name: E.Le Fée, position: 13, captain: false, vice: false}
-  - {id: 332, name: Justin, position: 14, captain: false, vice: false}
-  - {id: 588, name: Khalaili, position: 15, captain: false, vice: false}
+  - {id: 202, name: Richards, position: 13, captain: false, vice: false}
+  - {id: 94, name: Schade, position: 14, captain: false, vice: false}
+  - {id: 423, name: Shaw, position: 15, captain: false, vice: false}
 ```
