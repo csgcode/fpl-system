@@ -445,6 +445,57 @@ def test_record_all_force_reruns_from_the_recorded_baseline(quiet_world, capsys,
     assert len(list((gates_root / "archive").glob("x.*.json"))) == 1
 
 
+def test_record_all_refuses_a_baseline_record_missing_a_config_field(quiet_world, capsys,
+                                                                     tmp_path):
+    gates_root = tmp_path / "gates"
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("x", "model", ["--sweep", "blend_k=300,450", "--cv"]))
+    run_all = ("--manifest", str(manifest), "--record-all", "--gates-root", str(gates_root))
+    assert _run(quiet_world, *run_all) == 0
+    baseline = json.loads((gates_root / "baseline.json").read_text())
+    del baseline["baseline_config"]["blend_floor"]
+    (gates_root / "baseline.json").write_text(json.dumps(baseline), encoding="utf-8")
+    capsys.readouterr()
+    before = {path: path.read_bytes() for path in _files(gates_root)}
+
+    assert _run(quiet_world, *run_all, "--force") == 1
+    err = capsys.readouterr().err
+    assert "blend_floor" in err
+    assert "re-record the baseline" in err
+    assert {path: path.read_bytes() for path in _files(gates_root)} == before
+
+
+def test_record_all_combined_failure_reverts_the_last_pass(quiet_world, capsys, tmp_path,
+                                                           monkeypatch):
+    from fpl import backtest
+
+    real_combine = backtest.combine
+
+    def rejecting_blend_k_300(base, passes, judge):
+        def judged(config):
+            verdict = judge(config)
+            return replace(verdict, beats=verdict.beats and config.blend_k != 300.0)
+        return real_combine(base, passes, judged)
+
+    monkeypatch.setattr(backtest, "combine", rejecting_blend_k_300)
+    gates_root = tmp_path / "gates"
+    manifest_path = tmp_path / "manifest.toml"
+    entries = [("baseline", "model", []), ("x", "model", ["--sweep", "blend_k=300,450", "--cv"])]
+    run_all = ("--manifest", str(manifest_path), "--record-all", "--gates-root", str(gates_root))
+    _write_manifest(manifest_path, *entries)
+    assert _run(quiet_world, *run_all) == 0
+    records = _records(gates_root, "x", "combined")
+    assert records["x"]["verdict"] == "PASS"
+    assert records["x"]["ship_value"] == {"blend_k": 300.0}
+    assert records["combined"]["reverted"] == ["x"]
+    assert records["combined"]["shipped_config"] == asdict(DEFAULT_CONFIG)
+
+    _write_manifest(manifest_path, *entries, ("z", "model", ["--set", "blend_floor=0.9"]))
+    assert _run(quiet_world, *run_all) == 0
+    z = _records(gates_root, "z")["z"]
+    assert z["baseline_config"] == asdict(DEFAULT_CONFIG)
+
+
 def test_manifest_must_start_with_baseline(world, capsys, tmp_path):
     manifest = _write_manifest(tmp_path / "manifest.toml", ("x", "model", ["--set", "blend_k=300"]))
     assert _run(world, "--manifest", str(manifest), "--record-all",

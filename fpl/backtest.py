@@ -758,6 +758,11 @@ def _recorded_baseline(root: Path) -> ModelConfig:
     record = gates.read_record(root, gates.BASELINE)
     if record is None:
         return DEFAULT_CONFIG
+    missing = [f.name for f in fields(ModelConfig) if f.name not in record.baseline_config]
+    if missing:
+        raise ValueError(f"{gates.record_path(root, gates.BASELINE)}: baseline_config lacks "
+                         f"{', '.join(missing)} — the production default would fill it and "
+                         "the records would not reproduce; re-record the baseline")
     return _overlay(ModelConfig(), record.baseline_config)
 
 

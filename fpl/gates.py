@@ -109,11 +109,19 @@ def read_record(root: Path, name: str) -> GateRecord | None:
 
 
 def load_records(root: Path) -> list[GateRecord]:
-    """Every record directly under `root`, oldest first."""
+    """Every record directly under `root`: manifest entries in manifest
+    order, then records the manifest does not name by recording time, then
+    `combined`. Ordering by time alone is ambiguous — stamps have one-second
+    resolution and a whole manifest run can share one."""
     if not root.is_dir():
         return []
     records = [_load(path) for path in sorted(root.glob("*.json"))]
-    return sorted(records, key=lambda record: (record.recorded_at, record.name))
+    manifest = root / MANIFEST
+    order = ({entry.name: i for i, entry in enumerate(load_manifest(manifest))}
+             if manifest.is_file() else {})
+    return sorted(records, key=lambda record: (record.kind == "combined",
+                                               order.get(record.name, len(order)),
+                                               record.recorded_at, record.name))
 
 
 def _load(path: Path) -> GateRecord:

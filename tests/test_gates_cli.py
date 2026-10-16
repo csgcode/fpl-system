@@ -119,3 +119,36 @@ def test_render_refuses_a_doc_without_markers(gates_root, tmp_path, capsys):
 
 def test_render_of_no_records_is_empty():
     assert gates.render([]) == ""
+
+
+def test_records_follow_manifest_order_with_combined_last(tmp_path):
+    root = tmp_path / "gates"
+    root.mkdir()
+    same = "2026-10-21T09:00:00+00:00"
+    for record in (
+        _record("baseline", recorded_at=same),
+        _record("k450", ship={"blend_k": 450.0}, recorded_at=same),
+        _record("k300", ship={"blend_k": 300.0}, recorded_at=same),
+        _record("combined", kind="combined", ship={}, shipped_config=asdict(DEFAULT_CONFIG),
+                reverted=[], recorded_at=same),
+        _record("adhoc", recorded_at="2026-10-21T08:00:00+00:00"),
+    ):
+        (root / f"{record['name']}.json").write_text(json.dumps(record), encoding="utf-8")
+    (root / gates.MANIFEST).write_text(
+        "".join(f'[[gate]]\nname = "{name}"\nkind = "model"\nargv = {argv}\n\n'
+                for name, argv in (("baseline", "[]"), ("k450", '["--set", "blend_k=450"]'),
+                                   ("k300", '["--set", "blend_k=300"]'))),
+        encoding="utf-8")
+    names = [record.name for record in gates.load_records(root)]
+    assert names == ["baseline", "k450", "k300", "adhoc", "combined"]
+
+
+def test_records_without_a_manifest_keep_combined_last(tmp_path):
+    root = tmp_path / "gates"
+    root.mkdir()
+    same = "2026-10-21T09:00:00+00:00"
+    for record in (_record("k450", recorded_at=same),
+                   _record("combined", kind="combined", ship={},
+                           shipped_config=asdict(DEFAULT_CONFIG), reverted=[], recorded_at=same)):
+        (root / f"{record['name']}.json").write_text(json.dumps(record), encoding="utf-8")
+    assert [record.name for record in gates.load_records(root)] == ["k450", "combined"]
