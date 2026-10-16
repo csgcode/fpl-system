@@ -267,6 +267,10 @@ A retro correction to the arithmetic (a coefficient, an anchor, a blend
 constant) is a change to `fpl/ep.py` and this file, shipped with tests, not an
 instruction to an analyst. The judgment inputs stay where they are.
 
+A decided round's players-*.json is the decision record. `calibrate` scores the
+predictions lock, or else the files in the commit that first added that round's
+final.md, and warns when the working tree differs.
+
 ## 6. Fixture ratings
 
 `uv run python -m fpl fixtures-rate --gw N` writes `fixtures.json` and

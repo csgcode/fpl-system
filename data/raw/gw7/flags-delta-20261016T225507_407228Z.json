@@ -1,0 +1,30 @@
+{
+ "gw": 7,
+ "refreshed_at": "2026-10-16T22:55:07.407228+00:00",
+ "baseline": {
+  "source": "data/raw/gw7/.archive/bootstrap-20261016T220203_834178Z.json",
+  "fetched_at": "2026-10-16T22:02:03.834178+00:00",
+  "age_hours": 0.8843258472222222,
+  "stale": false
+ },
+ "gate_ids": [
+  1,
+  112,
+  4,
+  229,
+  427,
+  124,
+  68,
+  542,
+  411,
+  249,
+  106,
+  497,
+  202,
+  94,
+  423
+ ],
+ "gate_changed": false,
+ "gate": [],
+ "pool": []
+}

@@ -1,12 +1,34 @@
 from __future__ import annotations
 
+import hashlib
+import json
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
-from fpl.decision_record import decision_commit, drifted, materialize, repo_root
+from fpl.decision_record import (
+    LOCK_FILENAME,
+    decision_commit,
+    drifted,
+    materialize,
+    record_predictions,
+    repo_root,
+    write_lock,
+)
 from tests.gitrepo import commit_files, init_repo
+from tests.test_calibrate import POSITION_FILES, prediction_row
 
 MID = "data/analysis/gw6/players-MID.json"
 FINAL = "data/decisions/gw6/final.md"
+DEADLINE = datetime(2026, 8, 22, 12, 0, tzinfo=UTC)
+
+
+def before_deadline():
+    return DEADLINE - timedelta(hours=1)
+
+
+def lock(analysis_dir, lock_path, gw, *, now=before_deadline):
+    return write_lock(analysis_dir, lock_path, gw, deadline=DEADLINE, now=now)
 
 
 @pytest.fixture
@@ -78,3 +100,157 @@ def test_nothing_drifts_when_the_tree_matches_the_commit(history):
     repo, _ = history
     head = commit_files(repo, {}, "empty")
     assert drifted(repo, head, ["data/analysis/gw6"]) == []
+
+
+# --- the predictions lock ---------------------------------------------------
+
+
+def seed_players(analysis_dir, rows_by_position):
+    analysis_dir.mkdir(parents=True, exist_ok=True)
+    for position, rows in rows_by_position.items():
+        (analysis_dir / f"players-{position}.json").write_text(json.dumps(rows), encoding="utf-8")
+
+
+def players_row(id, ep, p_start):
+    return {"id": id, "name": f"P{id}", "ep_gw": [ep, 1.0], "p_start": p_start}
+
+
+def test_write_lock_records_hashes_and_rows(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)],
+                                "FWD": [players_row(2, 4.25, 0.5)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+
+    assert lock(analysis_dir, lock_path, 2) == []
+
+    def digest(name):
+        return hashlib.sha256((analysis_dir / name).read_bytes()).hexdigest()
+
+    assert json.loads(lock_path.read_text(encoding="utf-8")) == {
+        "schema_version": 1,
+        "gw": 2,
+        "files": {"players-FWD.json": digest("players-FWD.json"),
+                  "players-MID.json": digest("players-MID.json")},
+        "rows": {"1": [3.0, 0.9], "2": [4.25, 0.5]},
+    }
+
+
+def test_write_lock_with_unchanged_files_leaves_the_lock_alone(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+    lock(analysis_dir, lock_path, 2)
+    first = lock_path.read_bytes()
+
+    assert lock(analysis_dir, lock_path, 2) == []
+    assert lock_path.read_bytes() == first
+    assert sorted(p.name for p in lock_path.parent.iterdir()) == [LOCK_FILENAME]
+
+
+def test_write_lock_before_the_deadline_replaces_a_stale_lock_and_archives_it(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+    lock(analysis_dir, lock_path, 2)
+    first = lock_path.read_bytes()
+
+    seed_players(analysis_dir, {"MID": [players_row(1, 5.0, 0.4)]})
+    second_warnings = lock(analysis_dir, lock_path, 2)
+    second = lock_path.read_bytes()
+    seed_players(analysis_dir, {"MID": [players_row(1, 6.0, 0.4)]})
+    third_warnings = lock(analysis_dir, lock_path, 2)
+
+    archive_1 = lock_path.with_name("predictions.lock.v1.json")
+    archive_2 = lock_path.with_name("predictions.lock.v2.json")
+    assert archive_1.read_bytes() == first
+    assert archive_2.read_bytes() == second
+    assert json.loads(lock_path.read_text(encoding="utf-8"))["rows"] == {"1": [6.0, 0.4]}
+    assert second_warnings == [
+        f"predictions lock {lock_path} replaced — players-*.json changed since it "
+        f"was written; previous lock archived as {archive_1}"
+    ]
+    assert len(third_warnings) == 1 and str(archive_2) in third_warnings[0]
+
+
+def test_write_lock_after_the_deadline_leaves_an_existing_lock_unchanged(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+    lock(analysis_dir, lock_path, 2)
+    first = lock_path.read_bytes()
+
+    seed_players(analysis_dir, {"MID": [players_row(1, 5.0, 0.9)]})
+    warnings = lock(analysis_dir, lock_path, 2, now=lambda: DEADLINE)
+
+    assert warnings == ["gw2 deadline passed — predictions lock not written"]
+    assert lock_path.read_bytes() == first
+    assert sorted(p.name for p in lock_path.parent.iterdir()) == [LOCK_FILENAME]
+
+
+def test_write_lock_without_players_files_writes_nothing(tmp_path):
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+
+    warnings = lock(tmp_path / "analysis" / "gw2", lock_path, 2)
+
+    assert warnings == ["no players-*.json for gw2 — predictions lock not written"]
+    assert not lock_path.exists()
+
+
+@pytest.mark.parametrize("now", [DEADLINE, DEADLINE + timedelta(days=30)])
+def test_write_lock_after_the_deadline_writes_nothing(tmp_path, now):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+
+    warnings = lock(analysis_dir, lock_path, 2, now=lambda: now)
+
+    assert warnings == ["gw2 deadline passed — predictions lock not written"]
+    assert not lock_path.exists()
+
+
+def locked_then_drifted(analysis_root, gw=2):
+    analysis_dir = analysis_root / f"gw{gw}"
+    seed_players(analysis_dir, {pos: [] for pos in POSITION_FILES}
+                 | {"MID": [prediction_row(id=1, ep_gw=[3.0] * 6)]})
+    decisions_root = analysis_root.parent / "decisions"
+    assert lock(analysis_dir, decisions_root / f"gw{gw}" / LOCK_FILENAME, gw) == []
+    seed_players(analysis_dir, {"MID": [prediction_row(id=1, ep_gw=[5.0] * 6)]})
+    return record_predictions(analysis_root, decisions_root, gw)
+
+
+def test_lock_drift_paths_are_repo_relative_inside_git(tmp_path):
+    repo = init_repo(tmp_path / "repo")
+
+    record = locked_then_drifted(repo / "data" / "analysis")
+
+    assert record.drifted == ("data/analysis/gw2/players-MID.json",)
+
+
+def test_lock_drift_paths_outside_git_are_relative_to_the_analysis_roots_parent(tmp_path):
+    record = locked_then_drifted(tmp_path / "x" / "data" / "analysis")
+
+    assert record.drifted == ("analysis/gw2/players-MID.json",)
+
+
+def test_commit_mode_refuses_a_decisions_root_outside_the_repo(tmp_path):
+    repo = init_repo(tmp_path / "repo")
+    commit_files(repo, {MID: "[]", FINAL: "decided"}, "gw6: decision")
+    outside = tmp_path / "elsewhere" / "decisions"
+
+    with pytest.raises(ValueError, match="--predictions-from worktree") as raised:
+        record_predictions(repo / "data" / "analysis", outside, 6)
+
+    assert str(outside) in str(raised.value)
+
+
+def test_a_lock_for_another_gameweek_is_refused(tmp_path):
+    analysis_root = tmp_path / "data" / "analysis"
+    seed_players(analysis_root / "gw2", {pos: [] for pos in POSITION_FILES}
+                 | {"MID": [prediction_row(id=1)]})
+    lock_path = tmp_path / "data" / "decisions" / "gw2" / LOCK_FILENAME
+    assert lock(analysis_root / "gw2", lock_path, 3) == []
+
+    with pytest.raises(ValueError, match="gw3") as raised:
+        record_predictions(analysis_root, tmp_path / "data" / "decisions", 2)
+
+    assert str(lock_path) in str(raised.value)

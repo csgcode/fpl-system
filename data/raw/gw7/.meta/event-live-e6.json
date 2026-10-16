@@ -1,4 +1,6 @@
 {
- "fetched_at": "2026-10-16T15:37:25.002859+00:00",
- "source_url": "https://fantasy.premierleague.com/api/event/6/live/"
+ "fetched_at": "2026-10-16T22:06:43.953341+00:00",
+ "source_url": "https://fantasy.premierleague.com/api/event/6/live/",
+ "final": true,
+ "basis": "bootstrap gw7 fetched 2026-10-16T15:35:41.116161+00:00 shows event 6 data_checked"
 }

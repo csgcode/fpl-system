@@ -1,0 +1,307 @@
+{
+ "gw": 7,
+ "refreshed_at": "2026-10-16T22:02:03.834178+00:00",
+ "baseline": {
+  "source": "data/raw/gw7/.archive/bootstrap-20261016T153541_116161Z.json",
+  "fetched_at": "2026-10-16T15:35:41.116161+00:00",
+  "age_hours": 6.439643893611111,
+  "stale": false
+ },
+ "gate_ids": [
+  1,
+  112,
+  4,
+  229,
+  427,
+  124,
+  68,
+  542,
+  411,
+  249,
+  106,
+  497,
+  202,
+  94,
+  423
+ ],
+ "gate_changed": false,
+ "gate": [],
+ "pool": [
+  {
+   "id": 9,
+   "web_name": "Hincapie",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Ankle injury - 75% chance of playing",
+     "after": "Ankle injury - Expected back 24 Oct"
+    }
+   ]
+  },
+  {
+   "id": 46,
+   "web_name": "Barkley",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Unspecified injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 84,
+   "web_name": "Collins",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "i",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 0,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "Calf injury - Unknown return date",
+     "after": "Calf injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 198,
+   "web_name": "Henderson",
+   "position": "GKP",
+   "changes": [
+    {
+     "field": "status",
+     "before": "i",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 0,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "Foot injury - Expected back 18 Oct",
+     "after": "Foot injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 230,
+   "web_name": "Branthwaite",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Leg injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 233,
+   "web_name": "Mykolenko",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "Leg injury - 75% chance of playing",
+     "after": "Leg injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 328,
+   "web_name": "Struijk",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 100,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Hamstring injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 343,
+   "web_name": "James",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "i",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 0,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "Back injury - Expected back 18 Oct",
+     "after": "Back injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 422,
+   "web_name": "Mazraoui",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 25
+    },
+    {
+     "field": "news",
+     "before": "Back injury - 75% chance of playing",
+     "after": "Back injury - 25% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 450,
+   "web_name": "Livramento",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 50,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Unspecified injury - 50% chance of playing",
+     "after": "Unspecified injury - Expected back 2 Nov"
+    }
+   ]
+  },
+  {
+   "id": 480,
+   "web_name": "Gibbs-White",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 100,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Muscular injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 617,
+   "web_name": "Cho",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Unspecified injury - Expected back 25 Oct"
+    }
+   ]
+  },
+  {
+   "id": 635,
+   "web_name": "Larsson",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 25
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Groin injury - 25% chance of playing"
+    }
+   ]
+  }
+ ]
+}

@@ -3,9 +3,12 @@ the written ledger file, and printed output — over a fake gateway."""
 
 from __future__ import annotations
 
+import hashlib
 import json
+from datetime import UTC, datetime, timedelta
 
 from fpl.__main__ import main
+from fpl.decision_record import write_lock
 from fpl.api import BASE_URL, FplApi
 from fpl.service import FplDataService
 from fpl.store import SnapshotStore
@@ -20,6 +23,7 @@ from tests.gitrepo import commit_files, init_repo
 from tests.test_service import FakeGateway
 
 LIVE_1_URL = f"{BASE_URL}/event/1/live/"
+DEADLINE = datetime(2026, 8, 14, 17, 30, tzinfo=UTC)
 
 
 def run(argv, data_root, gateway):
@@ -362,3 +366,76 @@ def test_calibrate_worktree_mode_reads_the_files_on_disk(tmp_path, capsys):
     assert alpha_predicted(document) == 5.0
     assert document["predictions_source"] == "worktree"
     assert "predictions: worktree" in capsys.readouterr().out.splitlines()
+
+
+def test_calibrate_falls_back_to_the_decision_commit_after_a_post_deadline_lock(
+    tmp_path, capsys
+):
+    data_root, gateway, argv, sha = setup_committed_round(tmp_path)
+    analysis_dir = tmp_path / "analysis" / "gw1"
+    lock_path = tmp_path / "decisions" / "gw1" / "predictions.lock.json"
+
+    warnings = write_lock(analysis_dir, lock_path, 1, deadline=DEADLINE,
+                          now=lambda: DEADLINE + timedelta(days=30))
+
+    assert warnings == ["gw1 deadline passed — predictions lock not written"]
+    assert run_committed(argv, data_root, gateway) == 0
+    document = ledger(tmp_path)
+    assert alpha_predicted(document) == 3.0
+    assert document["predictions_source"] == f"commit {sha[:12]}"
+    assert document["drifted"] == [ALPHA_MID]
+
+
+def setup_locked_round(tmp_path):
+    data_root, gateway, argv = setup_round(tmp_path)
+    analysis_dir = tmp_path / "analysis" / "gw1"
+    (analysis_dir / "players-MID.json").write_text(mid_rows(3.0), encoding="utf-8")
+    lock_path = tmp_path / "decisions" / "gw1" / "predictions.lock.json"
+    assert write_lock(analysis_dir, lock_path, 1, deadline=DEADLINE,
+                      now=lambda: DEADLINE - timedelta(hours=1)) == []
+    return data_root, gateway, argv, analysis_dir, lock_path
+
+
+def test_calibrate_prefers_the_lock(tmp_path, capsys):
+    data_root, gateway, argv, analysis_dir, lock_path = setup_locked_round(tmp_path)
+    rows = json.loads(mid_rows(5.0))
+    rows[0]["p_start"] = 0.2
+    (analysis_dir / "players-MID.json").write_text(json.dumps(rows), encoding="utf-8")
+
+    assert run_committed(argv, data_root, gateway) == 0
+
+    document = ledger(tmp_path)
+    alpha = next(p for p in document["players"] if p["id"] == 1)
+    assert (alpha["predicted"], alpha["p_start"]) == (3.0, 0.9)
+    lock_sha = hashlib.sha256(lock_path.read_bytes()).hexdigest()[:12]
+    assert document["predictions_source"] == f"lock {lock_sha}"
+    assert document["drifted"] == [ALPHA_MID]
+    captured = capsys.readouterr()
+    assert f"predictions: lock {lock_sha} (drift: 1 file)" in captured.out.splitlines()
+    warnings = [line for line in captured.err.splitlines() if line.startswith("WARNING:")]
+    assert warnings == [
+        f"WARNING: 1 prediction file changed after predictions lock {lock_sha} — "
+        f"calibrated the decision record: {ALPHA_MID}"
+    ]
+
+
+def test_calibrate_reads_an_untouched_lock_without_drift(tmp_path, capsys):
+    data_root, gateway, argv, _, lock_path = setup_locked_round(tmp_path)
+
+    assert run_committed(argv, data_root, gateway) == 0
+
+    document = ledger(tmp_path)
+    assert alpha_predicted(document) == 3.0
+    assert document["drifted"] == []
+    assert "WARNING" not in capsys.readouterr().err
+
+
+def test_calibrate_refuses_a_lock_id_missing_on_disk(tmp_path, capsys):
+    data_root, gateway, argv, analysis_dir, _ = setup_locked_round(tmp_path)
+    rows = json.loads(mid_rows(3.0))
+    (analysis_dir / "players-MID.json").write_text(json.dumps(rows[1:]), encoding="utf-8")
+
+    assert run_committed(argv, data_root, gateway) == 1
+
+    err = capsys.readouterr().err
+    assert "player id 1 " in err and "--predictions-from worktree" in err
