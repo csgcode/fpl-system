@@ -12,12 +12,14 @@ scores what `fpl ep` would have written.
 from __future__ import annotations
 
 import json
+import math
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fpl import calibrate, ep, fixture_ratings
-from fpl.calibrate import PlayerLine, PlayerPrediction
+from fpl.calibrate import Aggregate, PlayerLine, PlayerPrediction
 from fpl.decision_record import decision_commit, drifted, repo_root
 from fpl.ep import (
     DEFAULT_CONFIG,
@@ -34,6 +36,11 @@ from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
 INPUTS_POLICIES = ("keep",)
+
+GATE_Z = 1.96
+GATE_BIAS_SLACK = 0.05
+GATE_POSITION_SLACK = 0.02
+GATE_MIN_EFFECT = -0.01
 
 
 @dataclass(frozen=True)
@@ -141,6 +148,150 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
         for line in report.players
     )
     return RoundScore(lines=lines, warnings=tuple(warnings))
+
+
+@dataclass(frozen=True)
+class GroupComparison:
+    n: int
+    baseline: Aggregate
+    variant: Aggregate
+    delta_mae: float
+
+
+@dataclass(frozen=True)
+class Comparison:
+    """A variant against the baseline on the same (round, id) lines.
+    `delta_mae`, `se`, `ci` and `round_deltas` come from the unrounded
+    per-line differences; the aggregates are rounded and for display only.
+    A slice with no lines is None."""
+
+    n: int
+    baseline: Aggregate
+    variant: Aggregate
+    delta_mae: float
+    se: float
+    ci: tuple[float, float]
+    round_deltas: dict[int, float]
+    round_wins: tuple[int, int]
+    by_position: dict[str, GroupComparison]
+    slices: dict[str, GroupComparison | None]
+    beats: bool
+    reasons: tuple[str, ...]
+
+
+SLICES: dict[str, Callable[[BacktestLine], bool]] = {
+    "promoted": lambda line: line.promoted,
+    "no_history": lambda line: line.no_history,
+}
+
+
+def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -> Comparison:
+    """Pairs the two sides on (round, id), d = |e_variant| − |e_baseline|
+    per line, and applies the gate: the CI of mean d, clustered by
+    (round, club), lies below zero; the variant's bias is no worse than the
+    baseline's plus a slack; no position worsens by more than a slack; the
+    mean improvement reaches the minimum effect; and the variant wins all
+    rounds but at most one. Raises ValueError on unpaired or duplicate lines."""
+    base_by_key = _keyed(baseline, "baseline")
+    variant_by_key = _keyed(variant, "variant")
+    if base_by_key.keys() != variant_by_key.keys():
+        only_base = sorted(base_by_key.keys() - variant_by_key.keys())
+        only_variant = sorted(variant_by_key.keys() - base_by_key.keys())
+        raise ValueError("unpaired lines (round, id): baseline only "
+                         f"{only_base or 'none'}, variant only {only_variant or 'none'}")
+    if not base_by_key:
+        raise ValueError("no lines to compare")
+    keys = sorted(base_by_key)
+    pairs = [(base_by_key[k], variant_by_key[k]) for k in keys]
+    d = [abs(v.error) - abs(b.error) for b, v in pairs]
+    n = len(d)
+    delta = sum(d) / n
+
+    clusters: dict[tuple[int, str], float] = {}
+    for (b, _), di in zip(pairs, d):
+        key = (b.round, b.club)
+        clusters[key] = clusters.get(key, 0.0) + (di - delta)
+    se = math.sqrt(sum(total ** 2 for total in clusters.values())) / n
+    ci = (delta - GATE_Z * se, delta + GATE_Z * se)
+
+    by_round: dict[int, list[float]] = {}
+    for (b, _), di in zip(pairs, d):
+        by_round.setdefault(b.round, []).append(di)
+    round_deltas = {r: sum(values) / len(values) for r, values in sorted(by_round.items())}
+    wins = sum(1 for value in round_deltas.values() if value < 0)
+    rounds = len(round_deltas)
+
+    by_position = {
+        position: _group(pairs, d, lambda line, position=position: line.position == position)
+        for position in _positions(b.position for b, _ in pairs)
+    }
+    slices = {name: _group(pairs, d, member) for name, member in SLICES.items()}
+
+    bias_base = _mean_error(b for b, _ in pairs)
+    bias_variant = _mean_error(v for _, v in pairs)
+    reasons: list[str] = []
+    if ci[1] >= 0:
+        reasons.append(f"ci: upper {ci[1]:+.3f} ≥ 0")
+    if abs(bias_variant) > abs(bias_base) + GATE_BIAS_SLACK:
+        reasons.append(f"bias: |b_v| {abs(bias_variant):.3f} > |b_b| {abs(bias_base):.3f} "
+                       f"+ {GATE_BIAS_SLACK}")
+    for position, group in by_position.items():
+        if group.delta_mae > GATE_POSITION_SLACK:
+            reasons.append(f"position {position}: ΔMAE {group.delta_mae:+.3f} "
+                           f"> {GATE_POSITION_SLACK:+}")
+    if delta > GATE_MIN_EFFECT:
+        reasons.append(f"effect: ΔMAE {delta:+.4f} > {GATE_MIN_EFFECT:+}")
+    if wins < rounds - 1:
+        reasons.append(f"rounds: won {wins} of {rounds}, need {rounds - 1}")
+
+    return Comparison(
+        n=n,
+        baseline=calibrate.aggregate([b for b, _ in pairs]),
+        variant=calibrate.aggregate([v for _, v in pairs]),
+        delta_mae=delta,
+        se=se,
+        ci=ci,
+        round_deltas=round_deltas,
+        round_wins=(wins, rounds),
+        by_position=by_position,
+        slices=slices,
+        beats=not reasons,
+        reasons=tuple(reasons),
+    )
+
+
+def _keyed(lines: Sequence[BacktestLine], side: str) -> dict[tuple[int, int], BacktestLine]:
+    keyed: dict[tuple[int, int], BacktestLine] = {}
+    for line in lines:
+        key = (line.round, line.id)
+        if key in keyed:
+            raise ValueError(f"duplicate {side} line (round, id) {key}")
+        keyed[key] = line
+    return keyed
+
+
+def _positions(seen) -> list[str]:
+    present = set(seen)
+    ordered = [p.name for p in POSITIONS if p.name in present]
+    return ordered + sorted(present - set(ordered))
+
+
+def _group(pairs: list[tuple[BacktestLine, BacktestLine]], d: list[float],
+           member: Callable[[BacktestLine], bool]) -> GroupComparison | None:
+    chosen = [(pair, di) for pair, di in zip(pairs, d) if member(pair[0])]
+    if not chosen:
+        return None
+    return GroupComparison(
+        n=len(chosen),
+        baseline=calibrate.aggregate([b for (b, _), _ in chosen]),
+        variant=calibrate.aggregate([v for (_, v), _ in chosen]),
+        delta_mae=sum(di for _, di in chosen) / len(chosen),
+    )
+
+
+def _mean_error(lines) -> float:
+    errors = [line.error for line in lines]
+    return sum(errors) / len(errors)
 
 
 def _uncovered(bootstrap: Bootstrap, position: Position,

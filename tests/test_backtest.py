@@ -5,13 +5,14 @@ under a model variant."""
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
-from fpl.backtest import BacktestLine, load_round, score_round
+from fpl.backtest import BacktestLine, compare, load_round, score_round
 from fpl.ep import DEFAULT_CONFIG, build_predictions
 from fpl.models import Position
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
@@ -316,3 +317,122 @@ def test_score_round_refuses_an_unknown_inputs_policy(world):
     _, raw, analysis = world
     with pytest.raises(ValueError, match="inputs policy"):
         score_round(_load(raw, analysis), DEFAULT_CONFIG, inputs_policy="drop")
+
+
+def _line(error: float, *, id: int, round: int = GW, club: str | None = None,
+          position: str = "MID", promoted: bool = False,
+          no_history: bool = False) -> BacktestLine:
+    club = club or f"C{id}"
+    return BacktestLine(
+        id=id, name=f"P{id}", team=club, position=position, price=5.0, uncertainty="LOW",
+        p_start=0.9, predicted=-error, actual=0, error=error, minutes=90, started=True,
+        round=round, club=club, promoted=promoted, no_history=no_history,
+    )
+
+
+def _sides(baseline_errors, variant_errors, **kwargs):
+    baseline = [_line(e, id=i, **kwargs) for i, e in enumerate(baseline_errors, start=1)]
+    variant = [_line(e, id=i, **kwargs) for i, e in enumerate(variant_errors, start=1)]
+    return baseline, variant
+
+
+def _alternating(n: int, magnitude: float) -> list[float]:
+    return [magnitude if i % 2 == 0 else -magnitude for i in range(n)]
+
+
+def _reason_keys(comparison) -> list[str]:
+    return [reason.split(":", 1)[0] for reason in comparison.reasons]
+
+
+def test_compare_reports_paired_delta_and_gate():
+    clubs = {1: ("TST", "MID", True, False), 2: ("TST", "MID", False, True),
+             3: ("OPP", "DEF", False, False), 4: ("OPP", "DEF", False, False)}
+
+    def side(errors):
+        return [_line(e, id=i, club=clubs[i][0], position=clubs[i][1],
+                      promoted=clubs[i][2], no_history=clubs[i][3])
+                for i, e in zip(clubs, errors)]
+
+    result = compare(side([2, -2, 4, -4]), side([1, -1, 2, -2]))
+    se = math.sqrt(2) / 4
+    assert result.n == 4
+    assert result.delta_mae == -1.5
+    assert result.se == pytest.approx(se)
+    assert result.ci == pytest.approx((-1.5 - 1.96 * se, -1.5 + 1.96 * se))
+    assert result.round_deltas == {3: -1.5}
+    assert result.round_wins == (1, 1)
+    assert result.beats is True
+    assert result.reasons == ()
+    assert (result.baseline.mae, result.variant.mae) == (3.0, 1.5)
+    mid, defenders = result.by_position["MID"], result.by_position["DEF"]
+    assert (mid.n, mid.baseline.mae, mid.variant.mae, mid.delta_mae) == (2, 2.0, 1.0, -1.0)
+    assert (defenders.n, defenders.baseline.bias, defenders.variant.mae) == (2, 0.0, 2.0)
+    assert set(result.slices) == {"promoted", "no_history"}
+    assert (result.slices["promoted"].n, result.slices["promoted"].variant.bias) == (1, 1.0)
+    assert (result.slices["no_history"].n, result.slices["no_history"].delta_mae) == (1, -1.0)
+
+
+def test_compare_slice_with_no_lines_is_none():
+    baseline, variant = _sides([2, -2], [1, -1])
+    result = compare(baseline, variant)
+    assert result.slices == {"promoted": None, "no_history": None}
+
+
+def test_gate_fails_on_ci_only():
+    result = compare(*_sides([4, 0.1], [1, 3.0]))
+    assert result.delta_mae == pytest.approx(-0.05)
+    assert _reason_keys(result) == ["ci"]
+    assert result.beats is False
+
+
+def test_gate_fails_on_bias_only():
+    result = compare(*_sides([2, -2, 2, -2], [1.06, -0.94, 1.06, -0.94]))
+    assert result.delta_mae == pytest.approx(-1.0)
+    assert result.se == pytest.approx(0.03)
+    assert _reason_keys(result) == ["bias"]
+
+
+def test_gate_fails_on_position_only():
+    mids = _alternating(20, 2), _alternating(20, 1)
+    baseline = [_line(e, id=i) for i, e in enumerate(mids[0], start=1)]
+    variant = [_line(e, id=i) for i, e in enumerate(mids[1], start=1)]
+    baseline += [_line(e, id=100 + i, position="DEF") for i, e in enumerate([1, -1])]
+    variant += [_line(e, id=100 + i, position="DEF") for i, e in enumerate([1.05, -1.05])]
+    result = compare(baseline, variant)
+    assert result.delta_mae == pytest.approx(-19.9 / 22)
+    assert result.by_position["DEF"].delta_mae == pytest.approx(0.05)
+    assert _reason_keys(result) == ["position DEF"]
+
+
+def test_gate_fails_on_effect_only():
+    result = compare(*_sides(_alternating(100, 2), _alternating(100, 1.995)))
+    assert result.delta_mae == pytest.approx(-0.005)
+    assert result.se == pytest.approx(0.0, abs=1e-12)
+    assert _reason_keys(result) == ["effect"]
+
+
+def test_gate_fails_on_round_wins_only():
+    baseline, variant = [], []
+    for r, (before, after) in {3: (2, 1), 4: (1, 1.01), 5: (1, 1.01)}.items():
+        for i, (b, v) in enumerate(zip(_alternating(10, before), _alternating(10, after))):
+            baseline.append(_line(b, id=i, round=r, club=f"C{r}-{i}"))
+            variant.append(_line(v, id=i, round=r, club=f"C{r}-{i}"))
+    result = compare(baseline, variant)
+    assert result.delta_mae == pytest.approx(-9.8 / 30)
+    assert result.round_wins == (1, 3)
+    assert result.round_deltas == pytest.approx({3: -1.0, 4: 0.01, 5: 0.01})
+    assert _reason_keys(result) == ["rounds"]
+
+
+def test_compare_refuses_unpaired_lines():
+    baseline, variant = _sides([2, -2], [1, -1])
+    with pytest.raises(ValueError, match="unpaired"):
+        compare(baseline, variant[:1])
+    with pytest.raises(ValueError, match="unpaired"):
+        compare(baseline, [*variant, _line(1, id=1, round=GW + 1)])
+
+
+def test_compare_refuses_duplicate_lines():
+    baseline, variant = _sides([2, -2], [1, -1])
+    with pytest.raises(ValueError, match="duplicate"):
+        compare([*baseline, baseline[0]], [*variant, variant[0]])
