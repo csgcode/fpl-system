@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 import pytest
 
-from fpl.decision_record import decision_commit, drifted, materialize, repo_root
+from fpl.decision_record import (
+    LOCK_FILENAME,
+    decision_commit,
+    drifted,
+    materialize,
+    repo_root,
+    write_lock,
+)
 from tests.gitrepo import commit_files, init_repo
 
 MID = "data/analysis/gw6/players-MID.json"
@@ -78,3 +88,61 @@ def test_nothing_drifts_when_the_tree_matches_the_commit(history):
     repo, _ = history
     head = commit_files(repo, {}, "empty")
     assert drifted(repo, head, ["data/analysis/gw6"]) == []
+
+
+# --- the predictions lock ---------------------------------------------------
+
+
+def seed_players(analysis_dir, rows_by_position):
+    analysis_dir.mkdir(parents=True, exist_ok=True)
+    for position, rows in rows_by_position.items():
+        (analysis_dir / f"players-{position}.json").write_text(json.dumps(rows), encoding="utf-8")
+
+
+def players_row(id, ep, p_start):
+    return {"id": id, "name": f"P{id}", "ep_gw": [ep, 1.0], "p_start": p_start}
+
+
+def test_write_lock_records_hashes_and_rows(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)],
+                                "FWD": [players_row(2, 4.25, 0.5)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+
+    assert write_lock(analysis_dir, lock_path, 2) == []
+
+    def digest(name):
+        return hashlib.sha256((analysis_dir / name).read_bytes()).hexdigest()
+
+    assert json.loads(lock_path.read_text(encoding="utf-8")) == {
+        "schema_version": 1,
+        "gw": 2,
+        "files": {"players-FWD.json": digest("players-FWD.json"),
+                  "players-MID.json": digest("players-MID.json")},
+        "rows": {"1": [3.0, 0.9], "2": [4.25, 0.5]},
+    }
+
+
+def test_write_lock_is_write_once(tmp_path):
+    analysis_dir = tmp_path / "analysis" / "gw2"
+    seed_players(analysis_dir, {"MID": [players_row(1, 3.0, 0.9)]})
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+    write_lock(analysis_dir, lock_path, 2)
+    first = lock_path.read_bytes()
+
+    assert write_lock(analysis_dir, lock_path, 2) == []
+
+    seed_players(analysis_dir, {"MID": [players_row(1, 5.0, 0.9)]})
+    warnings = write_lock(analysis_dir, lock_path, 2)
+
+    assert lock_path.read_bytes() == first
+    assert len(warnings) == 1 and str(lock_path) in warnings[0]
+
+
+def test_write_lock_without_players_files_writes_nothing(tmp_path):
+    lock_path = tmp_path / "decisions" / "gw2" / LOCK_FILENAME
+
+    warnings = write_lock(tmp_path / "analysis" / "gw2", lock_path, 2)
+
+    assert warnings == ["no players-*.json for gw2 — predictions lock not written"]
+    assert not lock_path.exists()

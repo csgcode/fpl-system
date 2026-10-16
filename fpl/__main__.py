@@ -46,7 +46,12 @@ from fpl.calibrate import (
     squad_misses,
 )
 from fpl.capture import is_git_ignored, parse_curl
-from fpl.decision_record import RecordPredictions, record_predictions
+from fpl.decision_record import (
+    LOCK_FILENAME,
+    RecordPredictions,
+    record_predictions,
+    write_lock,
+)
 from fpl.corrections import agent_corrections, build_digest
 from fpl.ep import (
     EpResult,
@@ -408,6 +413,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--prev-final", type=Path,
         help="previous gameweek's final.md (default: the gw{N-1} sibling)",
     )
+    plan_cmd.add_argument(
+        "--analysis-root", type=Path, default=ANALYSIS_ROOT,
+        help=f"root holding gw{{N}}/players-*.json, locked once into "
+             f"{LOCK_FILENAME} beside final.md",
+    )
     plan_cmd.add_argument("--format", choices=("table", "json"), default="table")
     plan_cmd.add_argument(
         "--out", type=Path, help="also write the JSON document to this path"
@@ -463,7 +473,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     calibrate.add_argument(
         "--predictions-from", choices=("commit", "worktree"), default="commit",
-        help="commit: the gw's decision commit (default); worktree: the files on disk",
+        help="commit (default): the gw's predictions lock, else its decision commit; "
+             "worktree: the files on disk",
     )
     calibrate.add_argument("--format", choices=("table", "json"), default="table")
 
@@ -941,6 +952,11 @@ def _flag_change_line(change: FlagChange) -> str:
     return f"{change.id:>4} {change.web_name}: {fields}"
 
 
+def _record_name(source: str) -> str:
+    kind, _, ident = source.partition(" ")
+    return f"{'predictions lock' if kind == 'lock' else 'decision commit'} {ident}"
+
+
 def run_calibrate(
     service: FplDataService, store: SnapshotStore, gw: int, args: argparse.Namespace
 ) -> int:
@@ -991,8 +1007,7 @@ def run_calibrate(
     if report.drifted:
         _stderr(
             f"WARNING: {_files(len(report.drifted), 'prediction file')} changed after "
-            f"decision commit "
-            f"{report.predictions_source.removeprefix('commit ')} — calibrated the "
+            f"{_record_name(report.predictions_source)} — calibrated the "
             f"decision record: {', '.join(report.drifted)}"
         )
     return EXIT_OK
@@ -1338,6 +1353,10 @@ def run_plan(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(document + "\n", encoding="utf-8")
         print(f"wrote {args.out}")
+    for warning in write_lock(
+        args.analysis_root / f"gw{gw}", final_path.parent / LOCK_FILENAME, gw
+    ):
+        _stderr(f"WARNING: {warning}")
     if args.format == "json":
         print(document)
     else:
