@@ -106,7 +106,18 @@ def test_undefined_fit_prints_na(tmp_path, capsys):
 
     assert run("--gw", "7", "--retro-root", str(root)) == 3
     line = capsys.readouterr().out.splitlines()[1]
-    assert line == "window 3, min starts 2: n 1, slope n/a, r 0.000 — not significant"
+    assert line == "window 3, min starts 2: n 1, slope n/a, r n/a — not significant"
+
+
+def test_unreadable_ledger_exits_one_naming_the_file(tmp_path, capsys):
+    root = write_ledgers(tmp_path / "retro", n_players=10)
+    unreadable = root / "gw6-calibration.json"
+    unreadable.unlink()
+    unreadable.mkdir()
+
+    assert run("--gw", "7", "--retro-root", str(root)) == 1
+    err = capsys.readouterr().err
+    assert err.startswith(f"error: cannot read ledger {unreadable}: ")
 
 
 def test_refuses_without_ledgers(tmp_path, capsys):

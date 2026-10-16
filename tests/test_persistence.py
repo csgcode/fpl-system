@@ -186,6 +186,21 @@ def test_significant_needs_enough_pairs_and_a_positive_clustered_ci() -> None:
     assert not persistence(_reports(strong(99))).significant
 
 
+def test_enough_pairs_without_persistence_is_not_significant() -> None:
+    # 104 pairs: x ∈ {−2, −1, 1, 2}, each paired equally often with y = +1 and −1.
+    errors: dict[int, dict[int, float | None]] = {}
+    for copy in range(13):
+        for i, x in enumerate((-2.0, -1.0, 1.0, 2.0)):
+            for j, y in enumerate((1.0, -1.0)):
+                errors[copy * 8 + i * 2 + j] = {1: x, 2: x, 3: x, 4: y, 5: None}
+
+    result = persistence(_reports(errors))
+
+    assert result.n == 104
+    assert result.ci_cluster[0] < 0 < result.ci_cluster[1]
+    assert not result.significant
+
+
 def test_rejects_bad_parameters_and_duplicate_rounds() -> None:
     reports = _reports({1: _all_started([1.0] * 5)})
 
@@ -205,5 +220,28 @@ def test_too_few_pairs_leaves_the_fit_undefined() -> None:
     assert result.n == 1
     assert result.slope is None
     assert result.se_cluster is None
-    assert result.r == 0
+    assert result.r is None
     assert not result.significant
+
+
+def test_two_pairs_leave_r_undefined_with_the_slope() -> None:
+    errors = {
+        1: _all_started([1.0, 1.0, 1.0, 2.0, 3.0]),
+        2: _all_started([0.0, 0.0, 0.0, None, None]),
+    }
+
+    result = persistence(_reports(errors))
+
+    assert result.n == 2
+    assert result.slope is None
+    assert result.r is None
+
+
+def test_constant_x_leaves_r_undefined_with_the_slope() -> None:
+    errors = {pid: {1: 1.0, 2: 1.0, 3: 1.0, 4: float(pid)} for pid in range(1, 5)}
+
+    result = persistence(_reports(errors))
+
+    assert result.n == 4
+    assert result.slope is None
+    assert result.r is None

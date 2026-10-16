@@ -44,9 +44,9 @@ class Pair:
 
 @dataclass(frozen=True)
 class Fit:
-    """OLS of y on x. Slope, intercept, standard errors and intervals are
-    None when fewer than three pairs or x does not vary. `r` is 0 when either
-    x or y does not vary."""
+    """OLS of y on x. Slope, intercept, standard errors, intervals and `r` are
+    None when fewer than three pairs or x does not vary. `r` is 0 when y does
+    not vary."""
 
     n: int
     slope: float | None
@@ -55,7 +55,7 @@ class Fit:
     se_cluster: float | None
     ci_ols: tuple[float, float] | None
     ci_cluster: tuple[float, float] | None
-    r: float
+    r: float | None
 
 
 @dataclass(frozen=True)
@@ -129,16 +129,16 @@ def _pairs_at(
 
 def _fit(pairs: Sequence[Pair]) -> Fit:
     n = len(pairs)
-    if n == 0:
-        return Fit(0, None, None, None, None, None, None, 0.0)
+    if n < 3:
+        return Fit(n, None, None, None, None, None, None, None)
     x_bar = sum(p.x for p in pairs) / n
     y_bar = sum(p.y for p in pairs) / n
     sxx = sum((p.x - x_bar) ** 2 for p in pairs)
+    if sxx == 0:
+        return Fit(n, None, None, None, None, None, None, None)
     syy = sum((p.y - y_bar) ** 2 for p in pairs)
     sxy = sum((p.x - x_bar) * (p.y - y_bar) for p in pairs)
-    r = sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else 0.0
-    if n < 3 or sxx == 0:
-        return Fit(n, None, None, None, None, None, None, r)
+    r = sxy / math.sqrt(sxx * syy) if syy > 0 else 0.0
 
     slope = sxy / sxx
     intercept = y_bar - slope * x_bar
@@ -217,7 +217,13 @@ def load_ledgers(retro_root: Path, gw: int) -> list[CalibrationReport]:
     )
     if not found:
         raise ValueError(f"no calibration ledgers before GW{gw} under {retro_root}")
-    return [load_report(path) for _, path in found]
+    reports = []
+    for _, path in found:
+        try:
+            reports.append(load_report(path))
+        except OSError as exc:
+            raise ValueError(f"cannot read ledger {path}: {exc.strerror or exc}") from exc
+    return reports
 
 
 def to_document(result: PersistenceResult) -> dict[str, Any]:
@@ -259,7 +265,8 @@ def _fit_text(fit: Fit) -> str:
     else:
         lo, hi = fit.ci_cluster
         slope = f"slope {fit.slope:.3f} [{lo:.3f}, {hi:.3f}] (cluster)"
-    return f"n {fit.n}, {slope}, r {fit.r:.3f}"
+    r = "n/a" if fit.r is None else f"{fit.r:.3f}"
+    return f"n {fit.n}, {slope}, r {r}"
 
 
 def _span(rounds: Sequence[int]) -> str:
