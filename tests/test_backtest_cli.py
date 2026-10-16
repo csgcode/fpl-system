@@ -179,6 +179,48 @@ def test_sweep_output_is_compact(world, capsys):
     grid = [line.split()[0] for line in lines if line.split()[:1]
             and line.split()[0].startswith("blend_k=")]
     assert grid == ["blend_k=600", "blend_k=300", "blend_k=450"]
+    rows = [line for line in lines if line.startswith("blend_k=")]
+    assert rows[0].endswith("(production)")
+    assert not any(row.endswith("(production)") for row in rows[1:])
+    assert all("ΔMAE(in-sample) " in row for row in rows)
+    [gate_delta] = [line for line in lines if line.startswith("ΔMAE ")]
+    assert "[CI " in gate_delta
+
+
+def test_sweep_with_set_labels_no_row_production(world, capsys):
+    assert _run(world, "--set", "blend_floor=0.3", "--sweep", "blend_k=300", "--cv") == 0
+    rows = [line for line in capsys.readouterr().out.splitlines()
+            if line.startswith("blend_floor=")]
+    assert [row.split()[0] for row in rows] == ["blend_floor=0.3,blend_k=600",
+                                                "blend_floor=0.3,blend_k=300"]
+    assert not any("(production)" in row for row in rows)
+
+
+def test_sweep_values_printing_alike_exit_1(world, capsys):
+    assert _run(world, "--sweep", "blend_k=300,300.0000001", "--cv") == 1
+    err = capsys.readouterr().err
+    assert "blend_k" in err and "300" in err
+
+
+def test_sweep_refuses_values_printing_alike():
+    with pytest.raises(ValueError, match="blend_k=300"):
+        parse_sweep(["blend_k=300,300.0000001"], DEFAULT_CONFIG)
+
+
+def test_set_key_given_twice_exits_1(world, capsys):
+    assert _run(world, "--set", "blend_k=300", "--set", "blend_k=450") == 1
+    assert "--set blend_k given twice" in capsys.readouterr().err
+
+
+def test_key_in_both_set_and_sweep_exits_1(world, capsys):
+    assert _run(world, "--set", "blend_k=300", "--sweep", "blend_k=450", "--cv") == 1
+    assert "blend_k given to both --set and --sweep" in capsys.readouterr().err
+
+
+def test_sweep_refuses_more_than_two_keys():
+    with pytest.raises(ValueError, match="up to 2 keys"):
+        parse_sweep(["blend_k=300", "blend_floor=0.3", "opponent_adjust=true"],
+                    _WiderConfig())
 
 
 @dataclass(frozen=True)

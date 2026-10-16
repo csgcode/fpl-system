@@ -564,3 +564,14 @@ def test_ship_value_refuses_a_pick_outside_the_grid():
         ship_value({3: "c"}, ["a", "b"])
     with pytest.raises(ValueError, match="no picks"):
         ship_value({}, ["a"])
+
+
+def test_loro_ignores_float_noise_between_decimal_equal_maes():
+    lines_by_value = {
+        "a": [_line(e, id=i, round=r, club=f"C{r}-{i}")
+              for r in (3, 4) for i, e in enumerate([0.1, 0.2], start=1)],
+        "b": [_line(e, id=i, round=r, club=f"C{r}-{i}")
+              for r in (3, 4) for i, e in enumerate([0.3, 0.0], start=1)],
+    }
+    assert (0.1 + 0.2) / 2 != (0.3 + 0.0) / 2
+    assert cross_validate(lines_by_value)[1] == {3: "a", 4: "a"}

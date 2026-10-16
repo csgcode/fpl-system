@@ -57,6 +57,7 @@ ANALYSIS_ROOT = Path("data/analysis")
 DECISIONS_ROOT = Path("data/decisions")
 RETRO_ROOT = Path("data/retro")
 MAX_SWEEP_KEYS = 2
+MAE_TOLERANCE = 1e-9
 
 GridValue = TypeVar("GridValue", bound=Hashable)
 
@@ -283,9 +284,10 @@ def cross_validate(
 ) -> tuple[list[BacktestLine], dict[int, GridValue]]:
     """Leave-one-round-out selection over a grid, in grid order (the
     mapping's order). For each held-out round, the value with the lowest
-    pooled MAE over the other rounds is picked, ties to the earlier grid
-    entry, and its lines for the held-out round become that round's CV
-    lines. Returns the CV lines and the pick per round.
+    pooled MAE over the other rounds is picked, ties (within MAE_TOLERANCE,
+    so float noise never decides) to the earlier grid entry, and its lines
+    for the held-out round become that round's CV lines. Returns the CV
+    lines and the pick per round.
 
     A fold trains on later rounds for an earlier held-out round. That is
     acceptable for a hyper-parameter: LORO measures the selection
@@ -308,7 +310,7 @@ def cross_validate(
         for value, per_round in by_value.items():
             training = [line for r in rounds if r != held_out for line in per_round[r]]
             mae = sum(abs(line.error) for line in training) / len(training)
-            if mae < best_mae:
+            if mae < best_mae - MAE_TOLERANCE:
                 best, best_mae = value, mae
         picks[held_out] = best
         cv_lines += by_value[best][held_out]
@@ -941,7 +943,8 @@ def parse_assignment(text: str, config: ModelConfig) -> tuple[str, ConfigValue]:
 
 def parse_sweep(texts: Sequence[str], config: ModelConfig) -> dict[str, list[ConfigValue]]:
     """Each `key=v1,v2,...` as the key's grid, `config`'s value first (added
-    when absent), duplicates dropped, keys in the order given."""
+    when absent), duplicates dropped, keys in the order given. Refuses two
+    values whose labels print alike: rows and LORO picks are keyed by label."""
     types = _field_types(config)
     grid: dict[str, list[ConfigValue]] = {}
     for text in texts:
@@ -955,6 +958,13 @@ def parse_sweep(texts: Sequence[str], config: ModelConfig) -> dict[str, list[Con
             value = _parse_value(key, item, types)
             if value not in values:
                 values.append(value)
+        texts_seen: dict[str, ConfigValue] = {}
+        for value in values:
+            text = value_text(value)
+            if text in texts_seen:
+                raise ValueError(f"--sweep {key}: {texts_seen[text]!r} and {value!r} both "
+                                 f"label as {key}={text}; space the values further apart")
+            texts_seen[text] = value
         grid[key] = values
     if len(grid) > MAX_SWEEP_KEYS:
         raise ValueError(f"--sweep takes up to {MAX_SWEEP_KEYS} keys, got {', '.join(grid)}")
@@ -1040,12 +1050,11 @@ def _table(rounds: list[int], drift_check: bool, report: Report,
     if not report.sweep_keys or detail:
         out += _baseline_table(report.baseline.lines, checks)
     if report.sweep_keys:
-        production = report.variants[0]
         base_mae = _mae(report.baseline.lines)
         for variant in report.variants:
-            note = "  (production)" if variant is production else ""
+            note = "  (production)" if variant.config == report.baseline.config else ""
             out.append(f"{variant.label}  {_aggregate_text(variant.lines)}  "
-                       f"ΔMAE {signed(_mae(variant.lines) - base_mae, 4)}{note}")
+                       f"ΔMAE(in-sample) {signed(_mae(variant.lines) - base_mae, 4)}{note}")
         if report.picks is None:
             out.append("gate: not run — a sweep is gated on its leave-one-round-out lines; "
                        "pass --cv")
