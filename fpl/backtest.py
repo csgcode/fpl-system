@@ -11,13 +11,18 @@ scores what `fpl ep` would have written.
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
+import re
+import sys
 from collections.abc import Callable, Hashable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, fields, replace
 from datetime import datetime, timezone
+from itertools import product
 from pathlib import Path
-from typing import TypeVar
+from types import NoneType
+from typing import Any, TypeVar, get_args, get_type_hints
 
 from fpl import calibrate, ep, fixture_ratings
 from fpl.calibrate import Aggregate, PlayerLine, PlayerPrediction
@@ -33,6 +38,7 @@ from fpl.ep import (
 )
 from fpl.models import Bootstrap, ElementSummary, EventLive, PLAYING_POSITIONS, Position
 from fpl.service import load_cached_bootstrap, load_cached_summaries
+from fpl.state import MAX_GW, MIN_GW
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
@@ -42,6 +48,11 @@ GATE_Z = 1.96
 GATE_BIAS_SLACK = 0.05
 GATE_POSITION_SLACK = 0.02
 GATE_MIN_EFFECT = -0.01
+
+ANALYSIS_ROOT = Path("data/analysis")
+DECISIONS_ROOT = Path("data/decisions")
+RETRO_ROOT = Path("data/retro")
+MAX_SWEEP_KEYS = 2
 
 GridValue = TypeVar("GridValue", bound=Hashable)
 
@@ -491,3 +502,349 @@ def _relative(path: Path, repo: Path) -> str | None:
         return str(path.resolve().relative_to(repo))
     except ValueError:
         return None
+
+
+ConfigValue = float | bool | None
+
+
+def register(add: Callable[..., argparse.ArgumentParser]) -> None:
+    p = add("backtest", "re-score past rounds under a model variant against actuals",
+            cached=False)
+    p.add_argument("--rounds", required=True, metavar="A-B",
+                   help="past rounds to score, each before --gw")
+    p.add_argument("--analysis-root", type=Path, default=ANALYSIS_ROOT,
+                   help="root holding gw{M}/inputs-*.json, gw{M}/fixtures.json and "
+                        "club-priors.json")
+    p.add_argument("--decisions-root", type=Path, default=DECISIONS_ROOT,
+                   help="root holding gw{M}/final.md, whose adding commit is the drift reference")
+    p.add_argument("--retro-root", type=Path, default=RETRO_ROOT,
+                   help="where gw{M}-calibration.json ledgers live")
+    p.add_argument("--no-drift-check", action="store_true",
+                   help="score the files on disk even when they differ from the decision commit")
+    p.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+                   help="variant: a ModelConfig field to change (repeatable)")
+    p.add_argument("--sweep", action="append", default=[], metavar="KEY=V1,V2,...",
+                   help=f"grid over a ModelConfig field, production value first "
+                        f"(repeatable, up to {MAX_SWEEP_KEYS} keys, cartesian)")
+    p.add_argument("--cv", action="store_true",
+                   help="pick the sweep value leave-one-round-out and gate the held-out lines")
+    p.add_argument("--detail", action="store_true",
+                   help="add the baseline tables to a sweep and per-position and slice deltas")
+    p.add_argument("--format", choices=("table", "json"), default="table")
+    p.add_argument("--out", type=Path, help="also write the JSON document here")
+
+
+def run(data_root: Path, args: argparse.Namespace) -> int:
+    rounds = parse_rounds(args.rounds, args.gw)
+    baseline = DEFAULT_CONFIG
+    fixed = _parse_sets(args.set, baseline)
+    sweep = parse_sweep(args.sweep, baseline)
+    both = sorted(fixed.keys() & sweep.keys())
+    if both:
+        raise ValueError(f"{', '.join(both)} given to both --set and --sweep")
+    if args.cv and not sweep:
+        raise ValueError("--cv selects a --sweep value; give --sweep")
+
+    drift_check = not args.no_drift_check
+    data = [load_round(data_root=data_root, analysis_root=args.analysis_root,
+                       actuals_root=data_root, gw=r, decisions_root=args.decisions_root,
+                       drift_check=drift_check) for r in rounds]
+    report = _evaluate(data, baseline, fixed, sweep, cv=args.cv)
+    document = _document(args.gw, rounds, drift_check, data, report)
+
+    if args.format == "json":
+        print(json.dumps(document, indent=1, ensure_ascii=False))
+    else:
+        for line in _table(rounds, drift_check, report, detail=args.detail):
+            print(line)
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(document, indent=1, ensure_ascii=False) + "\n",
+                            encoding="utf-8")
+        if args.format == "table":
+            print(f"wrote {args.out}")
+    for warning in report.warnings:
+        print(f"WARNING: {warning}", file=sys.stderr)
+    return 0
+
+
+def parse_rounds(text: str, gw: int) -> list[int]:
+    match = re.fullmatch(r"(\d+)(?:-(\d+))?", text.strip())
+    if match is None:
+        raise ValueError(f"--rounds {text!r}: expected A-B, e.g. 3-6")
+    first = int(match.group(1))
+    last = int(match.group(2) or first)
+    if not MIN_GW <= first <= last <= MAX_GW:
+        raise ValueError(f"--rounds {text!r}: need {MIN_GW} ≤ A ≤ B ≤ {MAX_GW}")
+    if last >= gw:
+        raise ValueError(f"round {last} is not before --gw {gw}")
+    return list(range(first, last + 1))
+
+
+def parse_assignment(text: str, config: ModelConfig) -> tuple[str, ConfigValue]:
+    """`key=value` for a field of `config`'s class, the value parsed by the
+    field's type: `none` for an optional field, `true`/`false` for a bool,
+    else a float."""
+    key, sep, raw = text.partition("=")
+    if not sep:
+        raise ValueError(f"{text!r}: expected KEY=VALUE")
+    return key, _parse_value(key, raw, _field_types(config))
+
+
+def parse_sweep(texts: Sequence[str], config: ModelConfig) -> dict[str, list[ConfigValue]]:
+    """Each `key=v1,v2,...` as the key's grid, `config`'s value first (added
+    when absent), duplicates dropped, keys in the order given."""
+    types = _field_types(config)
+    grid: dict[str, list[ConfigValue]] = {}
+    for text in texts:
+        key, sep, raw = text.partition("=")
+        if not sep or not raw:
+            raise ValueError(f"--sweep {text!r}: expected KEY=V1,V2,...")
+        if key in grid:
+            raise ValueError(f"--sweep {key} given twice")
+        values = [getattr(config, key) if key in types else None]
+        for item in raw.split(","):
+            value = _parse_value(key, item, types)
+            if value not in values:
+                values.append(value)
+        grid[key] = values
+    if len(grid) > MAX_SWEEP_KEYS:
+        raise ValueError(f"--sweep takes up to {MAX_SWEEP_KEYS} keys, got {', '.join(grid)}")
+    return grid
+
+
+@dataclass(frozen=True)
+class Scored:
+    label: str
+    overrides: dict[str, ConfigValue]
+    config: ModelConfig
+    lines: tuple[BacktestLine, ...]
+
+
+@dataclass(frozen=True)
+class Report:
+    baseline: Scored
+    variants: tuple[Scored, ...]
+    sweep_keys: tuple[str, ...]
+    picks: dict[int, Scored] | None
+    ship: Scored | None
+    comparison: Comparison | None
+    warnings: tuple[str, ...]
+
+
+def _evaluate(data: Sequence[RoundData], baseline: ModelConfig,
+              fixed: dict[str, ConfigValue], sweep: dict[str, list[ConfigValue]], *,
+              cv: bool) -> Report:
+    warnings: list[str] = [w for d in data for w in d.warnings]
+    cache: dict[ModelConfig, tuple[BacktestLine, ...]] = {}
+
+    def score(overrides: dict[str, ConfigValue]) -> Scored:
+        config = replace(baseline, **overrides)
+        if config not in cache:
+            lines: list[BacktestLine] = []
+            for round_data in data:
+                result = score_round(round_data, config)
+                lines += result.lines
+                warnings.extend(w for w in result.warnings if w not in warnings)
+            cache[config] = tuple(lines)
+        return Scored(_label(overrides), overrides, config, cache[config])
+
+    base = score({})
+    if sweep:
+        keys = tuple(sweep)
+        variants = tuple(score({**fixed, **dict(zip(keys, combo))})
+                         for combo in product(*sweep.values()))
+    elif fixed:
+        keys, variants = (), (score(fixed),)
+    else:
+        keys, variants = (), ()
+
+    picks = ship = comparison = None
+    if sweep and cv:
+        by_label = {v.label: v for v in variants}
+        cv_lines, label_picks = cross_validate({v.label: v.lines for v in variants})
+        picks = {r: by_label[label] for r, label in label_picks.items()}
+        ship = by_label[ship_value(label_picks, list(by_label))]
+        comparison = compare(base.lines, cv_lines)
+    elif not sweep and variants:
+        comparison = compare(base.lines, variants[0].lines)
+    return Report(base, variants, keys, picks, ship, comparison, tuple(warnings))
+
+
+def _table(rounds: list[int], drift_check: bool, report: Report, *, detail: bool) -> list[str]:
+    out = [f"rounds {_span(rounds)} · drift check: {'on' if drift_check else 'off'}"]
+    if not report.sweep_keys or detail:
+        out += _baseline_table(report.baseline.lines)
+    if report.sweep_keys:
+        production = report.variants[0]
+        base_mae = _mae(report.baseline.lines)
+        for variant in report.variants:
+            note = "  (production)" if variant is production else ""
+            out.append(f"{variant.label}  {_aggregate_text(variant.lines)}  "
+                       f"ΔMAE {signed(_mae(variant.lines) - base_mae, 4)}{note}")
+        if report.picks is None:
+            out.append("gate: not run — a sweep is gated on its leave-one-round-out lines; "
+                       "pass --cv")
+            return out
+        out.append("LORO picks: " + ", ".join(
+            f"{r}→{_pick_text(report.picks[r], report.sweep_keys)}" for r in sorted(report.picks)))
+        out.append(f"ship: {report.ship.label}")
+    elif report.variants:
+        variant = report.variants[0]
+        out.append(f"variant {variant.label}  {_aggregate_text(variant.lines)}")
+    if report.comparison is not None:
+        out += _comparison_text(report.comparison, detail=detail)
+    return out
+
+
+def _baseline_table(lines: Sequence[BacktestLine]) -> list[str]:
+    rows = [("round", "n", "bias", "MAE")]
+    for r, per_round in sorted(_by_round(lines).items()):
+        rows.append(_aggregate_row(str(r), calibrate.aggregate(per_round)))
+    rows.append(_aggregate_row("baseline", calibrate.aggregate(lines)))
+    groups = calibrate.grouped(lines, lambda line: line.position)
+    rows += [_aggregate_row(pos, groups[pos]) for pos in _positions(groups)]
+    return [f"{label:<9} {n:>4} {bias:>7} {mae:>6}" for label, n, bias, mae in rows]
+
+
+def _aggregate_row(label: str, agg: Aggregate) -> tuple[str, str, str, str]:
+    return label, str(agg.n), signed(agg.bias, 3), f"{agg.mae:.3f}"
+
+
+def _aggregate_text(lines: Sequence[BacktestLine]) -> str:
+    agg = calibrate.aggregate(lines)
+    return f"n {agg.n}  bias {signed(agg.bias, 3)}  MAE {agg.mae:.3f}"
+
+
+def _comparison_text(c: Comparison, *, detail: bool) -> list[str]:
+    wins, rounds = c.round_wins
+    out = [
+        f"ΔMAE {signed(c.delta_mae, 4)} [CI {signed(c.ci[0], 3)}, {signed(c.ci[1], 3)}] · "
+        f"bias {signed(c.baseline.bias, 3)}→{signed(c.variant.bias, 3)} · wins {wins}/{rounds}",
+        "per-round ΔMAE: " + ", ".join(f"{r} {signed(v, 4)}" for r, v in c.round_deltas.items()),
+    ]
+    if detail:
+        out.append("per-position ΔMAE: " + ", ".join(
+            f"{pos} {signed(g.delta_mae, 4)} (n {g.n})" for pos, g in c.by_position.items()))
+        out.append("slices: " + ", ".join(
+            f"{name} -" if g is None else f"{name} {signed(g.delta_mae, 4)} (n {g.n})"
+            for name, g in c.slices.items()))
+    out.append("gate: PASS" if c.beats else "gate: FAIL — " + "; ".join(c.reasons))
+    return out
+
+
+def _document(gw: int, rounds: list[int], drift_check: bool, data: Sequence[RoundData],
+              report: Report) -> dict[str, Any]:
+    return {
+        "gw": gw,
+        "rounds": rounds,
+        "drift_check": drift_check,
+        "decision_commits": {str(d.gw): d.commit for d in data},
+        "baseline": _scored_document(report.baseline),
+        "variants": [_scored_document(v) for v in report.variants],
+        "sweep_keys": list(report.sweep_keys),
+        "picks": None if report.picks is None
+        else {str(r): s.overrides for r, s in sorted(report.picks.items())},
+        "ship_value": None if report.ship is None else report.ship.overrides,
+        "comparison": None if report.comparison is None
+        else comparison_document(report.comparison),
+        "warnings": list(report.warnings),
+    }
+
+
+def _scored_document(scored: Scored) -> dict[str, Any]:
+    groups = calibrate.grouped(scored.lines, lambda line: line.position)
+    return {
+        "label": scored.label,
+        "overrides": scored.overrides,
+        "config": asdict(scored.config),
+        "digest": scored.config.digest(),
+        "aggregate": calibrate.aggregate(scored.lines).model_dump(),
+        "per_round": {str(r): calibrate.aggregate(lines).model_dump()
+                      for r, lines in sorted(_by_round(scored.lines).items())},
+        "by_position": {pos: groups[pos].model_dump() for pos in _positions(groups)},
+    }
+
+
+def comparison_document(c: Comparison) -> dict[str, Any]:
+    return {
+        "n": c.n,
+        "baseline": c.baseline.model_dump(),
+        "variant": c.variant.model_dump(),
+        "delta_mae": c.delta_mae,
+        "se": c.se,
+        "ci": list(c.ci),
+        "round_deltas": {str(r): v for r, v in c.round_deltas.items()},
+        "round_wins": list(c.round_wins),
+        "by_position": {pos: _group_document(g) for pos, g in c.by_position.items()},
+        "slices": {name: _group_document(g) for name, g in c.slices.items()},
+        "beats": c.beats,
+        "reasons": list(c.reasons),
+    }
+
+
+def _group_document(group: GroupComparison | None) -> dict[str, Any] | None:
+    if group is None:
+        return None
+    return {"n": group.n, "baseline": group.baseline.model_dump(),
+            "variant": group.variant.model_dump(), "delta_mae": group.delta_mae}
+
+
+def _parse_sets(texts: Sequence[str], config: ModelConfig) -> dict[str, ConfigValue]:
+    fixed: dict[str, ConfigValue] = {}
+    for text in texts:
+        key, value = parse_assignment(text, config)
+        if key in fixed:
+            raise ValueError(f"--set {key} given twice")
+        fixed[key] = value
+    return fixed
+
+
+def _field_types(config: ModelConfig) -> dict[str, Any]:
+    hints = get_type_hints(type(config))
+    return {f.name: hints[f.name] for f in fields(config)}
+
+
+def _parse_value(key: str, raw: str, types: dict[str, Any]) -> ConfigValue:
+    if key not in types:
+        raise ValueError(f"unknown ModelConfig key {key!r}; valid keys: {', '.join(types)}")
+    hint = types[key]
+    text = raw.strip().lower()
+    if text == "none":
+        if NoneType in get_args(hint):
+            return None
+        raise ValueError(f"{key} is not optional: 'none' is not a value for it")
+    if hint is bool:
+        if text in ("true", "false"):
+            return text == "true"
+        raise ValueError(f"{key} is a bool: expected true or false, got {raw!r}")
+    try:
+        return float(text)
+    except ValueError:
+        raise ValueError(f"{key}: expected a number, got {raw!r}") from None
+
+
+def _label(overrides: Mapping[str, ConfigValue]) -> str:
+    if not overrides:
+        return "baseline"
+    return ",".join(f"{key}={_value_text(value)}" for key, value in overrides.items())
+
+
+def _value_text(value: ConfigValue) -> str:
+    if value is None:
+        return "none"
+    if isinstance(value, bool):
+        return str(value).lower()
+    return f"{value:g}"
+
+
+def _pick_text(scored: Scored, keys: Sequence[str]) -> str:
+    return "/".join(_value_text(scored.overrides[key]) for key in keys)
+
+
+def _span(rounds: list[int]) -> str:
+    return str(rounds[0]) if len(rounds) == 1 else f"{rounds[0]}-{rounds[-1]}"
+
+
+def _mae(lines: Sequence[BacktestLine]) -> float:
+    return sum(abs(line.error) for line in lines) / len(lines)
