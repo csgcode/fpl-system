@@ -130,7 +130,7 @@ def test_config_from_int_has_the_same_digest_as_the_equal_float_config():
     config = ModelConfig(blend_k=600)
     assert isinstance(config.blend_k, float)
     assert config == DEFAULT_CONFIG
-    assert config.digest() == DEFAULT_CONFIG.digest() == "96870557"
+    assert config.digest() == DEFAULT_CONFIG.digest() == "5f5a4d42"
 
 
 def test_match_weights_halve_every_half_life():
@@ -457,6 +457,26 @@ def test_config_blend_k_changes_the_computed_prior_weight():
         inputs_doc("MID", [judged()]), gw=GW, config=replace(DEFAULT_CONFIG, blend_k=300.0),
     )
     assert result.rows[0].rates.prior_weight == pytest.approx(300 / 480)
+
+
+def test_no_history_blend_k_applies_only_to_league_mean_priors():
+    history = [match_record_payload(minutes=90, round=1), match_record_payload(minutes=90, round=2)]
+    hist_past = [past_season_payload(season_name="2025/26", minutes=1800)]
+
+    def rates(history_past, config):
+        result = build_predictions(
+            make_bootstrap([player()]), {1: summary(history_past=history_past, history=history)},
+            fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW, config=config,
+        )
+        return result.rows[0].rates
+
+    config = replace(DEFAULT_CONFIG, blend_k_no_history=300.0)
+    no_history = rates([], config)
+    assert no_history.prior_source == "league_mean"
+    assert no_history.prior_weight == pytest.approx(300 / 480)
+    assert rates(hist_past, config).prior_weight == pytest.approx(600 / 780)
+    assert DEFAULT_CONFIG.blend_k_no_history is None
+    assert rates([], DEFAULT_CONFIG).prior_weight == pytest.approx(600 / 780)
 
 
 def test_missing_summary_falls_back_to_league_mean_and_is_listed():

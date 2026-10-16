@@ -714,6 +714,7 @@ class ModelConfig:
     opponent_adjust: bool = False
     opponent_adjust_saves: bool = False
     blend_on_effective_minutes: bool = False
+    blend_k_no_history: float | None = None
 
     def __post_init__(self) -> None:
         # An int and the equal float compare equal but repr differently, so
@@ -1074,8 +1075,13 @@ def _effective_rates(
         current_totals.w_minutes if config.blend_on_effective_minutes else current_totals.minutes
     )
     overrides = entry.overrides or RateOverrides()
+    k = (
+        config.blend_k_no_history
+        if prior_minutes == 0 and config.blend_k_no_history is not None
+        else config.blend_k
+    )
     w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
-        blend_minutes, k=config.blend_k, floor=config.blend_floor
+        blend_minutes, k=k, floor=config.blend_floor
     )
     blended = _blend(prior, current, w).model_copy(update={
         "bonus_per_start": bonus_rate(
