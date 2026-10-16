@@ -75,7 +75,11 @@ class WorkspaceSpec:
 @dataclass(frozen=True)
 class ReplaySpec:
     """`extra` maps recording keys (e.g. "entry/42.json") to sources and is
-    placed last, so it overrides anything derived from the other fields."""
+    placed last, so it overrides anything derived from the other fields.
+    `summary_ids` replaces the shortlist as the players whose summaries are
+    recorded; an id with no summary is then skipped and listed in
+    missing-summaries.json. `summary_min_gw` borrows summaries only from
+    that gameweek's directory on: an earlier fetch lacks the later rounds."""
 
     gw: int
     bootstrap: RepoFile | GitBlob | Content
@@ -85,6 +89,8 @@ class ReplaySpec:
     errors: Mapping[str, int] = field(default_factory=dict)
     summaries: bool = True
     extra: Mapping[str, RepoFile | GitBlob | Content] = field(default_factory=dict)
+    summary_ids: tuple[int, ...] | None = None
+    summary_min_gw: int | None = None
 
 
 @dataclass(frozen=True)
@@ -182,7 +188,9 @@ def build_replay_dir(repo: Path, spec: ReplaySpec, dest: Path) -> Path:
     _place(dest / "bootstrap-static.json", bootstrap_bytes)
     if spec.fixtures is not None:
         _place(dest / "fixtures.json", _read_pinned(repo, spec.fixtures))
-    if spec.summaries:
+    if spec.summaries and spec.summary_ids is not None:
+        _place_listed_summaries(repo, spec, dest)
+    elif spec.summaries:
         _place_summaries(repo, spec.gw, bootstrap_bytes, dest)
 
     if spec.team_id is not None:
@@ -214,6 +222,24 @@ def _place_summaries(repo: Path, gw: int, bootstrap_bytes: bytes, dest: Path) ->
             borrowed[str(player.id)] = source_gw
         _place(dest / "element-summary" / f"{player.id}.json", path.read_bytes())
     _place(dest / "borrowed.json", json.dumps(borrowed, indent=1).encode())
+
+
+def _place_listed_summaries(repo: Path, spec: ReplaySpec, dest: Path) -> None:
+    borrowed: dict[str, int] = {}
+    missing: list[int] = []
+    for player_id in sorted(set(spec.summary_ids or ())):
+        try:
+            source_gw, path = _nearest_summary(repo, spec.gw, player_id,
+                                               min_gw=spec.summary_min_gw)
+        except SourceError:
+            missing.append(player_id)
+            continue
+        if source_gw != spec.gw:
+            borrowed[str(player_id)] = source_gw
+        _place(dest / "element-summary" / f"{player_id}.json", path.read_bytes())
+    _place(dest / "borrowed.json", json.dumps(borrowed, indent=1).encode())
+    if missing:
+        _place(dest / "missing-summaries.json", json.dumps(missing).encode())
 
 
 def snapshot(root: Path) -> Manifest:
@@ -294,13 +320,17 @@ def _read_existing(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def _nearest_summary(repo: Path, gw: int, player_id: int) -> tuple[int, Path]:
-    """This GW's summary, else the nearest other GW's, later first. Only
-    `history_past` is consumed downstream, and it does not change in-season."""
+def _nearest_summary(repo: Path, gw: int, player_id: int, *,
+                     min_gw: int | None = None) -> tuple[int, Path]:
+    """This GW's summary, else the nearest other GW's, later first, skipping
+    directories before `min_gw`. Without `min_gw` any GW serves: shortlist
+    consumers read only `history_past`, which does not change in-season."""
     order = [gw]
     for step in range(1, MAX_GW):
         order += [g for g in (gw + step, gw - step) if 1 <= g <= MAX_GW]
     for candidate in order:
+        if min_gw is not None and candidate < min_gw:
+            continue
         path = repo / "data/raw" / f"gw{candidate}" / "players" / f"summary-{player_id}.json"
         if path.is_file():
             return candidate, path

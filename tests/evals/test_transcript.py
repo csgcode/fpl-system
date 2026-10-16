@@ -123,3 +123,22 @@ def test_load_transcript_reads_jsonl(tmp_path):
         user("p"), assistant(text("ok")),
     ]) + "\n", encoding="utf-8")
     assert load_transcript(path).final_text == "ok"
+
+
+def test_parallel_tool_uses_in_one_message_share_a_turn():
+    from evals.harness.transcript import tool_turns
+
+    transcript = parse_records([
+        user("go"),
+        assistant(use("a", command="x"), message_id="m1"),
+        assistant(use("b", name="Read", file_path="f"), message_id="m1"),
+        user([result("a", "1"), result("b", "2")]),
+        assistant(text("thinking aloud"), message_id="m2"),
+        assistant(use("c", command="y"), message_id="m3"),
+        user([result("c", "3")]),
+        assistant(use("h", name="SubagentHandback", message="done"), message_id="m4"),
+    ])
+
+    assert [c.turn for c in transcript.calls] == [1, 1, 3, 4]
+    assert [[c.id for c in turn] for turn in tool_turns(transcript)] == [["a", "b"], ["c"]]
+    assert len(tool_turns(transcript, exclude=())) == 3

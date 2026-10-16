@@ -4,9 +4,10 @@
     python -m evals live <agent> [--case ID] [--repeat K] [--judge] [--keep]
     python -m evals freeze <agent>
     python -m evals outcome fixture-analyst|player-analyst|squad-optimizer
+    python -m evals longitudinal retro-analyst
 
 Agents: data-collector, plan-builder, usage-collector, fixture-analyst, team-executor,
-finalizer, player-analyst, squad-optimizer.
+finalizer, player-analyst, squad-optimizer, retro-analyst.
 """
 
 from __future__ import annotations
@@ -15,7 +16,8 @@ import argparse
 import sys
 
 AGENTS = ("data-collector", "plan-builder", "usage-collector", "fixture-analyst",
-          "team-executor", "finalizer", "player-analyst", "squad-optimizer")
+          "team-executor", "finalizer", "player-analyst", "squad-optimizer",
+          "retro-analyst")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -37,6 +39,9 @@ def build_parser() -> argparse.ArgumentParser:
     outcome = sub.add_parser("outcome", help="season-level forecast quality (prints only)")
     outcome.add_argument("agent", choices=("fixture-analyst", "player-analyst",
                                            "squad-optimizer"))
+    longitudinal = sub.add_parser("longitudinal",
+                                  help="correction effects across the season (prints only)")
+    longitudinal.add_argument("agent", choices=("retro-analyst",))
     return parser
 
 
@@ -52,6 +57,8 @@ def main(argv: list[str] | None = None) -> int:
         from evals.player_analyst import runner
     elif args.agent == "squad-optimizer":
         from evals.squad_optimizer import runner
+    elif args.agent == "retro-analyst":
+        from evals.retro_analyst import runner
     elif args.agent == "team-executor":
         from evals.team_executor import runner
     elif args.agent == "usage-collector":
@@ -65,6 +72,8 @@ def main(argv: list[str] | None = None) -> int:
         return runner.freeze_fixtures()
     if args.command == "outcome":
         return runner.outcome()
+    if args.command == "longitudinal":
+        return runner.longitudinal()
     extra = {"full": True} if args.full else {}
     return runner.live(case_ids=args.case, repeat=args.repeat, judge=args.judge,
                        keep=args.keep, **extra)

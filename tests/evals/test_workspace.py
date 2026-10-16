@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 import stat
 import subprocess
 from datetime import UTC, datetime, timedelta
@@ -228,6 +229,28 @@ def test_replay_dir_borrows_the_nearest_later_gameweek_first(raw_repo, tmp_path)
 
     assert json.loads((out / "element-summary/2.json").read_text())["who"] == "gw7"
     assert json.loads((out / "borrowed.json").read_text()) == {"2": 7}
+
+
+def test_replay_dir_places_exactly_the_listed_summaries(raw_repo, tmp_path):
+    repo, replay = raw_repo
+    seed_raw(repo, 4, "players/summary-3.json", {"history_past": [], "who": "gw4"})
+    out = build_replay_dir(repo, replace(replay, summary_ids=(2, 3)), tmp_path / "replay")
+
+    assert sorted(p.name for p in (out / "element-summary").iterdir()) == ["2.json", "3.json"]
+    assert json.loads((out / "borrowed.json").read_text()) == {"2": 7, "3": 4}
+
+
+def test_replay_dir_borrows_summaries_only_from_the_minimum_gameweek_on(raw_repo, tmp_path):
+    repo, replay = raw_repo
+    seed_raw(repo, 5, "players/summary-1.json", {"history_past": [], "who": "gw5"})
+    seed_raw(repo, 4, "players/summary-3.json", {"history_past": [], "who": "gw4"})
+    out = build_replay_dir(repo, replace(replay, summary_ids=(1, 2, 3), summary_min_gw=6),
+                           tmp_path / "replay")
+
+    assert json.loads((out / "element-summary/1.json").read_text())["who"] == "gw6"
+    assert json.loads((out / "element-summary/2.json").read_text())["who"] == "gw7"
+    assert not (out / "element-summary/3.json").exists()
+    assert json.loads((out / "missing-summaries.json").read_text()) == [3]
 
 
 def test_replay_dir_without_a_team_has_no_entry_recordings(raw_repo, tmp_path):

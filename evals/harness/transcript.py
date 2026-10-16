@@ -30,6 +30,9 @@ class ToolCall:
     name: str
     input: Mapping[str, Any]
     result: ToolResult | None
+    turn: int = 0
+    """The ordinal (from 1) of the assistant message that issued the call;
+    parallel tool uses in one message share it."""
 
 
 @dataclass(frozen=True)
@@ -47,7 +50,9 @@ def load_transcript(path: Path) -> Transcript:
 
 def parse_records(records: Iterable[dict]) -> Transcript:
     prompt: str | None = None
-    uses: list[dict] = []
+    uses: list[tuple[dict, int]] = []
+    turns: dict[str, int] = {}
+    turn = 0
     results: dict[str, ToolResult] = {}
     last_text = ""
     result_record: dict | None = None
@@ -64,10 +69,13 @@ def parse_records(records: Iterable[dict]) -> Transcript:
             if kind == "user" and prompt is None:
                 prompt = content
             continue
+        if kind == "assistant":
+            message_id = record.get("message", {}).get("id") or f"anon-{len(turns)}"
+            turn = turns.setdefault(message_id, len(turns) + 1)
         for block in content or ():
             block_type = block.get("type")
             if block_type == "tool_use":
-                uses.append(block)
+                uses.append((block, turn))
             elif block_type == "tool_result":
                 results[block["tool_use_id"]] = _tool_result(block)
             elif block_type == "text" and kind == "assistant":
@@ -75,18 +83,29 @@ def parse_records(records: Iterable[dict]) -> Transcript:
 
     seen: set[str] = set()
     calls = []
-    for block in uses:
+    for block, turn in uses:
         if block["id"] in seen:
             continue
         seen.add(block["id"])
         calls.append(ToolCall(block["id"], block["name"], block.get("input") or {},
-                              results.get(block["id"])))
+                              results.get(block["id"]), turn))
     return Transcript(
         prompt=prompt,
         calls=tuple(calls),
         final_text=_final_text(calls, result_record, last_text),
         cost_usd=_cost(result_record),
     )
+
+
+def tool_turns(transcript: Transcript, *,
+               exclude: tuple[str, ...] = (HANDBACK_TOOL,)) -> list[tuple[ToolCall, ...]]:
+    """The calls grouped by the turn that issued them, in order; a turn whose
+    calls are all `exclude`d is dropped."""
+    grouped: dict[int, list[ToolCall]] = {}
+    for call in transcript.calls:
+        if call.name not in exclude:
+            grouped.setdefault(call.turn, []).append(call)
+    return [tuple(calls) for _, calls in sorted(grouped.items())]
 
 
 def _tool_result(block: dict) -> ToolResult:
