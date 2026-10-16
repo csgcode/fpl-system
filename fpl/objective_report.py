@@ -216,26 +216,29 @@ def _p4_text(row: Row) -> str:
 
 
 def _tie_break_lines(report: PlanReport, blend, *, graded: bool):
-    if not report.tie_breaks:
-        yield f"{TIE_BREAK_LABEL} none within {NEAR_TIE_MOVE}"
-    for best, challenger, winner, reason in report.tie_breaks:
-        yield (f"{TIE_BREAK_LABEL} {_pair(best, blend)} {best.blend:+.3f} v "
-               f"{_pair(challenger, blend)} {challenger.blend:+.3f} — winner "
-               f"{_pair(winner, blend)} ({reason})")
-    if not graded or report.chip:
+    if report.chip:
         return
     if not report.tie_breaks:
+        yield f"{TIE_BREAK_LABEL} none within {NEAR_TIE_MOVE}"
+    for tie in report.tie_breaks:
+        yield (f"{TIE_BREAK_LABEL} {_pair(tie.incumbent, blend)} {tie.incumbent.blend:+.3f} v "
+               f"{_pair(tie.challenger, blend)} {tie.challenger.blend:+.3f} — winner "
+               f"{_pair(tie.winner, blend)} ({tie.reason})")
+    if not graded:
+        return
+    if not report.tie_groups:
         yield "tie-break: none in band"
     taken = {scored.move for scored in report.marginals}
-    for best, challenger, winner, _ in report.tie_breaks:
-        loser = challenger if winner is best else best
-        if winner.move in taken:
-            yield f"tie-break: plan takes {_pair(winner, blend)}"
-        elif loser.move in taken:
-            yield (f"tie-break: plan takes {_pair(loser, blend)}, not the winner "
-                   f"{_pair(winner, blend)}")
+    for group in report.tie_groups:
+        winner = _pair(group.winner, blend)
+        others = [m for m in group.members if m != group.winner and m.move in taken]
+        if group.winner.move in taken:
+            yield f"tie-break: plan takes {winner}"
+        elif others:
+            yield (f"tie-break: plan takes {_pair(others[0], blend)}, not the winner "
+                   f"{winner}")
         else:
-            yield f"tie-break: plan takes neither; winner {_pair(winner, blend)}"
+            yield f"tie-break: plan takes none of the tie; winner {winner}"
 
 
 def _plan_line(report: PlanReport, market: Market, blend) -> str:
@@ -303,10 +306,10 @@ def _document(gw, final_path, squad, market, report: PlanReport, singles, blend,
         },
         "next_best": _scored_dict(report.next_best, blend) if report.next_best else None,
         "reference": [_scored_dict(s, blend) for s in report.reference],
-        "tie_breaks": [{"best": _scored_dict(best, blend),
-                        "challenger": _scored_dict(challenger, blend),
-                        "winner": _scored_dict(winner, blend), "reason": reason}
-                       for best, challenger, winner, reason in report.tie_breaks],
+        "tie_breaks": [{"incumbent": _scored_dict(tie.incumbent, blend),
+                        "challenger": _scored_dict(tie.challenger, blend),
+                        "winner": _scored_dict(tie.winner, blend), "reason": tie.reason}
+                       for tie in report.tie_breaks],
         "reference_gain": {"blend": round(report.reference_gain[0], 3),
                            "prior": round(report.reference_gain[1], 3)},
         "verdict": (None if args.moves is None

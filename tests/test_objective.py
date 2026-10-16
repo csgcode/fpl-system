@@ -14,7 +14,9 @@ from fpl.objective import (
     Market,
     Move,
     Row,
+    Criterion,
     Scored,
+    TieBreak,
     apply_moves,
     best_lineup,
     boundary_pairs,
@@ -31,6 +33,7 @@ from fpl.objective import (
     rows_from_documents,
     squad_violations,
     tie_break_moves,
+    tie_break_winner,
 )
 from fpl.store import SnapshotStore
 from tests.factories import (
@@ -320,7 +323,8 @@ def single(out, into, gain):
 
 def test_tie_break_picks_the_steadier_incoming_player():
     a, b = single(11, 20, 2.40), single(11, 21, 2.10)
-    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == [(a, b, b, "p4 0.42 v 0.30")]
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == [
+        TieBreak(a, b, b, "p4 0.42 v 0.30", Criterion.P4)]
 
 
 def test_no_tie_outside_the_band():
@@ -341,25 +345,39 @@ def test_a_challenger_must_pass_the_free_gate():
 def test_ret5_breaks_an_equal_p4():
     a, b = single(11, 20, 2.40), single(11, 21, 2.10)
     view = tie_view(a_p4=0.40, b_p4=0.42)
-    assert tie_break_moves([a, b], view, calibrated=MID) == [(a, b, b, "ret5 4/5 v 1/5")]
+    assert tie_break_moves([a, b], view, calibrated=MID) == [
+        TieBreak(a, b, b, "ret5 4/5 v 1/5", Criterion.RET5)]
     view = tie_view(a_p4=0.40, b_p4=0.42, a_ret=(3, 5), b_ret=(3, 4))
-    assert tie_break_moves([a, b], view, calibrated=MID) == [(a, b, a, "blend")]
+    assert tie_break_moves([a, b], view, calibrated=MID) == [
+        TieBreak(a, b, a, "blend", Criterion.BLEND)]
 
 
 def test_uncalibrated_position_skips_p4():
     a, b = single(11, 20, 2.40), single(11, 21, 2.10)
     view = tie_view(a_p4=0.90, b_p4=0.10)
     assert tie_break_moves([a, b], view, calibrated=frozenset()) == [
-        (a, b, b, "ret5 4/5 v 1/5")]
+        TieBreak(a, b, b, "ret5 4/5 v 1/5", Criterion.RET5)]
     view = tie_view(a_p4=0.90, b_p4=0.10, a_ret=(2, 5), b_ret=(2, 5))
-    assert tie_break_moves([a, b], view, calibrated=frozenset()) == [(a, b, a, "blend")]
+    assert tie_break_moves([a, b], view, calibrated=frozenset()) == [
+        TieBreak(a, b, a, "blend", Criterion.BLEND)]
 
 
 def test_ret5_with_zero_rounds_is_na():
     a, b = single(11, 20, 2.40), single(11, 21, 2.10)
     for a_ret, b_ret in (((0, 0), (4, 5)), ((1, 5), (0, 0)), (None, (4, 5))):
         view = tie_view(a_p4=None, b_p4=None, a_ret=a_ret, b_ret=b_ret)
-        assert tie_break_moves([a, b], view, calibrated=MID) == [(a, b, a, "n/a — blend")]
+        assert tie_break_moves([a, b], view, calibrated=MID) == [
+            TieBreak(a, b, a, "n/a — blend", Criterion.BLEND)]
+
+
+def test_ret5_needs_three_rounds_for_each_incoming_player():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    few = tie_view(a_p4=None, b_p4=None, a_ret=(3, 5), b_ret=(1, 1))
+    assert tie_break_winner(a, b, few, calibrated=frozenset()) == (
+        a, "n/a — blend", Criterion.BLEND)
+    enough = tie_view(a_p4=None, b_p4=None, a_ret=(1, 5), b_ret=(3, 3))
+    assert tie_break_winner(a, b, enough, calibrated=frozenset()) == (
+        b, "ret5 3/3 v 1/5", Criterion.RET5)
 
 
 def test_greedy_reference_takes_the_tie_break_winner():
@@ -367,14 +385,15 @@ def test_greedy_reference_takes_the_tie_break_winner():
     taken = greedy_reference(SQUAD, market(), view, view, calibrated=MID)
     assert [s.move for s in taken] == [Move(11, 21)]
     view = tie_view(a_ret=None, b_ret=None)
-    assert [s.move for s in greedy_reference(SQUAD, market(), view, view)] == [Move(11, 20)]
+    taken = greedy_reference(SQUAD, market(), view, view, calibrated=frozenset())
+    assert [s.move for s in taken] == [Move(11, 20)]
 
 
 def test_plan_taking_the_tie_break_winner_passes_the_reference_check():
     view = tie_view()
     report = evaluate_plan(SQUAD, [Move(11, 21)], market(), view, view, calibrated=MID)
     assert report.verdict_reasons == ()
-    assert [(best.move, winner.move, reason) for best, _, winner, reason in report.tie_breaks] \
+    assert [(t.incumbent.move, t.winner.move, t.reason) for t in report.tie_breaks] \
         == [(Move(11, 20), Move(11, 21), "p4 0.42 v 0.30")]
     report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, calibrated=MID)
     assert len(report.verdict_reasons) == 1
@@ -388,7 +407,60 @@ def test_a_blend_decided_tie_adds_no_reason():
     assert report.verdict_reasons == ()
 
 
-def test_the_displaced_best_single_is_not_a_further_free_move():
+def test_a_tie_the_plan_does_not_touch_leaves_the_gain_bar_alone():
+    """C replaces P12 at +2.15. The blend-best single is A (P11 → P20, +2.40);
+    adding B, which wins A's tie at +2.10, must not lower the bar for C."""
+    def view(with_b):
+        v = with_pool(squad_view(), row(20, M, 3 + 2.4 / 6, p4_3=0.30, ret5=(1, 5)),
+                      row(22, M, 3 + 2.15 / 6))
+        if with_b:
+            v[21] = row(21, M, 3 + 2.1 / 6, p4_3=0.42, ret5=(4, 5))
+        return v
+
+    for with_b in (False, True):
+        v = view(with_b)
+        report = evaluate_plan(SQUAD, [Move(12, 22)], market(), v, v, calibrated=MID)
+        assert any("below the blend-only greedy reference +2.400" in reason
+                   for reason in report.verdict_reasons), with_b
+    v = view(True)
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(), v, v, calibrated=MID)
+    assert report.verdict_reasons == ()
+
+
+def chain_view(a_ret, b_ret, c_ret):
+    return with_pool(squad_view(), row(20, M, 3 + 2.4 / 6, ret5=a_ret),
+                     row(21, M, 3 + 2.3 / 6, ret5=b_ret), row(22, M, 3 + 2.1 / 6, ret5=c_ret))
+
+
+def test_a_tie_chain_is_judged_by_its_final_winner():
+    view = chain_view((2, 5), (2, 5), (4, 5))
+    none = frozenset()
+    for move in (Move(11, 20), Move(11, 21)):
+        report = evaluate_plan(SQUAD, [move], market(), view, view, calibrated=none)
+        (tie,) = [r for r in report.verdict_reasons if "departs from the tie-break" in r]
+        assert "takes P11 → P22 (ret5 4/5 v 2/5)" in tie, move
+    report = evaluate_plan(SQUAD, [Move(11, 22)], market(), view, view, calibrated=none)
+    assert report.verdict_reasons == ()
+
+
+def test_a_displaced_move_names_the_final_winner_not_an_intermediate_one():
+    view = chain_view((1, 5), (3, 5), (5, 5))
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view,
+                           calibrated=frozenset())
+    (reason,) = report.verdict_reasons
+    assert "takes P11 → P22" in reason and "P11 → P21" not in reason
+
+
+def test_the_chip_gate_measures_against_the_blend_only_reference():
+    view = tie_view()
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, chip="wildcard",
+                           calibrated=MID)
+    assert [s.move for s in report.reference] == [Move(11, 21)]
+    (reason,) = report.verdict_reasons
+    assert "+0.000 / +0.000 over the greedy plan" in reason
+
+
+def test_next_best_after_the_winner_skips_the_displaced_swap():
     view = tie_view(eps=[5, 1, 4, 4, 4, 2, 2, 5, 5, 5, 3, 3.5, 6, 4, 1])
     report = evaluate_plan(SQUAD, [Move(11, 21)], market(free=2), view, view, calibrated=MID)
     assert report.verdict_reasons == ()

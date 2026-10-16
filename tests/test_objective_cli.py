@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from fpl import objective
 from fpl.__main__ import main
 from fpl.objective_report import TIE_BREAK_LABEL
 from fpl.store import SnapshotStore
@@ -168,7 +169,8 @@ def test_never_builds_a_gateway(repo, capsys):
     assert main(["objective", "--gw", str(GW)], service_factory=refuse) == 0
 
 
-def test_singles_table_carries_p4_and_ret5_columns(tied, capsys):
+def test_singles_table_carries_p4_and_ret5_columns(tied, capsys, monkeypatch):
+    monkeypatch.setattr(objective, "P4_CALIBRATED", frozenset())
     assert run() == 0
     out = capsys.readouterr().out
     rows = [line for line in out.splitlines() if line.startswith("  ") and " | " in line]
@@ -209,8 +211,16 @@ def test_json_carries_tie_breaks(tied, capsys):
     assert run("--format", "json") == 0
     document = json.loads(capsys.readouterr().out)
     (tie,) = document["tie_breaks"]
-    assert (tie["best"]["in"], tie["challenger"]["in"], tie["winner"]["in"]) == (16, TWIN, TWIN)
+    assert (tie["incumbent"]["in"], tie["challenger"]["in"], tie["winner"]["in"]) \
+        == (16, TWIN, TWIN)
     assert tie["reason"] == "ret5 4/5 v 1/5"
+
+
+def test_a_chip_plan_prints_no_tie_break_lines(tied, capsys):
+    run("--chip", "wildcard", "--moves", "8:18")
+    out = capsys.readouterr().out
+    assert "wildcard" in out
+    assert not [line for line in out.splitlines() if line.startswith("tie-break")]
 
 
 def test_optimizer_spec_quotes_the_tie_break_label():

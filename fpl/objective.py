@@ -9,7 +9,10 @@ changes which XI wins.
 Two singles with the same outgoing player whose blend gains are within
 NEAR_TIE_MOVE are a near tie: the reference takes the steadier incoming
 player (P(≥4) over the next three gameweeks where that reading is calibrated,
-then observed returns over the last five rounds), else the higher blend.
+then observed returns over the last five rounds, read only when both incoming
+players have RET5_MIN_ROUNDS of them), else the higher blend. The gain bar
+stays the blend-only greedy reference; a plan earns the tie's shortfall only
+by taking that tie's winner.
 
 Every figure is read twice: on the blend view (players-*.json, what the
 analysts published) and on the prior-only view (the same inputs at prior
@@ -23,7 +26,9 @@ import json
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
+from typing import NamedTuple
 
 from fpl.ep import build_predictions, force_prior_weight, load_fixtures, load_inputs
 from fpl.models import PLAYING_POSITIONS, Bootstrap, PlayerStatus, Position
@@ -40,6 +45,7 @@ NEAR_TIE_MOVE = 0.5
 P4_CALIBRATED: frozenset[Position] = frozenset()
 P4_TIE_GAP = 0.03
 RET5_TIE_GAP = 0.2
+RET5_MIN_ROUNDS = 3
 P4_WINDOW = 3
 BLEND_DECIDED = "blend"
 DEAD_BENCH = 0.5
@@ -105,7 +111,43 @@ class Scored:
     bank_after: int
 
 
-TieBreak = tuple[Scored, Scored, Scored, str]
+class Criterion(Enum):
+    P4 = "p4"
+    RET5 = "ret5"
+    BLEND = "blend"
+
+
+class TieBreak(NamedTuple):
+    incumbent: Scored
+    challenger: Scored
+    winner: Scored
+    reason: str
+    criterion: Criterion
+
+
+@dataclass(frozen=True)
+class TieGroup:
+    """One greedy step's near tie: the blend-best single and its challengers,
+    met in blend order."""
+
+    ties: tuple[TieBreak, ...]
+
+    @property
+    def best(self) -> Scored:
+        return self.ties[0].incumbent
+
+    @property
+    def winner(self) -> Scored:
+        return self.ties[-1].winner
+
+    @property
+    def members(self) -> tuple[Scored, ...]:
+        return (self.best, *(tie.challenger for tie in self.ties))
+
+    @property
+    def deciding(self) -> TieBreak:
+        """The tie in which the final winner took over."""
+        return next(tie for tie in self.ties if tie.challenger == self.winner)
 
 
 @dataclass(frozen=True)
@@ -132,7 +174,12 @@ class PlanReport:
     verdict_reasons: tuple[str, ...]
     chip: str | None = None
     squad_after: tuple[int, ...] = ()
-    tie_breaks: tuple[TieBreak, ...] = ()
+    tie_groups: tuple[TieGroup, ...] = ()
+    blend_reference_gain: tuple[float, float] = (0.0, 0.0)
+
+    @property
+    def tie_breaks(self) -> tuple[TieBreak, ...]:
+        return tuple(tie for group in self.tie_groups for tie in group.ties)
 
 
 # ------------------------------------------------------------- objective
@@ -330,31 +377,33 @@ def _passes(scored: Scored, *, free: bool) -> bool:
 
 
 def _ratio(ret5: tuple[int, int] | None) -> float | None:
-    return ret5[0] / ret5[1] if ret5 and ret5[1] > 0 else None
+    return ret5[0] / ret5[1] if ret5 and ret5[1] >= RET5_MIN_ROUNDS else None
 
 
 def ret5_text(ret5: tuple[int, int] | None) -> str:
     return f"{ret5[0]}/{ret5[1]}" if ret5 else "-"
 
 
-def tie_break_winner(a: Scored, b: Scored, view: View, *,
-                     calibrated: frozenset[Position]) -> tuple[Scored, str]:
-    """The winner of a near tie and why. A is the move ahead on blend; B wins
-    only on a clearly steadier incoming player: P(≥4) first where that
-    position is calibrated, then the observed return rate."""
+def tie_break_winner(a: Scored, b: Scored, view: View, *, calibrated: frozenset[Position]
+                     ) -> tuple[Scored, str, Criterion]:
+    """The winner of a near tie, why, and which criterion decided it. A is the
+    move ahead on blend; B wins only on a clearly steadier incoming player:
+    P(≥4) first where that position is calibrated, then the observed return
+    rate when both players have RET5_MIN_ROUNDS rounds."""
     row_a, row_b = view[a.move.into], view[b.move.into]
     if row_a.position in calibrated and row_a.p4_3 is not None and row_b.p4_3 is not None \
             and abs(row_b.p4_3 - row_a.p4_3) >= P4_TIE_GAP - _EPS:
         win, lose = (b, a) if row_b.p4_3 > row_a.p4_3 else (a, b)
-        return win, f"p4 {view[win.move.into].p4_3:.2f} v {view[lose.move.into].p4_3:.2f}"
+        return win, (f"p4 {view[win.move.into].p4_3:.2f} v "
+                     f"{view[lose.move.into].p4_3:.2f}"), Criterion.P4
     rate_a, rate_b = _ratio(row_a.ret5), _ratio(row_b.ret5)
     if rate_a is None or rate_b is None:
-        return a, f"n/a — {BLEND_DECIDED}"
+        return a, f"n/a — {BLEND_DECIDED}", Criterion.BLEND
     if abs(rate_b - rate_a) >= RET5_TIE_GAP - _EPS:
         win, lose = (b, a) if rate_b > rate_a else (a, b)
         return win, (f"ret5 {ret5_text(view[win.move.into].ret5)} v "
-                     f"{ret5_text(view[lose.move.into].ret5)}")
-    return a, BLEND_DECIDED
+                     f"{ret5_text(view[lose.move.into].ret5)}"), Criterion.RET5
+    return a, BLEND_DECIDED, Criterion.BLEND
 
 
 def tie_break_moves(singles: Sequence[Scored], view: View, *,
@@ -373,34 +422,34 @@ def tie_break_moves(singles: Sequence[Scored], view: View, *,
         if challenger.move.out != best.move.out \
                 or best.blend - challenger.blend > NEAR_TIE_MOVE + _EPS:
             continue
-        winner, reason = tie_break_winner(incumbent, challenger, view, calibrated=calibrated)
-        ties.append((incumbent, challenger, winner, reason))
+        winner, reason, criterion = tie_break_winner(incumbent, challenger, view,
+                                                     calibrated=calibrated)
+        ties.append(TieBreak(incumbent, challenger, winner, reason, criterion))
         incumbent = winner
     return ties
 
 
-def _decided_by_steadiness(reason: str) -> bool:
-    return not reason.endswith(BLEND_DECIDED)
-
-
 def _greedy(squad: Sequence[int], market: Market, blend: View, prior: View,
-            calibrated: frozenset[Position] | None
-            ) -> tuple[tuple[Scored, ...], tuple[TieBreak, ...]]:
+            calibrated: frozenset[Position] | None, *, tie_break: bool = True
+            ) -> tuple[tuple[Scored, ...], tuple[TieGroup, ...]]:
     calibrated = P4_CALIBRATED if calibrated is None else calibrated
-    current, state, taken, ties = list(squad), market, [], []
+    current, state, taken, groups = list(squad), market, [], []
     for _ in range(sum(SHAPE.values())):
         free = len(taken) < market.free_transfers
         candidates = [s for s in legal_singles(current, state, blend, prior)
                       if (s.prior >= -_EPS if free else s.prior > _EPS)]
         if not candidates or not _passes(candidates[0], free=free):
             break
-        step = tie_break_moves(candidates, blend, calibrated=calibrated, free=free)
-        chosen = step[-1][2] if step else candidates[0]
-        ties += step
+        step = (tie_break_moves(candidates, blend, calibrated=calibrated, free=free)
+                if tie_break else [])
+        group = TieGroup(tuple(step)) if step else None
+        chosen = group.winner if group else candidates[0]
+        if group:
+            groups.append(group)
         taken.append(chosen)
         current = _swap(current, chosen.move.out, chosen.move.into)
         state = _after(state, chosen.move, blend, chosen.bank_after)
-    return tuple(taken), tuple(ties)
+    return tuple(taken), tuple(groups)
 
 
 def greedy_reference(squad: Sequence[int], market: Market, blend: View, prior: View, *,
@@ -430,8 +479,11 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
                   calibrated: frozenset[Position] | None = None) -> PlanReport:
     """The plan against the transfer rule. A free hit scores GW N only. A
     transfer chip must beat the greedy no-chip plan, net of its hits, by
-    CHIP_GATE on blend without losing on prior-only. Without a chip, a plan
-    that takes the move a steadiness tie-break displaced fails."""
+    CHIP_GATE on blend without losing on prior-only. Both bars are the
+    blend-only greedy reference. Without a chip, a plan that takes any other
+    move of a near tie whose final winner is not its blend-best move fails; a
+    plan that takes that winner may fall short of the bar by the winner's gap
+    to the blend-best move."""
     if chip is not None and chip not in TRANSFER_CHIPS:
         raise ValueError(f"unknown transfer chip {chip!r}; use {' or '.join(TRANSFER_CHIPS)}")
     horizon = 1 if chip == "freehit" else HORIZON
@@ -445,13 +497,19 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
     gain = (after[0] - baseline[0], after[1] - baseline[1])
     marginals = tuple(move_marginals(squad, moves, market, blend, prior)) if moves else ()
     used = len(moves)
-    reference, ties = _greedy(squad, market, blend, prior, calibrated)
-    reference_squad = list(squad)
-    for scored in reference:
-        reference_squad = _swap(reference_squad, scored.move.out, scored.move.into)
-    reference_after = score(reference_squad)
-    reference_gain = (reference_after[0] - baseline[0], reference_after[1] - baseline[1])
-    reference_hits = HIT_COST * max(0, len(reference) - market.free_transfers)
+
+    def reference_gain_of(taken: Sequence[Scored]) -> tuple[float, float]:
+        ids = list(squad)
+        for scored in taken:
+            ids = _swap(ids, scored.move.out, scored.move.into)
+        ref_after = score(ids)
+        return ref_after[0] - baseline[0], ref_after[1] - baseline[1]
+
+    reference, groups = _greedy(squad, market, blend, prior, calibrated)
+    reference_gain = reference_gain_of(reference)
+    blend_reference = _greedy(squad, market, blend, prior, calibrated, tie_break=False)[0]
+    blend_reference_gain = reference_gain_of(blend_reference)
+    blend_reference_hits = HIT_COST * max(0, len(blend_reference) - market.free_transfers)
 
     reasons: list[str] = []
     next_best = None
@@ -468,14 +526,20 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
                                f"{scored.prior:+.3f} fails the {gate}")
         taken = set(moves)
         displaced = set()
-        for best, challenger, winner, why in ties:
-            for loser in {best, challenger} - {winner}:
-                if winner.move in taken:
-                    displaced.add(Move(winner.move.into, loser.move.into))
-                elif loser.move in taken and _decided_by_steadiness(why):
-                    reasons.append(f"{_label(loser.move, blend)} departs from the tie-break: "
-                                   f"the greedy reference takes {_label(winner.move, blend)} "
-                                   f"({why})")
+        allowance = 0.0
+        for group in groups:
+            winner = group.winner
+            others = [m for m in group.members if m != winner]
+            if winner.move in taken:
+                displaced.update(Move(winner.move.into, m.move.into) for m in others)
+                allowance += group.best.blend - winner.blend
+            elif winner != group.best:
+                for loser in others:
+                    if loser.move in taken:
+                        reasons.append(
+                            f"{_label(loser.move, blend)} departs from the tie-break: the "
+                            f"greedy reference takes {_label(winner.move, blend)} "
+                            f"({group.deciding.reason})")
         singles = [s for s in legal_singles(plan, _market_after(market, moves, blend, bank),
                                             blend, prior) if s.move not in displaced]
         passing = [s for s in singles if _passes(s, free=True)]
@@ -483,14 +547,16 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
         if used < market.free_transfers and passing:
             reasons.append(f"further free move passes: {_label(passing[0].move, blend)} "
                            f"{passing[0].blend:+.3f} / {passing[0].prior:+.3f}")
-        if gain[0] < reference_gain[0] - REFERENCE_TOLERANCE:
-            reasons.append(f"plan gain {gain[0]:+.3f} below the greedy reference "
-                           f"{reference_gain[0]:+.3f}")
+        if gain[0] < blend_reference_gain[0] - allowance - REFERENCE_TOLERANCE:
+            shortfall = f" less the tie-break gap {allowance:.3f}" if allowance > _EPS else ""
+            reasons.append(f"plan gain {gain[0]:+.3f} below the blend-only greedy reference "
+                           f"{blend_reference_gain[0]:+.3f}{shortfall}")
         next_ft: int | None = ft_next(free=market.free_transfers, used=used)
     else:
         hits = 0
         next_ft = None
-        edge = (gain[0] - (reference_gain[0] - reference_hits), gain[1] - reference_gain[1])
+        edge = (gain[0] - (blend_reference_gain[0] - blend_reference_hits),
+                gain[1] - blend_reference_gain[1])
         if edge[0] < CHIP_GATE - _EPS or edge[1] < -_EPS:
             reasons.append(f"{chip} fails the chip gate: {edge[0]:+.3f} / {edge[1]:+.3f} over "
                            f"the greedy plan (need blend ≥ {CHIP_GATE}, prior ≥ 0)")
@@ -498,7 +564,8 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
         baseline=baseline, gain=gain, marginals=marginals, bank_after=bank, used=used,
         hits=hits, ft_next=next_ft, next_best=next_best, reference=reference,
         reference_gain=reference_gain, verdict_reasons=tuple(reasons), chip=chip,
-        squad_after=tuple(plan), tie_breaks=ties,
+        squad_after=tuple(plan), tie_groups=groups,
+        blend_reference_gain=blend_reference_gain,
     )
 
 
