@@ -15,7 +15,10 @@ from fpl.season_store import (
     SCHEMA_VERSION,
     StoreReadError,
     StoreSyncError,
+    _build,
+    _scan,
     open_ro,
+    rebuild,
     sync,
 )
 from fpl.service import load_cached_bootstrap, load_cached_summaries
@@ -395,6 +398,20 @@ def test_double_gameweek_with_summary_uses_the_summary_rows(raw, db):
     assert report.dgw_splits == ()
 
 
+def test_a_summary_fetched_before_its_round_is_checked_does_not_cover_it(raw, db):
+    season = double_gameweek()
+    season.unchecked = {3: {2}}
+    season.final_sidecar = {2}
+    season.write(raw)
+
+    report = sync(raw, db)
+
+    assert (player_round(db, 1, 2)["source"], player_round(db, 1, 3)["source"]) == (
+        "event-live", "event-live")
+    assert [(d.round, d.element, d.fixtures) for d in report.dgw_splits] == [
+        (2, 1, (2, 3)), (2, 3, (2, 3))]
+
+
 def test_a_bootstrap_refreshed_after_the_live_fetch_proves_nothing(raw, db):
     season = Season()
     season.write(raw)
@@ -426,6 +443,91 @@ def test_a_final_sidecar_makes_an_event_live_final(raw, db):
     assert sync(raw, db).rounds == (1, 2)
 
 
+@pytest.mark.parametrize("bad", [
+    ("gw3/players/summary-1.json", {"history": "not rows", "history_past": []}),
+    ("gw3/event-live-e1.json", {"elements": "not elements"}),
+])
+def test_every_raw_file_is_validated_not_only_the_ones_read(raw, db, bad):
+    path, payload = bad
+    Season(final_sidecar={1}).write(raw)
+    gw, name = int(path.split("/")[0][2:]), path.split("/", 1)[1].removesuffix(".json")
+    save_raw(raw, fetch_time(gw) + timedelta(hours=4), gw, name, payload)
+
+    with pytest.raises(StoreSyncError, match=path):
+        sync(raw, db)
+
+
+def test_a_file_changed_after_the_scan_refuses(raw, db):
+    Season().write(raw)
+    files = _scan(raw)
+    (raw / "gw2" / "fixtures.json").write_text("[]")
+
+    with pytest.raises(StoreSyncError, match=r"gw2/fixtures\.json.*changed"):
+        _build(files)
+
+
+def test_a_refused_rebuild_leaves_the_existing_store_untouched(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    before = db.read_bytes()
+    payload = SnapshotStore(raw).load(2, "bootstrap")
+    save_raw(raw, fetch_time(2) + timedelta(hours=5), 2, "bootstrap", payload)
+
+    with pytest.raises(StoreSyncError, match="gw2/event-live-e1.json"):
+        rebuild(raw, db)
+
+    assert db.read_bytes() == before
+    assert sorted(p.name for p in db.parent.iterdir()) == [db.name]
+
+
+def test_an_insert_error_rolls_back_and_leaves_the_store_untouched(raw, db, monkeypatch):
+    import fpl.season_store as season_store
+
+    Season().write(raw, range(1, 3))
+    sync(raw, db)
+    before = db.read_bytes()
+    Season().write(raw, range(3, 4))
+    real_insert = season_store._insert
+
+    def failing_insert(con, table, table_rows):
+        if table == "player_rounds":
+            raise sqlite3.IntegrityError("boom")
+        real_insert(con, table, table_rows)
+
+    monkeypatch.setattr(season_store, "_insert", failing_insert)
+
+    with pytest.raises(sqlite3.IntegrityError):
+        sync(raw, db)
+
+    assert db.read_bytes() == before
+    assert sorted(p.name for p in db.parent.iterdir()) == [db.name]
+
+
+def _empty_sqlite_with_current_version(db: Path) -> None:
+    con = sqlite3.connect(db)
+    con.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+    con.close()
+
+
+@pytest.mark.parametrize("corrupt", [
+    lambda db: db.write_bytes(b"not a sqlite database " * 100),
+    _empty_sqlite_with_current_version,
+])
+def test_a_corrupt_store_is_rebuilt_by_sync_and_refused_by_the_reader(raw, db, corrupt):
+    Season().write(raw)
+    fresh = db.with_name("fresh.sqlite")
+    sync(raw, fresh)
+    db.parent.mkdir(parents=True, exist_ok=True)
+    corrupt(db)
+
+    with pytest.raises(StoreReadError, match="store rebuild"):
+        open_ro(db, raw)
+    report = sync(raw, db)
+
+    assert report.files_ingested == len(rows(fresh, "SELECT path FROM manifest"))
+    assert dump(db) == dump(fresh)
+
+
 def test_sync_is_incremental_and_idempotent(raw, db):
     Season().write(raw)
     first = sync(raw, db)
@@ -453,6 +555,32 @@ def test_rebuild_equals_incremental(tmp_path):
 
     assert added.files_ingested == 3 + len(season.summary_ids)
     assert dump(incremental_db) == dump(full_db)
+
+
+def test_a_refetch_with_identical_bytes_but_a_new_sidecar_is_reingested(tmp_path):
+    season = Season()
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    season.write(raw)
+    sync(raw, db)
+    path = raw / "gw3" / "event-live-e2.json"
+    before = path.read_bytes()
+    refetched = fetch_time(3) + timedelta(hours=9)
+    SnapshotStore(raw, now=lambda: refetched).save(
+        3, "event-live-e2", SnapshotStore(raw).load(3, "event-live-e2"), "https://x.test",
+        final=True)
+    assert path.read_bytes() == before
+
+    with pytest.raises(StoreReadError, match=r"gw3/event-live-e2\.json changed"):
+        open_ro(db, raw)
+    again = sync(raw, db)
+
+    assert again.files_ingested == 1
+    (live,) = rows(db, "SELECT fetched_at, final FROM manifest "
+                       "WHERE path = 'gw3/event-live-e2.json'")
+    assert live == {"fetched_at": refetched.isoformat(), "final": 1}
+    fresh = tmp_path / "fresh.sqlite"
+    sync(raw, fresh)
+    assert dump(db) == dump(fresh)
 
 
 def test_schema_version_mismatch_rebuilds(raw, db):

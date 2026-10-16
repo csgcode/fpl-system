@@ -2,10 +2,12 @@
 
 `sync` reads every kept raw snapshot (bootstrap, fixtures, event-live,
 element summaries; never .archive/ or .meta/), validates each through the
-typed models, and rebuilds the derived tables in one transaction whenever a
-raw file was added, changed or removed. The rebuild is deterministic, so an
-incremental sync and a sync from scratch give the same database. A sync with
-nothing new writes nothing.
+typed models, and rebuilds the derived tables whenever a raw file was added,
+changed or removed, or its sidecar's fetch time or finality changed. The
+rebuild is deterministic, so an incremental sync and a sync from scratch give
+the same database. It is written to a temporary file beside the store and
+moved over it only once complete, so a refused or failed sync leaves the
+previous store as it was. A sync with nothing new writes nothing.
 
 Per-match rows come from event-live: the round's stats, the fixture each
 element played (`explain`), and the side resolved from the fixture's bps
@@ -23,12 +25,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sqlite3
-from collections.abc import Iterable, Sequence
+import tempfile
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from functools import cached_property
 from pathlib import Path
 from typing import Any, Literal
 
@@ -48,7 +51,7 @@ from fpl.models import (
 )
 from fpl.store import SnapshotStore
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 DEFAULT_STORE_PATH = Path("data/store/season-2026-27.sqlite")
 XG_RECORDED_FROM = "2022/23"
 DC_RECORDED_FROM = "2024/25"
@@ -92,7 +95,8 @@ _X_TOTALS = frozenset({"expected_goals", "expected_assists", "expected_goals_con
 _SCHEMA = f"""
 CREATE TABLE manifest (
     path TEXT PRIMARY KEY, sha256 TEXT NOT NULL, kind TEXT NOT NULL, gw INTEGER NOT NULL,
-    fetched_at TEXT, final INTEGER NOT NULL, ingested_rows INTEGER NOT NULL
+    fetched_at TEXT, final INTEGER NOT NULL, sidecar_final INTEGER NOT NULL,
+    ingested_rows INTEGER NOT NULL
 );
 CREATE TABLE events (
     id INTEGER PRIMARY KEY, deadline_time TEXT NOT NULL, finished INTEGER NOT NULL,
@@ -140,8 +144,6 @@ CREATE TABLE summary_coverage (
     gw INTEGER NOT NULL, element INTEGER NOT NULL, PRIMARY KEY (gw, element)
 );
 """
-_TABLES = ("manifest", "events", "clubs", "fixtures", "fixture_snapshots", "player_rounds",
-           "history_past", "player_state", "summary_coverage")
 
 _GW_DIR = re.compile(r"^gw(\d+)$")
 _LIVE_FILE = re.compile(r"^event-live-e(\d+)\.json$")
@@ -200,30 +202,50 @@ class SyncReport:
     reconciliation_skipped: str | None
 
 
+ChangeKey = tuple[str, str | None, bool]
+
+
 @dataclass(frozen=True)
 class _RawFile:
+    """A raw file as scanned: its hash and sidecar, not its content. The
+    content is re-read when the store is rebuilt, so a sync holds at most a
+    few parsed snapshots at a time."""
+
     path: str
+    source: Path
     kind: str
     gw: int
     sha256: str
     fetched_at: datetime | None
     sidecar_final: bool
-    content: bytes
 
-    @cached_property
-    def payload(self) -> Any:
-        """Parsed only when the store is rebuilt; a no-op sync just hashes."""
-        return _parse(self.kind, self.path, self.content)
+    @property
+    def key(self) -> ChangeKey:
+        """What a sync compares: the content and the sidecar keys it uses."""
+        return self.sha256, _iso(self.fetched_at), self.sidecar_final
+
+    def load(self) -> Any:
+        content = self.source.read_bytes()
+        if hashlib.sha256(content).hexdigest() != self.sha256:
+            raise StoreSyncError(f"{self.path}: changed during the sync — run the sync again")
+        return _parse(self.kind, self.path, content)
 
 
 def sync(raw_root: Path, db_path: Path) -> SyncReport:
+    return _sync(raw_root, db_path, force=False)
+
+
+def rebuild(raw_root: Path, db_path: Path) -> SyncReport:
+    return _sync(raw_root, db_path, force=True)
+
+
+def _sync(raw_root: Path, db_path: Path, *, force: bool) -> SyncReport:
     files = _scan(raw_root)
-    current = {f.path: f.sha256 for f in files}
-    known = _known_manifest(db_path)
-    ingested = sum(1 for path, sha in current.items() if (known or {}).get(path) != sha)
+    current = {f.path: f.key for f in files}
+    known = None if force else _known_manifest(db_path)
+    ingested = sum(1 for path, key in current.items() if (known or {}).get(path) != key)
     if known is None or known != current:
-        tables = _build(files)
-        _write(db_path, tables)
+        _write(db_path, _build(files))
     con = _connect(db_path)
     try:
         return _report(con, ingested)
@@ -231,26 +253,32 @@ def sync(raw_root: Path, db_path: Path) -> SyncReport:
         con.close()
 
 
-def rebuild(raw_root: Path, db_path: Path) -> SyncReport:
-    db_path.unlink(missing_ok=True)
-    return sync(raw_root, db_path)
-
-
 def _connect(db_path: Path) -> sqlite3.Connection:
     return sqlite3.connect(db_path, isolation_level=None)
 
 
-def _known_manifest(db_path: Path) -> dict[str, str] | None:
-    """None when there is no usable store: absent, or another schema version."""
+def _known_manifest(db_path: Path) -> dict[str, ChangeKey] | None:
+    """None when there is no usable store: absent, unreadable, or another
+    schema version."""
     if not db_path.is_file():
         return None
     con = _connect(db_path)
     try:
         if con.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:
             return None
-        return dict(con.execute("SELECT path, sha256 FROM manifest"))
+        return _manifest_keys(con)
+    except sqlite3.DatabaseError:
+        return None
     finally:
         con.close()
+
+
+def _manifest_keys(con: sqlite3.Connection) -> dict[str, ChangeKey]:
+    return {
+        path: (sha256, fetched_at, bool(sidecar_final))
+        for path, sha256, fetched_at, sidecar_final in con.execute(
+            "SELECT path, sha256, fetched_at, sidecar_final FROM manifest")
+    }
 
 
 def _scan(raw_root: Path) -> list[_RawFile]:
@@ -278,29 +306,30 @@ def _scan(raw_root: Path) -> list[_RawFile]:
         names += [("summary", f"players/{stem}") for _, stem in summaries]
         for kind, name in names:
             path = store.path(gw, name)
-            content = path.read_bytes()
+            with path.open("rb") as fh:
+                sha256 = hashlib.file_digest(fh, "sha256").hexdigest()
             found.append(_RawFile(
                 path=path.relative_to(raw_root).as_posix(),
+                source=path,
                 kind=kind,
                 gw=gw,
-                sha256=hashlib.sha256(content).hexdigest(),
+                sha256=sha256,
                 fetched_at=store.fetched_at(gw, name),
                 sidecar_final=store.meta(gw, name)["final"],
-                content=content,
             ))
     return found
 
 
 def _parse(kind: str, path: str, content: bytes) -> Any:
     try:
+        if kind == "summary":
+            return _Summary.model_validate_json(content)
         raw = json.loads(content)
         if kind == "bootstrap":
             return Bootstrap.model_validate(raw)
         if kind == "fixtures":
             return _FIXTURES.validate_python(raw)
-        if kind == "event-live":
-            return EventLive.model_validate(raw)
-        return _Summary.model_validate(raw)
+        return EventLive.model_validate(raw)
     except ValueError as exc:
         raise StoreSyncError(f"{path}: not a valid {kind} snapshot: {exc}") from None
 
@@ -319,31 +348,66 @@ class _Tables:
 
 
 def _build(files: Sequence[_RawFile]) -> _Tables:
-    bootstraps = {f.gw: f for f in files if f.kind == "bootstrap"}
+    """Every file is validated; each is parsed once (a covering summary once
+    more) and released before the next, keeping only the rows it yields."""
     rows_from: dict[str, int] = {f.path: 0 for f in files}
     final_of: dict[str, bool] = {f.path: f.sidecar_final for f in files}
+
+    first_checked: dict[int, datetime] = {}
+    clubs_of: dict[int, dict[int, int]] = {}
+    player_state: list[tuple] = []
+    events: list[tuple] = []
+    clubs: list[tuple] = []
+    bootstraps = sorted((f for f in files if f.kind == "bootstrap"), key=lambda f: f.gw)
+    for snapshot in bootstraps:
+        bootstrap: Bootstrap = snapshot.load()
+        if snapshot.fetched_at is not None:
+            for e in bootstrap.events:
+                if e.data_checked and (e.id not in first_checked
+                                       or snapshot.fetched_at < first_checked[e.id]):
+                    first_checked[e.id] = snapshot.fetched_at
+        clubs_of[snapshot.gw] = {p.id: p.team for p in bootstrap.elements}
+        for p in sorted(bootstrap.elements, key=lambda p: p.id):
+            player_state.append((
+                snapshot.gw, p.id, _iso(snapshot.fetched_at), p.code, p.web_name, p.team,
+                int(p.element_type), p.now_cost, p.status.value,
+                p.chance_of_playing_next_round, _iso(p.news_added), p.selected_by_percent,
+                p.form, int(is_shortlisted(p)), *(getattr(p, name) for name in TOTAL_FIELDS),
+            ))
+            rows_from[snapshot.path] += 1
+        if snapshot is bootstraps[-1]:
+            events = [
+                (e.id, _api_time(e.deadline_time), int(e.finished), int(e.data_checked),
+                 snapshot.gw)
+                for e in sorted(bootstrap.events, key=lambda e: e.id)
+            ]
+            clubs = [(t.id, t.short_name, t.name)
+                     for t in sorted(bootstrap.teams, key=lambda t: t.id)]
 
     def checked_before(event: int, fetched_at: datetime | None) -> bool:
         """A bootstrap fetched at or before `fetched_at` shows the round
         data-checked; data_checked never reverts, so the snapshot came after."""
-        if fetched_at is None:
-            return False
-        return any(
-            b.fetched_at is not None and b.fetched_at <= fetched_at
-            and any(e.id == event and e.data_checked for e in b.payload.events)
-            for b in bootstraps.values()
-        )
+        first = first_checked.get(event)
+        return fetched_at is not None and first is not None and first <= fetched_at
 
     fixtures: dict[int, tuple[Fixture, int, str]] = {}
     frozen: set[int] = set()
+    fixture_snapshots: list[tuple] = []
     for snapshot in (f for f in files if f.kind == "fixtures"):
-        for fixture in snapshot.payload:
+        payload: tuple[Fixture, ...] = snapshot.load()
+        for fixture in payload:
             if fixture.id not in frozen:
                 fixtures[fixture.id] = (fixture, snapshot.gw, snapshot.path)
-        for fixture in snapshot.payload:
+        for fixture in payload:
             if (fixture.finished and fixture.event is not None
                     and checked_before(fixture.event, snapshot.fetched_at)):
                 frozen.add(fixture.id)
+        fixture_snapshots.extend(
+            (snapshot.gw, x.id, x.event, x.team_h, x.team_a, x.team_h_difficulty,
+             x.team_a_difficulty, _api_time(x.kickoff_time), int(x.finished),
+             x.team_h_score, x.team_a_score)
+            for x in sorted(payload, key=lambda x: x.id)
+        )
     for _, _, path in fixtures.values():
         rows_from[path] += 1
 
@@ -351,6 +415,21 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
     for f in files:
         if f.kind == "summary":
             summaries.setdefault(_element_of(f.path), []).append(f)
+
+    history_past: list[tuple] = []
+    for element in sorted(summaries):
+        first, *rest = summaries[element]
+        for past in sorted(first.load().history_past, key=lambda p: p.season_name):
+            history_past.append((
+                element, past.season_name, past.element_code,
+                *(getattr(past, name) for name in PAST_FIELDS[1:]),
+                int(past.season_name >= XG_RECORDED_FROM),
+                int(past.season_name >= DC_RECORDED_FROM),
+                first.path,
+            ))
+            rows_from[first.path] += 1
+        for later in rest:
+            later.load()
 
     lives: dict[int, list[_RawFile]] = {}
     for f in files:
@@ -360,9 +439,12 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
     player_rounds: list[tuple] = []
     for rnd in sorted(lives):
         copies = lives[rnd]
+        chosen: tuple[_RawFile, EventLive] | None = None
         for copy in copies:
+            live: EventLive = copy.load()
             final_of[copy.path] = copy.sidecar_final or checked_before(rnd, copy.fetched_at)
-        chosen = next((c for c in copies if final_of[c.path]), None)
+            if chosen is None and final_of[copy.path]:
+                chosen = copy, live
         if chosen is None:
             first = copies[0]
             raise StoreSyncError(
@@ -370,58 +452,19 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
                 f"and no bootstrap fetched before them shows round {rnd} data-checked. "
                 f"Refetch: python -m fpl event-live --gw {first.gw} --round {rnd} --force"
             )
-        clubs_by_gw = {
-            gw: {p.id: p.team for p in bootstraps[gw].payload.elements}
-            for gw in (rnd, rnd + 1) if gw in bootstraps
-        }
-        for element in sorted(chosen.payload.elements, key=lambda e: e.id):
-            built = _element_rows(rnd, element, chosen, fixtures, clubs_by_gw,
-                                  summaries.get(element.id, []))
+        source, live = chosen
+        clubs_by_gw = {gw: clubs_of[gw] for gw in (rnd, rnd + 1) if gw in clubs_of}
+        for element in sorted(live.elements, key=lambda e: e.id):
+            built = _element_rows(rnd, element, source, fixtures, clubs_by_gw,
+                                  summaries.get(element.id, []), checked_before)
             for row in built:
                 rows_from[row[-1]] += 1
             player_rounds.extend(built)
 
-    history_past: list[tuple] = []
-    for element in sorted(summaries):
-        first = summaries[element][0]
-        for past in sorted(first.payload.history_past, key=lambda p: p.season_name):
-            history_past.append((
-                element, past.season_name, past.element_code,
-                *(getattr(past, name) for name in PAST_FIELDS[1:]),
-                int(past.season_name >= XG_RECORDED_FROM),
-                int(past.season_name >= DC_RECORDED_FROM),
-                first.path,
-            ))
-            rows_from[first.path] += 1
-
-    player_state: list[tuple] = []
-    for gw in sorted(bootstraps):
-        snapshot = bootstraps[gw]
-        for p in sorted(snapshot.payload.elements, key=lambda p: p.id):
-            player_state.append((
-                gw, p.id, _iso(snapshot.fetched_at), p.code, p.web_name, p.team,
-                int(p.element_type), p.now_cost, p.status.value,
-                p.chance_of_playing_next_round, _iso(p.news_added), p.selected_by_percent,
-                p.form, int(is_shortlisted(p)), *(getattr(p, name) for name in TOTAL_FIELDS),
-            ))
-            rows_from[snapshot.path] += 1
-
-    events: list[tuple] = []
-    clubs: list[tuple] = []
-    if bootstraps:
-        latest = bootstraps[max(bootstraps)]
-        events = [
-            (e.id, _api_time(e.deadline_time), int(e.finished), int(e.data_checked),
-             latest.gw)
-            for e in sorted(latest.payload.events, key=lambda e: e.id)
-        ]
-        clubs = [(t.id, t.short_name, t.name)
-                 for t in sorted(latest.payload.teams, key=lambda t: t.id)]
-
     return _Tables(
         manifest=[
             (f.path, f.sha256, f.kind, f.gw, _iso(f.fetched_at), int(final_of[f.path]),
-             rows_from[f.path])
+             int(f.sidecar_final), rows_from[f.path])
             for f in sorted(files, key=lambda f: f.path)
         ],
         events=events,
@@ -431,13 +474,7 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
              f.team_h_score, f.team_a_score, gw)
             for f, gw, _ in (fixtures[i] for i in sorted(fixtures))
         ],
-        fixture_snapshots=[
-            (f.gw, x.id, x.event, x.team_h, x.team_a, x.team_h_difficulty,
-             x.team_a_difficulty, _api_time(x.kickoff_time), int(x.finished),
-             x.team_h_score, x.team_a_score)
-            for f in files if f.kind == "fixtures"
-            for x in sorted(f.payload, key=lambda x: x.id)
-        ],
+        fixture_snapshots=fixture_snapshots,
         player_rounds=sorted(player_rounds, key=lambda r: (r[0], r[1])),
         history_past=history_past,
         player_state=player_state,
@@ -453,6 +490,7 @@ def _element_rows(
     fixtures: dict[int, tuple[Fixture, int, str]],
     clubs_by_gw: dict[int, dict[int, int]],
     summaries: Sequence[_RawFile],
+    checked_before: Callable[[int, datetime | None], bool],
 ) -> list[tuple]:
     fids = list(dict.fromkeys(ex.fixture for ex in element.explain))
     if not fids:
@@ -468,7 +506,7 @@ def _element_rows(
     sides = {f.id: _side(element.id, f, clubs_by_gw) for f in matches}
     needs_summary = len(matches) > 1 or any(side is None for side, _ in sides.values())
     if needs_summary:
-        covering = _covering_summary(element.id, rnd, matches, summaries)
+        covering = _covering_summary(element.id, rnd, matches, summaries, checked_before)
         if covering is not None:
             return covering
     if len(matches) > 1:
@@ -488,14 +526,16 @@ def _element_rows(
 
 
 def _covering_summary(
-    element: int, rnd: int, matches: Sequence[Fixture], summaries: Sequence[_RawFile]
+    element: int, rnd: int, matches: Sequence[Fixture], summaries: Sequence[_RawFile],
+    checked_before: Callable[[int, datetime | None], bool],
 ) -> list[tuple] | None:
-    """The earliest summary fetched after the round that has a row for every
-    fixture the element played in it."""
+    """The earliest summary fetched after the round was data-checked that has
+    a row for every fixture the element played in it. One fetched before the
+    check may carry provisional bonus and points."""
     for summary in summaries:
-        if summary.gw <= rnd:
+        if summary.gw <= rnd or not checked_before(rnd, summary.fetched_at):
             continue
-        by_fixture = {row.fixture: row for row in summary.payload.history}
+        by_fixture = {row.fixture: row for row in summary.load().history}
         if all(f.id in by_fixture for f in matches):
             return [_summary_row(element, rnd, f, by_fixture[f.id], summary.path)
                     for f in matches]
@@ -584,12 +624,24 @@ def _apportion(total: int, weights: Sequence[int]) -> list[int]:
 
 
 def _write(db_path: Path, tables: _Tables) -> None:
+    """Builds the store in a temporary file beside it and moves it into place
+    only once committed."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=f".{db_path.name}.", suffix=".tmp", dir=db_path.parent)
+    os.close(fd)
+    building = Path(name)
+    try:
+        _fill(building, tables)
+        os.replace(building, db_path)
+    except BaseException:
+        building.unlink(missing_ok=True)
+        raise
+
+
+def _fill(db_path: Path, tables: _Tables) -> None:
     con = _connect(db_path)
     try:
         con.execute("BEGIN")
-        for table in _TABLES:
-            con.execute(f"DROP TABLE IF EXISTS {table}")
         for statement in filter(str.strip, _SCHEMA.split(";")):
             con.execute(statement)
         _insert(con, "manifest", tables.manifest)
@@ -788,12 +840,18 @@ def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
         raise StoreReadError(f"no season store at {db_path} — {hint}")
     con = sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
     try:
-        if con.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:
+        try:
+            version = con.execute("PRAGMA user_version").fetchone()[0]
+            known = _manifest_keys(con) if version == SCHEMA_VERSION else None
+        except sqlite3.DatabaseError as exc:
+            raise StoreReadError(
+                f"season store {db_path} is unreadable ({exc}) — run: "
+                f"uv run python -m fpl store rebuild --gw {latest}"
+            ) from None
+        if known is None:
             raise StoreReadError(
                 f"season store {db_path} has another schema version — {hint}")
-        known = dict(con.execute("SELECT path, sha256 FROM manifest"))
-        current = {f.path: f.sha256 for f in files}
-        stale = _first_difference(known, current)
+        stale = _first_difference(known, {f.path: f.key for f in files})
         if stale is not None:
             raise StoreReadError(
                 f"season store {db_path} is behind {raw_root}: {stale} — {hint}")
@@ -804,7 +862,9 @@ def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
     return SeasonReader(con)
 
 
-def _first_difference(known: dict[str, str], current: dict[str, str]) -> str | None:
+def _first_difference(
+    known: dict[str, ChangeKey], current: dict[str, ChangeKey]
+) -> str | None:
     for path in sorted(current.keys() | known.keys()):
         if path not in known:
             return f"{path} not ingested"
