@@ -233,10 +233,10 @@ def build_report(
         cumulative=_cumulative(match_round, players, prior_reports),
         players=tuple(players),
         unmatched_prediction_ids=tuple(unmatched),
-        overall=_aggregate(players),
-        by_position=_grouped(players, lambda line: line.position),
-        by_uncertainty=_grouped(players, lambda line: line.uncertainty.value),
-        by_price_band=_grouped(players, lambda line: _price_band(line.price)),
+        overall=aggregate(players),
+        by_position=grouped(players, lambda line: line.position),
+        by_uncertainty=grouped(players, lambda line: line.uncertainty.value),
+        by_price_band=grouped(players, lambda line: _price_band(line.price)),
         minutes=_minutes_calibration(players),
         defcon=_defcon_sample(predictions, stats_by_id),
         squad=squad,
@@ -263,9 +263,9 @@ def _cumulative(
     pooled.extend(players)
     return CumulativeStats(
         rounds=tuple(rounds),
-        overall=_aggregate(pooled),
-        by_position=_grouped(pooled, lambda line: line.position),
-        minutes_brier=_brier(pooled),
+        overall=aggregate(pooled),
+        by_position=grouped(pooled, lambda line: line.position),
+        minutes_brier=brier(pooled),
         minutes_n=len(pooled),
     )
 
@@ -396,7 +396,7 @@ def squad_misses(report: CalibrationReport) -> tuple[SquadMiss, ...]:
     )
 
 
-def _aggregate(players: Sequence[PlayerLine]) -> Aggregate:
+def aggregate(players: Sequence[PlayerLine]) -> Aggregate:
     errors = [line.error for line in players]
     return Aggregate(
         n=len(errors),
@@ -405,13 +405,13 @@ def _aggregate(players: Sequence[PlayerLine]) -> Aggregate:
     )
 
 
-def _grouped(
+def grouped(
     players: Sequence[PlayerLine], key: Callable[[PlayerLine], str]
 ) -> dict[str, Aggregate]:
     groups: dict[str, list[PlayerLine]] = {}
     for line in players:
         groups.setdefault(key(line), []).append(line)
-    return {name: _aggregate(lines) for name, lines in groups.items()}
+    return {name: aggregate(lines) for name, lines in groups.items()}
 
 
 def _price_band(price: float) -> str:
@@ -425,13 +425,13 @@ def _price_band(price: float) -> str:
 def _minutes_calibration(players: Sequence[PlayerLine]) -> MinutesCalibration:
     return MinutesCalibration(
         n=len(players),
-        brier=_brier(players),
+        brier=brier(players),
         expected_starts=round(sum(line.p_start for line in players), 2),
         actual_starts=sum(1 for line in players if line.started),
     )
 
 
-def _brier(players: Sequence[PlayerLine]) -> float:
+def brier(players: Sequence[PlayerLine]) -> float:
     squared = [(line.p_start - (1 if line.started else 0)) ** 2 for line in players]
     return round(sum(squared) / len(squared), 4)
 
