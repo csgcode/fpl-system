@@ -250,3 +250,106 @@ def test_non_final_save_keeps_the_sidecar_shape(store, tmp_path):
     store.save(2, "bootstrap", {}, "url")
     meta = json.loads((tmp_path / "gw2" / ".meta" / "bootstrap.json").read_text())
     assert set(meta) == {"fetched_at", "source_url"}
+
+
+def _bootstrap_showing(checked: tuple[int, ...]) -> dict:
+    return {"events": [{"id": r, "data_checked": True} for r in checked]}
+
+
+def _save_at(root, when, gw, name, payload, **kwargs):
+    SnapshotStore(root, now=lambda: when).save(gw, name, payload, "url", **kwargs)
+
+
+T0 = datetime(2026, 9, 1, 12, 0, tzinfo=timezone.utc)
+
+
+def test_a_final_sidecar_proves_an_event_live_final(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0, 8, "event-live-e7", {}, final=True, basis="x")
+
+    proof = live_final(tmp_path, 8, 7)
+
+    assert proof is not None
+    assert proof.path == tmp_path / "gw8" / ".meta" / "event-live-e7.json"
+    assert proof.fetched_at == T0
+    assert proof.basis == f"gw8/.meta/event-live-e7.json final sidecar, fetched {T0.isoformat()}"
+
+
+@pytest.mark.parametrize("bootstrap_gw", [8, 9])
+@pytest.mark.parametrize("lead", [timedelta(hours=2), timedelta(0)])
+def test_a_kept_later_bootstrap_fetched_at_or_before_proves_it(tmp_path, bootstrap_gw, lead):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - lead, bootstrap_gw, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    proof = live_final(tmp_path, 8, 7)
+
+    assert proof is not None
+    assert proof.path == tmp_path / f"gw{bootstrap_gw}" / "bootstrap.json"
+    assert proof.fetched_at == T0 - lead
+    assert proof.basis == (f"gw{bootstrap_gw}/bootstrap.json fetched "
+                           f"{(T0 - lead).isoformat()} shows event 7 data_checked")
+    assert SnapshotStore(tmp_path).is_final(8, "event-live-e7") is True
+
+
+def test_a_bootstrap_fetched_after_the_snapshot_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+    _save_at(tmp_path, T0 + timedelta(seconds=1), 8, "bootstrap", _bootstrap_showing((7,)))
+
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_a_bootstrap_not_showing_the_round_checked_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((6,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_a_bootstrap_of_the_round_or_earlier_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 7, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_an_archived_bootstrap_proves_nothing(tmp_path):
+    """Archives are git-ignored: a proof must be reproducible from tracked files."""
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=2), 8, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0 + timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert list((tmp_path / "gw8" / ".archive").glob("bootstrap-*.json"))
+    assert live_final(tmp_path, 8, 7) is None
+    assert SnapshotStore(tmp_path).is_final(8, "event-live-e7") is False
+
+
+def test_no_snapshot_or_no_fetch_time_is_not_final(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((7,)))
+    assert live_final(tmp_path, 8, 7) is None
+
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+    (tmp_path / "gw8" / ".meta" / "event-live-e7.json").write_text("{corrupt")
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_an_unreadable_bootstrap_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((7,)))
+    (tmp_path / "gw8" / "bootstrap.json").write_text("{corrupt")
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert live_final(tmp_path, 8, 7) is None

@@ -443,6 +443,31 @@ def test_a_final_sidecar_makes_an_event_live_final(raw, db):
     assert sync(raw, db).rounds == (1, 2)
 
 
+def test_an_event_live_is_final_by_the_shared_rule_only(raw, db):
+    """A bootstrap of the round's own gameweek proves nothing, even one that
+    shows the round checked before the live snapshot was fetched."""
+    season = Season(live_before_bootstrap={1})
+    season.write(raw)
+    early = fetch_time(2) - timedelta(hours=2)
+    save_raw(raw, early, 1, "bootstrap", bootstrap_payload(
+        [], [], [event_payload(id=1, deadline_time=DEADLINES[1].isoformat(),
+                               finished=True, data_checked=True)]))
+
+    with pytest.raises(StoreSyncError, match="gw2/event-live-e1.json"):
+        sync(raw, db)
+
+
+def test_manifest_finality_matches_live_final(raw, db):
+    from fpl.store import live_final
+
+    Season(final_sidecar={1}).write(raw)
+    sync(raw, db)
+
+    for row in rows(db, "SELECT path, gw, final FROM manifest WHERE kind = 'event-live'"):
+        rnd = int(row["path"].rsplit("-e", 1)[1].removesuffix(".json"))
+        assert bool(row["final"]) == (live_final(raw, row["gw"], rnd) is not None)
+
+
 @pytest.mark.parametrize("bad", [
     ("gw3/players/summary-1.json", {"history": "not rows", "history_past": []}),
     ("gw3/event-live-e1.json", {"elements": "not elements"}),

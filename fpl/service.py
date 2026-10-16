@@ -450,15 +450,14 @@ class FplDataService:
         after the round; never fetches. Live stats arrive already summed over
         a double gameweek."""
         name = f"event-live-e{match_round}"
-        source = next(
-            (g for g in _dedupe([gw, match_round + 1]) if self._store.is_final(g, name)),
-            None,
-        )
+        places = _dedupe([gw, match_round + 1])
+        source = next((g for g in places if self._store.is_final(g, name)), None)
         if source is None:
             force = " --force" if self._store.exists(gw, name) else ""
+            where = " or ".join(f"gw{g}" for g in places)
             raise ValueError(
-                f"no final event-live snapshot of round {match_round} in gw{gw} or "
-                f"gw{match_round + 1} — fetch it first: "
+                f"no final event-live snapshot of round {match_round} in {where} — "
+                f"fetch it first: "
                 f"python -m fpl event-live --gw {gw} --round {match_round}{force}"
             )
         stats = EventLive.model_validate(self._store.load(source, name)).by_id()

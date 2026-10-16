@@ -17,8 +17,15 @@ double gameweek or an unresolved side. Without one, a double gameweek is
 split by minutes and marked, and an unresolved side is stored with no club
 and listed.
 
+A round's live stats are stored only from a final event-live snapshot, by
+the one rule in `fpl.store.prove_live_final`, applied to the kept bootstraps
+the sync reads.
+
 `open_ro` serves as-of reads that return the existing models. It refuses a
-store that has not ingested exactly the current raw tree.
+store that has not ingested exactly the current raw tree. Every input to the
+finality rule (each sidecar's fetch time and `final` key, each bootstrap's
+content) is in the manifest it compares, so a store it opens agrees with
+`fpl.store.live_final` on the current tree.
 """
 
 from __future__ import annotations
@@ -49,7 +56,7 @@ from fpl.models import (
     Position,
     is_shortlisted,
 )
-from fpl.store import SnapshotStore
+from fpl.store import SeenBootstrap, SnapshotStore, prove_live_final
 
 SCHEMA_VERSION = 3
 DEFAULT_STORE_PATH = Path("data/store/season-2026-27.sqlite")
@@ -213,6 +220,7 @@ class _RawFile:
 
     path: str
     source: Path
+    raw_root: Path
     kind: str
     gw: int
     sha256: str
@@ -311,6 +319,7 @@ def _scan(raw_root: Path) -> list[_RawFile]:
             found.append(_RawFile(
                 path=path.relative_to(raw_root).as_posix(),
                 source=path,
+                raw_root=raw_root,
                 kind=kind,
                 gw=gw,
                 sha256=sha256,
@@ -358,10 +367,15 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
     player_state: list[tuple] = []
     events: list[tuple] = []
     clubs: list[tuple] = []
+    seen: list[SeenBootstrap] = []
     bootstraps = sorted((f for f in files if f.kind == "bootstrap"), key=lambda f: f.gw)
     for snapshot in bootstraps:
         bootstrap: Bootstrap = snapshot.load()
         if snapshot.fetched_at is not None:
+            seen.append(SeenBootstrap(
+                snapshot.gw, snapshot.source, snapshot.fetched_at,
+                frozenset(e.id for e in bootstrap.events if e.data_checked),
+            ))
             for e in bootstrap.events:
                 if e.data_checked and (e.id not in first_checked
                                        or snapshot.fetched_at < first_checked[e.id]):
@@ -442,14 +456,18 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
         chosen: tuple[_RawFile, EventLive] | None = None
         for copy in copies:
             live: EventLive = copy.load()
-            final_of[copy.path] = copy.sidecar_final or checked_before(rnd, copy.fetched_at)
+            final_of[copy.path] = prove_live_final(
+                copy.raw_root, copy.gw, rnd, sidecar_final=copy.sidecar_final,
+                fetched_at=copy.fetched_at, bootstraps=seen,
+            ) is not None
             if chosen is None and final_of[copy.path]:
                 chosen = copy, live
         if chosen is None:
             first = copies[0]
             raise StoreSyncError(
                 f"{first.path}: round {rnd} live stats are not final — no final sidecar, "
-                f"and no bootstrap fetched before them shows round {rnd} data-checked. "
+                f"and no kept bootstrap of gw{rnd + 1} or later, fetched at or before "
+                f"them, shows round {rnd} data-checked. "
                 f"Refetch: python -m fpl event-live --gw {first.gw} --round {rnd} --force"
             )
         source, live = chosen
