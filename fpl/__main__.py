@@ -226,7 +226,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--event", type=_gameweek, required=True, help="gameweek the picks belong to"
     )
     actuals = add(
-        "actuals", "force-refresh summaries and report one round's returns",
+        "actuals", "report one round's returns from its final event-live snapshot",
         cached=False,
     )
     actuals.add_argument(

@@ -26,7 +26,7 @@ from fpl.models import (
     EventLive,
     EventPicks,
     Fixture,
-    MatchRecord,
+    LiveStats,
     Player,
     is_shortlisted,
 )
@@ -441,13 +441,22 @@ class FplDataService:
     def actuals(
         self, gw: int, *, player_ids: Sequence[int], match_round: int
     ) -> list[ActualLine]:
-        """Force-refreshes each summary, then sums every history row for the
-        round — a double gameweek contributes two rows."""
-        ids = _dedupe(player_ids)
-        summaries = self.player_summaries(gw, player_ids=ids, force=True)
-        return [
-            _aggregate_round(pid, summaries[pid].history, match_round) for pid in ids
-        ]
+        """Reads the round's final event-live snapshot, from gw or else the gw
+        after the round; never fetches. Live stats arrive already summed over
+        a double gameweek."""
+        name = f"event-live-e{match_round}"
+        source = next(
+            (g for g in _dedupe([gw, match_round + 1]) if self._store.is_final(g, name)),
+            None,
+        )
+        if source is None:
+            raise ValueError(
+                f"no final event-live snapshot of round {match_round} in gw{gw} or "
+                f"gw{match_round + 1} — fetch it first: "
+                f"python -m fpl event-live --gw {gw} --round {match_round}"
+            )
+        stats = EventLive.model_validate(self._store.load(source, name)).by_id()
+        return [_actual_line(pid, stats.get(pid)) for pid in _dedupe(player_ids)]
 
     def export_players_csv(self, gw: int) -> Path:
         rows = PlayerRepository(self._store).query(gw, sort="id")
@@ -608,22 +617,19 @@ def _is_positive_inf(value: float) -> bool:
     return math.isinf(value) and value > 0
 
 
-def _aggregate_round(
-    player_id: int, history: Sequence[MatchRecord], match_round: int
-) -> ActualLine:
-    rows = [row for row in history if row.round == match_round]
-    if not rows:
+def _actual_line(player_id: int, stats: LiveStats | None) -> ActualLine:
+    if stats is None:
         return ActualLine(player_id=player_id, matched=False)
     return ActualLine(
         player_id=player_id,
         matched=True,
-        minutes=sum(row.minutes for row in rows),
-        total_points=sum(row.total_points for row in rows),
-        goals_scored=sum(row.goals_scored for row in rows),
-        assists=sum(row.assists for row in rows),
-        bonus=sum(row.bonus or 0 for row in rows),
-        bps=sum(row.bps or 0 for row in rows),
-        expected_goals=round(sum(row.expected_goals or 0.0 for row in rows), 2),
-        expected_assists=round(sum(row.expected_assists or 0.0 for row in rows), 2),
-        defensive_contribution=sum(row.defensive_contribution or 0.0 for row in rows),
+        minutes=stats.minutes,
+        total_points=stats.total_points,
+        goals_scored=stats.goals_scored,
+        assists=stats.assists,
+        bonus=stats.bonus,
+        bps=stats.bps,
+        expected_goals=round(stats.expected_goals or 0.0, 2),
+        expected_assists=round(stats.expected_assists or 0.0, 2),
+        defensive_contribution=stats.defensive_contribution or 0.0,
     )

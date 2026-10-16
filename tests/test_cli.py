@@ -308,61 +308,51 @@ def test_picks_without_chip_prints_none(tmp_path, capsys):
 # --- actuals -------------------------------------------------------------
 
 
-def test_actuals_sums_double_gameweek_and_marks_absences(tmp_path, capsys):
-    gateway = FakeGateway(
-        {
-            f"{BASE_URL}/element-summary/1/": element_summary_payload(
-                history=[
-                    match_record_payload(fixture=1, round=5, minutes=90,
-                                         total_points=8, goals_scored=1, assists=1,
-                                         bonus=2, bps=30),
-                    match_record_payload(fixture=2, round=5, minutes=62,
-                                         total_points=5, goals_scored=0, assists=1,
-                                         bonus=1, bps=22),
-                    match_record_payload(fixture=3, round=6, minutes=90,
-                                         total_points=2, goals_scored=0, assists=0,
-                                         bonus=0, bps=11),
-                ]
-            ),
-            f"{BASE_URL}/element-summary/2/": element_summary_payload(
-                history=[match_record_payload(fixture=4, round=6)]
-            ),
-        }
+def seed_final_live(tmp_path, gw, event, elements):
+    from tests.factories import event_live_payload
+
+    SnapshotStore(tmp_path).save(
+        gw, f"event-live-e{event}", event_live_payload(elements), "seed://test",
+        final=True, basis="seed",
     )
 
+
+def test_actuals_prints_the_round_from_the_final_snapshot(tmp_path, capsys):
+    from tests.factories import live_element
+
+    played = live_element(1, "0.88", {41: 90, 52: 62})
+    played["stats"].update(total_points=13, goals_scored=1, assists=2, bonus=3,
+                           bps=52, expected_assists="0.20", defensive_contribution=6)
+    seed_final_live(tmp_path, 6, 5, [played])
+    gateway = FakeGateway({})
+
     assert run(
-        ["actuals", "--gw", "1", "--round", "5", "--ids", "1,2"], tmp_path, gateway
+        ["actuals", "--gw", "6", "--round", "5", "--ids", "1,2"], tmp_path, gateway
     ) == 0
     out = capsys.readouterr().out
+    assert out.splitlines()[0] == "round 5 actuals (2 players)"
     rows = [line.split() for line in out.splitlines()[2:]]
     assert rows[0] == ["1", "152", "13", "1", "2", "3", "52", "0.88", "0.20", "6"]
     assert rows[1] == ["2", "0", "0", "0", "0", "0", "0", "0.00", "0.00", "0", "no", "match"]
+    assert gateway.calls == []
 
 
-def test_actuals_always_refetches(tmp_path):
-    gateway = FakeGateway(
-        {
-            f"{BASE_URL}/element-summary/1/": element_summary_payload(
-                history=[match_record_payload(round=5)]
-            )
-        }
-    )
-    run(["actuals", "--gw", "1", "--round", "5", "--ids", "1"], tmp_path, gateway)
-    run(["actuals", "--gw", "1", "--round", "5", "--ids", "1"], tmp_path, gateway)
-    assert len(gateway.calls) == 2
+def test_actuals_without_a_final_snapshot_names_event_live(tmp_path, capsys):
+    gateway = FakeGateway({})
+    assert run(
+        ["actuals", "--gw", "6", "--round", "5", "--ids", "1"], tmp_path, gateway
+    ) == 1
+    assert "fpl event-live --gw 6 --round 5" in capsys.readouterr().err
+    assert gateway.calls == []
 
 
 def test_actuals_dedupes_repeated_ids(tmp_path, capsys):
-    gateway = FakeGateway(
-        {
-            f"{BASE_URL}/element-summary/1/": element_summary_payload(
-                history=[match_record_payload(round=5)]
-            )
-        }
-    )
-    run(["actuals", "--gw", "1", "--round", "5", "--ids", "1,1,1"], tmp_path, gateway)
+    from tests.factories import live_element_payload
+
+    seed_final_live(tmp_path, 6, 5, [live_element_payload(element_id=1)])
+    run(["actuals", "--gw", "6", "--round", "5", "--ids", "1,1,1"], tmp_path,
+        FakeGateway({}))
     assert "1 players" in capsys.readouterr().out
-    assert len(gateway.calls) == 1
 
 
 # --- players view --------------------------------------------------------

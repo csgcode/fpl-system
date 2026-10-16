@@ -347,6 +347,27 @@ def test_live_element_parses_explain_and_string_xg():
     assert parsed.explain[0].stat("bonus") == 0
 
 
+def test_live_stats_parse_the_new_fields():
+    from fpl.models import LiveStats
+    from tests.factories import live_stats_payload
+
+    stats = LiveStats.model_validate(live_stats_payload(
+        expected_assists="0.31", yellow_cards=1, expected_goals_conceded="1.45",
+        red_cards=0,
+    ))
+    assert stats.expected_assists == 0.31
+    assert stats.yellow_cards == 1
+    assert stats.expected_goals_conceded == 1.45
+    assert stats.red_cards == 0
+
+    sparse = live_stats_payload()
+    for key in ("expected_assists", "yellow_cards", "expected_goals_conceded", "red_cards"):
+        del sparse[key]
+    parsed = LiveStats.model_validate(sparse)
+    assert (parsed.expected_assists, parsed.yellow_cards) == (None, None)
+    assert (parsed.expected_goals_conceded, parsed.red_cards) == (None, None)
+
+
 def test_event_live_without_explain_still_parses():
     from fpl.models import EventLive
     from tests.factories import live_stats_payload

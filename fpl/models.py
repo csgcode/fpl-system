@@ -223,6 +223,10 @@ class LiveStats(_FrozenModel):
     starts: int = Field(ge=0)
     defensive_contribution: float | None = None
     expected_goals: float | None = None
+    expected_assists: float | None = None
+    expected_goals_conceded: float | None = None
+    yellow_cards: int | None = None
+    red_cards: int | None = None
 
     @property
     def started(self) -> bool:

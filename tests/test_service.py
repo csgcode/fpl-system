@@ -409,55 +409,102 @@ def test_entry_history_parses_multiple_events(tmp_path):
     assert [row.total_points for row in history.current] == [61, 109]
 
 
-def test_actuals_sums_double_gameweek_rows_and_flags_absences(tmp_path):
-    elements = [player_payload(id=1), player_payload(id=2)]
-    responses = {
-        BOOTSTRAP_URL: bootstrap_payload(elements=elements),
-        f"{BASE_URL}/element-summary/1/": element_summary_payload(
-            history=[
-                match_record_payload(fixture=1, round=5, minutes=90, total_points=8,
-                                     goals_scored=1, assists=1, bonus=2, bps=30),
-                match_record_payload(fixture=2, round=5, minutes=75, total_points=5,
-                                     goals_scored=0, assists=1, bonus=1, bps=22),
-                match_record_payload(fixture=3, round=6, minutes=90, total_points=2,
-                                     goals_scored=0, assists=0, bonus=0, bps=12),
-            ]
-        ),
-        f"{BASE_URL}/element-summary/2/": element_summary_payload(
-            history=[match_record_payload(fixture=4, round=6)]
-        ),
-    }
-    service, gateway, _, _ = make_service(tmp_path, responses)
-    service.player_summaries(gw=5, player_ids=[1, 2])
-    gateway.calls.clear()
+class NoNetworkGateway:
+    def get_json(self, url: str):
+        raise AssertionError(f"actuals made a network call: {url}")
 
-    lines = service.actuals(gw=5, player_ids=[1, 2], match_round=5)
 
-    assert len(gateway.calls) == 2  # always refetched, never served from cache
-    played, absent = lines
+def _offline_service(tmp_path):
+    store = SnapshotStore(tmp_path, now=FakeClock())
+    service = FplDataService(
+        FplApi(NoNetworkGateway()), store, throttle_s=0.0, sleep=lambda _: None
+    )
+    return service, store
+
+
+def _seed_live(store, gw, event, elements, *, final=True):
+    from tests.factories import event_live_payload
+
+    store.save(
+        gw, f"event-live-e{event}", event_live_payload(elements),
+        f"{BASE_URL}/event/{event}/live/", final=final,
+        basis="bootstrap shows the event data_checked" if final else None,
+    )
+
+
+def test_actuals_reads_the_round_snapshot_without_fetching(tmp_path):
+    from tests.factories import live_element_payload
+
+    service, store = _offline_service(tmp_path)
+    _seed_live(store, 6, 5, [
+        live_element_payload(
+            element_id=1, minutes=90, total_points=9, goals_scored=1, assists=1,
+            bonus=2, bps=31, expected_goals="0.64", expected_assists="0.21",
+            defensive_contribution=4,
+        ),
+        live_element_payload(element_id=3),
+    ])
+
+    played, absent = service.actuals(gw=6, player_ids=[1, 2, 1], match_round=5)
+
     assert (played.player_id, played.matched) == (1, True)
-    assert (played.minutes, played.total_points) == (165, 13)
-    assert (played.goals_scored, played.assists) == (1, 2)
-    assert (played.bonus, played.bps) == (3, 52)
-    assert played.expected_goals == pytest.approx(0.88)
-    assert played.expected_assists == pytest.approx(0.20)
-    assert played.defensive_contribution == 6.0
-    assert absent.matched is False
+    assert (played.minutes, played.total_points) == (90, 9)
+    assert (played.goals_scored, played.assists) == (1, 1)
+    assert (played.bonus, played.bps) == (2, 31)
+    assert played.expected_goals == pytest.approx(0.64)
+    assert played.expected_assists == pytest.approx(0.21)
+    assert played.defensive_contribution == 4.0
+    assert (absent.player_id, absent.matched) == (2, False)
     assert (absent.minutes, absent.total_points, absent.bps) == (0, 0, 0)
 
 
-def test_actuals_treats_missing_bonus_as_zero(tmp_path):
-    responses = {
-        f"{BASE_URL}/element-summary/1/": element_summary_payload(
-            history=[
-                {"fixture": 1, "round": 5, "minutes": 90, "total_points": 3,
-                 "goals_scored": 0, "assists": 0}
-            ]
-        ),
-    }
-    service, _, _, _ = make_service(tmp_path, responses)
-    (line,) = service.actuals(gw=5, player_ids=[1], match_round=5)
-    assert (line.matched, line.bonus, line.bps) == (True, 0, 0)
+def test_actuals_falls_back_to_the_snapshot_of_the_following_gw(tmp_path):
+    from tests.factories import live_element_payload
+
+    service, store = _offline_service(tmp_path)
+    _seed_live(store, 6, 5, [live_element_payload(element_id=1, total_points=4)])
+
+    (line,) = service.actuals(gw=8, player_ids=[1], match_round=5)
+
+    assert (line.matched, line.total_points) == (True, 4)
+
+
+def test_actuals_refuses_without_a_final_snapshot(tmp_path):
+    from tests.factories import live_element_payload
+
+    service, store = _offline_service(tmp_path)
+    _seed_live(store, 6, 5, [live_element_payload(element_id=1)], final=False)
+
+    with pytest.raises(ValueError, match="fpl event-live --gw 6 --round 5"):
+        service.actuals(gw=6, player_ids=[1], match_round=5)
+
+
+def test_actuals_double_gameweek_is_already_summed(tmp_path):
+    from tests.factories import live_element
+
+    service, store = _offline_service(tmp_path)
+    element = live_element(1, "0.90", {41: 90, 52: 75})
+    element["stats"].update(total_points=13, goals_scored=1, assists=2, bonus=3, bps=52)
+    _seed_live(store, 6, 5, [element])
+
+    (line,) = service.actuals(gw=6, player_ids=[1], match_round=5)
+
+    assert (line.minutes, line.total_points) == (165, 13)
+    assert (line.goals_scored, line.assists, line.bonus, line.bps) == (1, 2, 3, 52)
+    assert line.expected_goals == pytest.approx(0.90)
+
+
+def test_actuals_treats_missing_live_fields_as_zero(tmp_path):
+    from tests.factories import live_element_payload
+
+    service, store = _offline_service(tmp_path)
+    element = live_element_payload(element_id=1)
+    for key in ("expected_goals", "expected_assists", "defensive_contribution"):
+        del element["stats"][key]
+    _seed_live(store, 6, 5, [element])
+
+    (line,) = service.actuals(gw=6, player_ids=[1], match_round=5)
+
     assert (line.expected_goals, line.expected_assists, line.defensive_contribution) == (0.0, 0.0, 0.0)
 
 

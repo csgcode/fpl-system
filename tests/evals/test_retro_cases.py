@@ -146,6 +146,8 @@ def test_p2_makes_calibrate_refuse(built):
 
 def test_the_actuals_for_every_squad_miss_are_recorded(built):
     prepared = built("L2-gw4")
+    fetched = cli(prepared, "event-live", "--gw", "5", "--round", "4")
+    assert fetched.returncode == 0, fetched.stderr
     done = cli(prepared, "actuals", "--gw", "5", "--round", "4",
                "--ids", "1,4,229,237,106,411")
     assert done.returncode == 0, done.stderr
