@@ -1108,8 +1108,8 @@ Fetch policy, recorded at fetch time in the `.meta` sidecar and enforced in `Fpl
 | element-summary `history_past` | fetched once per player per season (every id with no `history_past` in the store); served at any age |
 | element-summary `history` | rebuilt from event-live × fixtures × bootstrap; targeted fetches only for DGW players, unresolved sides, or a reconciliation mismatch |
 | element-summary `fixtures` | never needed (derivable from fixtures.json) |
-| event/{r}/live | final once fetched while a bootstrap fetched ≤ 1h before shows event r `data_checked`; served at any age; `--force` refetches and archives |
-| entry/{id}/event/{M}/picks | final when fetched after deadline M |
+| event/{r}/live | final once fetched while a cached bootstrap of any age, fetched before it, shows event r `data_checked`; served at any age; `--force` refetches and archives |
+| entry/{id}/event/{M}/picks | final when fetched while the cached bootstrap of the same GW shows event M `finished` and `data_checked` (automatic subs, multipliers and `entry_history` change until then); otherwise the sidecar records the reason |
 | entry, entry history | TTL 24h (unchanged) |
 | my-team, writes | never cached (unchanged) |
 | `actuals` | local: reads the final event-live snapshot, zero calls |
@@ -1159,15 +1159,15 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
 - **Implement:** `add("event-live", "fetch one data-checked round's live stats (final once fetched)")` with `--round`; `final_when` = the cached bootstrap gw N, fetched before this fetch (any age: `data_checked` never reverts), shows event R `data_checked`; calibrate calls the same service method.
 - **Verify:** `uv run pytest tests/test_service.py tests/test_calibrate_cli.py tests/test_cli.py -q`
 
-### Task S.3: Picks final after their deadline; post-deadline write guard
+### Task S.3: Picks final once their round is data-checked; post-deadline write guard
 - [ ] **Files:** `fpl/service.py`, `fpl/__main__.py`, `tests/test_service.py`, `tests/test_cli.py`.
 - **Track:** WS
 - **Depends on / parallel with:** S.2 (serial on `fpl/service.py`). Parallel with S.5, WA, WB, WC.
 - **Effort:** S
 - **Test:**
-  - `test_picks_fetched_after_the_event_deadline_are_final`.
+  - `test_picks_of_a_data_checked_event_are_final`: the basis names the bootstrap and its fetch time; `test_picks_past_the_deadline_of_an_unchecked_event_are_not_final`: the sidecar `reason` names the event and the bootstrap.
   - `test_summaries_into_a_past_gw_refuse_after_its_deadline`: cached bootstrap says deadline 6 passed; `summaries --gw 6 --ids 1 --force` exits 1 naming `--allow-post-deadline`; bootstrap and fixtures likewise; `event-live` into gw 7 for round 6 is allowed.
-- **Implement:** deadline from the cached bootstrap of the same GW (`deadline_for`); guard in `_load_or_fetch` for kinds bootstrap, fixtures, summary; `--allow-post-deadline` on those three commands.
+- **Implement:** picks final when the cached bootstrap of the same GW shows the event `finished` and `data_checked`, with the basis or reason in the sidecar; deadline from the cached bootstrap of the same GW (`deadline_for`); guard in `_load_or_fetch` for kinds bootstrap, fixtures, summary; `--allow-post-deadline` on those three commands.
 - **Verify:** `uv run pytest tests/test_service.py tests/test_cli.py -q`
 
 ### Task S.4: `actuals` from event-live, no network
@@ -1199,7 +1199,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - `test_history_past_ingested_once_per_player`.
   - `test_archives_are_not_ingested`.
   - `test_reconciliation_flags_a_total_mismatch`: bootstrap totals ≠ Σ rounds for one id gives a mismatch line; skipped when the current event is not data-checked.
-- **Implement:** schema per the table above; `sync(raw_root, db_path) -> SyncReport`; models validate every file at the boundary; one transaction per sync; `PRAGMA user_version`; no clock reads. An event-live snapshot is ingested as final only if its sidecar says `final` or a bootstrap of the same or a later GW, fetched after it, shows the round data-checked.
+- **Implement:** schema per the table above; `sync(raw_root, db_path) -> SyncReport`; models validate every file at the boundary; one transaction per sync; `PRAGMA user_version`; no clock reads. An event-live snapshot is ingested as final only if its sidecar says `final` or a bootstrap of the same or a later GW, fetched at or before it, shows the round data-checked (a bootstrap fetched after the snapshot proves nothing).
 - **Verify:** `uv run pytest tests/test_season_store.py tests/test_models.py -q`
 
 ### Task S.6: As-of readers returning existing models

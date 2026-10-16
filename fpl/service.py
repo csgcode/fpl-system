@@ -305,7 +305,7 @@ class FplDataService:
             EventPicks.model_validate,
             max_age_hours,
             force,
-            final_when=lambda _: self._after_deadline(gw, event),
+            final_when=lambda _: self._round_settled(gw, event),
         )
 
     def event_live(
@@ -343,9 +343,12 @@ class FplDataService:
                 f"final. Refetch once FPL marks it checked: "
                 f"python -m fpl bootstrap --gw {gw} --force"
             )
+        return f"{self._bootstrap_label(gw)} shows event {event} data_checked"
+
+    def _bootstrap_label(self, gw: int) -> str:
         fetched_at = self._store.fetched_at(gw, "bootstrap")
         when = fetched_at.isoformat() if fetched_at else "at an unknown time"
-        return f"bootstrap gw{gw} fetched {when} shows event {event} data_checked"
+        return f"bootstrap gw{gw} fetched {when}"
 
     def player_summaries(
         self,
@@ -510,14 +513,19 @@ class FplDataService:
             return None
         return self._cached_bootstrap(gw).deadline_for(event)
 
-    def _after_deadline(self, gw: int, event: int) -> tuple[bool, str]:
-        """Picks for an event cannot change once its deadline has passed."""
-        deadline = self._cached_deadline(gw, event)
-        if deadline is None:
-            return False, f"no cached gw{gw} bootstrap gives the event {event} deadline"
-        if self._now() >= deadline:
-            return True, f"fetched after the event {event} deadline {deadline.isoformat()}"
-        return False, f"fetched before the event {event} deadline {deadline.isoformat()}"
+    def _round_settled(self, gw: int, event: int) -> tuple[bool, str]:
+        """Picks for an event keep changing (automatic subs, multipliers,
+        entry_history) until the round is processed, so they are final only
+        once the cached gw bootstrap shows the event finished and data-checked."""
+        if not self._store.exists(gw, "bootstrap"):
+            return False, f"no cached gw{gw} bootstrap shows event {event} data_checked"
+        bootstrap = self._cached_bootstrap(gw)
+        settled = next((e for e in bootstrap.events if e.id == event), None)
+        if settled is not None and settled.finished and settled.data_checked:
+            return True, self.data_checked_basis(gw, event)
+        return False, (
+            f"event {event} not finished/data_checked in {self._bootstrap_label(gw)}"
+        )
 
     def _deadline_guard(self, gw: int) -> Callable[[], None]:
         """Refuses a fetch into gw{gw} once its deadline has passed: that

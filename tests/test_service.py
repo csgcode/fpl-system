@@ -731,18 +731,29 @@ def seed_deadline_bootstrap(store, gw, deadlines):
     store.save(gw, "bootstrap", bootstrap_payload(events=events), "seed://test")
 
 
-def test_picks_fetched_after_the_event_deadline_are_final(tmp_path):
+def seed_picks_bootstrap(store, *, finished, data_checked):
+    events = [
+        event_payload(id=7, deadline_time=PASSED_DEADLINE, finished=finished,
+                      data_checked=data_checked, is_next=False),
+        event_payload(id=8, deadline_time=OPEN_DEADLINE, is_next=True),
+    ]
+    store.save(8, "bootstrap", bootstrap_payload(events=events), "seed://test")
+
+
+def test_picks_of_a_data_checked_event_are_final(tmp_path):
     service, gateway, store, clock = make_service(
         tmp_path, {PICKS_E7_URL: event_picks_payload()}
     )
-    seed_deadline_bootstrap(store, 8, {7: PASSED_DEADLINE, 8: OPEN_DEADLINE})
+    seed_picks_bootstrap(store, finished=True, data_checked=True)
+    bootstrap_time = clock.now
+    clock.advance(hours=2)
 
     service.picks(gw=8, team_id=77, event=7)
 
     meta = store.meta(8, "picks-77-e7")
     assert meta["final"] is True
     assert meta["basis"] == (
-        "fetched after the event 7 deadline 2026-08-20T17:30:00+00:00"
+        f"bootstrap gw8 fetched {bootstrap_time.isoformat()} shows event 7 data_checked"
     )
     (event,) = service.take_fetch_log()
     assert (event.fetched, event.final) == (True, True)
@@ -754,28 +765,43 @@ def test_picks_fetched_after_the_event_deadline_are_final(tmp_path):
     assert (event.fetched, event.final) == (False, True)
 
 
-def test_picks_fetched_before_the_event_deadline_are_not_final(tmp_path):
+@pytest.mark.parametrize("finished", [False, True])
+def test_picks_past_the_deadline_of_an_unchecked_event_are_not_final(tmp_path, finished):
+    service, _, store, clock = make_service(tmp_path, {PICKS_E7_URL: event_picks_payload()})
+    seed_picks_bootstrap(store, finished=finished, data_checked=False)
+    bootstrap_time = clock.now
+
+    service.picks(gw=8, team_id=77, event=7)
+
+    meta = store.meta(8, "picks-77-e7")
+    assert meta["final"] is False
+    assert meta["reason"] == (
+        f"event 7 not finished/data_checked in bootstrap gw8 fetched "
+        f"{bootstrap_time.isoformat()}"
+    )
+    assert "basis" not in meta
+
+
+def test_picks_of_the_open_event_are_not_final(tmp_path):
     url = f"{BASE_URL}/entry/77/event/8/picks/"
     service, _, store, _ = make_service(tmp_path, {url: event_picks_payload()})
-    seed_deadline_bootstrap(store, 8, {7: PASSED_DEADLINE, 8: OPEN_DEADLINE})
+    seed_picks_bootstrap(store, finished=True, data_checked=True)
 
     service.picks(gw=8, team_id=77, event=8)
 
     meta = store.meta(8, "picks-77-e8")
     assert meta["final"] is False
-    assert meta["reason"] == (
-        "fetched before the event 8 deadline 2026-08-28T17:30:00+00:00"
-    )
+    assert meta["reason"].startswith("event 8 not finished/data_checked in bootstrap gw8")
 
 
-def test_picks_without_a_known_deadline_are_not_final(tmp_path):
+def test_picks_without_a_cached_bootstrap_are_not_final(tmp_path):
     service, _, store, _ = make_service(tmp_path, {PICKS_E7_URL: event_picks_payload()})
 
     service.picks(gw=8, team_id=77, event=7)
 
     meta = store.meta(8, "picks-77-e7")
     assert meta["final"] is False
-    assert meta["reason"] == "no cached gw8 bootstrap gives the event 7 deadline"
+    assert meta["reason"] == "no cached gw8 bootstrap shows event 7 data_checked"
 
 
 def test_summaries_into_a_past_gw_refuse_after_its_deadline(tmp_path):
