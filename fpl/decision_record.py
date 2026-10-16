@@ -7,7 +7,10 @@ commit only modifies final.md, so it is never chosen.
 
 from __future__ import annotations
 
+import io
 import subprocess
+import tarfile
+from collections.abc import Sequence
 from pathlib import Path
 
 
@@ -29,3 +32,16 @@ def decision_commit(repo: Path, gw: int, decisions_rel: str = "data/decisions") 
     shas = _git(repo, "log", "--diff-filter=A", "--format=%H", "--",
                 f"{decisions_rel}/gw{gw}/final.md").split()
     return shas[-1] if shas else None
+
+
+def materialize(repo: Path, commit: str, paths: Sequence[str], dest: Path) -> None:
+    """Writes `paths` as they were at `commit` under `dest`, keeping repo-relative paths."""
+    archive = subprocess.run(["git", "-C", str(repo), "archive", commit, "--", *paths],
+                             check=True, capture_output=True).stdout
+    with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+        tar.extractall(dest, filter="data")
+
+
+def drifted(repo: Path, commit: str, paths: Sequence[str]) -> list[str]:
+    """Paths under `paths` whose working-tree state differs from `commit`."""
+    return sorted(_git(repo, "diff", "--name-only", commit, "--", *paths).split())
