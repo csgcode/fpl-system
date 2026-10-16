@@ -16,12 +16,20 @@ from tests.factories import (
     live_element_payload,
 )
 from tests.test_calibrate import POSITION_FILES, prediction_row
+from tests.gitrepo import commit_files, init_repo
 from tests.test_service import FakeGateway
 
 LIVE_1_URL = f"{BASE_URL}/event/1/live/"
 
 
 def run(argv, data_root, gateway):
+    """Runs in worktree mode unless argv picks a mode: most tests seed no git history."""
+    if "calibrate" in argv and "--predictions-from" not in argv:
+        argv = [*argv, "--predictions-from", "worktree"]
+    return run_committed(argv, data_root, gateway)
+
+
+def run_committed(argv, data_root, gateway):
     def factory(store: SnapshotStore) -> FplDataService:
         return FplDataService(
             FplApi(gateway), store, throttle_s=0.0, sleep=lambda _: None
@@ -267,3 +275,90 @@ def test_squad_misses_none(tmp_path, capsys):
     tails = [i for i, line in enumerate(lines) if "-predicted (err" in line]
     misses_at = lines.index("squad misses (|err| > 3): none")
     assert all(i > misses_at for i in tails)
+
+
+# --- the decision record ----------------------------------------------------
+
+ALPHA_MID = "analysis/gw1/players-MID.json"
+
+
+def mid_rows(alpha_ep):
+    rows = [prediction_row(id=i, name=f"P{i}") for i in range(1, 16)]
+    rows[0] = prediction_row(id=1, name="P1", ep_gw=[alpha_ep] * 6)
+    return json.dumps(rows)
+
+
+def setup_committed_round(tmp_path, *, rewrite=True, commit_final=True):
+    data_root, gateway, argv = setup_round(tmp_path)
+    repo = init_repo(tmp_path)
+    decided = {f"analysis/gw1/players-{pos}.json": "[]" for pos in POSITION_FILES}
+    decided[ALPHA_MID] = mid_rows(3.0)
+    if commit_final:
+        decided["decisions/gw1/final.md"] = (tmp_path / "decisions/gw1/final.md").read_text()
+    sha = commit_files(repo, decided, "gw1: decision")
+    if rewrite:
+        commit_files(repo, {ALPHA_MID: mid_rows(5.0)}, "ep: x")
+    return data_root, gateway, argv, sha
+
+
+def ledger(tmp_path):
+    return json.loads((tmp_path / "retro/gw1-calibration.json").read_text(encoding="utf-8"))
+
+
+def alpha_predicted(document):
+    return next(p["predicted"] for p in document["players"] if p["id"] == 1)
+
+
+def test_calibrate_reads_predictions_from_the_decision_commit(tmp_path, capsys):
+    data_root, gateway, argv, sha = setup_committed_round(tmp_path)
+
+    assert run_committed(argv, data_root, gateway) == 0
+
+    document = ledger(tmp_path)
+    assert alpha_predicted(document) == 3.0
+    assert document["predictions_source"].startswith("commit ")
+    assert document["drifted"] == [ALPHA_MID]
+    captured = capsys.readouterr()
+    lines = [line for line in captured.out.splitlines() if line.startswith("predictions:")]
+    assert lines == [f"predictions: commit {sha[:12]} (drift: 1 file)"]
+    warnings = [line for line in captured.err.splitlines() if line.startswith("WARNING:")]
+    assert warnings == [
+        f"WARNING: 1 prediction file changed after decision commit {sha[:12]} — "
+        f"calibrated the decision record: {ALPHA_MID}"
+    ]
+
+
+def test_calibrate_prints_no_warning_without_drift(tmp_path, capsys):
+    data_root, gateway, argv, sha = setup_committed_round(tmp_path, rewrite=False)
+
+    assert run_committed(argv, data_root, gateway) == 0
+
+    captured = capsys.readouterr()
+    assert f"predictions: commit {sha[:12]} (drift: none)" in captured.out.splitlines()
+    assert "WARNING" not in captured.err
+
+
+def test_calibrate_refuses_without_a_decision_commit(tmp_path, capsys):
+    data_root, gateway, argv, _ = setup_committed_round(tmp_path, commit_final=False)
+
+    assert run_committed(argv, data_root, gateway) == 1
+    assert "--predictions-from worktree" in capsys.readouterr().err
+
+
+def test_calibrate_still_refuses_an_unchecked_round_first(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path, checked=False)
+
+    assert run_committed(argv, data_root, gateway) == 1
+    assert "data-checked" in capsys.readouterr().err
+
+
+def test_calibrate_worktree_mode_reads_the_files_on_disk(tmp_path, capsys):
+    data_root, gateway, argv, _ = setup_committed_round(tmp_path)
+    (tmp_path / ALPHA_MID).write_text(mid_rows(5.0), encoding="utf-8")
+
+    assert run_committed([*argv, "--predictions-from", "worktree"], data_root, gateway) == 0
+
+    document = ledger(tmp_path)
+    assert alpha_predicted(document) == 5.0
+    assert document["predictions_source"] == "worktree"
+    assert "predictions: worktree" in capsys.readouterr().out.splitlines()

@@ -112,6 +112,10 @@ marks |err| > 3 on the ledger's unrounded error, so `+3.00*` is a miss, and the
 `fpl corrections` prints the latest status table and the text of every active
 correction.
 
+`predictions:` names the decision record calibrate scored. A `changed after
+decision commit` warning means files on disk were changed after the decision;
+state it once in Findings and never attribute a miss to it.
+
 The squad section is built from final.md's `picks:` block. Compare it with
 the `picks` output (ids, captain, vice). If they differ, say so: the ledger's
 squad numbers then describe the plan, not the fielded team.

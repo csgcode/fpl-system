@@ -46,6 +46,7 @@ from fpl.calibrate import (
     squad_misses,
 )
 from fpl.capture import is_git_ignored, parse_curl
+from fpl.decision_record import RecordPredictions, record_predictions
 from fpl.corrections import agent_corrections, build_digest
 from fpl.ep import (
     EpResult,
@@ -459,6 +460,10 @@ def build_parser() -> argparse.ArgumentParser:
     calibrate.add_argument(
         "--retro-root", type=Path, default=Path("data/retro"),
         help="where gw{M}-calibration.json ledgers live",
+    )
+    calibrate.add_argument(
+        "--predictions-from", choices=("commit", "worktree"), default="commit",
+        help="commit: the gw's decision commit (default); worktree: the files on disk",
     )
     calibrate.add_argument("--format", choices=("table", "json"), default="table")
 
@@ -945,19 +950,26 @@ def run_calibrate(
             f"final. Refetch once FPL marks it checked: "
             f"python -m fpl bootstrap --gw {gw} --force"
         )
-    predictions = load_predictions(args.analysis_root / f"gw{args.round}")
+    if args.predictions_from == "commit":
+        record = record_predictions(args.analysis_root, args.decisions_root, args.round)
+    else:
+        record = RecordPredictions(
+            load_predictions(args.analysis_root / f"gw{args.round}"), "worktree", ()
+        )
     live = service.event_live(
         gw, event=args.round, max_age_hours=args.max_age, force=args.force
     )
     cache_note = _cache_note(service)
     report = build_report(
-        predictions,
+        record.predictions,
         live,
         match_round=args.round,
         picks=_calibration_picks(
             args.decisions_root / f"gw{args.round}" / FINAL_FILENAME, args.round
         ),
         prior_reports=_prior_reports(args.retro_root, args.round),
+        predictions_source=record.source,
+        drifted=record.drifted,
     )
     document = report.model_dump_json(indent=1)
     # The ledger is derived — a pure function of the analysis files, final.md
@@ -972,6 +984,13 @@ def run_calibrate(
     print(f"wrote {ledger_path}")
     for warning in report.warnings:
         _stderr(f"WARNING: {warning}")
+    if report.drifted:
+        _stderr(
+            f"WARNING: {_files(len(report.drifted), 'prediction file')} changed after "
+            f"decision commit "
+            f"{report.predictions_source.removeprefix('commit ')} — calibrated the "
+            f"decision record: {', '.join(report.drifted)}"
+        )
     return EXIT_OK
 
 
@@ -1179,12 +1198,21 @@ def _prior_reports(retro_root: Path, match_round: int) -> tuple[CalibrationRepor
     return tuple(report for report in reports if report.round != match_round)
 
 
+def _files(count: int, noun: str = "file") -> str:
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+
+
 def print_calibration(report: CalibrationReport, cache_note: str) -> None:
     print(
         f"round {report.round} calibration — {report.overall.n} players "
         f"matched, {len(report.unmatched_prediction_ids)} unmatched "
         f"{cache_note}".rstrip()
     )
+    if report.predictions_source == "worktree":
+        print("predictions: worktree")
+    else:
+        drift = _files(len(report.drifted)) if report.drifted else "none"
+        print(f"predictions: {report.predictions_source} (drift: {drift})")
 
     def agg_line(name: str, agg: Aggregate) -> None:
         print(f"{name:<14} {agg.n:>4} {agg.bias:>7.2f} {agg.mae:>6.2f}")
