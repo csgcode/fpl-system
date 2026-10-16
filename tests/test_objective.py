@@ -427,6 +427,33 @@ def test_a_tie_the_plan_does_not_touch_leaves_the_gain_bar_alone():
     assert report.verdict_reasons == ()
 
 
+def bank_view():
+    """A (P11 → P20, £5.0m, +2.4) and B (P11 → P21, £5.5m, +2.1) tie and B wins
+    on ret5. The goalkeeper P22 (£5.5m, +2.2) stays affordable from a £0.5m
+    bank only after the cheaper A, so the tie-break reference is [B] at +2.1
+    while the blend-only reference is [A, P2 → P22] at +4.6."""
+    eps = [5, 1, 4, 4, 4, 2, 2, 5, 5, 5, 3, 3.5, 6, 4, 1]
+    return with_pool(squad_view(eps), row(20, M, 3 + 2.4 / 6, ret5=(1, 5)),
+                     row(21, M, 3 + 2.1 / 6, price=55, ret5=(4, 5)),
+                     row(22, G, 5 + 2.2 / 6, price=55))
+
+
+def test_the_tie_break_reference_bars_a_plan_that_takes_its_winners():
+    view, none = bank_view(), frozenset()
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(bank=5, free=2), view, view,
+                           calibrated=none)
+    assert [s.move for s in report.reference] == [Move(11, 21)]
+    assert report.blend_reference_gain[0] == pytest.approx(4.6)
+    assert report.verdict_reasons == ()
+
+
+def test_a_plan_off_the_tie_break_keeps_the_blend_only_bar_when_references_diverge():
+    view, none = bank_view(), frozenset()
+    report = evaluate_plan(SQUAD, [Move(11, 20), Move(2, 22)], market(bank=5, free=2),
+                           view, view, calibrated=none)
+    assert any("departs from the tie-break" in r for r in report.verdict_reasons)
+
+
 def chain_view(a_ret, b_ret, c_ret):
     return with_pool(squad_view(), row(20, M, 3 + 2.4 / 6, ret5=a_ret),
                      row(21, M, 3 + 2.3 / 6, ret5=b_ret), row(22, M, 3 + 2.1 / 6, ret5=c_ret))

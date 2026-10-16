@@ -12,7 +12,8 @@ player (P(≥4) over the next three gameweeks where that reading is calibrated,
 then observed returns over the last five rounds, read only when both incoming
 players have RET5_MIN_ROUNDS of them), else the higher blend. The gain bar
 stays the blend-only greedy reference; a plan earns the tie's shortfall only
-by taking that tie's winner.
+by taking that tie's winner, and a plan that takes every steadiness-decided
+winner is held at most to the tie-break greedy reference.
 
 Every figure is read twice: on the blend view (players-*.json, what the
 analysts published) and on the prior-only view (the same inputs at prior
@@ -483,7 +484,8 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
     blend-only greedy reference. Without a chip, a plan that takes any other
     move of a near tie whose final winner is not its blend-best move fails; a
     plan that takes that winner may fall short of the bar by the winner's gap
-    to the blend-best move."""
+    to the blend-best move. A plan that takes every such winner is held at
+    most to the tie-break greedy reference's gain."""
     if chip is not None and chip not in TRANSFER_CHIPS:
         raise ValueError(f"unknown transfer chip {chip!r}; use {' or '.join(TRANSFER_CHIPS)}")
     horizon = 1 if chip == "freehit" else HORIZON
@@ -547,7 +549,16 @@ def evaluate_plan(squad: Sequence[int], moves: Sequence[Move], market: Market,
         if used < market.free_transfers and passing:
             reasons.append(f"further free move passes: {_label(passing[0].move, blend)} "
                            f"{passing[0].blend:+.3f} / {passing[0].prior:+.3f}")
-        if gain[0] < blend_reference_gain[0] - allowance - REFERENCE_TOLERANCE:
+        bar = blend_reference_gain[0] - allowance
+        takes_winners = all(group.winner.move in taken for group in groups
+                            if group.winner != group.best)
+        if takes_winners and reference_gain[0] < bar:
+            # A taken winner can change later greedy steps (bank, club limit),
+            # so the tie-break reference may fall below the blend-only bar.
+            if gain[0] < reference_gain[0] - REFERENCE_TOLERANCE:
+                reasons.append(f"plan gain {gain[0]:+.3f} below the tie-break greedy "
+                               f"reference {reference_gain[0]:+.3f}")
+        elif gain[0] < bar - REFERENCE_TOLERANCE:
             shortfall = f" less the tie-break gap {allowance:.3f}" if allowance > _EPS else ""
             reasons.append(f"plan gain {gain[0]:+.3f} below the blend-only greedy reference "
                            f"{blend_reference_gain[0]:+.3f}{shortfall}")
