@@ -332,6 +332,13 @@ def test_match_record_parses_was_home():
     assert MatchRecord.model_validate(match_record_payload()).was_home is None
 
 
+def test_match_record_parses_opponent_team():
+    from fpl.models import MatchRecord
+
+    assert MatchRecord.model_validate(match_record_payload(opponent_team=7)).opponent_team == 7
+    assert MatchRecord.model_validate(match_record_payload()).opponent_team is None
+
+
 def test_live_element_parses_explain_and_string_xg():
     from fpl.models import EventLive
     from tests.factories import event_live_payload, live_element_payload
