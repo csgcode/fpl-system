@@ -420,6 +420,22 @@ def defcon_hit_probability(
 # ------------------------------------------------------------- rates
 
 
+def played_matches(history: Iterable[MatchRecord]) -> list[MatchRecord]:
+    return sorted(
+        (row for row in history if row.minutes > 0),
+        key=lambda row: (row.round or 0, row.fixture),
+    )
+
+
+def match_weights(count: int, half_life: float | None) -> list[float]:
+    """Recency weights for `count` played matches, oldest first: the latest
+    weighs 1 and each older match 0.5^(age/half_life). The age counts played
+    matches, not rounds, so a spell out injured does not age a player's form."""
+    if half_life is None:
+        return [1.0] * count
+    return [0.5 ** ((count - 1 - j) / half_life) for j in range(count)]
+
+
 @dataclass
 class _Totals:
     minutes: int = 0
@@ -964,9 +980,8 @@ def _effective_rates(
     prior = _shrunk(prior_rates, prior_totals, league)
     current_totals = _Totals()
     if summary is not None:
-        for row in summary.history:
-            if row.minutes > 0:
-                current_totals.add(row)
+        for row in played_matches(summary.history):
+            current_totals.add(row)
     current = current_totals.rates(league) if current_totals.minutes > 0 else None
     overrides = entry.overrides or RateOverrides()
     w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(

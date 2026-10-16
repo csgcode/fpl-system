@@ -33,15 +33,17 @@ from fpl.ep import (
     inspect_fixtures,
     interpolate,
     league_bonus_per_start,
+    match_weights,
     names_match,
     p_sixty,
     parse_fixtures,
     parse_inputs,
+    played_matches,
     prior_weight,
     rates_from_seasons,
     shrink_rate,
 )
-from fpl.models import Bootstrap, ElementSummary, PastSeason, Player, Position
+from fpl.models import Bootstrap, ElementSummary, MatchRecord, PastSeason, Player, Position
 from tests.factories import (
     bootstrap_payload,
     element_summary_payload,
@@ -125,6 +127,28 @@ def test_config_from_int_has_the_same_digest_as_the_equal_float_config():
     assert isinstance(config.blend_k, float)
     assert config == DEFAULT_CONFIG
     assert config.digest() == DEFAULT_CONFIG.digest() == "044ed4c1"
+
+
+def test_match_weights_halve_every_half_life():
+    assert match_weights(4, half_life=2.0) == [0.5**1.5, 0.5**1.0, 0.5**0.5, 1.0]
+    assert match_weights(3, None) == [1.0, 1.0, 1.0]
+    assert match_weights(0, 2.0) == []
+
+
+def test_played_matches_drop_unplayed_rows_and_order_oldest_first():
+    rows = [
+        MatchRecord.model_validate(match_record_payload(**fields))
+        for fields in (
+            {"fixture": 30, "round": 3},
+            {"fixture": 11, "round": 1, "minutes": 0},
+            {"fixture": 21, "round": 2},
+            {"fixture": 20, "round": 2},
+            {"fixture": 5, "round": None},
+        )
+    ]
+    assert [(row.round, row.fixture) for row in played_matches(rows)] == [
+        (None, 5), (2, 20), (2, 21), (3, 30),
+    ]
 
 
 def test_shrink_rate_moves_from_league_mean_to_observed_with_minutes():
