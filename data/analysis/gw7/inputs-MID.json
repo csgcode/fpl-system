@@ -1,0 +1,1824 @@
+{
+ "schema_version": 1,
+ "gw": 7,
+ "position": "MID",
+ "players": [
+  {
+   "id": 426,
+   "name": "B.Fernandes",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6; streak; pens"
+  },
+  {
+   "id": 154,
+   "name": "Palmer",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 82,90,90,90,90,87; 75% flag cleared; pens"
+  },
+  {
+   "id": 12,
+   "name": "Saka",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 67,90,89,90,80,90; 6/6 starts"
+  },
+  {
+   "id": 397,
+   "name": "Semenyo",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6; ankle flag cleared"
+  },
+  {
+   "id": 480,
+   "name": "Gibbs-White",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6; pens"
+  },
+  {
+   "id": 627,
+   "name": "Barcola",
+   "p_start": 0.85,
+   "p_start_gw": [
+    0.85,
+    0.85,
+    0.8,
+    0.78,
+    0.78,
+    0.78
+   ],
+   "uncertainty": "MED",
+   "notes": "mins R1-6 -,-,26,71,71,87; 3 straight starts; Gakpo/Szoboszlai 25% early, competition returns later",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 40,
+   "name": "Rogers",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 81,90,86,90,90,83; 6/6 starts"
+  },
+  {
+   "id": 399,
+   "name": "Cherki",
+   "p_start": 0.7,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 27,81,65,45,84,90; Foden and Doku fit again, MCI rotation"
+  },
+  {
+   "id": 427,
+   "name": "Mbeumo",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6"
+  },
+  {
+   "id": 428,
+   "name": "Cunha",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 79,79,69,90,90,90"
+  },
+  {
+   "id": 400,
+   "name": "Doku",
+   "p_start": 0.3,
+   "p_start_gw": [
+    0.3,
+    0.4,
+    0.5,
+    0.55,
+    0.55,
+    0.55
+   ],
+   "uncertainty": "MED",
+   "notes": "mins R1-6 0,0,0,0,15,34; ramp after calf, 0 starts"
+  },
+  {
+   "id": 13,
+   "name": "Rice",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 67,84,90,80,90,90; flag cleared"
+  },
+  {
+   "id": 366,
+   "name": "Wirtz",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 62,90,90,90,70,65; 6/6 starts, subbed early last 2"
+  },
+  {
+   "id": 367,
+   "name": "Gakpo",
+   "p_start": 0.2,
+   "p_start_gw": [
+    0.2,
+    0.5,
+    0.65,
+    0.7,
+    0.7,
+    0.7
+   ],
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,70,90,30,90,0; ankle 25%; ramp after GW7 is a guess"
+  },
+  {
+   "id": 155,
+   "name": "Enzo",
+   "p_start": 0.7,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 25,0,75,81,90,79; 4 straight starts but Foden back, MCI depth"
+  },
+  {
+   "id": 368,
+   "name": "Szoboszlai",
+   "p_start": 0.2,
+   "p_start_gw": [
+    0.2,
+    0.55,
+    0.75,
+    0.85,
+    0.88,
+    0.88
+   ],
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,90,90,80,0; hamstring 25%; ramp after GW7 is a guess; pens"
+  },
+  {
+   "id": 429,
+   "name": "Rashford",
+   "p_start": 0.5,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 45,79,69,82,76,1; benched GW6 (1 min) after flag"
+  },
+  {
+   "id": 15,
+   "name": "Ødegaard",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 75,70,76,84,72,89; 6/6 starts"
+  },
+  {
+   "id": 398,
+   "name": "Foden",
+   "p_start": 0.5,
+   "p_start_gw": [
+    0.5,
+    0.55,
+    0.55,
+    0.55,
+    0.55,
+    0.55
+   ],
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 81,90,24,22,0,0; ban served; minutes fell 24,22 before ban"
+  },
+  {
+   "id": 452,
+   "name": "Bruno G.",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,19,0,45,59,27; 1 start"
+  },
+  {
+   "id": 236,
+   "name": "Dewsbury-Hall",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6"
+  },
+  {
+   "id": 156,
+   "name": "Neto",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 14,67,80,85,86,82"
+  },
+  {
+   "id": 238,
+   "name": "Grealish",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 8,0,24,25,78,85; 2 straight starts"
+  },
+  {
+   "id": 377,
+   "name": "Munoz",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 27,90,63,59,18,90",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 403,
+   "name": "Sávio",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 0,0,60,90,90,90; 4-start streak"
+  },
+  {
+   "id": 512,
+   "name": "Kudus",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,22,29,27,45,65; 1 start (GW6)"
+  },
+  {
+   "id": 67,
+   "name": "Rayan",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 88,90,88,81,87,90"
+  },
+  {
+   "id": 157,
+   "name": "Estêvão",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 7,0,9,4,3,6; fringe"
+  },
+  {
+   "id": 481,
+   "name": "Anderson",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 62,81,90,90,90,90; 6/6 starts; deep role at City",
+   "overrides": {
+    "prior_weight": 0.45,
+    "bonus_per_start": 0.12
+   },
+   "reason": "role change: 25/26 prior is Forest attacking-mid role (16 bonus); at City he plays deeper, 0 bonus from 95 BPS in 5 starts"
+  },
+  {
+   "id": 515,
+   "name": "Maddison",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 22,0,0,13,24,16; fringe"
+  },
+  {
+   "id": 14,
+   "name": "Eze",
+   "p_start": 0.18,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 14,45,0,9,17,0; fringe"
+  },
+  {
+   "id": 16,
+   "name": "Madueke",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.6,
+    0.55,
+    0.35,
+    0.3,
+    0.3
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 22,0,1,0,0,90; started GW6 with Tzolis out (back 1 Nov)"
+  },
+  {
+   "id": 557,
+   "name": "Tzolis",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.7,
+    0.75
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 75,45,90,80,72,0; hamstring, expected back 1 Nov; GW9 kickoff may precede it, so 0"
+  },
+  {
+   "id": 94,
+   "name": "Schade",
+   "p_start": 0.65,
+   "p_start_gw": [
+    0.65,
+    0.85,
+    0.88,
+    0.88,
+    0.88,
+    0.88
+   ],
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,87,90,90,90,51; shoulder 75%; pen2"
+  },
+  {
+   "id": 95,
+   "name": "O.Dango",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 66,29,45,30,9,23; fringe"
+  },
+  {
+   "id": 208,
+   "name": "Sarr",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,8,7; fringe"
+  },
+  {
+   "id": 260,
+   "name": "Wilson",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 65,45,17,18,0,19; fringe"
+  },
+  {
+   "id": 68,
+   "name": "Tavernier",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,88,82,74,72; Scott out lifts role"
+  },
+  {
+   "id": 453,
+   "name": "Barnes",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6"
+  },
+  {
+   "id": 454,
+   "name": "Elanga",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.0,
+    0.5,
+    0.7,
+    0.75,
+    0.75
+   ],
+   "uncertainty": "MED",
+   "notes": "mins R1-6 75,81,76,0,0,0; expected back 25 Oct; GW8 0 (kickoff may precede); ramp is a guess"
+  },
+  {
+   "id": 124,
+   "name": "Groß",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6; pens"
+  },
+  {
+   "id": 239,
+   "name": "Garner",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 11,61,76,90,90,90"
+  },
+  {
+   "id": 335,
+   "name": "Stach",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,90,87,90,90"
+  },
+  {
+   "id": 628,
+   "name": "Allan",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,0,0,0,10; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 631,
+   "name": "Mbaye",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,0,27,6,26; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 41,
+   "name": "Buendía",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 85,90,74,62,90,63; 6/6 starts; pens"
+  },
+  {
+   "id": 53,
+   "name": "Manzambi",
+   "p_start": 0.65,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,27,71,85; 2 straight 60+ starts lift new-signing cap",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 70,
+   "name": "Kluivert",
+   "p_start": 0.45,
+   "p_start_gw": [
+    0.45,
+    0.6,
+    0.7,
+    0.75,
+    0.75,
+    0.75
+   ],
+   "uncertainty": "MED",
+   "notes": "mins R1-6 74,80,75,65,0,0; fit again (a, 100%), 0 mins last 2; ramp is a guess"
+  },
+  {
+   "id": 78,
+   "name": "Kroupi.Jr",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.4,
+    0.55
+   ],
+   "uncertainty": "HIGH",
+   "notes": "foot, expected back 7 Nov; GW10 0 (kickoff may precede); ramp is a guess"
+  },
+  {
+   "id": 105,
+   "name": "Anthony",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 23,60,45,59,80,84"
+  },
+  {
+   "id": 121,
+   "name": "Mitoma",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.35,
+    0.5,
+    0.6,
+    0.65,
+    0.65
+   ],
+   "uncertainty": "MED",
+   "notes": "hamstring, expected back 18 Oct; GW7 0 (kickoff may precede); 0 mins this season; ramp is a guess"
+  },
+  {
+   "id": 123,
+   "name": "Hinshelwood",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 63,0,0,0,0,0; 1 start GW1 then none"
+  },
+  {
+   "id": 209,
+   "name": "Johnson",
+   "p_start": 0.78,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 6,28,65,74,65,65"
+  },
+  {
+   "id": 457,
+   "name": "J.Murphy",
+   "p_start": 0.7,
+   "p_start_gw": [
+    0.7,
+    0.7,
+    0.6,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 14,8,13,56,90,58; Elanga out until 25 Oct"
+  },
+  {
+   "id": 618,
+   "name": "Goretzka",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,0,0,0,0,0; unused sub all season",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 43,
+   "name": "Tielemans",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 66,90,90,66,90,58; 6/6 starts"
+  },
+  {
+   "id": 237,
+   "name": "Ndiaye",
+   "p_start": 0.6,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 90,90,86,45,74,55; Foden/Doku/Semenyo all fit; GW6 research-ndiaye.md superseded by fitness news"
+  },
+  {
+   "id": 336,
+   "name": "Okafor",
+   "p_start": 0.82,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 24,68,61,71,75,70"
+  },
+  {
+   "id": 461,
+   "name": "Touré",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,1,0,33,16,31; 75% flag; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 482,
+   "name": "Hudson-Odoi",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,1,0,0,0,18; fringe"
+  },
+  {
+   "id": 17,
+   "name": "Merino",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 14,19,13,5,30,1; fringe"
+  },
+  {
+   "id": 160,
+   "name": "Garnacho",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 4,12,15,0,0,0; fringe"
+  },
+  {
+   "id": 369,
+   "name": "Ngumoha",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 62,19,0,18,0,15; LIV injuries keep him in contention"
+  },
+  {
+   "id": 431,
+   "name": "Amad",
+   "p_start": 0.45,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 0,0,0,0,0,58; started GW6 in Rashford's place"
+  },
+  {
+   "id": 514,
+   "name": "Tel",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 90,67,73,27,0,0"
+  },
+  {
+   "id": 525,
+   "name": "Fernandes",
+   "p_start": 0.4,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 45,90,7,62,45,1"
+  },
+  {
+   "id": 542,
+   "name": "E.Le Fée",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 79,89,90,90,90,80"
+  },
+  {
+   "id": 268,
+   "name": "King",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,90,76,79,75"
+  },
+  {
+   "id": 565,
+   "name": "M.Sangaré",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 75,90,45,90,21,38",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 54,
+   "name": "Gomes",
+   "p_start": 0.65,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 39,0,0,0,90,85; 2 straight starts"
+  },
+  {
+   "id": 86,
+   "name": "Lewis-Potter",
+   "p_start": 0.85,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,87,90,59,80,66"
+  },
+  {
+   "id": 211,
+   "name": "Yeremy",
+   "p_start": 0.78,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 35,67,88,36,81,82"
+  },
+  {
+   "id": 242,
+   "name": "George",
+   "p_start": 0.4,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 83,61,90,64,11,24; lost place to Grealish"
+  },
+  {
+   "id": 264,
+   "name": "Bobb",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 66,67,78,62,70,75"
+  },
+  {
+   "id": 405,
+   "name": "N.Gonzalez",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,70,76,18,0,90"
+  },
+  {
+   "id": 432,
+   "name": "Mainoo",
+   "p_start": 0.65,
+   "p_start_gw": [
+    0.65,
+    0.82,
+    0.85,
+    0.85,
+    0.85,
+    0.85
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 23,79,83,90,79,90; 75% flag"
+  },
+  {
+   "id": 459,
+   "name": "L.Miley",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 75,90,62,79,90,58; 6/6 starts; flag cleared"
+  },
+  {
+   "id": 483,
+   "name": "Ndoye",
+   "p_start": 0.85,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 61,65,58,74,58,71"
+  },
+  {
+   "id": 486,
+   "name": "McAtee",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 73,90,90,81,82,90"
+  },
+  {
+   "id": 591,
+   "name": "Enciso",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 70,90,90,90,73,70"
+  },
+  {
+   "id": 616,
+   "name": "Bouaddi",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,8,14,0,0,10; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 639,
+   "name": "Andrés",
+   "p_start": 0.75,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,0,25,84,90; 2 straight 60+ starts lift new-signing cap",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 642,
+   "name": "Thomas",
+   "p_start": 0.7,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,27,30,62,85; 2 straight 60+ starts",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 646,
+   "name": "Fofana",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,16,14,30,56",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 655,
+   "name": "Gboho",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,-,0,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 7,
+   "name": "Lewis-Skelly",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 90,70,66,45,0,62"
+  },
+  {
+   "id": 42,
+   "name": "Guessand",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 27,27,0,0,0,0; fringe"
+  },
+  {
+   "id": 45,
+   "name": "McGinn",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 81,90,90,90,83,90"
+  },
+  {
+   "id": 96,
+   "name": "Damsgaard",
+   "p_start": 0.5,
+   "p_start_gw": [
+    0.5,
+    0.62,
+    0.65,
+    0.65,
+    0.65,
+    0.65
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 14,68,85,30,86,0; 75% flag"
+  },
+  {
+   "id": 97,
+   "name": "Jensen",
+   "p_start": 0.12,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 66,0,0,0,0,23; fringe"
+  },
+  {
+   "id": 126,
+   "name": "O'Riley",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,6,4,0; fringe"
+  },
+  {
+   "id": 129,
+   "name": "Ayari",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 63,0,90,90,90,87; 4-start streak"
+  },
+  {
+   "id": 210,
+   "name": "Wharton",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,90,76,90,90"
+  },
+  {
+   "id": 247,
+   "name": "Hackney",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 78,28,15,15,1,12; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 261,
+   "name": "Iwobi",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,82,76,70,86"
+  },
+  {
+   "id": 315,
+   "name": "Fatawu",
+   "p_start": 0.85,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 65,82,78,61,66,0; ban served, 5 starts before"
+  },
+  {
+   "id": 318,
+   "name": "Philogene",
+   "p_start": 0.25,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,28,24,62; Fatawu back"
+  },
+  {
+   "id": 338,
+   "name": "Ampadu",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6"
+  },
+  {
+   "id": 372,
+   "name": "Mac Allister",
+   "p_start": 0.88,
+   "p_start_gw": [
+    0.88,
+    0.85,
+    0.8,
+    0.8,
+    0.8,
+    0.8
+   ],
+   "uncertainty": "MED",
+   "notes": "mins R1-6 27,76,83,30,90,90; Gravenberch suspended until 25 Oct"
+  },
+  {
+   "id": 371,
+   "name": "Gravenberch",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.0,
+    0.4,
+    0.45,
+    0.45,
+    0.45
+   ],
+   "uncertainty": "HIGH",
+   "notes": "suspended until 25 Oct; GW8 0 (kickoff may precede)"
+  },
+  {
+   "id": 430,
+   "name": "Mount",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,10,0; fringe"
+  },
+  {
+   "id": 458,
+   "name": "Joelinton",
+   "p_start": 0.3,
+   "p_start_gw": [
+    0.3,
+    0.4,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,0,31; back from injury, 31-min sub GW6"
+  },
+  {
+   "id": 544,
+   "name": "Xhaka",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6"
+  },
+  {
+   "id": 568,
+   "name": "Barco",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,8,0,21,86,0"
+  },
+  {
+   "id": 570,
+   "name": "Palacios",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 72,75,60,0,19,0",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 647,
+   "name": "Osorio",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,1,0,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 19,
+   "name": "Zubimendi",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 22,5,23,9,30,0; 75% flag; fringe"
+  },
+  {
+   "id": 20,
+   "name": "Dowman",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,9,0; fringe"
+  },
+  {
+   "id": 159,
+   "name": "Caicedo",
+   "p_start": 0.65,
+   "p_start_gw": [
+    0.65,
+    0.75,
+    0.8,
+    0.82,
+    0.85,
+    0.85
+   ],
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 0,13,0,0,0,71; back from calf, started GW6"
+  },
+  {
+   "id": 164,
+   "name": "Quenda",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 8,0,0,0,19,0; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 186,
+   "name": "Mason-Clark",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 0,57,70,59,45,60",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 188,
+   "name": "Torp",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 28,19,0,6,0,7; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 190,
+   "name": "Tchaouna",
+   "p_start": 0.22,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 81,58,27,0,45,0; fringe"
+  },
+  {
+   "id": 241,
+   "name": "McNeil",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 62,22,0,0,0,1; fringe"
+  },
+  {
+   "id": 245,
+   "name": "Dibling",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,24,4; fringe"
+  },
+  {
+   "id": 262,
+   "name": "Smith Rowe",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,14,11,13,0,3; fringe"
+  },
+  {
+   "id": 263,
+   "name": "Kevin",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 17,7,0,18,19,14; fringe"
+  },
+  {
+   "id": 313,
+   "name": "Clarke",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 19,0,24,62,65,27; pen1"
+  },
+  {
+   "id": 337,
+   "name": "Aaronson",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 81,45,28,18,22,19; fringe"
+  },
+  {
+   "id": 370,
+   "name": "Chiesa",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,0,2; fringe"
+  },
+  {
+   "id": 406,
+   "name": "Kovačić",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 27,15,0,0,0,0; fringe"
+  },
+  {
+   "id": 455,
+   "name": "Tonali",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,74,90,90,83,90"
+  },
+  {
+   "id": 519,
+   "name": "Gallagher",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.6,
+    0.6,
+    0.55,
+    0.4,
+    0.4
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 45,0,83,0,6,73; Bentancur suspended until 7 Nov"
+  },
+  {
+   "id": 520,
+   "name": "Bergvall",
+   "p_start": 0.4,
+   "p_start_gw": [
+    0.4,
+    0.4,
+    0.4,
+    0.35,
+    0.25,
+    0.25
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 45,0,0,27,6,65; Bentancur suspended until 7 Nov"
+  },
+  {
+   "id": 516,
+   "name": "Bentancur",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.75,
+    0.8
+   ],
+   "uncertainty": "LOW",
+   "notes": "suspended until 7 Nov; GW10 0 (kickoff may precede)"
+  },
+  {
+   "id": 543,
+   "name": "Diarra",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 10,18,0,0,0,0; fringe"
+  },
+  {
+   "id": 549,
+   "name": "Talbi",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 31,0,0,0,0,0; fringe"
+  },
+  {
+   "id": 562,
+   "name": "Maeda",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 79,72,65,27,16,80",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 584,
+   "name": "Hamer",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 8,19,5,0,0,0; fringe"
+  },
+  {
+   "id": 286,
+   "name": "Belloumi",
+   "p_start": 0.7,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 90,82,81,59,82,26; 26 GW6",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 46,
+   "name": "Barkley",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 73,77,90,62,6,4; dropped"
+  },
+  {
+   "id": 47,
+   "name": "Kamara",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,90,90,83,90"
+  },
+  {
+   "id": 52,
+   "name": "Alysson",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 8,19,15,45,0,4; fringe"
+  },
+  {
+   "id": 71,
+   "name": "Cook",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 75,68,14,8,15,17; fringe"
+  },
+  {
+   "id": 73,
+   "name": "Adams",
+   "p_start": 0.88,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 15,21,75,81,87,90; 4-start streak"
+  },
+  {
+   "id": 74,
+   "name": "Brooks",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,9,14,7,15,45"
+  },
+  {
+   "id": 75,
+   "name": "Christie",
+   "p_start": 0.6,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,3,1,24,74,72; Kluivert fit again"
+  },
+  {
+   "id": 98,
+   "name": "Janelt",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90x6"
+  },
+  {
+   "id": 100,
+   "name": "Carvalho",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,3,0; fringe"
+  },
+  {
+   "id": 127,
+   "name": "Gomez",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 85,90,90,83,85,87"
+  },
+  {
+   "id": 161,
+   "name": "Lavia",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 64,67,59,68,0,18; Caicedo back"
+  },
+  {
+   "id": 214,
+   "name": "Kamada",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,88,83,90,89"
+  },
+  {
+   "id": 240,
+   "name": "Iroegbunam",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,4,0,21,45,25"
+  },
+  {
+   "id": 244,
+   "name": "Armstrong",
+   "p_start": 0.92,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,86,90,90,90,77"
+  },
+  {
+   "id": 340,
+   "name": "Gelhardt",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,7,64; first start GW6"
+  },
+  {
+   "id": 344,
+   "name": "Gruev",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0x6; fringe"
+  },
+  {
+   "id": 381,
+   "name": "Koumas",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 12,0,1,0,9,74; LIV injuries",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 460,
+   "name": "Willock",
+   "p_start": 0.6,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 34,70,62,32,86,58"
+  },
+  {
+   "id": 551,
+   "name": "N.Angulo",
+   "p_start": 0.85,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 58,64,63,69,59,72"
+  },
+  {
+   "id": 558,
+   "name": "Schlager",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 16,90,90,90,90,65",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 576,
+   "name": "Stroud",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 70,58,62,59,0,26",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 580,
+   "name": "Charles",
+   "p_start": 0.88,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 23,22,78,90,90,70",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 617,
+   "name": "Cho",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,7,8,30,27,0; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 619,
+   "name": "Palacios",
+   "p_start": 0.6,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,28,77,90,80,27; benched GW6",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 635,
+   "name": "Larsson",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,11,13,13,3; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 636,
+   "name": "Ángel",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,0,0,0,19; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 644,
+   "name": "Timber",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 -,-,73,90,90,90; 4-start streak",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 645,
+   "name": "Mouzakitis",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,0,0,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 35,
+   "name": "Bogarde",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 16,0,0,0,0,0; fringe"
+  },
+  {
+   "id": 76,
+   "name": "Tóth.A",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 15,0,0,0,2,0; fringe"
+  },
+  {
+   "id": 101,
+   "name": "Henderson",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,90,90; Caicedo back threatens"
+  },
+  {
+   "id": 104,
+   "name": "Onyeka",
+   "p_start": 0.6,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 90,0,62,72,90,12; 12 GW6"
+  },
+  {
+   "id": 131,
+   "name": "Baleba",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,0,31; fringe"
+  },
+  {
+   "id": 183,
+   "name": "Rudoni",
+   "p_start": 0.85,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 20,70,62,72,73,82",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 184,
+   "name": "Grimes",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,90,83,90,82; promoted"
+  },
+  {
+   "id": 243,
+   "name": "Alcaraz",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 1,4,0,0,0,4; fringe"
+  },
+  {
+   "id": 246,
+   "name": "Röhl",
+   "p_start": 0.4,
+   "p_start_gw": [
+    0.4,
+    0.55,
+    0.6,
+    0.65,
+    0.65,
+    0.65
+   ],
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 90,85,74,0,0,0; fit (a, 100%), unused last 3; ramp is a guess"
+  },
+  {
+   "id": 265,
+   "name": "Berge",
+   "p_start": 0.85,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 72,82,29,90,76,90"
+  },
+  {
+   "id": 266,
+   "name": "Cairney",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "0 mins this season; knee 75%"
+  },
+  {
+   "id": 267,
+   "name": "Lukić",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,72,90,76,72,90"
+  },
+  {
+   "id": 292,
+   "name": "Ömür",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 309,
+   "name": "Núñez",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 79,61,0,0,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 310,
+   "name": "Matusiwa",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 345,
+   "name": "Tanaka",
+   "p_start": 0.82,
+   "uncertainty": "MED",
+   "notes": "mins R1-6 0,45,72,71,67,70"
+  },
+  {
+   "id": 374,
+   "name": "Endo",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; fringe"
+  },
+  {
+   "id": 434,
+   "name": "J.Fletcher",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; fringe"
+  },
+  {
+   "id": 435,
+   "name": "Lacey",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 10,0,0,0,0,0; fringe"
+  },
+  {
+   "id": 462,
+   "name": "Steur",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 55,19,13,71,65,0; unused GW6",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 522,
+   "name": "Gray",
+   "p_start": 0.85,
+   "p_start_gw": [
+    0.85,
+    0.85,
+    0.85,
+    0.8,
+    0.75,
+    0.75
+   ],
+   "uncertainty": "MED",
+   "notes": "mins R1-6 85,67,0,84,71,90; Bentancur suspended until 7 Nov"
+  },
+  {
+   "id": 550,
+   "name": "Jocelin.T",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,0,0,17; fringe"
+  },
+  {
+   "id": 563,
+   "name": "Morita",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,45,0,0,0,15; fringe"
+  },
+  {
+   "id": 595,
+   "name": "Gozo",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,22,0,6,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 600,
+   "name": "Osman",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 12,16,0,12,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 648,
+   "name": "Bahoya",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 -,-,0,0,1,4; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 21,
+   "name": "Nørgaard",
+   "p_start": 0.05,
+   "uncertainty": "MED",
+   "notes": "0 mins this season; fringe"
+  },
+  {
+   "id": 72,
+   "name": "Gannon-Doak",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 1,0,1,8,2,45"
+  },
+  {
+   "id": 77,
+   "name": "Adli",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins this season; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 102,
+   "name": "Yarmoliuk",
+   "p_start": 0.7,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 23,21,45,59,68,66"
+  },
+  {
+   "id": 185,
+   "name": "Sakamoto",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,31,0,0,0,29; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 213,
+   "name": "Lerma",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,6,45,71; started GW6"
+  },
+  {
+   "id": 218,
+   "name": "Doucouré",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; fringe"
+  },
+  {
+   "id": 324,
+   "name": "Mehmeti",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 339,
+   "name": "Longstaff",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 8,0,0,2,0,0; fringe"
+  },
+  {
+   "id": 375,
+   "name": "Nyoni",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,13,6,0,19,24; fringe"
+  },
+  {
+   "id": 487,
+   "name": "Dominguez",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,1,0,0,0,0; fringe"
+  },
+  {
+   "id": 488,
+   "name": "I.Sangaré",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 90,0,0,8,7,24; fringe"
+  },
+  {
+   "id": 545,
+   "name": "Sadiki",
+   "p_start": 0.9,
+   "uncertainty": "LOW",
+   "notes": "mins R1-6 90,90,73,90,67,90"
+  },
+  {
+   "id": 548,
+   "name": "Rigg",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 10,7,0,0,0,0; fringe"
+  },
+  {
+   "id": 559,
+   "name": "Bamba",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 14,0,0,10,3,0; fringe",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 571,
+   "name": "Florentino",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,0,13,17,62; first start GW6",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 574,
+   "name": "Hjertø-Dahl",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 0,0,8,0,0,0; fringe",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 575,
+   "name": "Yirenkyi",
+   "p_start": 0.65,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 61,70,27,17,90,77",
+   "overrides": {
+    "attack_mult": 0.75
+   },
+   "reason": "promoted club and no PL history: the league-mean default rate for a regular starter flatters him"
+  },
+  {
+   "id": 162,
+   "name": "Andrey Santos",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "mins R1-6 66,10,6,0,0,0; fringe"
+  },
+  {
+   "id": 415,
+   "name": "Dorgu",
+   "p_start": 0.0,
+   "p_start_gw": [
+    0.0,
+    0.0,
+    0.3,
+    0.45,
+    0.5,
+    0.5
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, expected back 25 Oct; GW8 0 (kickoff may precede); ramp is a guess"
+  }
+ ]
+}
