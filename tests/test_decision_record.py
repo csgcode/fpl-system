@@ -194,3 +194,14 @@ def test_lock_drift_paths_outside_git_are_relative_to_the_analysis_roots_parent(
     record = locked_then_drifted(tmp_path / "x" / "data" / "analysis")
 
     assert record.drifted == ("analysis/gw2/players-MID.json",)
+
+
+def test_commit_mode_refuses_a_decisions_root_outside_the_repo(tmp_path):
+    repo = init_repo(tmp_path / "repo")
+    commit_files(repo, {MID: "[]", FINAL: "decided"}, "gw6: decision")
+    outside = tmp_path / "elsewhere" / "decisions"
+
+    with pytest.raises(ValueError, match="--predictions-from worktree") as raised:
+        record_predictions(repo / "data" / "analysis", outside, 6)
+
+    assert str(outside) in str(raised.value)

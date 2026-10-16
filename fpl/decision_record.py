@@ -175,6 +175,14 @@ def _lock_predictions(analysis_root: Path, gw: int, lock_path: Path) -> RecordPr
                              tuple(str(shown / name) for name in sorted(changed)))
 
 
+def _repo_relative(path: Path, repo: Path, flag: str) -> str:
+    try:
+        return str(path.relative_to(repo))
+    except ValueError:
+        raise ValueError(f"{flag} {path} is outside the git repository {repo} — "
+                         "pass --predictions-from worktree") from None
+
+
 def record_predictions(analysis_root: Path, decisions_root: Path, gw: int) -> RecordPredictions:
     """The gw's predictions as locked by `fpl plan`, else as committed in its
     decision commit, plus the prediction files changed on disk since."""
@@ -182,8 +190,8 @@ def record_predictions(analysis_root: Path, decisions_root: Path, gw: int) -> Re
     if lock_path.is_file():
         return _lock_predictions(analysis_root, gw, lock_path)
     repo = repo_root(analysis_root.resolve())
-    rel = str((analysis_root.resolve() / f"gw{gw}").relative_to(repo))
-    decisions_rel = str(decisions_root.resolve().relative_to(repo))
+    rel = str(Path(_repo_relative(analysis_root.resolve(), repo, "--analysis-root")) / f"gw{gw}")
+    decisions_rel = _repo_relative(decisions_root.resolve(), repo, "--decisions-root")
     sha = decision_commit(repo, gw, decisions_rel=decisions_rel)
     if sha is None:
         raise ValueError(
