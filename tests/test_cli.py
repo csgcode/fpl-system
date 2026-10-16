@@ -342,8 +342,19 @@ def test_actuals_without_a_final_snapshot_names_event_live(tmp_path, capsys):
     assert run(
         ["actuals", "--gw", "6", "--round", "5", "--ids", "1"], tmp_path, gateway
     ) == 1
-    assert "fpl event-live --gw 6 --round 5" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "fpl event-live --gw 6 --round 5\n" in err
     assert gateway.calls == []
+
+
+def test_actuals_round_must_be_before_gw(tmp_path, capsys):
+    from tests.factories import live_element_payload
+
+    seed_final_live(tmp_path, 6, 5, [live_element_payload(element_id=1)])
+    assert run(
+        ["actuals", "--gw", "5", "--round", "5", "--ids", "1"], tmp_path, FakeGateway({})
+    ) == 1
+    assert "--round 5 must be before --gw 5" in capsys.readouterr().err
 
 
 def test_actuals_dedupes_repeated_ids(tmp_path, capsys):

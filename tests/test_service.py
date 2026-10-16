@@ -469,6 +469,18 @@ def test_actuals_falls_back_to_the_snapshot_of_the_following_gw(tmp_path):
     assert (line.matched, line.total_points) == (True, 4)
 
 
+def test_actuals_skips_a_non_final_gw_snapshot_for_a_final_one_in_the_following_gw(tmp_path):
+    from tests.factories import live_element_payload
+
+    service, store = _offline_service(tmp_path)
+    _seed_live(store, 8, 5, [live_element_payload(element_id=1, total_points=2)], final=False)
+    _seed_live(store, 6, 5, [live_element_payload(element_id=1, total_points=4)])
+
+    (line,) = service.actuals(gw=8, player_ids=[1], match_round=5)
+
+    assert (line.matched, line.total_points) == (True, 4)
+
+
 def test_actuals_refuses_without_a_final_snapshot(tmp_path):
     from tests.factories import live_element_payload
 
@@ -641,21 +653,45 @@ def test_force_refetches_a_final_snapshot_and_archives_it(tmp_path):
     assert store.age_hours(8, "event-live-e7") == pytest.approx(0.0)
 
 
-def test_non_final_snapshot_still_honours_max_age(tmp_path):
+def test_event_live_refetches_a_fresh_non_final_snapshot_of_a_checked_round(tmp_path):
     from tests.factories import event_live_payload
 
-    service, gateway, store, clock = make_service(
+    service, gateway, store, _ = make_service(
         tmp_path, {EVENT_LIVE_E7_URL: event_live_payload()}
     )
     seed_checked_bootstrap(store, 8, checked=(7,))
     store.save(8, "event-live-e7", event_live_payload(), EVENT_LIVE_E7_URL)
+
     service.event_live(gw=8, event=7)
-    clock.advance(hours=25)
     service.event_live(gw=8, event=7)
 
     assert gateway.calls == [EVENT_LIVE_E7_URL]
-    assert [e.final for e in service.take_fetch_log()] == [False, True]
+    assert [(e.fetched, e.final) for e in service.take_fetch_log()] == [
+        (True, True), (False, True),
+    ]
     assert store.is_final(8, "event-live-e7") is True
+
+
+def test_actuals_refusal_on_a_non_final_snapshot_is_cleared_by_its_command(tmp_path):
+    import re
+    from tests.factories import event_live_payload, live_element_payload
+
+    service, _, store, _ = make_service(
+        tmp_path,
+        {EVENT_LIVE_E7_URL: event_live_payload([live_element_payload(element_id=7)])},
+    )
+    seed_checked_bootstrap(store, 8, checked=(7,))
+    store.save(8, "event-live-e7", event_live_payload(), EVENT_LIVE_E7_URL)
+
+    with pytest.raises(ValueError) as excinfo:
+        service.actuals(gw=8, player_ids=[7], match_round=7)
+    command = re.search(r"fpl event-live (.*)$", str(excinfo.value)).group(1)
+    assert command == "--gw 8 --round 7 --force"
+
+    service.event_live(gw=8, event=7, force="--force" in command)
+
+    (line,) = service.actuals(gw=8, player_ids=[7], match_round=7)
+    assert line.matched is True
 
 
 def test_event_live_refuses_a_round_that_is_not_data_checked(tmp_path):

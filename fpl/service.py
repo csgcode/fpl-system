@@ -324,13 +324,18 @@ class FplDataService:
         """One round's live stats, only once the round is data-checked. Every
         snapshot fetched here is final (see data_checked_basis)."""
         basis = self.data_checked_basis(gw, event)
+        name = f"event-live-e{event}"
+        # The round is data-checked, so a cached snapshot that is not final
+        # (fetched before the check, or without a sidecar verdict) is replaced
+        # by a final one at any age, never served.
+        stale = self._store.exists(gw, name) and not self._store.is_final(gw, name)
         return self._load_or_fetch(
             gw,
-            f"event-live-e{event}",
+            name,
             lambda: self._api.event_live(event),
             EventLive.model_validate,
             max_age_hours,
-            force,
+            force or stale,
             final_when=lambda _: (True, basis),
         )
 
@@ -450,10 +455,11 @@ class FplDataService:
             None,
         )
         if source is None:
+            force = " --force" if self._store.exists(gw, name) else ""
             raise ValueError(
                 f"no final event-live snapshot of round {match_round} in gw{gw} or "
                 f"gw{match_round + 1} — fetch it first: "
-                f"python -m fpl event-live --gw {gw} --round {match_round}"
+                f"python -m fpl event-live --gw {gw} --round {match_round}{force}"
             )
         stats = EventLive.model_validate(self._store.load(source, name)).by_id()
         return [_actual_line(pid, stats.get(pid)) for pid in _dedupe(player_ids)]

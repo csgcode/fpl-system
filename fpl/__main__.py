@@ -862,6 +862,8 @@ def run_command(
             print(f"{_blank(pick.position):>3}  {pick.element:>7}  "
                   f"{_blank(pick.multiplier):>4}  {role}")
     elif args.command == "actuals":
+        if args.round >= gw:
+            raise ValueError(f"--round {args.round} must be before --gw {gw}")
         lines = service.actuals(gw, player_ids=args.ids, match_round=args.round)
         print(f"round {args.round} actuals ({len(lines)} players)")
         print(f"{'id':>4}  {'min':>4}  {'pts':>4}  {'gls':>4}  {'ast':>4}  "
