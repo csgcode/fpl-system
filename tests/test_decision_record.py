@@ -205,3 +205,16 @@ def test_commit_mode_refuses_a_decisions_root_outside_the_repo(tmp_path):
         record_predictions(repo / "data" / "analysis", outside, 6)
 
     assert str(outside) in str(raised.value)
+
+
+def test_a_lock_for_another_gameweek_is_refused(tmp_path):
+    analysis_root = tmp_path / "data" / "analysis"
+    seed_players(analysis_root / "gw2", {pos: [] for pos in POSITION_FILES}
+                 | {"MID": [prediction_row(id=1)]})
+    lock_path = tmp_path / "data" / "decisions" / "gw2" / LOCK_FILENAME
+    assert lock(analysis_root / "gw2", lock_path, 3) == []
+
+    with pytest.raises(ValueError, match="gw3") as raised:
+        record_predictions(analysis_root, tmp_path / "data" / "decisions", 2)
+
+    assert str(lock_path) in str(raised.value)

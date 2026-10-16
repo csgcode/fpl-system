@@ -147,6 +147,9 @@ def _lock_predictions(analysis_root: Path, gw: int, lock_path: Path) -> RecordPr
     if lock.get("schema_version") != LOCK_SCHEMA_VERSION:
         raise ValueError(f"{lock_path} has schema_version {lock.get('schema_version')!r}, "
                          f"expected {LOCK_SCHEMA_VERSION}")
+    if lock.get("gw") != gw:
+        raise ValueError(f"{lock_path} locks gw{lock.get('gw')}, not gw{gw} — "
+                         "pass --predictions-from worktree")
     on_disk = load_predictions(analysis_dir)
     missing = sorted(set(rows) - {prediction.id for prediction in on_disk})
     if missing:
