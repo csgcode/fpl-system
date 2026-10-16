@@ -5,6 +5,7 @@ docs/ep-model.md."""
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 import pytest
 
@@ -14,11 +15,13 @@ from fpl.ep import (
     BONUS_SHRINK_STARTS,
     DEFCON_FIRST_SEASON,
     BLEND_PRIOR_FLOOR,
+    DEFAULT_CONFIG,
     EffectiveRates,
     HORIZON,
     LEAGUE_FALLBACK,
     LEAGUE_POOL_MIN,
     POINTS,
+    ModelConfig,
     PRIOR_SHRINK_MINUTES,
     Rates,
     bonus_rate,
@@ -99,6 +102,22 @@ def test_prior_weight_decays_with_current_minutes_to_a_floor():
     assert prior_weight(0) == 1.0
     assert prior_weight(BLEND_EQUIV_MINUTES) == pytest.approx(0.5)
     assert prior_weight(60_000) == BLEND_PRIOR_FLOOR
+
+
+def test_prior_weight_floor_from_config():
+    assert prior_weight(10_000, k=600, floor=0.1) == 0.1
+
+
+def test_default_config_reproduces_the_production_constants():
+    assert DEFAULT_CONFIG.blend_k == BLEND_EQUIV_MINUTES
+    assert DEFAULT_CONFIG.blend_floor == BLEND_PRIOR_FLOOR
+
+
+def test_config_digest_is_stable_and_changes_with_a_field():
+    digest = DEFAULT_CONFIG.digest()
+    assert digest == ModelConfig().digest()
+    assert len(digest) == 8 and all(c in "0123456789abcdef" for c in digest)
+    assert replace(DEFAULT_CONFIG, blend_k=300.0).digest() != digest
 
 
 def test_shrink_rate_moves_from_league_mean_to_observed_with_minutes():
@@ -380,6 +399,16 @@ def test_current_season_rows_blend_in_by_minutes():
     prior_xg90 = shrink_rate(0.0, 9000, LEAGUE_FALLBACK[Position.MID].xg90)
     assert row.rates.prior_weight == pytest.approx(w)
     assert row.rates.xg90 == pytest.approx(w * prior_xg90 + (1 - w) * 0.9, abs=1e-3)
+
+
+def test_config_blend_k_changes_the_computed_prior_weight():
+    bootstrap = make_bootstrap([player()])
+    history = [match_record_payload(minutes=90, round=1), match_record_payload(minutes=90, round=2)]
+    result = build_predictions(
+        bootstrap, {1: summary(history=history)}, fixtures_doc(),
+        inputs_doc("MID", [judged()]), gw=GW, config=replace(DEFAULT_CONFIG, blend_k=300.0),
+    )
+    assert result.rows[0].rates.prior_weight == pytest.approx(300 / 480)
 
 
 def test_missing_summary_falls_back_to_league_mean_and_is_listed():

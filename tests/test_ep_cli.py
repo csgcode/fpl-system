@@ -8,6 +8,7 @@ import json
 import pytest
 
 from fpl.__main__ import main
+from fpl.ep import DEFAULT_CONFIG
 from fpl.store import SnapshotStore
 from tests.factories import (
     bootstrap_payload,
@@ -111,6 +112,16 @@ def test_ep_writes_predictions_to_the_default_path_and_prints_a_table(tmp_path, 
     assert "Alpha" in out
     assert "wrote" in out and "players-MID.json" in out
     assert "missing summaries" not in out
+
+
+def test_documents_and_table_carry_the_model_digest(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(data_root, analysis_root) == 0
+    out = capsys.readouterr().out
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert written and all(row["model"] == DEFAULT_CONFIG.digest() for row in written)
+    assert out.splitlines()[1] == f"model {DEFAULT_CONFIG.digest()}"
 
 
 def test_ep_lists_missing_summaries_with_the_fetch_command(tmp_path, capsys):

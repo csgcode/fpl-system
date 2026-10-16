@@ -1161,6 +1161,7 @@ def print_ep(result: EpResult, limit: int) -> None:
         f"{result.not_scored} not scored (≤£4.5m or unavailable, absent from inputs), "
         f"{len(result.missing_summaries)} without cached summary"
     )
+    print(f"model {result.config.digest()}")
     source = (
         f"pooled from {result.league_pool} summaries"
         if result.league_source == "pooled"

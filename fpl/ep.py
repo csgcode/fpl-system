@@ -12,11 +12,12 @@ Formula, constants and contracts: docs/ep-model.md.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import unicodedata
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 
@@ -372,8 +373,10 @@ def defcon_minutes_factor(minutes_per_start: float) -> float:
     return interpolate(DEFCON_MINUTES_ANCHORS, minutes_per_start)
 
 
-def prior_weight(current_minutes: float) -> float:
-    return max(BLEND_PRIOR_FLOOR, BLEND_EQUIV_MINUTES / (BLEND_EQUIV_MINUTES + current_minutes))
+def prior_weight(
+    current_minutes: float, *, k: float = BLEND_EQUIV_MINUTES, floor: float = BLEND_PRIOR_FLOOR
+) -> float:
+    return max(floor, k / (k + current_minutes))
 
 
 def shrink_rate(observed: float, minutes: float, league: float) -> float:
@@ -616,6 +619,21 @@ def inspect_fixtures(bootstrap: Bootstrap, fixtures: FixturesDocument, *, gw: in
     )
 
 
+@dataclass(frozen=True)
+class ModelConfig:
+    """The tunable model constants. The defaults are production; a variant is
+    a `replace` of them, identified by its digest."""
+
+    blend_k: float = BLEND_EQUIV_MINUTES
+    blend_floor: float = BLEND_PRIOR_FLOOR
+
+    def digest(self) -> str:
+        return hashlib.sha256(repr(sorted(asdict(self).items())).encode()).hexdigest()[:8]
+
+
+DEFAULT_CONFIG = ModelConfig()
+
+
 class EpResult(_Frozen):
     gw: int
     position: Position
@@ -626,14 +644,16 @@ class EpResult(_Frozen):
     league: Rates
     league_source: str
     league_pool: int
+    config: ModelConfig = DEFAULT_CONFIG
 
     def to_documents(self) -> list[dict[str, Any]]:
         """Rounded rows in the documented prediction schema plus the term and
         rate breakdown — what players-{pos}.json holds."""
-        return [_round_row(row) for row in self.rows]
+        digest = self.config.digest()
+        return [_round_row(row, digest) for row in self.rows]
 
 
-def _round_row(row: EpRow) -> dict[str, Any]:
+def _round_row(row: EpRow, digest: str) -> dict[str, Any]:
     return {
         "id": row.id,
         "name": row.name,
@@ -652,6 +672,7 @@ def _round_row(row: EpRow) -> dict[str, Any]:
             k: (round(v, 3) if isinstance(v, float) else v)
             for k, v in row.rates.model_dump().items()
         },
+        "model": digest,
     }
 
 
@@ -725,6 +746,7 @@ def build_predictions(
     *,
     gw: int,
     allow_missing: frozenset[int] = frozenset(),
+    config: ModelConfig = DEFAULT_CONFIG,
 ) -> EpResult:
     if inputs.gw != gw:
         raise ValueError(f"inputs document is for gw{inputs.gw}, not gw{gw}")
@@ -781,7 +803,9 @@ def build_predictions(
         summary = summaries.get(entry.id)
         if summary is None:
             missing_summaries.append(entry.id)
-        rates = _effective_rates(entry, summary, league, BONUS_SHRINK_STARTS[position])
+        rates = _effective_rates(
+            entry, summary, league, BONUS_SHRINK_STARTS[position], config
+        )
         p_hit = 0.0
         if points.defcon_threshold is not None:
             p_hit = _defcon_probability(summary, rates, points.defcon_threshold)
@@ -843,6 +867,7 @@ def build_predictions(
         league=league,
         league_source=league_source,
         league_pool=league_pool,
+        config=config,
     )
 
 
@@ -920,7 +945,11 @@ def _check_coverage(
 
 
 def _effective_rates(
-    entry: PlayerInput, summary: ElementSummary | None, league: Rates, bonus_k: int
+    entry: PlayerInput,
+    summary: ElementSummary | None,
+    league: Rates,
+    bonus_k: int,
+    config: ModelConfig,
 ) -> EffectiveRates:
     prior_totals = _prior_totals(summary.history_past) if summary else _Totals()
     prior_minutes = prior_totals.minutes
@@ -934,7 +963,7 @@ def _effective_rates(
     current = current_totals.rates(league) if current_totals.minutes > 0 else None
     overrides = entry.overrides or RateOverrides()
     w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
-        current_totals.minutes
+        current_totals.minutes, k=config.blend_k, floor=config.blend_floor
     )
     blended = _blend(prior, current, w).model_copy(update={
         "bonus_per_start": bonus_rate(
