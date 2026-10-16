@@ -1,15 +1,18 @@
 """Backtest harness: loading a past round exactly as production saw it before
-its deadline, refusing anything that could leak the outcome."""
+its deadline, refusing anything that could leak the outcome, and scoring it
+under a model variant."""
 
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
-from fpl.backtest import load_round
+from fpl.backtest import BacktestLine, load_round, score_round
+from fpl.ep import DEFAULT_CONFIG, build_predictions
 from fpl.models import Position
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 from tests.factories import (
@@ -227,3 +230,89 @@ def test_load_round_outside_git_warns_once_that_drift_is_unchecked(world):
     _, raw, analysis = world
     data = _load(raw, analysis)
     assert len([w for w in data.warnings if "drift" in w]) == 1
+
+
+def _add_beta(raw: Path, analysis: Path) -> None:
+    """Beta (OPP, promoted) gets an inputs row, a summary with no PL history
+    and an actuals row."""
+    inputs = analysis / f"gw{GW}" / "inputs-MID.json"
+    document = json.loads(inputs.read_text())
+    document["players"].append(
+        {"id": 2, "name": "Beta", "p_start": 0.6, "uncertainty": "MED", "notes": "rotation"})
+    inputs.write_text(json.dumps(document), encoding="utf-8")
+    SnapshotStore(raw, now=_at(BEFORE)).save(
+        GW, "players/summary-2",
+        element_summary_payload(history_past=[], history=[
+            match_record_payload(fixture=r, round=r, minutes=30) for r in (1, 2)]),
+        "seed://test")
+    store = SnapshotStore(raw, now=_at(LIVE_FETCH))
+    store.save(GW + 1, f"event-live-e{GW}", event_live_payload([
+        live_element_payload(1, total_points=7),
+        live_element_payload(2, total_points=1),
+    ]), "seed://test")
+    meta = raw / f"gw{GW + 1}" / ".meta" / f"event-live-e{GW}.json"
+    _write_json(meta, {**json.loads(meta.read_text()), "final": True})
+
+
+def _override_prior_weight(analysis: Path, weight: float) -> None:
+    inputs = analysis / f"gw{GW}" / "inputs-MID.json"
+    document = json.loads(inputs.read_text())
+    document["players"][0].update(overrides={"prior_weight": weight}, reason="fixed blend")
+    inputs.write_text(json.dumps(document), encoding="utf-8")
+
+
+def test_score_round_matches_documents_and_live(world):
+    _, raw, analysis = world
+    data = _load(raw, analysis)
+    score = score_round(data, DEFAULT_CONFIG)
+    documents = build_predictions(
+        data.bootstrap, data.summaries, data.fixtures, data.inputs[Position.MID],
+        gw=GW, allow_missing=frozenset({2}),
+    ).to_documents()
+    [alpha] = score.lines
+    assert isinstance(alpha, BacktestLine)
+    assert alpha.id == 1
+    assert alpha.predicted == documents[0]["ep_gw"][0]
+    assert alpha.actual == 7
+    assert alpha.error == pytest.approx(alpha.actual - alpha.predicted, abs=5e-4)
+
+
+def test_score_round_scores_despite_coverage_gaps(world):
+    _, raw, analysis = world
+    score = score_round(_load(raw, analysis), DEFAULT_CONFIG)
+    assert [line.id for line in score.lines] == [1]
+    assert any("id 2 Beta" in warning for warning in score.warnings)
+
+
+def test_lines_carry_slices(world):
+    _, raw, analysis = world
+    _add_beta(raw, analysis)
+    lines = {line.id: line for line in score_round(_load(raw, analysis), DEFAULT_CONFIG).lines}
+    assert {(l.round, l.club, l.promoted, l.no_history) for l in lines.values()} == {
+        (GW, "TST", False, False),
+        (GW, "OPP", True, True),
+    }
+    assert lines[2].p4 is None
+
+
+def test_unchanged_player_gives_zero_difference(world):
+    _, raw, analysis = world
+    _override_prior_weight(analysis, 0.7)
+    data = _load(raw, analysis)
+    [at_600] = score_round(data, replace(DEFAULT_CONFIG, blend_k=600.0)).lines
+    [at_300] = score_round(data, replace(DEFAULT_CONFIG, blend_k=300.0)).lines
+    assert at_600.predicted == at_300.predicted
+
+
+def test_blend_k_moves_a_player_without_an_override(world):
+    _, raw, analysis = world
+    data = _load(raw, analysis)
+    [at_600] = score_round(data, replace(DEFAULT_CONFIG, blend_k=600.0)).lines
+    [at_300] = score_round(data, replace(DEFAULT_CONFIG, blend_k=300.0)).lines
+    assert at_600.predicted != at_300.predicted
+
+
+def test_score_round_refuses_an_unknown_inputs_policy(world):
+    _, raw, analysis = world
+    with pytest.raises(ValueError, match="inputs policy"):
+        score_round(_load(raw, analysis), DEFAULT_CONFIG, inputs_policy="drop")

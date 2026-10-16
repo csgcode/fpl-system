@@ -4,7 +4,9 @@ before each deadline.
 A round loads only when nothing in it could carry the outcome: every model
 input was fetched before the deadline, no element summary holds the round
 itself, the actuals are final, and the inputs on disk still match the
-round's decision commit.
+round's decision commit. A loaded round is then scored under a model
+variant, one line per (player, round), exactly as the calibration ledger
+scores what `fpl ep` would have written.
 """
 
 from __future__ import annotations
@@ -14,14 +16,24 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fpl import fixture_ratings
+from fpl import calibrate, ep, fixture_ratings
+from fpl.calibrate import PlayerLine, PlayerPrediction
 from fpl.decision_record import decision_commit, drifted, repo_root
-from fpl.ep import FixturesDocument, InputsDocument, load_fixtures, load_inputs
+from fpl.ep import (
+    DEFAULT_CONFIG,
+    FixturesDocument,
+    InputsDocument,
+    ModelConfig,
+    build_predictions,
+    load_fixtures,
+    load_inputs,
+)
 from fpl.models import Bootstrap, ElementSummary, EventLive, PLAYING_POSITIONS, Position
 from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
+INPUTS_POLICIES = ("keep",)
 
 
 @dataclass(frozen=True)
@@ -77,6 +89,68 @@ def load_round(
     return RoundData(gw=gw, commit=commit, deadline=deadline, bootstrap=bootstrap,
                      summaries=summaries, fixtures=fixtures, inputs=inputs, live=live,
                      promoted=promoted, warnings=tuple(warnings))
+
+
+class BacktestLine(PlayerLine):
+    round: int
+    club: str
+    promoted: bool
+    no_history: bool
+    p4: float | None = None
+
+
+@dataclass(frozen=True)
+class RoundScore:
+    lines: tuple[BacktestLine, ...]
+    warnings: tuple[str, ...]
+
+
+def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
+                inputs_policy: str = "keep") -> RoundScore:
+    """Every judged player of the round scored under `config`. An a/d player
+    above the coverage floor with no inputs row is left unscored and named in
+    the warnings rather than refused: the round's inputs are fixed history."""
+    if inputs_policy not in INPUTS_POLICIES:
+        raise ValueError(f"unknown inputs policy {inputs_policy!r}; "
+                         f"expected one of {', '.join(INPUTS_POLICIES)}")
+    warnings = list(data.warnings)
+    predictions: list[PlayerPrediction] = []
+    no_history: dict[int, bool] = {}
+    for position in POSITIONS:
+        inputs = data.inputs[position]
+        if not inputs.players:
+            continue
+        result = build_predictions(
+            data.bootstrap, data.summaries, data.fixtures, inputs, gw=data.gw,
+            allow_missing=_uncovered(data.bootstrap, position, inputs), config=config,
+        )
+        warnings += result.warnings
+        for doc in result.to_documents():
+            predictions.append(PlayerPrediction.model_validate({**doc, "position": position}))
+            no_history[doc["id"]] = doc["rates"]["prior_source"] == "league_mean"
+    if not predictions:
+        raise ValueError(f"gw{data.gw} has no inputs rows to score")
+    report = calibrate.build_report(tuple(predictions), data.live, match_round=data.gw)
+    if report.unmatched_prediction_ids:
+        warnings.append(f"gw{data.gw}: no actuals row for id(s) "
+                        + ", ".join(map(str, report.unmatched_prediction_ids))
+                        + " — not scored")
+    lines = tuple(
+        BacktestLine(**line.model_dump(), round=data.gw, club=line.team,
+                     promoted=line.team in data.promoted, no_history=no_history[line.id])
+        for line in report.players
+    )
+    return RoundScore(lines=lines, warnings=tuple(warnings))
+
+
+def _uncovered(bootstrap: Bootstrap, position: Position,
+               inputs: InputsDocument) -> frozenset[int]:
+    judged = {entry.id for entry in inputs.players}
+    return frozenset(
+        p.id for p in bootstrap.elements
+        if p.element_type == position and p.id not in judged
+        and p.now_cost > ep.COVERAGE_PRICE_FLOOR_TENTHS and p.status in ep.COVERAGE_STATUSES
+    )
 
 
 def _check_summaries_predate(summaries: dict[int, ElementSummary], gw: int,
