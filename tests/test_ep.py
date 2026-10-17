@@ -10,6 +10,7 @@ from dataclasses import replace
 import pytest
 
 from fpl.calibrate import PlayerPrediction
+from fpl.consistency import FixtureMeans, p_at_least
 from fpl.ep import (
     BLEND_EQUIV_MINUTES,
     BONUS_SHRINK_STARTS,
@@ -413,6 +414,49 @@ def test_double_gameweek_sums_two_fixtures_and_blank_scores_zero():
     assert row.fixtures[0] == "OPP(H)+OPP(A)"
     assert row.fixtures[1] == "-"
     assert any("blank" in w and "TST" in w and str(GW + 1) in w for w in result.warnings)
+
+
+# ------------------------------------------------------- consistency (p4)
+
+GOAL_ONLY = {"xg90": 0.5, "xa90": 0.0, "dc90": 0.0, "minutes_per_start": 90, "prior_weight": 1.0}
+
+
+def test_p4_matches_the_hand_value_for_a_goal_only_forward():
+    rows = [fixture("TST", GW, "OPP", "H", lambda_att=BASE_MEAN)]
+    rows += [fixture("TST", g, "OPP", "H", lambda_att=BASE_MEAN) for g in range(GW + 2, GW + HORIZON)]
+    _, row = run_single(4, "FWD", overrides=GOAL_ONLY, fixtures=fixtures_doc(rows))
+    # 90 minutes is 2 points; one goal (4) takes it to 6, so P(≥4) = P(goals ≥ 1).
+    assert row.p4_gw[0] == pytest.approx(1 - math.exp(-0.5))
+    assert row.p4_gw[1] == 0.0
+    assert len(row.p4_gw) == len(row.ep_gw)
+
+
+def test_p4_feeds_the_same_fixture_means_as_the_ep_terms():
+    bootstrap = make_bootstrap([player(element_type=1)])
+    doc = inputs_doc("GKP", [judged(p_start=0.5, overrides=FULL_OVERRIDES, reason="t")])
+    row = build_predictions(bootstrap, {1: summary()}, fixtures_doc(), doc, gw=GW).rows[0]
+    means = FixtureMeans(
+        goal_pts=6, goal_mean=0.5, assist_mean=0.2, p60=1.0, p_cs=0.3, cs_pts=4,
+        saves_mean=3.0 / BASE_MEAN,
+    )
+    assert row.p4_gw[0] == pytest.approx(p_at_least([means], 0.5, 4))
+
+
+def test_p4_convolves_a_double_gameweek():
+    rows = [fixture("TST", GW, "OPP", "H", lambda_att=BASE_MEAN), fixture("TST", GW, "OPP", "A", lambda_att=BASE_MEAN)]
+    rows += [fixture("TST", g, "OPP", "H", lambda_att=BASE_MEAN) for g in range(GW + 1, GW + HORIZON)]
+    _, row = run_single(4, "FWD", overrides=GOAL_ONLY, fixtures=fixtures_doc(rows))
+    # Two 90-minute appearances already make 4.
+    assert row.p4_gw[0] == pytest.approx(1.0)
+
+
+def test_rows_still_parse_as_calibrate_predictions():
+    result, _ = run_single(3, "MID")
+    for doc in result.to_documents():
+        assert doc["p4_gw"] == [round(v, 3) for v in doc["p4_gw"]]
+        assert len(doc["p4_gw"]) == len(doc["ep_gw"])
+        assert all(0.0 <= v <= 1.0 for v in doc["p4_gw"])
+        PlayerPrediction.model_validate({**doc, "position": Position.MID})
 
 
 # ------------------------------------------------------------- rates
@@ -990,7 +1034,7 @@ def rich_documents(position_code: int, position_name: str, config=DEFAULT_CONFIG
         bootstrap, {1: summary(history_past=past, history=rich_history())},
         fixtures_doc(ratings=RATED), inputs_doc(position_name, [judged()]), gw=GW, config=config,
     )
-    return [{k: v for k, v in doc.items() if k != "model"} for doc in result.to_documents()]
+    return [{k: v for k, v in doc.items() if k not in ("model", "p4_gw")} for doc in result.to_documents()]
 
 
 # Built by the code before the weighted, adjusted current totals existed.

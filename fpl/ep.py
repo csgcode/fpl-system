@@ -31,6 +31,7 @@ from pydantic import (
 )
 
 from fpl.calibrate import DEFCON_MINUTES_FLOOR, Uncertainty
+from fpl.consistency import RETURN_POINTS, FixtureMeans, p_at_least
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -681,6 +682,7 @@ class EpRow(_Frozen):
     fixtures: list[str]
     terms: Terms
     rates: EffectiveRates
+    p4_gw: list[float]
 
 
 class FixturesCheck(_Frozen):
@@ -781,6 +783,7 @@ def _round_row(row: EpRow, digest: str) -> dict[str, Any]:
             for k, v in row.rates.model_dump().items()
         },
         "model": digest,
+        "p4_gw": [round(v, 3) for v in row.p4_gw],
     }
 
 
@@ -804,19 +807,30 @@ def _score_fixture(
     att_club: float,
     attack_mult: float,
     p_hit: float,
-) -> Terms:
+) -> tuple[Terms, FixtureMeans]:
     mps = min(rates.minutes_per_start, FULL_MATCH_MINUTES)
     share = mps / FULL_MATCH_MINUTES
     p60 = p_sixty(mps)
     fixture_mult = fixture.lambda_att / (base_mean * att_club) * attack_mult
-    saves = 0.0
+    saves = saves_mean = 0.0
     if points.saves_per_three:
         saves_mean = rates.saves90 * share * fixture.lambda_def / base_mean
         saves = points.saves_per_three * expected_floor_div(saves_mean, 3) + points.pen_save_tail
-    defcon = 0.0
+    defcon = p_defcon = 0.0
     if points.defcon_threshold is not None:
-        defcon = points.defcon_points * p_hit * defcon_minutes_factor(mps)
-    return Terms(
+        p_defcon = p_hit * defcon_minutes_factor(mps)
+        defcon = points.defcon_points * p_defcon
+    means = FixtureMeans(
+        goal_pts=points.goal,
+        goal_mean=rates.xg90 * share * fixture_mult,
+        assist_mean=rates.xa90 * share * fixture_mult,
+        p60=p60,
+        p_cs=fixture.p_cs,
+        cs_pts=points.clean_sheet,
+        p_defcon=p_defcon,
+        saves_mean=saves_mean,
+    )
+    terms = Terms(
         appearance=1 + p60,
         attack=(rates.xg90 * points.goal + rates.xa90 * points.assist) * share * fixture_mult,
         clean_sheet=fixture.p_cs * points.clean_sheet * p60,
@@ -827,6 +841,7 @@ def _score_fixture(
         bonus=rates.bonus_per_start * points.bonus_adjust,
         cards=-rates.yellow90 * share,
     )
+    return terms, means
 
 
 P_START_TOLERANCE = 0.005
@@ -926,6 +941,7 @@ def build_predictions(
             p_hit = _defcon_probability(summary, rates, points.defcon_threshold)
         starts = entry.start_probabilities()[: len(window)]
         ep_gw: list[float] = []
+        p4_gw: list[float] = []
         labels: list[str] = []
         terms = Terms()
         for index, g in enumerate(window):
@@ -933,22 +949,25 @@ def build_predictions(
             if not rows_for_gw:
                 blanks.add((club, g))
                 ep_gw.append(0.0)
+                p4_gw.append(0.0)
                 labels.append("-")
                 continue
             gw_terms = Terms()
+            gw_means: list[FixtureMeans] = []
             for fixture in rows_for_gw:
-                gw_terms = gw_terms.plus(
-                    _score_fixture(
-                        points, rates, fixture,
-                        base_mean=base_mean,
-                        att_club=fixtures.ratings[club].att,
-                        attack_mult=rates.attack_mult,
-                        p_hit=p_hit,
-                    )
+                fixture_terms, means = _score_fixture(
+                    points, rates, fixture,
+                    base_mean=base_mean,
+                    att_club=fixtures.ratings[club].att,
+                    attack_mult=rates.attack_mult,
+                    p_hit=p_hit,
                 )
+                gw_terms = gw_terms.plus(fixture_terms)
+                gw_means.append(means)
             weighted = gw_terms.scaled(starts[index])
             terms = terms.plus(weighted)
             ep_gw.append(weighted.total())
+            p4_gw.append(p_at_least(gw_means, starts[index], RETURN_POINTS))
             labels.append("+".join(f.label() for f in rows_for_gw))
         ep_total = sum(ep_gw)
         rows.append(
@@ -967,6 +986,7 @@ def build_predictions(
                 fixtures=labels,
                 terms=terms,
                 rates=rates,
+                p4_gw=p4_gw,
             )
         )
     if unadjusted:
