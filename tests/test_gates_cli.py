@@ -41,7 +41,7 @@ def _record(name: str, *, kind: str = "model", ship: dict | None = None,
         "baseline_config": asdict(DEFAULT_CONFIG),
         "grid": grid, "picks": None, "ship_value": ship,
         "comparison": comparison, "verdict": verdict,
-        "reasons": [] if comparison is None else comparison["reasons"],
+        "reasons": [] if comparison is None else comparison.get("reasons", []),
         "recorded_at": recorded_at, **extra,
     }
 
@@ -166,3 +166,25 @@ def test_gates_summary_shows_policy_slice_and_hypothesis(tmp_path, capsys):
     lines = capsys.readouterr().out.splitlines()
     status = lines[lines.index(next(l for l in lines if l.startswith("drop-promoted:"))) + 1]
     assert status.strip() == "passed (a policy never ships) · slice PASS · hypothesis supported"
+
+
+P4_CALIBRATION = _record("p4", kind="calibration", comparison={"p4": {
+    "MID": {"n": 1688, "p4_brier": 0.18, "base_rate_brier": 0.2, "base_rate": "leave-one-round-out",
+            "skill": 0.1, "reliability": []},
+    "DEF": {"n": 1500, "p4_brier": 0.25, "base_rate_brier": 0.2,
+            "base_rate": "leave-one-round-out", "skill": -0.25, "reliability": []},
+}})
+
+
+def test_calibration_record_summarises_and_renders_p4_skill(tmp_path, capsys):
+    root = tmp_path / "gates"
+    root.mkdir()
+    (root / "p4.json").write_text(json.dumps(P4_CALIBRATION), encoding="utf-8")
+    assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == ("p4: calibration — p4 skill MID n 1688 Brier 0.180 v base 0.200 "
+                        "skill +0.100; DEF n 1500 Brier 0.250 v base 0.200 skill −0.250")
+    assert lines[1].strip() == "calibration"
+    [row] = gates.render(gates.load_records(root)).splitlines()[2:]
+    assert row.startswith("| p4 | calibration |")
+    assert "p4 skill MID +0.100, DEF −0.250" in row

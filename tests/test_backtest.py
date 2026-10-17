@@ -19,6 +19,7 @@ from fpl.backtest import (
     cross_validate,
     hypothesis,
     load_round,
+    p4_calibration,
     score_round,
     ship_value,
     signed,
@@ -333,6 +334,7 @@ def test_score_round_matches_documents_and_live(world):
     assert alpha.predicted == documents[0]["ep_gw"][0]
     assert alpha.actual == 7
     assert alpha.error == pytest.approx(alpha.actual - alpha.predicted, abs=5e-4)
+    assert alpha.p4 == documents[0]["p4_gw"][0]
 
 
 def test_score_round_scores_despite_coverage_gaps(world):
@@ -350,7 +352,7 @@ def test_lines_carry_slices(world):
         (GW, "TST", False, False),
         (GW, "OPP", True, True),
     }
-    assert lines[2].p4 is None
+    assert all(0.0 <= line.p4 <= 1.0 for line in lines.values())
 
 
 def test_unchanged_player_gives_zero_difference(world):
@@ -452,12 +454,13 @@ def test_inputs_policy_drop_no_history(world):
 
 def _line(error: float, *, id: int, round: int = GW, club: str | None = None,
           position: str = "MID", promoted: bool = False,
-          no_history: bool = False) -> BacktestLine:
+          no_history: bool = False, p4: float | None = None,
+          actual: int = 0) -> BacktestLine:
     club = club or f"C{id}"
     return BacktestLine(
         id=id, name=f"P{id}", team=club, position=position, price=5.0, uncertainty="LOW",
-        p_start=0.9, predicted=-error, actual=0, error=error, minutes=90, started=True,
-        round=round, club=club, promoted=promoted, no_history=no_history,
+        p_start=0.9, predicted=actual - error, actual=actual, error=error, minutes=90,
+        started=True, round=round, club=club, promoted=promoted, no_history=no_history, p4=p4,
     )
 
 
@@ -734,3 +737,63 @@ def test_hypothesis_needs_under_rating_a_smaller_bias_and_both_gates():
 def test_compare_refuses_an_unknown_slice():
     with pytest.raises(ValueError, match="slice"):
         compare(*_sides([2, -2], [1, -1]), gate_slice="nope")
+
+
+def _p4_lines(rows) -> list[BacktestLine]:
+    """(round, position, p4, returned) → lines; a return scores 6, else 1."""
+    return [_line(0.0, id=i, round=r, position=pos, p4=p4, actual=6 if hit else 1)
+            for i, (r, pos, p4, hit) in enumerate(rows, start=1)]
+
+
+def test_p4_brier_against_a_leave_one_round_out_base_rate():
+    lines = _p4_lines([(3, "MID", 0.8, True), (3, "MID", 0.2, False),
+                       (4, "MID", 0.5, True), (4, "MID", 0.5, False)])
+    [(position, mid)] = p4_calibration(lines).items()
+    assert position == "MID"
+    assert mid.n == 4
+    assert mid.p4_brier == pytest.approx((0.04 + 0.04 + 0.25 + 0.25) / 4)
+    assert mid.base_rate_brier == pytest.approx(0.25)
+    assert mid.base_rate == "leave-one-round-out"
+    assert mid.skill == pytest.approx(1 - 0.145 / 0.25)
+
+
+def test_p4_base_rate_comes_from_the_other_rounds_only():
+    lines = _p4_lines([(3, "DEF", 0.5, True), (3, "DEF", 0.5, True),
+                       (4, "DEF", 0.5, False), (4, "DEF", 0.5, False)])
+    calibration = p4_calibration(lines)["DEF"]
+    assert calibration.base_rate_brier == pytest.approx(1.0)
+    assert calibration.skill == pytest.approx(0.75)
+
+
+def test_p4_reliability_bins_mean_p4_against_observed_rate():
+    lines = _p4_lines([(3, "FWD", 0.1, False), (3, "FWD", 0.15, True),
+                       (4, "FWD", 0.9, True), (4, "FWD", 1.0, True)])
+    bins = p4_calibration(lines)["FWD"].reliability
+    assert [b.n for b in bins] == [2, 0, 0, 0, 2]
+    assert (bins[0].lower, bins[0].upper) == (0.0, 0.2)
+    assert bins[0].mean_p4 == pytest.approx(0.125)
+    assert bins[0].observed == pytest.approx(0.5)
+    assert (bins[1].mean_p4, bins[1].observed) == (None, None)
+    assert bins[4].mean_p4 == pytest.approx(0.95)
+    assert bins[4].observed == 1.0
+
+
+def test_p4_skill_needs_a_second_round():
+    calibration = p4_calibration(_p4_lines([(3, "GKP", 0.3, False), (3, "GKP", 0.6, True)]))
+    assert calibration["GKP"].p4_brier == pytest.approx((0.09 + 0.16) / 2)
+    assert (calibration["GKP"].base_rate_brier, calibration["GKP"].skill) == (None, None)
+
+
+def test_p4_calibration_skips_lines_without_p4():
+    lines = [*_p4_lines([(3, "MID", 0.8, True), (4, "MID", 0.2, False)]),
+             _line(0.0, id=99, round=4, position="MID")]
+    assert p4_calibration(lines)["MID"].n == 2
+    assert p4_calibration([_line(0.0, id=1)]) == {}
+
+
+def test_compare_carries_the_variants_p4_calibration():
+    baseline = _p4_lines([(3, "MID", 0.5, True), (4, "MID", 0.5, False)])
+    variant = _p4_lines([(3, "MID", 0.9, True), (4, "MID", 0.1, False)])
+    result = compare(baseline, variant)
+    assert result.p4 == p4_calibration(variant)
+    assert result.p4["MID"].p4_brier == pytest.approx(0.01)

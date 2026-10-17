@@ -20,7 +20,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable, Hashable, Mapping, Sequence, Set
-from dataclasses import asdict, dataclass, fields, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 from datetime import datetime, timezone
 from itertools import product
 from pathlib import Path
@@ -29,6 +29,7 @@ from typing import Any, TypeVar, get_args, get_type_hints
 
 from fpl import calibrate, ep, fixture_ratings, gates
 from fpl.calibrate import Aggregate, PlayerLine, PlayerPrediction
+from fpl.consistency import RETURN_POINTS
 from fpl.decision_record import decision_commit, drifted, record_predictions, repo_root
 from fpl.ep import (
     DEFAULT_CONFIG,
@@ -55,6 +56,8 @@ GATE_POSITION_SLACK = 0.02
 GATE_MIN_EFFECT = -0.01
 GATE_SLICE_MIN_LINES = 40
 SLICE_MIN_POSITION_N = 30
+P4_BINS = 5
+P4_BASE_RATE = "leave-one-round-out"
 
 ANALYSIS_ROOT = Path("data/analysis")
 DECISIONS_ROOT = Path("data/decisions")
@@ -162,6 +165,7 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
     warnings = list(data.warnings)
     predictions: list[PlayerPrediction] = []
     no_history: dict[int, bool] = {}
+    p4: dict[int, float] = {}
     for position in POSITIONS:
         inputs = data.inputs[position]
         if not inputs.players:
@@ -176,6 +180,7 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
         for doc in result.to_documents():
             predictions.append(PlayerPrediction.model_validate({**doc, "position": position}))
             no_history[doc["id"]] = doc["rates"]["prior_source"] == "league_mean"
+            p4[doc["id"]] = doc["p4_gw"][0]
     if not predictions:
         raise ValueError(f"gw{data.gw} has no inputs rows to score")
     report = calibrate.build_report(tuple(predictions), data.live, match_round=data.gw)
@@ -185,7 +190,8 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
                         + " — not scored")
     lines = tuple(
         BacktestLine(**line.model_dump(), round=data.gw, club=line.team,
-                     promoted=line.team in data.promoted, no_history=no_history[line.id])
+                     promoted=line.team in data.promoted, no_history=no_history[line.id],
+                     p4=p4[line.id])
         for line in report.players
     )
     return RoundScore(lines=lines, warnings=tuple(warnings))
@@ -238,6 +244,78 @@ class Comparison:
     beats: bool
     reasons: tuple[str, ...]
     slice_gate: SliceGate | None = None
+    p4: dict[str, P4Calibration] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ReliabilityBin:
+    lower: float
+    upper: float
+    n: int
+    mean_p4: float | None
+    observed: float | None
+
+
+@dataclass(frozen=True)
+class P4Calibration:
+    """How well one position's P(≥4 points) forecast the rounds it
+    returned. `base_rate_brier` scores a forecast of the position's return
+    rate in the other rounds (leave-one-round-out, so a round never
+    forecasts itself); `skill` = 1 − p4_brier / base_rate_brier, positive
+    when p4 beats it. Both are None for a position seen in one round only."""
+
+    n: int
+    p4_brier: float
+    base_rate_brier: float | None
+    skill: float | None
+    reliability: tuple[ReliabilityBin, ...]
+    base_rate: str = P4_BASE_RATE
+
+
+def p4_calibration(lines: Sequence[BacktestLine]) -> dict[str, P4Calibration]:
+    """Per position, the lines carrying a p4 judged against the outcome
+    actual ≥ RETURN_POINTS: Brier score, the leave-one-round-out base-rate
+    Brier, skill, and P4_BINS equal-width reliability bins."""
+    groups: dict[str, list[BacktestLine]] = {}
+    for line in lines:
+        if line.p4 is not None:
+            groups.setdefault(line.position, []).append(line)
+    return {pos: _p4_position(groups[pos]) for pos in _positions(groups)}
+
+
+def _p4_position(lines: list[BacktestLine]) -> P4Calibration:
+    def hit(line: BacktestLine) -> int:
+        return int(line.actual >= RETURN_POINTS)
+
+    n = len(lines)
+    brier = sum((line.p4 - hit(line)) ** 2 for line in lines) / n
+    by_round = _by_round(lines)
+    base_brier = skill = None
+    if len(by_round) > 1:
+        squared = 0.0
+        for r, held_out in by_round.items():
+            others = [line for line in lines if line.round != r]
+            rate = sum(map(hit, others)) / len(others)
+            squared += sum((rate - hit(line)) ** 2 for line in held_out)
+        base_brier = squared / n
+        skill = None if base_brier == 0 else 1 - brier / base_brier
+    bins: list[list[BacktestLine]] = [[] for _ in range(P4_BINS)]
+    for line in lines:
+        bins[min(int(line.p4 * P4_BINS), P4_BINS - 1)].append(line)
+    reliability = tuple(
+        ReliabilityBin(
+            lower=i / P4_BINS, upper=(i + 1) / P4_BINS, n=len(members),
+            mean_p4=sum(line.p4 for line in members) / len(members) if members else None,
+            observed=sum(map(hit, members)) / len(members) if members else None,
+        )
+        for i, members in enumerate(bins)
+    )
+    return P4Calibration(n=n, p4_brier=brier, base_rate_brier=base_brier, skill=skill,
+                         reliability=reliability)
+
+
+def p4_document(calibration: Mapping[str, P4Calibration]) -> dict[str, Any]:
+    return {pos: asdict(c) for pos, c in calibration.items()}
 
 
 SLICES: dict[str, Callable[[BacktestLine], bool]] = {
@@ -302,6 +380,7 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine], *
         beats=not rules.reasons,
         reasons=rules.reasons,
         slice_gate=None if gate_slice is None else _slice_gate(gate_slice, pairs, d),
+        p4=p4_calibration([v for _, v in pairs]),
     )
 
 
@@ -931,6 +1010,9 @@ def _entry_variant(entry: ManifestEntry, config: ModelConfig) -> _EntryVariant:
     edits the inputs and a `model` entry does not: a model value gained on
     edited inputs would ship into production, which reads them unedited."""
     try:
+        if entry.kind == "calibration" and entry.argv:
+            raise ValueError("a calibration entry judges the baseline it is given and takes "
+                             "no arguments")
         parsed, unknown = _entry_parser().parse_known_args(list(entry.argv))
         if unknown:
             raise ValueError(f"unknown argument(s) {' '.join(unknown)}")
@@ -1001,6 +1083,16 @@ def _record_all(scorer: _Scorer, entries: Sequence[ManifestEntry], base: ModelCo
 def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
             report: Report) -> dict[str, Any]:
     c = report.comparison
+    if kind == "calibration":
+        return {
+            **_record_base(context, name, kind, argv, report.baseline),
+            "grid": None,
+            "picks": None,
+            "ship_value": None,
+            "comparison": {"p4": p4_document(p4_calibration(report.baseline.lines))},
+            "verdict": None,
+            "reasons": [],
+        }
     if report.ship is not None:
         ship = report.ship.overrides
     elif not report.sweep_keys and report.variants:
@@ -1363,6 +1455,7 @@ def comparison_document(c: Comparison) -> dict[str, Any]:
         "beats": c.beats,
         "reasons": list(c.reasons),
         "slice_gate": None if c.slice_gate is None else _slice_gate_document(c.slice_gate),
+        "p4": p4_document(c.p4),
     }
 
 

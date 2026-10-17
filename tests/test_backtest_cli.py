@@ -601,3 +601,40 @@ def test_record_all_takes_the_policy_from_the_manifest(world, capsys, tmp_path):
                 "--gates-root", str(tmp_path / "gates"),
                 "--inputs-policy", "drop_promoted") == 1
     assert "--inputs-policy" in capsys.readouterr().err
+
+
+def test_record_all_calibration_entry_records_p4_per_position(world, capsys, tmp_path):
+    gates_root = tmp_path / "gates"
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("p4", "calibration", []))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(gates_root)) == 0
+    record = _records(gates_root, "p4")["p4"]
+    assert record["kind"] == "calibration"
+    assert record["verdict"] is None and record["reasons"] == []
+    p4 = record["comparison"]["p4"]
+    assert set(p4) == {"DEF", "MID"}
+    for position in p4.values():
+        assert position["n"] == 2
+        assert position["base_rate"] == "leave-one-round-out"
+        assert set(position) >= {"p4_brier", "base_rate_brier", "skill", "reliability"}
+        assert len(position["reliability"]) == 5
+    out = capsys.readouterr().out
+    assert any(line.startswith("p4: calibration — ") and "MID n 2" in line
+               for line in out.splitlines())
+    assert "combined:" in out
+
+
+def test_record_all_refuses_a_calibration_entry_with_arguments(world, capsys, tmp_path):
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("p4", "calibration", ["--set", "blend_k=300"]))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(tmp_path / "gates")) == 1
+    err = capsys.readouterr().err
+    assert "manifest entry p4" in err and "no arguments" in err
+
+
+def test_json_comparison_carries_p4(world, capsys):
+    assert _run(world, "--set", "blend_k=300", "--format", "json") == 0
+    document = json.loads(capsys.readouterr().out)
+    assert set(document["comparison"]["p4"]) == {"DEF", "MID"}

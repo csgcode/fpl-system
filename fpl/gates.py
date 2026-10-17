@@ -199,6 +199,8 @@ def summary_lines(records: Sequence[GateRecord]) -> list[str]:
 
 def _headline(record: GateRecord) -> str:
     c = record.comparison
+    if record.kind == "calibration":
+        return f"{record.name}: calibration — {_p4_text(record)}"
     if c is None:
         if record.kind == "combined":
             return f"{record.name}: no passing entries — ships the baseline config"
@@ -216,6 +218,8 @@ def _status(record: GateRecord, reverted: set[str]) -> str:
     if record.kind == "combined":
         shipped = overrides_text(record.ship_value or {}) or "baseline"
         return f"shipped_config {shipped}; reverted {', '.join(record.reverted or ()) or 'none'}"
+    if record.kind == "calibration":
+        return "calibration"
     if record.verdict is None:
         return "reference"
     if record.verdict == "FAIL":
@@ -238,6 +242,29 @@ def _aggregate_text(record: GateRecord) -> str:
         return "no aggregate recorded"
     return (f"n {aggregate['n']}, bias {signed(aggregate['bias'], 3)}, "
             f"MAE {aggregate['mae']:.3f}")
+
+
+def _p4_text(record: GateRecord) -> str:
+    p4 = (record.comparison or {}).get("p4")
+    if not p4:
+        return "no p4 recorded"
+    return "p4 skill " + "; ".join(
+        f"{pos} n {v['n']} Brier {v['p4_brier']:.3f} v base {_optional(v['base_rate_brier'])} "
+        f"skill {_optional_signed(v['skill'])}" for pos, v in p4.items())
+
+
+def _p4_skills(record: GateRecord) -> str:
+    p4 = (record.comparison or {}).get("p4") or {}
+    return "p4 skill " + (", ".join(f"{pos} {_optional_signed(v['skill'])}"
+                                    for pos, v in p4.items()) or "none recorded")
+
+
+def _optional(value: float | None) -> str:
+    return "-" if value is None else f"{value:.3f}"
+
+
+def _optional_signed(value: float | None) -> str:
+    return "-" if value is None else signed(value, 3)
 
 
 def _plain(value: float, digits: int) -> str:
@@ -267,6 +294,9 @@ def _render_row(record: GateRecord) -> tuple[str, ...]:
     reasons = list(record.reasons)
     if record.kind == "combined" and record.reverted:
         reasons.append("reverted: " + ", ".join(record.reverted))
+    if record.kind == "calibration":
+        return (record.name, record.kind, span, grid, ship, "—", "—", "—", "—",
+                record.verdict or "—", _p4_skills(record))
     if c is None:
         if record.kind != "combined":
             reasons.append(f"reference: {_aggregate_text(record)}")
