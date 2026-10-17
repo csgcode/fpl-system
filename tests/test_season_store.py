@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -999,6 +1000,35 @@ def test_open_ro_catches_a_same_size_rewrite(raw, db):
 
     with pytest.raises(StoreReadError, match=r"gw2/fixtures\.json changed"):
         open_ro(db, raw)
+
+
+def test_open_ro_catches_a_same_size_rewrite_with_its_mtime_restored(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    path = raw / "gw2" / "fixtures.json"
+    before = path.stat()
+    content = path.read_bytes()
+    path.write_bytes(content.replace(b'"finished": true', b'"finished": TRUE', 1))
+    os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+    after = path.stat()
+    assert (after.st_size, after.st_mtime_ns) == (before.st_size, before.st_mtime_ns)
+
+    with pytest.raises(StoreReadError, match=r"gw2/fixtures\.json changed"):
+        open_ro(db, raw)
+
+
+def test_open_ro_rehashes_a_tree_copied_with_its_mtimes(tmp_path, hashed):
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    Season().write(raw)
+    sync(raw, db)
+    shutil.move(raw, tmp_path / "moved")
+    shutil.copytree(tmp_path / "moved", raw)
+    hashed.clear()
+
+    with open_ro(db, raw):
+        pass
+
+    assert len(hashed) == len(rows(db, "SELECT path FROM manifest"))
 
 
 def test_open_ro_rereads_a_rewritten_sidecar(raw, db):

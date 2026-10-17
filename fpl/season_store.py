@@ -27,9 +27,9 @@ finality rule (each sidecar's fetch time and `final` key, each bootstrap's
 content) is in the manifest it compares, so a store it opens agrees with
 `fpl.store.live_final` on the current tree.
 
-A sync also writes a scan cache beside the store: the size and mtime of each
-raw file and sidecar it hashed, tied to that store's manifest. `open_ro` and
-`status` re-read only the files whose size or mtime differ from it; `sync`
+A sync also writes a scan cache beside the store: the size, mtime, inode and
+ctime of each raw file and sidecar it hashed, tied to that store's manifest.
+`open_ro` and `status` re-read only the files whose stat differs from it; `sync`
 and `verify` always hash every file. The cache is outside the database, so
 the database stays a pure function of the raw tree.
 """
@@ -221,7 +221,8 @@ class SyncReport:
 
 
 ChangeKey = tuple[str, str | None, bool]
-Stat = tuple[int, int, int | None, int | None]
+FileStat = tuple[int, int, int, int]
+Stat = tuple[FileStat, FileStat | None]
 
 
 @dataclass(frozen=True)
@@ -306,8 +307,8 @@ def _manifest_keys(con: sqlite3.Connection) -> dict[str, ChangeKey]:
 def _scan(
     raw_root: Path, trusted: dict[str, tuple[Stat, ChangeKey]] | None = None
 ) -> list[_RawFile]:
-    """Every kept raw file with its change key. A file whose size and mtime,
-    and its sidecar's, equal a `trusted` entry takes that entry's key unread."""
+    """Every kept raw file with its change key. A file whose stat, and its
+    sidecar's, equal a `trusted` entry takes that entry's key unread."""
     store = SnapshotStore(raw_root)
     trusted = trusted or {}
     found: list[_RawFile] = []
@@ -369,8 +370,15 @@ def _stat(path: Path, meta_path: Path) -> Stat:
     try:
         meta = meta_path.stat()
     except FileNotFoundError:
-        return data.st_size, data.st_mtime_ns, None, None
-    return data.st_size, data.st_mtime_ns, meta.st_size, meta.st_mtime_ns
+        return _fingerprint(data), None
+    return _fingerprint(data), _fingerprint(meta)
+
+
+def _fingerprint(st: os.stat_result) -> FileStat:
+    # The inode and ctime catch what size and mtime miss: a rewrite whose mtime
+    # was set back, or a tree copied with its mtimes (cp -p, rsync -a, tar).
+    # Neither can be set from user space.
+    return st.st_size, st.st_mtime_ns, st.st_ino, st.st_ctime_ns
 
 
 def _cache_path(db_path: Path) -> Path:
@@ -407,8 +415,8 @@ def _trusted(db_path: Path, known: dict[str, ChangeKey]) -> dict[str, tuple[Stat
         document = json.loads(_cache_path(db_path).read_text(encoding="utf-8"))
         if document["manifest"] != _manifest_digest(known):
             return {}
-        return {path: (tuple(stat), known[path])
-                for path, stat in document["files"].items() if path in known}
+        return {path: ((tuple(data), None if meta is None else tuple(meta)), known[path])
+                for path, (data, meta) in document["files"].items() if path in known}
     except (OSError, ValueError, TypeError, KeyError, AttributeError):
         return {}
 
