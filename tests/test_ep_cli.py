@@ -9,6 +9,7 @@ import pytest
 
 from fpl.__main__ import main
 from fpl.ep import DEFAULT_CONFIG
+from fpl.models import Position
 from fpl.store import SnapshotStore
 from tests.factories import (
     bootstrap_payload,
@@ -335,3 +336,53 @@ def test_ep_writes_before_final_md_exists(tmp_path):
 
     assert run(data_root, analysis_root) == 0
     assert (analysis_root / f"gw{GW}" / "players-MID.json").is_file()
+
+
+def seed_with_returns(tmp_path):
+    data_root, analysis_root = seed(tmp_path)
+    SnapshotStore(data_root).save(
+        GW, "players/summary-1",
+        element_summary_payload(
+            history_past=[past_season_payload(minutes=2700, expected_goals="9.0")],
+            history=[
+                match_record_payload(round=1, minutes=90, total_points=6),
+                match_record_payload(round=2, minutes=90, total_points=2),
+            ],
+        ),
+        "seed://test",
+    )
+    return data_root, analysis_root
+
+
+def alpha_line(out):
+    return next(line for line in out.splitlines() if " Alpha " in line)
+
+
+def header_line(out):
+    return next(line for line in out.splitlines() if line.lstrip().startswith("id "))
+
+
+@pytest.mark.parametrize("calibrated", [True, False])
+def test_ep_table_and_file_carry_p4_and_ret5(tmp_path, capsys, monkeypatch, calibrated):
+    monkeypatch.setattr(
+        "fpl.objective.P4_CALIBRATED", frozenset({Position.MID}) if calibrated else frozenset()
+    )
+    data_root, analysis_root = seed_with_returns(tmp_path)
+    write_inputs(analysis_root, inputs_document(players=[
+        {"id": 1, "name": "Alpha", "p_start": 0.9, "uncertainty": "LOW"},
+        {"id": 2, "name": "Beta", "p_start": 0.5, "uncertainty": "MED"},
+    ]))
+    assert run(data_root, analysis_root) == 0
+    out = capsys.readouterr().out
+    written = {row["id"]: row for row in json.loads(
+        (analysis_root / f"gw{GW}" / "players-MID.json").read_text()
+    )}
+    assert written[1]["returns5"] == [1, 2]
+    assert written[2]["returns5"] == [0, 0]
+    header = header_line(out)
+    assert " p4 " in header and "ret5" in header
+    assert header.index("ep/£m") < header.index(" p4 ") < header.index("ret5")
+    p4_text = f"{written[1]['p4_gw'][0]:.2f}" if calibrated else "-"
+    fields = alpha_line(out).split()
+    ep_m = fields.index(f"{written[1]['ep_per_million']:.2f}")
+    assert fields[ep_m + 1 : ep_m + 3] == [p4_text, "1/2"]

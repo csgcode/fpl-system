@@ -31,7 +31,7 @@ from pydantic import (
 )
 
 from fpl.calibrate import DEFCON_MINUTES_FLOOR, Uncertainty
-from fpl.consistency import RETURN_POINTS, FixtureMeans, p_at_least
+from fpl.consistency import RETURN_POINTS, FixtureMeans, p_at_least, returns_last5
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -683,6 +683,7 @@ class EpRow(_Frozen):
     terms: Terms
     rates: EffectiveRates
     p4_gw: list[float]
+    returns5: tuple[int, int]
 
 
 class FixturesCheck(_Frozen):
@@ -784,6 +785,7 @@ def _round_row(row: EpRow, digest: str) -> dict[str, Any]:
         },
         "model": digest,
         "p4_gw": [round(v, 3) for v in row.p4_gw],
+        "returns5": list(row.returns5),
     }
 
 
@@ -987,6 +989,7 @@ def build_predictions(
                 terms=terms,
                 rates=rates,
                 p4_gw=p4_gw,
+                returns5=returns_last5(summary.history if summary else (), gw),
             )
         )
     if unadjusted:

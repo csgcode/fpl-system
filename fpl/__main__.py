@@ -70,7 +70,7 @@ from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
-from fpl import backtest, gates, objective_report, persistence
+from fpl import backtest, gates, objective, objective_report, persistence
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -1196,15 +1196,18 @@ def print_ep(result: EpResult, limit: int) -> None:
     print(f"league mean: {source}")
     print(
         f"{'id':>4}  {'name':<18} {'team':<4} {'price':>5} {'p_st':>5} {'ep6':>6} "
-        f"{'ep/£m':>5} {'unc':<4} {'app':>5} {'att':>5} {'cs':>5} {'gc':>5} "
-        f"{'dc':>5} {'sv':>5} {'bon':>5} {'crd':>5}  fixtures"
+        f"{'ep/£m':>5} {'p4':>4} {'ret5':>5} {'unc':<4} {'app':>5} {'att':>5} {'cs':>5} "
+        f"{'gc':>5} {'dc':>5} {'sv':>5} {'bon':>5} {'crd':>5}  fixtures"
     )
+    calibrated = result.position in objective.P4_CALIBRATED
     for row in result.rows[:limit]:
         t = row.terms
+        p4 = f"{row.p4_gw[0]:.2f}" if calibrated else "-"
         print(
             f"{row.id:>4}  {row.name:<18.18} {row.team:<4} {row.price:>5.1f} "
             f"{row.p_start:>5.2f} {row.ep_total6:>6.2f} {row.ep_per_million:>5.2f} "
-            f"{row.uncertainty.value:<4} {t.appearance:>5.1f} {t.attack:>5.1f} "
+            f"{p4:>4} {objective.ret5_text(row.returns5):>5} {row.uncertainty.value:<4} "
+            f"{t.appearance:>5.1f} {t.attack:>5.1f} "
             f"{t.clean_sheet:>5.1f} {t.goals_conceded:>5.1f} {t.defcon:>5.1f} "
             f"{t.saves:>5.1f} {t.bonus:>5.1f} {t.cards:>5.1f}  {' '.join(row.fixtures)}"
         )

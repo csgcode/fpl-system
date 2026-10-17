@@ -1034,7 +1034,7 @@ def rich_documents(position_code: int, position_name: str, config=DEFAULT_CONFIG
         bootstrap, {1: summary(history_past=past, history=rich_history())},
         fixtures_doc(ratings=RATED), inputs_doc(position_name, [judged()]), gw=GW, config=config,
     )
-    return [{k: v for k, v in doc.items() if k not in ("model", "p4_gw")} for doc in result.to_documents()]
+    return [{k: v for k, v in doc.items() if k not in ("model", "p4_gw", "returns5")} for doc in result.to_documents()]
 
 
 # Built by the code before the weighted, adjusted current totals existed.
