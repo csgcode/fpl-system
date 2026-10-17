@@ -863,6 +863,8 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
         baseline = _recorded_baseline(args.gates_root)
         for entry in entries:
             _entry_variant(entry, baseline)
+        if not args.force:
+            _check_existing(args.gates_root, entries)
     else:
         baseline = DEFAULT_CONFIG
         fixed = _parse_sets(args.set, baseline)
@@ -956,6 +958,9 @@ def _check_variant(fixed: Mapping[str, ConfigValue], sweep: Mapping[str, list[Co
         raise ValueError(f"{', '.join(both)} given to both --set and --sweep")
     if cv and not sweep:
         raise ValueError("--cv selects a --sweep value; give --sweep")
+    if inputs_policy != "keep" and (fixed or sweep):
+        raise ValueError("--inputs-policy gates the inputs alone and a policy record never "
+                         "carries a ship value; drop --set and --sweep")
     if gate_slice is not None and not (fixed or inputs_policy != "keep" or (sweep and cv)):
         raise ValueError("--gate-slice gates a variant; give --set, --inputs-policy or "
                          "--sweep with --cv")
@@ -969,6 +974,23 @@ def _refuse_existing(root: Path, name: str) -> None:
     if path.exists():
         raise ValueError(f"{path} exists — gate records are written once; "
                          "pass --force to archive it and record again")
+
+
+def _check_existing(root: Path, entries: Sequence[ManifestEntry]) -> None:
+    """An existing record stands in for its entry only when it was recorded
+    from the same kind and arguments."""
+    for entry in entries:
+        record = gates.read_record(root, entry.name)
+        if record is None:
+            continue
+        path = gates.record_path(root, entry.name)
+        if record.kind != entry.kind:
+            raise ValueError(f"{path} is kind {record.kind} but the manifest entry is kind "
+                             f"{entry.kind} — re-record it with --force")
+        if tuple(record.argv) != tuple(entry.argv):
+            raise ValueError(f"{path} was recorded with argv {list(record.argv)} but the "
+                             f"manifest entry has argv {list(entry.argv)} — re-record it "
+                             "with --force")
 
 
 def _recorded_baseline(root: Path) -> ModelConfig:
@@ -1055,7 +1077,7 @@ def _record_all(scorer: _Scorer, entries: Sequence[ManifestEntry], base: ModelCo
         overlay: dict[str, Any] = {}
         for earlier in entries[:index]:
             record = records[earlier.name]
-            if (earlier.kind == "model" and record.verdict == "PASS"
+            if (record.kind == "model" and record.verdict == "PASS"
                     and earlier.name not in reverted):
                 overlay.update(record.ship_value or {})
         entry_base = _overlay(base, overlay)
@@ -1069,7 +1091,7 @@ def _record_all(scorer: _Scorer, entries: Sequence[ManifestEntry], base: ModelCo
             print(line)
 
     passes = [(entry.name, records[entry.name].ship_value or {}) for entry in entries
-              if entry.kind == "model" and records[entry.name].verdict == "PASS"]
+              if records[entry.name].kind == "model" and records[entry.name].verdict == "PASS"]
     base_lines = scorer.lines(base)
     result = combine(base, passes, lambda config: compare(base_lines, scorer.lines(config)))
     document = _combined_record(context, Scored("baseline", {}, base, base_lines), result)

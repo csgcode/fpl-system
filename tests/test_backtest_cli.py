@@ -572,12 +572,83 @@ def test_record_all_accepts_policy_and_slice_entries(quiet_world, capsys, tmp_pa
     assert _run(quiet_world, "--manifest", str(manifest), "--record-all",
                 "--gates-root", str(gates_root)) == 0
     records = _records(gates_root, "drop-promoted", "no-history-k", "combined")
-    assert records["drop-promoted"]["kind"] == "policy"
-    assert records["drop-promoted"]["slice_verdict"] == "n/a"
-    assert records["drop-promoted"]["hypothesis"] in ("supported", "not supported")
-    assert records["no-history-k"]["slice_verdict"] in ("PASS", "FAIL", "n/a")
-    assert "hypothesis" in records["no-history-k"]
-    assert "inputs_policy" not in records["combined"]["shipped_config"]
+    policy, no_history = records["drop-promoted"], records["no-history-k"]
+    assert (policy["kind"], policy["verdict"], policy["ship_value"]) == ("policy", "FAIL", {})
+    assert (policy["slice_verdict"], policy["hypothesis"]) == ("n/a", "not supported")
+    gate = policy["comparison"]["slice_gate"]
+    assert (gate["name"], gate["n"], gate["verdict"]) == ("promoted", 2, "n/a")
+    assert (no_history["kind"], no_history["verdict"]) == ("model", "FAIL")
+    assert no_history["ship_value"] == {"blend_k_no_history": None}
+    assert (no_history["slice_verdict"], no_history["hypothesis"]) == ("n/a", "not supported")
+    gate = no_history["comparison"]["slice_gate"]
+    assert (gate["name"], gate["n"], gate["verdict"]) == ("no_history", 0, "n/a")
+    assert records["combined"]["shipped_config"] == asdict(DEFAULT_CONFIG)
+    assert records["combined"]["reverted"] == []
+
+
+@pytest.mark.parametrize("argv", [
+    ["--inputs-policy", "drop_promoted", "--set", "blend_k=300"],
+    ["--inputs-policy", "drop_promoted", "--sweep", "blend_k=300,450", "--cv"],
+])
+def test_a_policy_run_refuses_model_values(world, capsys, tmp_path, argv):
+    gates_root = tmp_path / "gates"
+    assert _run(world, *argv, "--record", "p", "--gates-root", str(gates_root)) == 1
+    assert "never carries a ship value" in capsys.readouterr().err
+    assert not gates_root.exists()
+
+
+def test_record_all_refuses_a_policy_entry_with_model_values(world, capsys, tmp_path):
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("p", "policy", ["--inputs-policy", "drop_promoted",
+                                                "--set", "blend_k=300"]))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(tmp_path / "gates")) == 1
+    err = capsys.readouterr().err
+    assert "manifest entry p" in err and "never carries a ship value" in err
+
+
+def _passing_policy_record(world, gates_root: Path, capsys) -> list[str]:
+    """Records `p` as a policy, then marks it PASS with a ship value — the
+    shape an older build could write — and returns its argv."""
+    argv = ["--inputs-policy", "drop_promoted"]
+    assert _run(world, *argv, "--record", "p", "--gates-root", str(gates_root)) == 0
+    path = gates_root / "p.json"
+    record = json.loads(path.read_text())
+    record.update(verdict="PASS", reasons=[], ship_value={"blend_k": 300.0})
+    path.write_text(json.dumps(record), encoding="utf-8")
+    capsys.readouterr()
+    return argv
+
+
+@pytest.mark.parametrize("kind, entry_argv, message", [
+    ("model", ["--set", "blend_k=300"], "kind policy"),
+    ("policy", ["--inputs-policy", "drop_promoted", "--gate-slice", "promoted"], "argv"),
+])
+def test_record_all_refuses_an_existing_record_unlike_its_entry(world, capsys, tmp_path, kind,
+                                                                entry_argv, message):
+    gates_root = tmp_path / "gates"
+    _passing_policy_record(world, gates_root, capsys)
+    before = {path: path.read_bytes() for path in _files(gates_root)}
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("p", kind, entry_argv))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(gates_root)) == 1
+    err = capsys.readouterr().err
+    assert "p.json" in err and message in err and "--force" in err
+    assert {path: path.read_bytes() for path in _files(gates_root)} == before
+
+
+def test_record_all_keeps_a_passing_policy_out_of_the_overlay(quiet_world, capsys, tmp_path):
+    gates_root = tmp_path / "gates"
+    argv = _passing_policy_record(quiet_world, gates_root, capsys)
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("p", "policy", argv),
+                               ("y", "model", ["--set", "blend_floor=0.9"]))
+    assert _run(quiet_world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(gates_root)) == 0
+    records = _records(gates_root, "y", "combined")
+    assert records["y"]["baseline_config"] == asdict(DEFAULT_CONFIG)
+    assert records["combined"]["shipped_config"]["blend_k"] == DEFAULT_CONFIG.blend_k
 
 
 @pytest.mark.parametrize("kind, argv, message", [
