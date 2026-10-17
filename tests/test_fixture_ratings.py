@@ -25,11 +25,13 @@ from fpl.fixture_ratings import (
     implied_attack,
     implied_defence,
     k_for,
+    load_inputs,
     parse_priors,
     rate,
     render_json,
     render_tables,
     renormalise,
+    summary_lines,
 )
 from fpl.models import Bootstrap, ElementSummary, EventLive, Fixture
 from tests.factories import (
@@ -487,3 +489,63 @@ def test_detail_tables_per_window_gw_sorted_by_lambda():
         lambdas = [float(r[4]) for r in rows]
         assert lambdas == sorted(lambdas, reverse=True)
         assert len(rows) == len([r for r in run.rows if r.gw == gw])
+
+
+# --- history from the season store ---------------------------------------------
+
+
+def _store_inputs(tmp_path, season, source):
+    from fpl.season_store import History, sync
+    from fpl.store import SnapshotStore
+
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    if not db.exists():
+        season.write(raw)
+        sync(raw, db)
+        (tmp_path / "club-priors.json").write_text(json.dumps(
+            priors_doc({f"C{i}": (1.0, 1.0, False) for i in (1, 2, 3)})))
+    return load_inputs(SnapshotStore(raw), 3, priors_path=tmp_path / "club-priors.json",
+                       analysis_root=tmp_path / "analysis",
+                       history=History(source, raw, db))
+
+
+def test_fixtures_rate_from_store_equals_summaries_when_no_transfers(tmp_path):
+    from tests.test_season_store import Match, Season
+
+    season = Season()
+    season.clubs[4] = {1: 2, 2: 2, 3: 2}
+    season.matches += [Match(4, 1, minutes=30, xg="0.33"), Match(4, 2, minutes=15, xg="0.07")]
+    runs = {source: rate(_store_inputs(tmp_path, season, source))
+            for source in ("summaries", "store")}
+
+    assert render_json(runs["store"]) == render_json(runs["summaries"])
+    assert render_tables(runs["store"]) == render_tables(runs["summaries"])
+    assert summary_lines(runs["store"]) == summary_lines(runs["summaries"])
+    assert runs["store"].recovered == 2
+
+
+def test_fixtures_rate_from_store_keeps_a_transferred_players_xg_with_his_match_club(tmp_path):
+    from tests.test_season_store import Match, Season
+
+    season = Season()
+    # Element 4 has no summary, played round 1 for club 2 and is at club 1 by gw3.
+    season.clubs[4] = {1: 2, 2: 2, 3: 1}
+    season.matches += [Match(4, 1, minutes=90, xg="0.50")]
+    runs = {source: rate(_store_inputs(tmp_path, season, source))
+            for source in ("summaries", "store")}
+    xg = {source: {m.fixture: (m.xg_home, m.xg_away) for m in run.matches}
+          for source, run in runs.items()}
+
+    # Fixture 1 is club 1 (home) v club 2 (away).
+    assert xg["store"][1][1] == pytest.approx(xg["summaries"][1][1] + 0.50)
+    assert xg["store"][1][0] == pytest.approx(xg["summaries"][1][0] - 0.50)
+
+
+def test_fixtures_rate_from_store_reads_match_rows_not_event_live(tmp_path):
+    from tests.test_season_store import Season
+
+    inputs = _store_inputs(tmp_path, Season(), "store")
+
+    assert inputs.live == {}
+    assert inputs.matches
+    assert len(rate(inputs).matches) == 2

@@ -64,6 +64,7 @@ from fpl.models import (
     Position,
     is_shortlisted,
 )
+from fpl.service import load_cached_summaries
 from fpl.store import SeenBootstrap, SnapshotStore, prove_live_final
 
 SCHEMA_VERSION = 3
@@ -1199,6 +1200,67 @@ class SeasonReader:
                 f"{path} was fetched at {found['fetched_at']}, not before the gw{gw} "
                 f"deadline {deadline[0]} — it may show round {gw}"
             )
+
+
+# --- the history source of ep, objective, players and fixtures-rate ----------
+
+HistorySource = Literal["summaries", "store"]
+HISTORY_SOURCES: tuple[HistorySource, ...] = ("summaries", "store")
+DEFAULT_HISTORY_SOURCE: HistorySource = "summaries"
+
+
+def add_history_arguments(parser: argparse.ArgumentParser) -> None:
+    """`--history-from` and `--store`, shared by every command that reads
+    this season's per-match history."""
+    parser.add_argument(
+        "--history-from", choices=HISTORY_SOURCES, default=DEFAULT_HISTORY_SOURCE,
+        help="this season's per-match history: the cached element summaries "
+             f"(default) or the season store, which must be in sync with the raw tree",
+    )
+    parser.add_argument("--store", type=Path, default=DEFAULT_STORE_PATH,
+                        help=f"season store for --history-from store "
+                             f"(default: {DEFAULT_STORE_PATH})")
+
+
+@dataclass(frozen=True)
+class History:
+    """Where a gw N run reads per-match history. `summaries` reads the cached
+    element summaries of gw N; `store` reads the season store as of round N
+    with production coverage, so an id has a summary exactly when the raw
+    tree holds one, and the rows equal that summary's."""
+
+    source: HistorySource
+    raw_root: Path
+    store_path: Path = DEFAULT_STORE_PATH
+
+    @classmethod
+    def from_args(cls, raw_root: Path, args: argparse.Namespace) -> History:
+        return cls(args.history_from, raw_root, args.store)
+
+    def summaries(self, gw: int, ids: Iterable[int]) -> dict[int, ElementSummary]:
+        if self.source == "summaries":
+            return load_cached_summaries(SnapshotStore(self.raw_root), gw, ids)
+        with self.open() as reader:
+            return reader.summaries(gw, ids, coverage="production")
+
+    def matches_by_player(
+        self, gw: int, ids: Iterable[int]
+    ) -> dict[int, tuple[MatchRecord, ...]]:
+        """Each id's match rows of rounds < gw. From summaries, an id with no
+        summary is absent; from the store, every id is present, with () when
+        it played no match."""
+        ids = list(dict.fromkeys(ids))
+        if self.source == "summaries":
+            return {element: summary.history
+                    for element, summary in self.summaries(gw, ids).items()}
+        with self.open() as reader:
+            rows = reader.rounds(gw, ids)
+        return {element: rows.get(element, ()) for element in ids}
+
+    def open(self) -> SeasonReader:
+        if self.source != "store":
+            raise ValueError("the season store is read only with --history-from store")
+        return open_ro(self.store_path, self.raw_root)
 
 
 # --- fpl store ---------------------------------------------------------------

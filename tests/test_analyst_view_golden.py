@@ -68,3 +68,26 @@ def test_call_2_fits_inline(pos):
     assert out.startswith("corrections for A3 from data/retro/gw5.md")
     assert "== data/analysis/gw6/research-" in out
     assert len(out) < LIMIT
+
+
+@pytest.fixture(scope="module")
+def season_store(tmp_path_factory) -> Path:
+    from fpl.season_store import sync
+
+    db = tmp_path_factory.mktemp("store") / "season.sqlite"
+    sync(REPO / "data/raw", db)
+    return db
+
+
+@pytest.mark.parametrize("pos", ["GKP", "DEF", "MID", "FWD"])
+def test_call_1_from_the_store_fills_no_summary_rows_and_fits_inline(pos, season_store):
+    command = concrete(spec_block(1), pos)
+    from_summaries = run_block(command).splitlines()
+    from_store = run_block(f"{command} --history-from store --store {season_store}").splitlines()
+
+    assert from_store[0] == from_summaries[0]
+    assert len(from_store) == len(from_summaries)
+    changed = [(a, b) for a, b in zip(from_summaries, from_store, strict=True) if a != b]
+    assert all(a.endswith(",no summary") for a, _ in changed)
+    assert not any("no summary" in line for line in from_store)
+    assert len("\n".join(from_store)) < LIMIT

@@ -15,6 +15,7 @@ import requests
 
 from fpl.__main__ import (
     MAX_GW,
+    MINUTES_COLUMN,
     _id_list,
     _position_set,
     _status_set,
@@ -1273,3 +1274,48 @@ def test_flags_refusal_after_the_deadline_offers_no_override(tmp_path, capsys):
     assert "gw6 deadline" in err
     assert "--allow-post-deadline" not in err
     assert gateway.calls == [BOOTSTRAP_URL]
+
+
+def test_players_minutes_from_store_fills_summary_less_players(tmp_path, capsys):
+    from fpl.season_store import sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    Season(summary_ids={1}).write(raw)
+    sync(raw, db)
+    by_source = {}
+    for source in ("summaries", "store"):
+        assert main(["--data-root", str(raw), "players", "--gw", "3", "--minutes",
+                     "--format", "csv", "--history-from", source, "--store", str(db)]) == 0
+        rows = list(csv.reader(io.StringIO(capsys.readouterr().out)))
+        assert rows[0][-1] == "minutes_r1-r2"
+        by_source[source] = {row[0]: row[-1] for row in rows[1:]}
+
+    assert by_source["summaries"] == {"1": "90,90", "2": "no summary", "3": "no summary"}
+    assert by_source["store"] == {"1": "90,90", "2": "90,75", "3": "0,0"}
+
+
+def test_players_minutes_from_store_pads_a_player_with_no_match_rows(tmp_path, capsys):
+    from fpl.season_store import sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    season = Season()
+    season.clubs[8] = {1: 1, 2: 1, 3: 1}
+    season.write(raw)
+    sync(raw, db)
+
+    assert main(["--data-root", str(raw), "players", "--gw", "3", "--minutes", "--format",
+                 "json", "--history-from", "store", "--store", str(db)]) == 0
+    by_id = {row["id"]: row for row in json.loads(capsys.readouterr().out)}
+    assert by_id[8][MINUTES_COLUMN] == {"1": "-", "2": "-"}
+
+
+def test_players_without_minutes_never_opens_the_store(tmp_path, capsys):
+    from tests.test_season_store import Season
+
+    raw = tmp_path / "raw"
+    Season().write(raw)
+
+    assert main(["--data-root", str(raw), "players", "--gw", "3", "--format", "csv",
+                 "--history-from", "store", "--store", str(tmp_path / "absent.sqlite")]) == 0

@@ -71,6 +71,7 @@ from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
 from fpl import history_view, objective_report, season_store
+from fpl.season_store import History
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -117,7 +118,6 @@ from fpl.service import (
     FplDataService,
     PostDeadlineError,
     load_cached_bootstrap,
-    load_cached_summaries,
 )
 from fpl.state import (
     MAX_GW,
@@ -180,8 +180,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         type=Path,
-        default=Path("data/raw"),
-        help="snapshot root (default: data/raw)",
+        default=season_store.DEFAULT_RAW_ROOT,
+        help=f"snapshot root (default: {season_store.DEFAULT_RAW_ROOT})",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -462,12 +462,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Local-only: the objective is a pure function of the EP files, the cached
     # bootstrap and the previous final.md (docs/ep-model.md §7).
-    objective_report.add_arguments(add(
+    objective = add(
         "objective",
         "score the squad and a transfer plan on the spec objective, blend and prior-only "
         "(exit 1: --moves fails the transfer rule)",
         cached=False,
-    ))
+    )
+    objective_report.add_arguments(objective)
+    season_store.add_history_arguments(objective)
 
     calibrate = add("calibrate", "join EP predictions vs a completed round's actuals")
     calibrate.add_argument(
@@ -530,6 +532,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="what-if: force every row's prior weight to W in [0, 1], superseding "
              "per-row overrides; requires --out",
     )
+    season_store.add_history_arguments(ep)
 
     # Local-only: club ratings and fixture rows are a pure function of the
     # cached snapshots plus club-priors.json (docs/ep-model.md §6).
@@ -546,8 +549,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="root that receives gw{N}/fixtures.json and fixtures-tables.md",
     )
     fixtures_rate.add_argument("--format", choices=("table", "json"), default="table")
+    season_store.add_history_arguments(fixtures_rate)
 
     players = add("players", "filtered view over the cached bootstrap", cached=False)
+    season_store.add_history_arguments(players)
     players.add_argument(
         "--position", type=_position_set, default=frozenset(),
         help="comma-separated: GKP (or GK),DEF,MID,FWD",
@@ -942,7 +947,8 @@ def run_command(
         )
         fields = _player_fields(args.fields, args.format)
         rows = PlayerRepository(store).query(gw, player_filter, args.sort, args.limit)
-        minutes = (_minutes_by_round(store, gw, rows, args.minutes_last)
+        minutes = (_minutes_by_round(History.from_args(args.data_root, args), gw, rows,
+                                     args.minutes_last)
                    if args.minutes else None)
         print_players(rows, args.format, minutes, fields)
     return EXIT_OK
@@ -1080,7 +1086,7 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     bootstrap = load_cached_bootstrap(store, gw)
     wanted = [p.id for p in bootstrap.elements if p.element_type == position]
     wanted += [entry.id for entry in inputs.players]
-    summaries = load_cached_summaries(store, gw, wanted)
+    summaries = History.from_args(args.data_root, args).summaries(gw, wanted)
     result = build_predictions(
         bootstrap, summaries, fixtures, inputs, gw=gw,
         allow_missing=frozenset(args.allow_missing_ids),
@@ -1126,7 +1132,8 @@ def run_ep_check(
     wanted = [p.id for p in bootstrap.elements if p.element_type == position]
     wanted += [entry.id for entry in inputs.players]
     result = build_predictions(
-        bootstrap, load_cached_summaries(store, gw, wanted), load_fixtures(fixtures_path),
+        bootstrap, History.from_args(args.data_root, args).summaries(gw, wanted),
+        load_fixtures(fixtures_path),
         inputs, gw=gw, allow_missing=frozenset(args.allow_missing_ids),
     )
     print(
@@ -1171,20 +1178,20 @@ class MinutesView:
 
 
 def _minutes_by_round(
-    store: SnapshotStore, gw: int, rows: list[PlayerRow], last: int | None = None
+    history: History, gw: int, rows: list[PlayerRow], last: int | None = None
 ) -> MinutesView:
     """Rounds 1..gw-1 (the last `last` of them when given)."""
     first = 1 if last is None else max(1, gw - last)
     rounds = tuple(range(first, gw))
-    summaries = load_cached_summaries(store, gw, [row.player.id for row in rows])
+    matches = history.matches_by_player(gw, [row.player.id for row in rows])
     result: dict[int, dict[int, int | str] | str] = {}
     for row in rows:
-        summary = summaries.get(row.player.id)
-        if summary is None:
+        records = matches.get(row.player.id)
+        if records is None:
             result[row.player.id] = NO_SUMMARY
             continue
         played: dict[int, int] = {}
-        for match in summary.history:
+        for match in records:
             if match.round is not None:
                 played[match.round] = played.get(match.round, 0) + match.minutes
         result[row.player.id] = {r: played.get(r, NO_FIXTURE) for r in rounds}
@@ -1555,7 +1562,8 @@ def run_fixtures_rate(store: SnapshotStore, args: argparse.Namespace) -> int:
     priors_path = args.priors or args.analysis_root / PRIORS_FILENAME
     try:
         run = rate_fixtures(load_rating_inputs(
-            store, args.gw, priors_path=priors_path, analysis_root=args.analysis_root))
+            store, args.gw, priors_path=priors_path, analysis_root=args.analysis_root,
+            history=History.from_args(args.data_root, args)))
     except RatingRefusal as exc:
         _stderr(f"error: {exc}")
         if exc.hint:
