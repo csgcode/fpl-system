@@ -550,7 +550,7 @@ def test_inputs_policy_is_a_variant_gated_on_its_slice(world, capsys, tmp_path):
     assert (gate["name"], gate["n"], gate["verdict"]) == ("promoted", 2, "n/a")
     assert record["comparison"]["slices"]["promoted"]["delta_mae"] != 0
     assert record["comparison"]["by_position"]["MID"]["delta_mae"] == 0
-    assert record["ship_value"] == {}
+    assert record["ship_value"] is None
 
 
 def test_gate_slice_needs_a_variant(world, capsys):
@@ -573,7 +573,7 @@ def test_record_all_accepts_policy_and_slice_entries(quiet_world, capsys, tmp_pa
                 "--gates-root", str(gates_root)) == 0
     records = _records(gates_root, "drop-promoted", "no-history-k", "combined")
     policy, no_history = records["drop-promoted"], records["no-history-k"]
-    assert (policy["kind"], policy["verdict"], policy["ship_value"]) == ("policy", "FAIL", {})
+    assert (policy["kind"], policy["verdict"], policy["ship_value"]) == ("policy", "FAIL", None)
     assert (policy["slice_verdict"], policy["hypothesis"]) == ("n/a", "not supported")
     gate = policy["comparison"]["slice_gate"]
     assert (gate["name"], gate["n"], gate["verdict"]) == ("promoted", 2, "n/a")

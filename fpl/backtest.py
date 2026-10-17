@@ -1115,7 +1115,9 @@ def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
             "verdict": None,
             "reasons": [],
         }
-    if report.ship is not None:
+    if kind == "policy":
+        ship = None
+    elif report.ship is not None:
         ship = report.ship.overrides
     elif not report.sweep_keys and report.variants:
         ship = report.variants[0].overrides
