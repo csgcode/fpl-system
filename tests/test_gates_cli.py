@@ -188,3 +188,30 @@ def test_calibration_record_summarises_and_renders_p4_skill(tmp_path, capsys):
     [row] = gates.render(gates.load_records(root)).splitlines()[2:]
     assert row.startswith("| p4 | calibration |")
     assert "p4 skill MID +0.100, DEF −0.250" in row
+
+
+def _policy(verdict: str) -> dict:
+    reasons = [] if verdict == "PASS" else ["effect: ΔMAE +0.0043 > −0.01"]
+    return _record(
+        "drop-promoted", kind="policy", ship={}, verdict=verdict,
+        comparison=_comparison(-0.012, (-0.02, -0.004), (0.18, 0.16), (5, 5), reasons),
+        slice_verdict="PASS", hypothesis="supported")
+
+
+@pytest.mark.parametrize("verdict, word", [("PASS", "passed (a policy never ships)"),
+                                           ("FAIL", "FAIL policy")])
+def test_policy_headline_never_reads_as_shipping(verdict, word):
+    [headline, _] = gates.summary_lines([gates.GateRecord.model_validate(_policy(verdict))])
+    assert headline == (f"drop-promoted: {word} — ΔMAE −0.0120 [CI −0.020, −0.004], "
+                        "bias 0.18→0.16, wins 5/5")
+
+
+def test_render_shows_slice_verdict_and_hypothesis():
+    policy = gates.GateRecord.model_validate(_policy("PASS"))
+    plain = gates.GateRecord.model_validate(PASSING)
+    [policy_row, plain_row] = gates.render([policy, plain]).splitlines()[2:]
+    cells = [cell.strip() for cell in policy_row.split("|")[1:-1]]
+    assert cells[gates.RENDER_HEADER.index("Verdict")] == (
+        "PASS · slice PASS · hypothesis supported")
+    cells = [cell.strip() for cell in plain_row.split("|")[1:-1]]
+    assert cells[gates.RENDER_HEADER.index("Verdict")] == "PASS"

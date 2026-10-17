@@ -188,13 +188,17 @@ def summary_lines(records: Sequence[GateRecord]) -> list[str]:
     out: list[str] = []
     for record in records:
         out.append(_headline(record))
-        status = _status(record, reverted)
-        if record.slice_verdict is not None:
-            status += f" · slice {record.slice_verdict}"
-        if record.hypothesis is not None:
-            status += f" · hypothesis {record.hypothesis}"
-        out.append(f"  {status}")
+        out.append(f"  {_status(record, reverted)}{_slice_suffix(record)}")
     return out
+
+
+def _slice_suffix(record: GateRecord) -> str:
+    suffix = ""
+    if record.slice_verdict is not None:
+        suffix += f" · slice {record.slice_verdict}"
+    if record.hypothesis is not None:
+        suffix += f" · hypothesis {record.hypothesis}"
+    return suffix
 
 
 def _headline(record: GateRecord) -> str:
@@ -205,10 +209,14 @@ def _headline(record: GateRecord) -> str:
         if record.kind == "combined":
             return f"{record.name}: no passing entries — ships the baseline config"
         return f"{record.name}: reference — {_aggregate_text(record)}"
-    ship = overrides_text(record.ship_value or {}) or "baseline"
-    word = "ship" if record.verdict == "PASS" else "tried"
+    if record.kind == "policy":
+        result = "passed (a policy never ships)" if record.verdict == "PASS" else "FAIL policy"
+    else:
+        ship = overrides_text(record.ship_value or {}) or "baseline"
+        word = "ship" if record.verdict == "PASS" else "tried"
+        result = f"{record.verdict} {word} {ship}"
     wins, rounds = c["round_wins"]
-    return (f"{record.name}: {record.verdict} {word} {ship} — ΔMAE {signed(c['delta_mae'], 4)} "
+    return (f"{record.name}: {result} — ΔMAE {signed(c['delta_mae'], 4)} "
             f"[CI {signed(c['ci'][0], 3)}, {signed(c['ci'][1], 3)}], "
             f"bias {_plain(c['baseline']['bias'], 2)}→{_plain(c['variant']['bias'], 2)}, "
             f"wins {wins}/{rounds}")
@@ -307,7 +315,8 @@ def _render_row(record: GateRecord) -> tuple[str, ...]:
         record.name, record.kind, span, grid, ship, signed(c["delta_mae"], 4),
         f"[{signed(c['ci'][0], 3)}, {signed(c['ci'][1], 3)}]",
         f"{signed(c['baseline']['bias'], 3)}→{signed(c['variant']['bias'], 3)}",
-        f"{wins}/{total}", record.verdict or "—", "; ".join(reasons) or "—",
+        f"{wins}/{total}", (record.verdict or "—") + _slice_suffix(record),
+        "; ".join(reasons) or "—",
     )
 
 
