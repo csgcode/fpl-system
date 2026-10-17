@@ -11,7 +11,8 @@ from pathlib import Path
 import pytest
 
 from fpl.__main__ import main
-from fpl.season_store import sync
+from fpl import season_store
+from fpl.season_store import SCHEMA_VERSION, sync
 from tests.test_season_store import Match, Season, double_gameweek, fetch_time, rows, save_raw
 
 
@@ -126,7 +127,7 @@ def test_status_prints_the_manifest_summary_and_writes_nothing(raw, db, capsys):
     assert run(raw, db, "status") == 0
 
     out = capsys.readouterr().out
-    assert f"store {db}: schema 3" in out
+    assert f"store {db}: schema {SCHEMA_VERSION}" in out
     assert "gw1-3" in out
     assert any(line.split()[:3] == ["event-live", "2", "2"] for line in out.splitlines())
     assert any(line.split()[:2] == ["summary", "6"] for line in out.splitlines())
@@ -145,7 +146,7 @@ def test_status_names_the_first_raw_change_the_store_has_not_ingested(raw, db, c
 
     out = capsys.readouterr().out
     assert "behind" in out and "gw3/players/summary-9.json not ingested" in out
-    assert "fpl store sync --gw 3" in out
+    assert f"fpl --data-root {raw} store sync --gw 3 --store {db}" in out
 
 
 @pytest.mark.parametrize("action", ["status", "verify"])
@@ -154,7 +155,7 @@ def test_a_missing_store_exits_1_naming_sync_and_creates_nothing(raw, db, capsys
 
     assert run(raw, db, action) == 1
 
-    assert "fpl store sync --gw 3" in capsys.readouterr().err
+    assert f"store sync --gw 3 --store {db}" in capsys.readouterr().err
     assert not db.parent.exists()
 
 
@@ -183,7 +184,7 @@ def test_verify_refuses_a_store_behind_the_raw(raw, db, capsys):
     assert run(raw, db, "verify") == 1
 
     err = capsys.readouterr().err
-    assert "summary-9.json not ingested" in err and "fpl store sync --gw 3" in err
+    assert "summary-9.json not ingested" in err and f"store sync --gw 3 --store {db}" in err
 
 
 def test_verify_detects_content_that_differs_from_a_fresh_build(raw, db, capsys):
@@ -195,7 +196,7 @@ def test_verify_detects_content_that_differs_from_a_fresh_build(raw, db, capsys)
 
     out = capsys.readouterr()
     assert "content: differs from a fresh build" in out.out
-    assert "fpl store rebuild --gw 3" in out.err
+    assert f"store rebuild --gw 3 --store {db}" in out.err
 
 
 def test_verify_exits_3_on_a_reconciliation_mismatch(raw, db, capsys):
@@ -222,3 +223,18 @@ def test_rebuild_rewrites_a_store_that_sync_leaves_alone(raw, db, capsys):
 
     assert f"{files} files ingested" in capsys.readouterr().out
     assert run(raw, db, "verify") == 0
+
+
+def test_verify_rehashes_every_raw_file_while_status_trusts_the_scan_cache(
+        raw, db, capsys, monkeypatch):
+    Season().write(raw)
+    sync(raw, db)
+    files = len(rows(db, "SELECT path FROM manifest"))
+    hashed: list[Path] = []
+    real = season_store._digest
+    monkeypatch.setattr(season_store, "_digest", lambda p: hashed.append(p) or real(p))
+
+    assert run(raw, db, "status") == 0
+    assert hashed == []
+    assert run(raw, db, "verify") == 0
+    assert len(hashed) == files

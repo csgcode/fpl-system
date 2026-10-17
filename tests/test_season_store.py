@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -10,8 +11,11 @@ import pytest
 from fpl.ep import _league_mean
 from fpl.fixture_ratings import _side_xg, load_inputs
 from fpl.models import Position, is_shortlisted
+from fpl import season_store
 from fpl.season_store import (
     COVERAGES,
+    DEFAULT_RAW_ROOT,
+    DEFAULT_STORE_PATH,
     SCHEMA_VERSION,
     StoreReadError,
     StoreSyncError,
@@ -496,6 +500,7 @@ def test_a_refused_rebuild_leaves_the_existing_store_untouched(raw, db):
     Season().write(raw)
     sync(raw, db)
     before = db.read_bytes()
+    cache_before = season_store._cache_path(db).read_bytes()
     payload = SnapshotStore(raw).load(2, "bootstrap")
     save_raw(raw, fetch_time(2) + timedelta(hours=5), 2, "bootstrap", payload)
 
@@ -503,15 +508,16 @@ def test_a_refused_rebuild_leaves_the_existing_store_untouched(raw, db):
         rebuild(raw, db)
 
     assert db.read_bytes() == before
-    assert sorted(p.name for p in db.parent.iterdir()) == [db.name]
+    assert season_store._cache_path(db).read_bytes() == cache_before
+    assert sorted(p.name for p in db.parent.iterdir()) == [
+        db.name, season_store._cache_path(db).name]
 
 
 def test_an_insert_error_rolls_back_and_leaves_the_store_untouched(raw, db, monkeypatch):
-    import fpl.season_store as season_store
-
     Season().write(raw, range(1, 3))
     sync(raw, db)
     before = db.read_bytes()
+    cache_before = season_store._cache_path(db).read_bytes()
     Season().write(raw, range(3, 4))
     real_insert = season_store._insert
 
@@ -526,7 +532,9 @@ def test_an_insert_error_rolls_back_and_leaves_the_store_untouched(raw, db, monk
         sync(raw, db)
 
     assert db.read_bytes() == before
-    assert sorted(p.name for p in db.parent.iterdir()) == [db.name]
+    assert season_store._cache_path(db).read_bytes() == cache_before
+    assert sorted(p.name for p in db.parent.iterdir()) == [
+        db.name, season_store._cache_path(db).name]
 
 
 def _empty_sqlite_with_current_version(db: Path) -> None:
@@ -876,7 +884,7 @@ def test_reader_refuses_a_store_behind_the_raw(raw, db):
 
     message = str(refused.value)
     assert "gw3/players/summary-9.json" in message
-    assert "fpl store sync --gw 3" in message
+    assert f"fpl --data-root {raw} store sync --gw 3 --store {db}" in message
 
 
 def test_reader_refuses_a_changed_raw_file_and_a_missing_store(raw, db):
@@ -885,9 +893,9 @@ def test_reader_refuses_a_changed_raw_file_and_a_missing_store(raw, db):
     payload = SnapshotStore(raw).load(2, "fixtures")
     save_raw(raw, fetch_time(2) + timedelta(hours=1), 2, "fixtures", payload[:1])
 
-    with pytest.raises(StoreReadError, match=r"gw2/fixtures\.json.*fpl store sync --gw 3"):
+    with pytest.raises(StoreReadError, match=r"gw2/fixtures\.json.*store sync --gw 3 --store"):
         open_ro(db, raw)
-    with pytest.raises(StoreReadError, match="fpl store sync --gw 3"):
+    with pytest.raises(StoreReadError, match="store sync --gw 3 --store"):
         open_ro(db.with_name("absent.sqlite"), raw)
 
 
@@ -925,3 +933,129 @@ def test_as_of_refuses_a_round_without_final_live_stats(raw, db):
     with open_ro(db, raw) as store:
         with pytest.raises(StoreReadError, match=r"round\(s\) \[3\].*event-live --gw 4 --round 3"):
             store.rounds(4, [1])
+
+
+# --- open precheck and hints ----------------------------------------------------
+
+
+@pytest.fixture
+def hashed(monkeypatch) -> list[str]:
+    """The raw paths the scan hashed, in order."""
+    seen: list[str] = []
+    real = season_store._digest
+
+    def counting(path: Path) -> str:
+        seen.append(path.as_posix())
+        return real(path)
+
+    monkeypatch.setattr(season_store, "_digest", counting)
+    return seen
+
+
+def test_open_ro_rehashes_nothing_when_no_raw_file_changed(raw, db, hashed):
+    Season().write(raw)
+    sync(raw, db)
+    hashed.clear()
+
+    with open_ro(db, raw) as store:
+        assert store.rounds(3, [1])
+
+    assert hashed == []
+
+
+def test_open_ro_rehashes_only_a_touched_file_and_accepts_equal_content(raw, db, hashed):
+    Season().write(raw)
+    sync(raw, db)
+    touched = raw / "gw2" / "fixtures.json"
+    os.utime(touched, ns=(touched.stat().st_atime_ns, touched.stat().st_mtime_ns + 10**9))
+    hashed.clear()
+
+    with open_ro(db, raw):
+        pass
+
+    assert hashed == [touched.as_posix()]
+
+
+def test_open_ro_catches_a_same_size_rewrite(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    path = raw / "gw2" / "fixtures.json"
+    content = path.read_bytes()
+    path.write_bytes(content.replace(b'"finished": true', b'"finished": TRUE', 1))
+    assert len(path.read_bytes()) == len(content) and path.read_bytes() != content
+
+    with pytest.raises(StoreReadError, match=r"gw2/fixtures\.json changed"):
+        open_ro(db, raw)
+
+
+def test_open_ro_rereads_a_rewritten_sidecar(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    refetched = fetch_time(3) + timedelta(hours=9)
+    SnapshotStore(raw, now=lambda: refetched).save(
+        3, "event-live-e2", SnapshotStore(raw).load(3, "event-live-e2"), "https://x.test",
+        final=True)
+
+    with pytest.raises(StoreReadError, match=r"gw3/event-live-e2\.json changed"):
+        open_ro(db, raw)
+
+
+def test_a_scan_cache_of_another_store_is_ignored(tmp_path, hashed):
+    raw = tmp_path / "raw"
+    season = Season()
+    season.write(raw, range(1, 3))
+    older = tmp_path / "older.sqlite"
+    sync(raw, older)
+    season.write(raw, range(3, 4))
+    db = tmp_path / "s.sqlite"
+    sync(raw, db)
+    season_store._cache_path(db).write_bytes(season_store._cache_path(older).read_bytes())
+    hashed.clear()
+
+    with open_ro(db, raw):
+        pass
+
+    assert len(hashed) == len(rows(db, "SELECT path FROM manifest"))
+
+
+def test_an_unreadable_scan_cache_falls_back_to_hashing(raw, db, hashed):
+    Season().write(raw)
+    sync(raw, db)
+    season_store._cache_path(db).write_text("{not json")
+    hashed.clear()
+
+    with open_ro(db, raw):
+        pass
+
+    assert len(hashed) == len(rows(db, "SELECT path FROM manifest"))
+
+
+def test_the_scan_cache_leaves_the_database_deterministic(tmp_path):
+    season = Season()
+    a, b = tmp_path / "a", tmp_path / "b"
+    season.write(a / "raw")
+    season.write(b / "raw")
+    sync(a / "raw", a / "s.sqlite")
+    sync(b / "raw", b / "s.sqlite")
+
+    assert dump(a / "s.sqlite") == dump(b / "s.sqlite")
+
+
+def test_hint_omits_default_roots_and_names_custom_ones(tmp_path):
+    assert season_store._hint(DEFAULT_RAW_ROOT, DEFAULT_STORE_PATH, [3, 7]) == (
+        "run: uv run python -m fpl store sync --gw 7")
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    assert season_store._hint(raw, db, [2], "rebuild") == (
+        f"run: uv run python -m fpl --data-root {raw} store rebuild --gw 2 --store {db}")
+
+
+def test_hint_for_an_empty_raw_tree_names_the_root_not_a_gw(tmp_path):
+    raw = tmp_path / "raw"
+    hint = season_store._hint(raw, tmp_path / "s.sqlite", [])
+    assert "None" not in hint and "--gw" not in hint
+    assert hint == f"no raw snapshots under {raw} — fetch them first"
+
+
+def test_a_missing_store_over_an_empty_raw_tree_says_so(tmp_path):
+    with pytest.raises(StoreReadError, match="no raw snapshots under"):
+        open_ro(tmp_path / "s.sqlite", tmp_path / "raw")

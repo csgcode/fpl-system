@@ -26,6 +26,12 @@ store that has not ingested exactly the current raw tree. Every input to the
 finality rule (each sidecar's fetch time and `final` key, each bootstrap's
 content) is in the manifest it compares, so a store it opens agrees with
 `fpl.store.live_final` on the current tree.
+
+A sync also writes a scan cache beside the store: the size and mtime of each
+raw file and sidecar it hashed, tied to that store's manifest. `open_ro` and
+`status` re-read only the files whose size or mtime differ from it; `sync`
+and `verify` always hash every file. The cache is outside the database, so
+the database stays a pure function of the raw tree.
 """
 
 from __future__ import annotations
@@ -62,6 +68,8 @@ from fpl.store import SeenBootstrap, SnapshotStore, prove_live_final
 
 SCHEMA_VERSION = 3
 DEFAULT_STORE_PATH = Path("data/store/season-2026-27.sqlite")
+DEFAULT_RAW_ROOT = Path("data/raw")
+SCAN_CACHE_SUFFIX = ".scan.json"
 XG_RECORDED_FROM = "2022/23"
 DC_RECORDED_FROM = "2024/25"
 
@@ -212,6 +220,7 @@ class SyncReport:
 
 
 ChangeKey = tuple[str, str | None, bool]
+Stat = tuple[int, int, int | None, int | None]
 
 
 @dataclass(frozen=True)
@@ -228,6 +237,7 @@ class _RawFile:
     sha256: str
     fetched_at: datetime | None
     sidecar_final: bool
+    stat: Stat
 
     @property
     def key(self) -> ChangeKey:
@@ -256,6 +266,7 @@ def _sync(raw_root: Path, db_path: Path, *, force: bool) -> SyncReport:
     ingested = sum(1 for path, key in current.items() if (known or {}).get(path) != key)
     if known is None or known != current:
         _write(db_path, _build(files))
+    _write_scan_cache(db_path, files)
     con = _connect(db_path)
     try:
         return _report(con, ingested)
@@ -291,8 +302,13 @@ def _manifest_keys(con: sqlite3.Connection) -> dict[str, ChangeKey]:
     }
 
 
-def _scan(raw_root: Path) -> list[_RawFile]:
+def _scan(
+    raw_root: Path, trusted: dict[str, tuple[Stat, ChangeKey]] | None = None
+) -> list[_RawFile]:
+    """Every kept raw file with its change key. A file whose size and mtime,
+    and its sidecar's, equal a `trusted` entry takes that entry's key unread."""
     store = SnapshotStore(raw_root)
+    trusted = trusted or {}
     found: list[_RawFile] = []
     gws = sorted(
         int(m.group(1)) for d in raw_root.iterdir()
@@ -316,19 +332,84 @@ def _scan(raw_root: Path) -> list[_RawFile]:
         names += [("summary", f"players/{stem}") for _, stem in summaries]
         for kind, name in names:
             path = store.path(gw, name)
-            with path.open("rb") as fh:
-                sha256 = hashlib.file_digest(fh, "sha256").hexdigest()
+            relative = path.relative_to(raw_root).as_posix()
+            # Stat before reading: a write during the read leaves a newer mtime,
+            # so the next open re-reads the file instead of trusting this key.
+            stat = _stat(path, store.meta_path(gw, name))
+            known = trusted.get(relative)
+            if known is not None and known[0] == stat:
+                sha256, fetched_iso, sidecar_final = known[1]
+                fetched_at = None if fetched_iso is None else datetime.fromisoformat(fetched_iso)
+            else:
+                sha256 = _digest(path)
+                fetched_at = store.fetched_at(gw, name)
+                sidecar_final = store.meta(gw, name)["final"]
             found.append(_RawFile(
-                path=path.relative_to(raw_root).as_posix(),
+                path=relative,
                 source=path,
                 raw_root=raw_root,
                 kind=kind,
                 gw=gw,
                 sha256=sha256,
-                fetched_at=store.fetched_at(gw, name),
-                sidecar_final=store.meta(gw, name)["final"],
+                fetched_at=fetched_at,
+                sidecar_final=sidecar_final,
+                stat=stat,
             ))
     return found
+
+
+def _digest(path: Path) -> str:
+    with path.open("rb") as fh:
+        return hashlib.file_digest(fh, "sha256").hexdigest()
+
+
+def _stat(path: Path, meta_path: Path) -> Stat:
+    data = path.stat()
+    try:
+        meta = meta_path.stat()
+    except FileNotFoundError:
+        return data.st_size, data.st_mtime_ns, None, None
+    return data.st_size, data.st_mtime_ns, meta.st_size, meta.st_mtime_ns
+
+
+def _cache_path(db_path: Path) -> Path:
+    return db_path.with_name(db_path.name + SCAN_CACHE_SUFFIX)
+
+
+def _manifest_digest(keys: dict[str, ChangeKey]) -> str:
+    return hashlib.sha256(json.dumps(sorted(keys.items())).encode()).hexdigest()
+
+
+def _write_scan_cache(db_path: Path, files: Sequence[_RawFile]) -> None:
+    """Skipped when the cache already says the same, so a sync with nothing
+    new writes nothing at all."""
+    document = json.dumps({
+        "manifest": _manifest_digest({f.path: f.key for f in files}),
+        "files": {f.path: list(f.stat) for f in sorted(files, key=lambda f: f.path)},
+    }, indent=0)
+    path = _cache_path(db_path)
+    try:
+        if path.read_text(encoding="utf-8") == document:
+            return
+    except OSError:
+        pass
+    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(document)
+    os.replace(name, path)
+
+
+def _trusted(db_path: Path, known: dict[str, ChangeKey]) -> dict[str, tuple[Stat, ChangeKey]]:
+    """The scan cache's stats, only when it was written for exactly this
+    store's manifest; otherwise nothing is trusted and every file is read."""
+    try:
+        document = json.loads(_cache_path(db_path).read_text(encoding="utf-8"))
+        if document["manifest"] != _manifest_digest(known):
+            return {}
+        return {path: (tuple(stat), known[path])
+                for path, stat in document["files"].items() if path in known}
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        return {}
 
 
 def _parse(kind: str, path: str, content: bytes) -> Any:
@@ -861,17 +942,23 @@ _MATCH_COLUMNS = tuple(name for name in StoredMatch.model_fields if name in PLAY
 def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
     """A read-only view of the store, refused unless it has ingested exactly
     the raw tree it was built from."""
-    con = _open_checked(db_path, raw_root, _scan(raw_root))
+    con, _ = _open_checked(db_path, raw_root)
     con.row_factory = sqlite3.Row
     return SeasonReader(con)
 
 
-def _open_checked(db_path: Path, raw_root: Path, files: Sequence[_RawFile]) -> sqlite3.Connection:
-    hint = _hint(files)
-    con = _open_existing(db_path, files)
+def _open_checked(
+    db_path: Path, raw_root: Path, files: Sequence[_RawFile] | None = None
+) -> tuple[sqlite3.Connection, Sequence[_RawFile]]:
+    """The store opened read-only and the scan it was checked against. With
+    no `files`, the raw tree is scanned trusting the store's scan cache."""
+    con = _open_existing(db_path, raw_root)
     try:
-        known = _readable(db_path, files, lambda: (
+        known = _readable(db_path, raw_root, lambda: (
             _manifest_keys(con) if _version(con) == SCHEMA_VERSION else None))
+        if files is None:
+            files = _scan(raw_root, _trusted(db_path, known) if known is not None else None)
+        hint = _hint(raw_root, db_path, _gws(files))
         if known is None:
             raise StoreReadError(
                 f"season store {db_path} has another schema version — {hint}")
@@ -882,12 +969,13 @@ def _open_checked(db_path: Path, raw_root: Path, files: Sequence[_RawFile]) -> s
     except BaseException:
         con.close()
         raise
-    return con
+    return con, files
 
 
-def _open_existing(db_path: Path, files: Sequence[_RawFile]) -> sqlite3.Connection:
+def _open_existing(db_path: Path, raw_root: Path) -> sqlite3.Connection:
     if not db_path.is_file():
-        raise StoreReadError(f"no season store at {db_path} — {_hint(files)}")
+        raise StoreReadError(
+            f"no season store at {db_path} — {_hint(raw_root, db_path, _raw_gws(raw_root))}")
     return sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
 
 
@@ -895,20 +983,43 @@ def _version(con: sqlite3.Connection) -> int:
     return con.execute("PRAGMA user_version").fetchone()[0]
 
 
-def _readable(
-    db_path: Path, files: Sequence[_RawFile], read: Callable[[], Any]
-) -> Any:
+def _readable(db_path: Path, raw_root: Path, read: Callable[[], Any]) -> Any:
     try:
         return read()
     except sqlite3.DatabaseError as exc:
-        raise StoreReadError(
-            f"season store {db_path} is unreadable ({exc}) — {_hint(files, 'rebuild')}"
-        ) from None
+        hint = _hint(raw_root, db_path, _raw_gws(raw_root), "rebuild")
+        raise StoreReadError(f"season store {db_path} is unreadable ({exc}) — {hint}") from None
 
 
-def _hint(files: Sequence[_RawFile], action: str = "sync") -> str:
-    latest = max((f.gw for f in files), default=None)
-    return f"run: uv run python -m fpl store {action} --gw {latest}"
+def _gws(files: Sequence[_RawFile]) -> list[int]:
+    return [f.gw for f in files]
+
+
+def _raw_gws(raw_root: Path) -> list[int]:
+    """The gameweeks holding a kept snapshot, without hashing anything."""
+    if not raw_root.is_dir():
+        return []
+    return [
+        int(m.group(1)) for d in raw_root.iterdir()
+        if d.is_dir() and (m := _GW_DIR.match(d.name)) and (
+            any(_is_snapshot(p.name) for p in d.glob("*.json"))
+            or any((d / "players").glob("summary-*.json")))
+    ]
+
+
+def _is_snapshot(name: str) -> bool:
+    return name in ("bootstrap.json", "fixtures.json") or _LIVE_FILE.match(name) is not None
+
+
+def _hint(raw_root: Path, db_path: Path, gws: Iterable[int], action: str = "sync") -> str:
+    """The command that brings the store level with the raw tree, naming
+    --data-root and --store only when they are not the defaults."""
+    latest = max(gws, default=None)
+    if latest is None:
+        return f"no raw snapshots under {raw_root} — fetch them first"
+    data_root = "" if raw_root == DEFAULT_RAW_ROOT else f" --data-root {raw_root}"
+    store = "" if db_path == DEFAULT_STORE_PATH else f" --store {db_path}"
+    return f"run: uv run python -m fpl{data_root} store {action} --gw {latest}{store}"
 
 
 def _first_difference(
@@ -1150,7 +1261,7 @@ def _print_report(report: SyncReport) -> int:
 
 def _verify(raw_root: Path, db_path: Path) -> int:
     files = _scan(raw_root)
-    con = _open_checked(db_path, raw_root, files)
+    con, _ = _open_checked(db_path, raw_root, files)
     try:
         exit_code = _print_report(_report(con, 0))
         stored = list(con.iterdump())
@@ -1169,29 +1280,30 @@ def _verify(raw_root: Path, db_path: Path) -> int:
                      "row count differs" if len(stored) != len(built) else "")
         print(f"content: differs from a fresh build (first: {first[:160]})")
         print(f"error: season store {db_path} does not equal a fresh build of {raw_root} — "
-              f"{_hint(files, 'rebuild')}", file=sys.stderr)
+              f"{_hint(raw_root, db_path, _gws(files), 'rebuild')}", file=sys.stderr)
         return EXIT_ERROR
     print("content: matches a fresh build")
     return exit_code
 
 
 def _status(raw_root: Path, db_path: Path) -> int:
-    files = _scan(raw_root)
-    con = _open_existing(db_path, files)
+    con = _open_existing(db_path, raw_root)
     try:
-        version = _readable(db_path, files, lambda: _version(con))
+        version = _readable(db_path, raw_root, lambda: _version(con))
         if version != SCHEMA_VERSION:
             raise StoreReadError(
                 f"season store {db_path} has schema {version}, this code reads "
-                f"{SCHEMA_VERSION} — {_hint(files)}")
-        manifest = _readable(db_path, files, lambda: con.execute(
+                f"{SCHEMA_VERSION} — {_hint(raw_root, db_path, _raw_gws(raw_root))}")
+        manifest = _readable(db_path, raw_root, lambda: con.execute(
             "SELECT kind, gw, final, ingested_rows, fetched_at FROM manifest").fetchall())
         rounds = tuple(r for (r,) in con.execute(
             "SELECT DISTINCT round FROM player_rounds ORDER BY round"))
         player_rounds = con.execute("SELECT COUNT(*) FROM player_rounds").fetchone()[0]
-        stale = _first_difference(_manifest_keys(con), {f.path: f.key for f in files})
+        known = _manifest_keys(con)
     finally:
         con.close()
+    files = _scan(raw_root, _trusted(db_path, known))
+    stale = _first_difference(known, {f.path: f.key for f in files})
     gws = sorted({gw for _, gw, *_ in manifest})
     span = f"gw{gws[0]}-{gws[-1]}" if gws else "no gameweeks"
     print(f"store {db_path}: schema {version}, {len(manifest)} files, {span}")
@@ -1207,7 +1319,7 @@ def _status(raw_root: Path, db_path: Path) -> int:
     if stale is None:
         print(f"in sync with {raw_root}")
     else:
-        print(f"behind {raw_root}: {stale} — {_hint(files)}")
+        print(f"behind {raw_root}: {stale} — {_hint(raw_root, db_path, _gws(files))}")
     return EXIT_OK
 
 

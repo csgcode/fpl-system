@@ -101,6 +101,9 @@ class SnapshotStore:
             meta = {}
         return {**meta, "final": meta.get("final") is True}
 
+    def meta_path(self, gw: int, name: str) -> Path:
+        return self._meta_path(gw, f"{_safe_name(name)}.json")
+
     def is_final(self, gw: int, name: str) -> bool:
         """An event-live snapshot is final by `live_final`; any other by its
         sidecar's `final` key."""
