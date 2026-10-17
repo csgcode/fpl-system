@@ -800,11 +800,11 @@ def _round_row(row: EpRow, digest: str) -> dict[str, Any]:
     }
 
 
-def write_predictions(path: Path, result: EpResult) -> None:
+def write_predictions(path: Path, documents: Sequence[Mapping[str, Any]]) -> None:
     """One row per line inside a JSON list: still `json.loads`-able as a
     whole, and a `grep` for a name returns the complete row."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    body = ",\n".join(json.dumps(row, ensure_ascii=False) for row in result.to_documents())
+    body = ",\n".join(json.dumps(row, ensure_ascii=False) for row in documents)
     path.write_text(f"[\n{body}\n]\n", encoding="utf-8")
 
 

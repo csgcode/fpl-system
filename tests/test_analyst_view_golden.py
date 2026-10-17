@@ -1,7 +1,9 @@
-"""The player analyst's Call 1 and Call 2 outputs stay inline: Claude Code
-persists Bash output above about 30,000 characters, and a persisted output
-costs the agent extra calls to page through. The commands are taken from
-agents/player-analyst.md itself and run on the committed GW6 data."""
+"""The player analyst's Call 1, Call 2 and Call 4 outputs stay inline: Claude
+Code persists Bash output above about 30,000 characters, and a persisted
+output costs the agent extra calls to page through. The Call 1 and Call 2
+commands are taken from agents/player-analyst.md itself; Call 4 is a single
+`ep` command, written out here with `--out` because GW6 is decided. All run
+on the committed GW6 data."""
 
 from __future__ import annotations
 
@@ -67,4 +69,11 @@ def test_call_2_fits_inline(pos):
     out = run_block(concrete(spec_block(2), pos))
     assert out.startswith("corrections for A3 from data/retro/gw5.md")
     assert "== data/analysis/gw6/research-" in out
+    assert len(out) < LIMIT
+
+
+@pytest.mark.parametrize("pos", ["GKP", "DEF", "MID", "FWD"])
+def test_call_4_fits_inline(pos, tmp_path):
+    out = run_block(f"uv run python -m fpl ep --gw 6 --position {pos} --out {tmp_path}/p.json")
+    assert "share check" in out
     assert len(out) < LIMIT

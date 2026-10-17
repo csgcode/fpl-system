@@ -70,7 +70,7 @@ from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
-from fpl import backtest, gates, objective, objective_report, persistence
+from fpl import backtest, gates, objective, objective_report, persistence, team_share
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -514,6 +514,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--allow-missing-ids", type=_id_list, default=[],
         help="comma-separated ids above £4.5m that may lack an inputs row; "
              "left unscored and listed in the warnings",
+    )
+    ep.add_argument(
+        "--share-detail", action="store_true",
+        help="name each row the team-xG share check flags, with its shares, on stderr",
     )
     ep.add_argument(
         "--prior-weight", type=_unit_interval, metavar="W",
@@ -1061,13 +1065,21 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         bootstrap, summaries, fixtures, inputs, gw=gw,
         allow_missing=frozenset(args.allow_missing_ids),
     )
+    documents = result.to_documents()
+    club_xg, skipped = _club_xg(store, gw, args.analysis_root)
+    flagged = team_share.annotate(
+        documents,
+        histories={pid: summary.history for pid, summary in summaries.items()},
+        club_xg=club_xg, base_mean=fixtures.base_mean(),
+        att_by_club={club: rating.att for club, rating in fixtures.ratings.items()},
+    )
     # players-{pos}.json is derived from inputs + fixtures.json + cached
     # snapshots, so overwriting it is safe, like plan.json.
-    write_predictions(out_path, result)
+    write_predictions(out_path, documents)
     if args.format == "json":
-        print(json.dumps(result.to_documents(), indent=1))
+        print(json.dumps(documents, indent=1))
     else:
-        print_ep(result, args.limit)
+        print_ep(result, args.limit, {pid: team_share.labels(f) for pid, f in flagged.items()})
     print(f"wrote {out_path}")
     if result.missing_summaries:
         ids = ",".join(str(i) for i in result.missing_summaries)
@@ -1077,7 +1089,38 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         )
     for warning in result.warnings:
         _stderr(f"WARNING: {warning}")
+    if skipped is not None:
+        _stderr(f"WARNING: share check skipped: {skipped}")
+    else:
+        _print_share_check(result, flagged, detail=args.share_detail)
     return EXIT_OK
+
+
+def _club_xg(
+    store: SnapshotStore, gw: int, analysis_root: Path
+) -> tuple[dict[tuple[int, str], float], str | None]:
+    # The share check is a reading aid: a refusal becomes a skip warning and
+    # never stops `ep`, which the live cycle runs at step 3.
+    try:
+        run = rate_fixtures(load_rating_inputs(
+            store, gw, priors_path=analysis_root / PRIORS_FILENAME, analysis_root=analysis_root,
+        ))
+    # _side_xg raises a plain ValueError for a summary row with no venue.
+    except (SnapshotMissingError, ValueError) as exc:
+        return {}, str(exc)
+    return team_share.club_xg_map(run.matches), None
+
+
+def _print_share_check(
+    result: EpResult, flagged: dict[int, tuple[team_share.ShareFlag, ...]], *, detail: bool
+) -> None:
+    ids = sorted(flagged)
+    listed = f" (ids {','.join(str(i) for i in ids)})" if ids else ""
+    _stderr(f"share check: {len(ids)} flagged{listed}")
+    if detail:
+        names = {row.id: row.name for row in result.rows}
+        for pid in ids:
+            _stderr(f"share check: id {pid} {names[pid]} {team_share.details(flagged[pid])}")
 
 
 def run_ep_check(
@@ -1181,7 +1224,7 @@ def _player_fields(raw: str | None, fmt: str) -> tuple[str, ...]:
     return fields
 
 
-def print_ep(result: EpResult, limit: int) -> None:
+def print_ep(result: EpResult, limit: int, share: dict[int, str | None]) -> None:
     print(
         f"gw{result.gw} {result.position.name}: {len(result.rows)} scored, "
         f"{result.not_scored} not scored (≤£4.5m or unavailable, absent from inputs), "
@@ -1197,7 +1240,7 @@ def print_ep(result: EpResult, limit: int) -> None:
     print(
         f"{'id':>4}  {'name':<18} {'team':<4} {'price':>5} {'p_st':>5} {'ep6':>6} "
         f"{'ep/£m':>5} {'p4':>4} {'ret5':>5} {'unc':<4} {'app':>5} {'att':>5} {'cs':>5} "
-        f"{'gc':>5} {'dc':>5} {'sv':>5} {'bon':>5} {'crd':>5}  fixtures"
+        f"{'gc':>5} {'dc':>5} {'sv':>5} {'bon':>5} {'crd':>5} {'share':<10}  fixtures"
     )
     calibrated = result.position in objective.P4_CALIBRATED
     for row in result.rows[:limit]:
@@ -1209,7 +1252,8 @@ def print_ep(result: EpResult, limit: int) -> None:
             f"{p4:>4} {objective.ret5_text(row.returns5):>5} {row.uncertainty.value:<4} "
             f"{t.appearance:>5.1f} {t.attack:>5.1f} "
             f"{t.clean_sheet:>5.1f} {t.goals_conceded:>5.1f} {t.defcon:>5.1f} "
-            f"{t.saves:>5.1f} {t.bonus:>5.1f} {t.cards:>5.1f}  {' '.join(row.fixtures)}"
+            f"{t.saves:>5.1f} {t.bonus:>5.1f} {t.cards:>5.1f} {share.get(row.id) or '-':<10}  "
+            f"{' '.join(row.fixtures)}"
         )
     if len(result.rows) > limit:
         print(f"({len(result.rows) - limit} more rows in the file)")

@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+from fpl.fixture_ratings import MatchXg
 from fpl.models import MatchRecord
 from fpl.team_share import (
     RECENT_STARTS,
@@ -14,6 +15,8 @@ from fpl.team_share import (
     SHARE_MIN_STARTS,
     SHARE_REL_TOL,
     Shares,
+    annotate,
+    club_xg_map,
     details,
     implied_share,
     labels,
@@ -149,3 +152,50 @@ def test_both_xg_and_xa_flagged() -> None:
         "xG EP>club (implied 0.30, season 0.18, 4 starts); "
         "xA EP<club (implied 0.02, season 0.12, 4 starts)"
     )
+
+
+def _document(*, xg90: float, xa90: float, team: str = "TST") -> dict[str, Any]:
+    return {"id": 1, "name": "Alpha", "team": team, "ep_total6": 9.0,
+            "rates": {"xg90": xg90, "xa90": xa90, "minutes_per_start": 90.0, "attack_mult": 1.0}}
+
+
+def _three_starts() -> list[MatchRecord]:
+    return [_row(f, r, home=True, starts=1, xg=0.1, xa=0.1) for f, r in ((10, 1), (11, 2), (12, 3))]
+
+
+THREE_CLUB_MATCHES = {(10, "H"): 1.0, (11, "H"): 1.0, (12, "H"): 1.0}
+
+
+def test_annotate_sets_the_detail_and_returns_the_flags_by_id() -> None:
+    document = _document(xg90=0.4 * 1.435, xa90=0.1 * 1.435)
+    flagged = annotate([document], histories={1: _three_starts()}, club_xg=THREE_CLUB_MATCHES,
+                       base_mean=1.435, att_by_club={"TST": 1.0})
+    assert document["share_flag"] == "xG EP>club (implied 0.40, season 0.10, 3 starts)"
+    assert list(flagged) == [1] and labels(flagged[1]) == "xG EP>club"
+
+
+def test_annotate_scales_by_the_club_attack_rating() -> None:
+    document = _document(xg90=0.1 * 1.435 * 2, xa90=0.1 * 1.435 * 2)
+    annotate([document], histories={1: _three_starts()}, club_xg=THREE_CLUB_MATCHES,
+             base_mean=1.435, att_by_club={"TST": 2.0})
+    assert document["share_flag"] is None
+
+
+def test_annotate_leaves_a_null_flag_when_nothing_is_flagged() -> None:
+    documents = [_document(xg90=0.1 * 1.435, xa90=0.1 * 1.435), _document(xg90=1.0, xa90=1.0) | {"id": 2}]
+    flagged = annotate(documents, histories={1: _three_starts()}, club_xg=THREE_CLUB_MATCHES,
+                       base_mean=1.435, att_by_club={"TST": 1.0})
+    assert flagged == {}
+    assert [d["share_flag"] for d in documents] == [None, None]
+
+
+def test_annotate_without_club_xg_flags_nothing() -> None:
+    document = _document(xg90=1.0, xa90=1.0)
+    assert annotate([document], histories={1: _three_starts()}, club_xg={},
+                    base_mean=1.435, att_by_club={"TST": 1.0}) == {}
+    assert document["share_flag"] is None
+
+
+def test_club_xg_map_keys_each_match_by_side() -> None:
+    match = MatchXg(fixture=7, round=1, home="TST", away="OPP", xg_home=1.25, xg_away=0.5)
+    assert club_xg_map([match]) == {(7, "H"): 1.25, (7, "A"): 0.5}

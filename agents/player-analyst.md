@@ -66,7 +66,9 @@ table. If a p_start or an override looks wrong in the light of the numbers,
 fix the inputs and rerun — one rerun at most. A refusal naming an override
 field is a unit slip (0.50 typed as 50): fix the number, never argue with the
 bound. If it lists missing summaries for players you care about, run the
-printed `summaries --ids` command once and rerun.
+printed `summaries --ids` command once and rerun. A `share check` warning or
+a `share` flag is evidence about the rates. Act on it only for a row where you
+set `xg90`, `xa90` or `attack_mult`. Never file a backlog row per flag.
 
 **Call 5 — Write data/analysis/gwN/players-POS.md** (template below).
 

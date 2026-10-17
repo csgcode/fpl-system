@@ -7,15 +7,17 @@ shares sit on the scale the EP formula uses for attacking rates.
 
 `implied_share` turns a player's EP rate into the share of club xG it
 assumes, and `share_flags` flags it when it sits far from the observed
-season share.
+season share. `annotate` applies both to the rows `fpl ep` writes.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from fpl.ep import FULL_MATCH_MINUTES
+from fpl.fixture_ratings import MatchXg
 from fpl.models import MatchRecord
 
 RECENT_STARTS = 4
@@ -24,6 +26,12 @@ SHARE_ABS_TOL = 0.05
 SHARE_REL_TOL = 0.4
 
 ClubXg = Mapping[tuple[int, str], float]
+
+
+def club_xg_map(matches: Iterable[MatchXg]) -> dict[tuple[int, str], float]:
+    """Each rated match's xG keyed by (fixture, "H") and (fixture, "A")."""
+    return {key: xg for m in matches
+            for key, xg in (((m.fixture, "H"), m.xg_home), ((m.fixture, "A"), m.xg_away))}
 
 
 @dataclass(frozen=True)
@@ -115,3 +123,33 @@ def details(flags: Sequence[ShareFlag]) -> str | None:
 
 def _far_apart(implied: float, season: float) -> bool:
     return abs(implied - season) > max(SHARE_ABS_TOL, SHARE_REL_TOL * season)
+
+
+def annotate(
+    documents: Sequence[dict[str, Any]],
+    *,
+    histories: Mapping[int, Sequence[MatchRecord]],
+    club_xg: ClubXg,
+    base_mean: float,
+    att_by_club: Mapping[str, float],
+) -> dict[int, tuple[ShareFlag, ...]]:
+    """Set `share_flag` on each players-{pos}.json row: the flag details, or
+    None. The implied shares use the row's own rates and the club rating and
+    base mean the EP was scored with. Returns the flags of the flagged rows
+    by id. An empty `club_xg` flags nothing."""
+    flagged: dict[int, tuple[ShareFlag, ...]] = {}
+    for document in documents:
+        rates = document["rates"]
+        shares = observed_shares(histories.get(document["id"], ()), club_xg)
+
+        def implied(rate90: float) -> float:
+            return implied_share(rate90=rate90, mps=rates["minutes_per_start"],
+                                 attack_mult=rates["attack_mult"], base_mean=base_mean,
+                                 att_club=att_by_club[document["team"]])
+
+        flags = share_flags(implied_xg=implied(rates["xg90"]), implied_xa=implied(rates["xa90"]),
+                            shares=shares)
+        document["share_flag"] = details(flags)
+        if flags:
+            flagged[document["id"]] = flags
+    return flagged
