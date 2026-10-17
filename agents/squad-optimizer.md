@@ -37,7 +37,10 @@ Score every option with
 (`--moves none` to grade banking). It prints each figure on both readings:
 blend (players-*.json) and prior-only (the same inputs at prior weight 1.0).
 Paste its `baseline:` and `plan:` lines verbatim into the proposal; every EP
-figure you cite comes from it.
+figure you cite comes from it. If `objective` refuses with "players files
+built by another model version", stop and return to the
+orchestrator, asking it to rerun `fpl ep` for every position. Do not work
+around the refusal.
 
 ## Heuristic procedure (v1 — document every step so phase-2 MILP can verify)
 1. Budget skeleton: decide premium slots (players > £9m) first — typically

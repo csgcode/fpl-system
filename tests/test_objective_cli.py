@@ -272,6 +272,13 @@ def test_optimizer_spec_quotes_the_tie_break_label():
     assert TIE_GROUP_LABEL in text
 
 
+def test_optimizer_spec_stops_on_the_model_version_refusal():
+    spec = Path(__file__).resolve().parents[1] / "agents" / "squad-optimizer.md"
+    text = " ".join(spec.read_text(encoding="utf-8").split())
+    assert "players files built by another model version" in text
+    assert "rerun `fpl ep` for every position" in text
+
+
 def test_red_team_spec_quotes_the_tie_group_label():
     spec = Path(__file__).resolve().parents[1] / "agents" / "red-team-reviewer.md"
     assert TIE_GROUP_LABEL in spec.read_text(encoding="utf-8")
