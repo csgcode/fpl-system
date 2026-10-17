@@ -31,7 +31,13 @@ from enum import Enum
 from pathlib import Path
 from typing import NamedTuple
 
-from fpl.ep import build_predictions, force_prior_weight, load_fixtures, load_inputs
+from fpl.ep import (
+    DEFAULT_CONFIG,
+    build_predictions,
+    force_prior_weight,
+    load_fixtures,
+    load_inputs,
+)
 from fpl.models import PLAYING_POSITIONS, Bootstrap, PlayerStatus, Position
 from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.store import SnapshotStore
@@ -688,6 +694,22 @@ def prior_documents(store: SnapshotStore, analysis_root: Path, gw: int,
     return documents
 
 
+def _check_model_digests(digests: Mapping[Path, set[str]]) -> None:
+    # Rows written before the digest existed carry no `model` key; they are
+    # legacy, not a mismatch, so only stamped rows are judged. The prior view
+    # is rebuilt by this code, so the stamps must also match the code.
+    code = DEFAULT_CONFIG.digest()
+    found = set().union(*digests.values())
+    if not found or found == {code}:
+        return
+    stamped = "; ".join(f"{path} {', '.join(sorted(seen))}"
+                        for path, seen in digests.items() if seen)
+    raise ValueError(
+        f"players files built by another model version — rerun `fpl ep` for every "
+        f"position, or check out the code they were built with. This code is model "
+        f"{code}; the files carry {stamped}")
+
+
 def load_views(store: SnapshotStore, analysis_root: Path, gw: int
                ) -> tuple[dict[int, Row], dict[int, Row]]:
     """(blend, prior): players-*.json as published, and the prior-only
@@ -695,11 +717,15 @@ def load_views(store: SnapshotStore, analysis_root: Path, gw: int
     bootstrap = load_cached_bootstrap(store, gw)
     analysis_dir = analysis_root / f"gw{gw}"
     blend_documents: list[dict] = []
+    digests: dict[Path, set[str]] = {}
     for position in sorted(PLAYING_POSITIONS):
         path = analysis_dir / f"players-{position.name}.json"
         if not path.is_file():
             raise ValueError(f"no {path} — run `fpl ep --position {position.name}` first")
-        blend_documents += json.loads(path.read_text(encoding="utf-8"))
+        documents = json.loads(path.read_text(encoding="utf-8"))
+        digests[path] = {d["model"] for d in documents if "model" in d}
+        blend_documents += documents
+    _check_model_digests(digests)
     blend = rows_from_documents(blend_documents, bootstrap)
     prior = rows_from_documents(prior_documents(store, analysis_root, gw, bootstrap), bootstrap)
     return blend, prior

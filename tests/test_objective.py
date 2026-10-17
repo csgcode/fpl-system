@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from fpl.ep import force_prior_weight, load_inputs
+from fpl.ep import DEFAULT_CONFIG, force_prior_weight, load_inputs
 from fpl.models import Bootstrap, Position
 from fpl.objective import (
     FORMATIONS,
@@ -590,3 +590,60 @@ def test_load_views_allows_unjudged_players_the_blend_view_lacks(tmp_path):
                  "--allow-missing-ids", "3"]) == 0
     blend, prior = load_views(store, analysis, GW)
     assert 3 not in blend and 3 not in prior and 1 in prior
+
+
+def _write_mid_players(tmp_path, analysis):
+    from fpl.__main__ import main
+
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+                 "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions")]) == 0
+    return analysis / f"gw{GW}" / "players-MID.json"
+
+
+def _restamp(path, digest):
+    rows = json.loads(path.read_text())
+    for document in rows:
+        if digest is None:
+            document.pop("model", None)
+        else:
+            document["model"] = digest
+    path.write_text(json.dumps(rows))
+    return rows
+
+
+def test_objective_refuses_mixed_model_digests(tmp_path):
+    store, analysis = _seed(tmp_path)
+    mid = _write_mid_players(tmp_path, analysis)
+    other = dict(json.loads(mid.read_text())[0], id=2, model="0badc0de")
+    (analysis / f"gw{GW}" / "players-DEF.json").write_text(json.dumps([other]))
+    with pytest.raises(ValueError, match="players files built by another model version") as exc:
+        load_views(store, analysis, GW)
+    message = str(exc.value)
+    assert "players-DEF.json" in message and "0badc0de" in message
+    assert "players-MID.json" in message and DEFAULT_CONFIG.digest() in message
+    assert "rerun `fpl ep`" in message
+
+
+def test_objective_refuses_a_digest_other_than_the_code(tmp_path):
+    store, analysis = _seed(tmp_path)
+    _restamp(_write_mid_players(tmp_path, analysis), "0badc0de")
+    with pytest.raises(ValueError, match="players files built by another model version") as exc:
+        load_views(store, analysis, GW)
+    assert "players-MID.json" in str(exc.value) and "0badc0de" in str(exc.value)
+
+
+def test_objective_accepts_rows_without_a_digest(tmp_path):
+    store, analysis = _seed(tmp_path)
+    _restamp(_write_mid_players(tmp_path, analysis), None)
+    blend, prior = load_views(store, analysis, GW)
+    assert 1 in blend and 1 in prior
+
+
+def test_objective_judges_legacy_and_current_rows_on_the_current_digest(tmp_path):
+    store, analysis = _seed(tmp_path)
+    mid = _write_mid_players(tmp_path, analysis)
+    legacy = {k: v for k, v in json.loads(mid.read_text())[0].items() if k != "model"}
+    (analysis / f"gw{GW}" / "players-DEF.json").write_text(json.dumps([dict(legacy, id=2)]))
+    blend, _ = load_views(store, analysis, GW)
+    assert set(blend) == {1, 2}
