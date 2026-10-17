@@ -25,6 +25,14 @@ def test_defcon_reaches_four_only_in_the_sixty_minute_branch() -> None:
     assert p_at_least([fm], p_start=1.0, k=4) == pytest.approx(0.75 * 0.4)
 
 
+def test_defcon_and_assist_points_come_from_the_caller() -> None:
+    defcon = FixtureMeans(goal_pts=5, p_defcon=0.4, p60=1.0, defcon_pts=1)
+    assists = FixtureMeans(goal_pts=5, assist_mean=0.5, p60=1.0, assist_pts=1)
+
+    assert p_at_least([defcon], p_start=1.0, k=4) == 0.0
+    assert p_at_least([assists], p_start=1.0, k=4) == pytest.approx(1 - math.exp(-0.5) * 1.5)
+
+
 def test_defender_clean_sheet_with_full_minutes() -> None:
     fm = FixtureMeans(goal_pts=6, p_cs=0.3, cs_pts=4, p60=1.0)
 
@@ -89,6 +97,10 @@ def test_out_of_range_p_start_refuses() -> None:
 def test_points_per_event_must_be_a_non_negative_integer(value: object) -> None:
     with pytest.raises(ValueError, match="cs_pts"):
         FixtureMeans(goal_pts=4, cs_pts=value)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="defcon_pts"):
+        FixtureMeans(goal_pts=4, defcon_pts=value)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="assist_pts"):
+        FixtureMeans(goal_pts=4, assist_pts=value)  # type: ignore[arg-type]
 
 
 def _match(round_: int | None, points: int, minutes: int = 90) -> MatchRecord:

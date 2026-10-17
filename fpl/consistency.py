@@ -7,8 +7,8 @@ start, one fixture's points are the sum of independent parts:
 - appearance: 2 with probability `p60` (60+ minutes), else 1;
 - clean sheet: `cs_pts` with probability `p_cs`, in the 60+ branch only;
 - goals: Poisson(`goal_mean`) × `goal_pts`, the goal count truncated at 10;
-- assists: Poisson(`assist_mean`) × 3;
-- DefCon: 2 with probability `p_defcon`;
+- assists: Poisson(`assist_mean`) × `assist_pts`;
+- DefCon: `defcon_pts` with probability `p_defcon`;
 - saves: ⌊S/3⌋ for S ~ Poisson(`saves_mean`).
 
 A double gameweek convolves its fixtures. Points run 0..40; mass above 40 is
@@ -41,8 +41,6 @@ from fpl.models import MatchRecord
 
 MAX_POINTS = 40
 MAX_GOALS = 10
-ASSIST_PTS = 3
-DEFCON_PTS = 2
 SAVES_PER_POINT = 3
 APPEARANCE_PTS_60 = 2
 APPEARANCE_PTS_SHORT = 1
@@ -51,7 +49,7 @@ RETURN_WINDOW = 5
 
 _PROBABILITIES = ("p60", "p_cs", "p_defcon")
 _MEANS = ("goal_mean", "assist_mean", "saves_mean")
-_POINTS = ("goal_pts", "cs_pts")
+_POINTS = ("goal_pts", "cs_pts", "assist_pts", "defcon_pts")
 
 Pmf = list[float]
 
@@ -68,6 +66,8 @@ class FixtureMeans:
     cs_pts: int = 0
     p_defcon: float = 0.0
     saves_mean: float = 0.0
+    assist_pts: int = 3
+    defcon_pts: int = 2
 
     def __post_init__(self) -> None:
         for f in fields(self):
@@ -114,8 +114,8 @@ def fixture_pmf(fm: FixtureMeans) -> Pmf:
     pmf = [fm.p60 * a + (1 - fm.p60) * b for a, b in zip(full, short, strict=True)]
     parts = (
         _poisson_points(fm.goal_mean, lambda n: n * fm.goal_pts, max_count=MAX_GOALS),
-        _poisson_points(fm.assist_mean, lambda n: n * ASSIST_PTS),
-        _bernoulli(DEFCON_PTS, fm.p_defcon),
+        _poisson_points(fm.assist_mean, lambda n: n * fm.assist_pts),
+        _bernoulli(fm.defcon_pts, fm.p_defcon),
         _poisson_points(fm.saves_mean, lambda n: n // SAVES_PER_POINT),
     )
     for part in parts:

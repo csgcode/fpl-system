@@ -838,6 +838,8 @@ def _score_fixture(
         cs_pts=points.clean_sheet,
         p_defcon=p_defcon,
         saves_mean=saves_mean,
+        assist_pts=points.assist,
+        defcon_pts=points.defcon_points,
     )
     terms = Terms(
         appearance=1 + p60,

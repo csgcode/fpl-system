@@ -11,6 +11,7 @@ import pytest
 
 from fpl.calibrate import PlayerPrediction
 from fpl.consistency import FixtureMeans, p_at_least
+from fpl import ep
 from fpl.ep import (
     BLEND_EQUIV_MINUTES,
     BONUS_SHRINK_STARTS,
@@ -440,6 +441,27 @@ def test_p4_feeds_the_same_fixture_means_as_the_ep_terms():
         saves_mean=3.0 / BASE_MEAN,
     )
     assert row.p4_gw[0] == pytest.approx(p_at_least([means], 0.5, 4))
+
+
+def test_p4_reads_assist_points_from_the_points_table(monkeypatch):
+    monkeypatch.setitem(ep.POINTS, Position.FWD,
+                        ep.POINTS[Position.FWD].model_copy(update={"assist": 1}))
+    rows = [fixture("TST", g, "OPP", "H", lambda_att=BASE_MEAN) for g in range(GW, GW + HORIZON)]
+    assists_only = {**GOAL_ONLY, "xg90": 0.0, "xa90": 0.5}
+    _, row = run_single(4, "FWD", overrides=assists_only, fixtures=fixtures_doc(rows))
+    # 90 minutes is 2 points and an assist 1, so P(≥4) = P(assists ≥ 2).
+    assert row.p4_gw[0] == pytest.approx(1 - math.exp(-0.5) * 1.5)
+
+
+def test_p4_never_exceeds_the_start_probability():
+    bootstrap = make_bootstrap([player(element_type=4)])
+    starts = [0.9, 0.8, 0.0, 0.6, 0.5, 0.4]
+    doc = inputs_doc("FWD", [judged(p_start=0.9, p_start_gw=starts,
+                                    overrides={**GOAL_ONLY, "xg90": 2.0}, reason="t")])
+    row = build_predictions(bootstrap, {1: summary()}, fixtures_doc(), doc, gw=GW).rows[0]
+    assert row.p_start_gw == starts
+    for p4, p_start in zip(row.p4_gw, row.p_start_gw, strict=True):
+        assert p4 <= p_start
 
 
 def test_p4_convolves_a_double_gameweek():
