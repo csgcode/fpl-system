@@ -1285,8 +1285,9 @@ def test_players_minutes_from_store_fills_summary_less_players(tmp_path, capsys)
     sync(raw, db)
     by_source = {}
     for source in ("summaries", "store"):
+        store = ["--store", str(db)] if source == "store" else []
         assert main(["--data-root", str(raw), "players", "--gw", "3", "--minutes",
-                     "--format", "csv", "--history-from", source, "--store", str(db)]) == 0
+                     "--format", "csv", "--history-from", source, *store]) == 0
         rows = list(csv.reader(io.StringIO(capsys.readouterr().out)))
         assert rows[0][-1] == "minutes_r1-r2"
         by_source[source] = {row[0]: row[-1] for row in rows[1:]}
@@ -1319,3 +1320,14 @@ def test_players_without_minutes_never_opens_the_store(tmp_path, capsys):
 
     assert main(["--data-root", str(raw), "players", "--gw", "3", "--format", "csv",
                  "--history-from", "store", "--store", str(tmp_path / "absent.sqlite")]) == 0
+
+
+@pytest.mark.parametrize("command", [
+    ["ep", "--position", "MID"], ["objective"], ["players", "--minutes"], ["fixtures-rate"],
+])
+@pytest.mark.parametrize("source", [[], ["--history-from", "summaries"]])
+def test_store_without_history_from_store_refuses(tmp_path, capsys, command, source):
+    assert main(["--data-root", str(tmp_path / "raw"), command[0], "--gw", "3",
+                 *command[1:], *source, "--store", str(tmp_path / "s.sqlite")]) == 1
+    err = capsys.readouterr().err
+    assert "--store" in err and "--history-from store" in err

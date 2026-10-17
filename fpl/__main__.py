@@ -753,6 +753,7 @@ def main(
     args = build_parser().parse_args(argv)
     store = SnapshotStore(args.data_root)
     try:
+        season_store.check_history_arguments(args)
         if args.command == "auth-import":
             return run_auth_import(args)
         if args.command == "auth-refresh":

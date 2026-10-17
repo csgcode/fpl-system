@@ -1232,9 +1232,19 @@ def add_history_arguments(parser: argparse.ArgumentParser) -> None:
         help="this season's per-match history: the cached element summaries "
              f"(default) or the season store, which must be in sync with the raw tree",
     )
-    parser.add_argument("--store", type=Path, default=DEFAULT_STORE_PATH,
+    parser.add_argument("--store", type=Path, default=None,
                         help=f"season store for --history-from store "
-                             f"(default: {DEFAULT_STORE_PATH})")
+                             f"(default: {DEFAULT_STORE_PATH}); refused with any "
+                             f"other --history-from")
+
+
+def check_history_arguments(args: argparse.Namespace) -> None:
+    """Refuses `--store` without `--history-from store`, where it would be
+    silently ignored."""
+    if getattr(args, "history_from", "store") != "store" and args.store is not None:
+        raise ValueError(
+            f"--store is read only with --history-from store "
+            f"(this run reads --history-from {args.history_from})")
 
 
 @dataclass(frozen=True)
@@ -1250,7 +1260,8 @@ class History:
 
     @classmethod
     def from_args(cls, raw_root: Path, args: argparse.Namespace) -> History:
-        return cls(args.history_from, raw_root, args.store)
+        check_history_arguments(args)
+        return cls(args.history_from, raw_root, args.store or DEFAULT_STORE_PATH)
 
     def summaries(self, gw: int, ids: Iterable[int]) -> dict[int, ElementSummary]:
         if self.source == "summaries":

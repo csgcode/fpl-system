@@ -361,7 +361,8 @@ def test_ep_from_store_equals_ep_from_summaries(tmp_path):
     outputs = {}
     for source in ("store", "summaries"):
         out = tmp_path / f"{source}.json"
-        assert run(raw, analysis_root, "--history-from", source, "--store", str(db),
+        store = ["--store", str(db)] if source == "store" else []
+        assert run(raw, analysis_root, "--history-from", source, *store,
                    "--out", str(out)) == 0
         outputs[source] = out.read_bytes()
 
@@ -388,8 +389,8 @@ def test_ep_from_a_store_behind_the_raw_refuses_naming_the_sync(tmp_path, capsys
     assert not (tmp_path / "x.json").exists()
 
 
-def test_ep_reads_summaries_by_default_and_never_opens_the_store(tmp_path):
+def test_ep_reads_summaries_by_default_and_never_opens_the_store(tmp_path, monkeypatch):
     raw, _, analysis_root = store_world(tmp_path)
+    monkeypatch.chdir(tmp_path)  # the default store path, relative, names nothing here
     out = tmp_path / "default.json"
-    assert run(raw, analysis_root, "--store", str(tmp_path / "absent.sqlite"),
-               "--out", str(out)) == 0
+    assert run(raw, analysis_root, "--out", str(out)) == 0
