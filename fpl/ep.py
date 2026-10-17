@@ -525,13 +525,17 @@ def current_totals(
     ratings: Mapping[str, ClubRating] | None,
     team_names: Mapping[int, str],
     base: BaseLambda | None,
+    *,
+    scores_saves: bool = True,
 ) -> _Totals:
     """This season's played matches, each weighted by recency and, when the
     config asks, adjusted for the opponent it faced. `unadjusted` counts the
-    matches an enabled adjustment could not rate; they count as played."""
+    matches an enabled adjustment could not rate; they count as played. The
+    saves adjustment counts only when `scores_saves`: other positions score
+    no saves, so it changes nothing for them."""
     played = played_matches(history)
     weights = match_weights(len(played), config.half_life_matches)
-    adjusting = config.opponent_adjust or config.opponent_adjust_saves
+    adjusting = config.opponent_adjust or (config.opponent_adjust_saves and scores_saves)
     totals = _Totals()
     for row, weight in zip(played, weights, strict=True):
         rating = _opponent_rating(row, ratings, team_names)
@@ -942,6 +946,7 @@ def build_predictions(
         current = current_totals(
             summary.history if summary else (), config,
             fixtures.ratings, team_names, fixtures.base_lambda,
+            scores_saves=points.saves_per_three > 0,
         )
         unadjusted += current.unadjusted
         rates = _effective_rates(

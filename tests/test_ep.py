@@ -1300,13 +1300,15 @@ def test_a_row_without_an_opponent_rating_contributes_unadjusted(missing):
     assert totals.unadjusted == 1
 
 
-def adjustment_warnings(**fields) -> list[str]:
-    bootstrap = make_bootstrap([player(), player(id=2, web_name="Beta")])
+def adjustment_warnings(position: str = "MID", **fields) -> list[str]:
+    code = {"GKP": 1, "MID": 3}[position]
+    bootstrap = make_bootstrap([player(element_type=code),
+                                player(id=2, web_name="Beta", element_type=code)])
     rows = [adjusted_row().model_dump(), adjusted_row(fixture=12, round=2, opponent_team=None)
             .model_dump()]
     result = build_predictions(
         bootstrap, {1: summary(history=rows), 2: summary(history=rows)}, fixtures_doc(),
-        inputs_doc("MID", [judged(), judged(id=2, name="Beta")]), gw=GW,
+        inputs_doc(position, [judged(), judged(id=2, name="Beta")]), gw=GW,
         config=replace(DEFAULT_CONFIG, **fields),
     )
     return [w for w in result.warnings if "opponent" in w]
@@ -1315,8 +1317,13 @@ def adjustment_warnings(**fields) -> list[str]:
 def test_one_warning_line_counts_the_unadjusted_rows():
     [line] = adjustment_warnings(opponent_adjust=True)
     assert "2 played match row(s)" in line
-    assert adjustment_warnings(opponent_adjust_saves=True) == [line]
+    assert adjustment_warnings(opponent_adjust=True, opponent_adjust_saves=True) == [line]
+    assert adjustment_warnings("GKP", opponent_adjust_saves=True) == [line]
     assert adjustment_warnings() == []
+
+
+def test_the_saves_adjustment_alone_never_warns_for_an_outfield_position():
+    assert adjustment_warnings("MID", opponent_adjust_saves=True) == []
 
 
 def test_recency_weights_defcon_but_never_adjusts_it_for_the_opponent():
