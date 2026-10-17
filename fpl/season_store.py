@@ -945,7 +945,7 @@ def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
     the raw tree it was built from."""
     con, _ = _open_checked(db_path, raw_root)
     con.row_factory = sqlite3.Row
-    return SeasonReader(con)
+    return SeasonReader(con, raw_root, db_path)
 
 
 def _open_checked(
@@ -1018,9 +1018,13 @@ def _hint(raw_root: Path, db_path: Path, gws: Iterable[int], action: str = "sync
     latest = max(gws, default=None)
     if latest is None:
         return f"no raw snapshots under {raw_root} — fetch them first"
-    data_root = "" if raw_root == DEFAULT_RAW_ROOT else f" --data-root {raw_root}"
     store = "" if db_path == DEFAULT_STORE_PATH else f" --store {db_path}"
-    return f"run: uv run python -m fpl{data_root} store {action} --gw {latest}{store}"
+    return f"run: {_fpl(raw_root)} store {action} --gw {latest}{store}"
+
+
+def _fpl(raw_root: Path) -> str:
+    data_root = "" if raw_root == DEFAULT_RAW_ROOT else f" --data-root {raw_root}"
+    return f"uv run python -m fpl{data_root}"
 
 
 def _first_difference(
@@ -1040,8 +1044,10 @@ class SeasonReader:
     """As of round r: match rows of rounds < r only, and the gw r snapshots
     (bootstrap, fixtures), refused when fetched at or after deadline r."""
 
-    def __init__(self, con: sqlite3.Connection) -> None:
+    def __init__(self, con: sqlite3.Connection, raw_root: Path, db_path: Path) -> None:
         self._con = con
+        self._raw_root = raw_root
+        self._db_path = db_path
 
     def close(self) -> None:
         self._con.close()
@@ -1179,7 +1185,8 @@ class SeasonReader:
             r = missing[0]
             raise StoreReadError(
                 f"round(s) {missing} have no final live stats in the store — fetch: "
-                f"uv run python -m fpl event-live --gw {r + 1} --round {r}, then store sync"
+                f"{_fpl(self._raw_root)} event-live --gw {r + 1} --round {r}, then "
+                f"{_hint(self._raw_root, self._db_path, [r + 1])}"
             )
 
     def _require_before_deadline(self, kind: str, gw: int) -> None:

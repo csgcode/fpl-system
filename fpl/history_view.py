@@ -6,7 +6,8 @@ Three shapes, each filtered to the players of the gw N bootstrap:
 - past seasons (`--past`, optionally one `--season`);
 - one row per club (`--group-by team`) summing either of the above. A match
   row counts for the club he played for in it; a past season for his club
-  in the gw N bootstrap.
+  in the gw N bootstrap. Matches whose side the store could not resolve
+  group under "?".
 
 `--fields` and `--format` follow `fpl players`: fields pick and order the
 csv/json columns, and the table prints every field.
@@ -48,6 +49,8 @@ PAST_FIELDS = ("id", "name", "team", "position", "season", *STATS)
 GROUP_FIELDS = ("team", "players", "rows", *STATS)
 JOINED = ("team", "fixture", "opp", "venue", "kickoff")
 
+UNRESOLVED_TEAM = "?"
+
 Record = dict[str, Any]
 
 
@@ -86,8 +89,13 @@ def run(raw_root: Path, args: argparse.Namespace) -> int:
     valid = GROUP_FIELDS if args.group_by else PAST_FIELDS if args.past else MATCH_FIELDS
     fields = _fields(args.fields, args.format, valid)
     with open_ro(args.store, raw_root) as reader:
+        bootstrap = reader.player_state(args.gw)
+        unknown = sorted(set(args.ids or ()) - bootstrap.keys())
+        if unknown:
+            raise ValueError(
+                f"ids not in the gw{args.gw} bootstrap: {', '.join(map(str, unknown))}")
         players = {
-            element: state for element, state in reader.player_state(args.gw).items()
+            element: state for element, state in bootstrap.items()
             if (not args.position or state.position in args.position)
             and (args.ids is None or element in args.ids)
         }
@@ -182,7 +190,7 @@ def _per_round(records: list[Record]) -> list[Record]:
 def _per_team(records: list[Record]) -> list[Record]:
     grouped: dict[str, list[Record]] = {}
     for record in records:
-        grouped.setdefault(record["team"], []).append(record)
+        grouped.setdefault(record["team"] or UNRESOLVED_TEAM, []).append(record)
     return [
         {"team": team, "players": len({row["id"] for row in rows}), "rows": len(rows),
          **_summed(rows)}

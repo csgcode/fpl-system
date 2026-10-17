@@ -935,6 +935,19 @@ def test_as_of_refuses_a_round_without_final_live_stats(raw, db):
             store.rounds(4, [1])
 
 
+def test_missing_round_hint_names_non_default_roots(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+
+    with open_ro(db, raw) as store:
+        with pytest.raises(StoreReadError) as caught:
+            store.rounds(4, [1])
+
+    message = str(caught.value)
+    assert f"fpl --data-root {raw} event-live --gw 4 --round 3" in message
+    assert f"fpl --data-root {raw} store sync --gw 4 --store {db}" in message
+
+
 # --- open precheck and hints ----------------------------------------------------
 
 

@@ -143,6 +143,28 @@ def test_group_by_team_prints_one_row_per_club(raw, db, capsys):
     ]
 
 
+def test_group_by_team_labels_matches_of_an_unresolved_side(raw, db, capsys):
+    season = midfield_world()
+    season.clubs[6] = {1: 1, 2: 2, 3: 2, 4: 2}
+    season.positions[6] = 3
+    season.matches.append(Match(6, 1, minutes=0, club=2))
+    synced(raw, db, season)
+
+    assert run(raw, db, "--ids", "6", "--group-by", "team", "--format", "csv",
+               "--fields", "team,players,rows") == 0
+
+    assert csv_rows(capsys) == [{"team": "?", "players": "1", "rows": "1"}]
+
+
+def test_unknown_ids_exit_1_naming_them(raw, db, capsys):
+    synced(raw, db, midfield_world())
+
+    assert run(raw, db, "--ids", "1,98,99", "--format", "csv") == 1
+
+    err = capsys.readouterr().err
+    assert "98" in err and "99" in err and "bootstrap" in err
+
+
 def test_group_by_team_of_past_seasons_uses_the_current_club(raw, db, capsys):
     synced(raw, db, past_world())
 
