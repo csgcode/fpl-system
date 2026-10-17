@@ -520,3 +520,84 @@ def test_combined_with_nothing_passing_ships_the_baseline():
     assert result.reverted == ("x",)
     assert result.config == DEFAULT_CONFIG
     assert result.comparison is None
+
+
+def _discount_gamma(analysis: Path) -> None:
+    """Gamma (OPP, promoted) carries an analyst `attack_mult` in every round."""
+    for gw in ROUNDS:
+        path = analysis / f"gw{gw}" / "inputs-DEF.json"
+        document = json.loads(path.read_text())
+        document["players"][0].update(overrides={"attack_mult": 0.5}, reason="promoted club")
+        path.write_text(json.dumps(document), encoding="utf-8")
+
+
+def test_inputs_policy_is_a_variant_gated_on_its_slice(world, capsys, tmp_path):
+    _discount_gamma(world[2])
+    gates_root = tmp_path / "gates"
+    argv = ["--inputs-policy", "drop_promoted", "--gate-slice", "promoted"]
+    assert _run(world, *argv, "--record", "dp", "--gates-root", str(gates_root)) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert any(line.startswith("variant inputs_policy=drop_promoted  n 4") for line in lines)
+    [slice_line] = [line for line in lines if line.startswith("slice promoted ")]
+    assert slice_line.startswith("slice promoted (n 2): n/a")
+    [verdict] = [line for line in lines if line.startswith("hypothesis: ")]
+    record = json.loads((gates_root / "dp.json").read_text())
+    assert (record["kind"], record["argv"]) == ("policy", argv)
+    assert record["slice_verdict"] == "n/a"
+    assert record["hypothesis"] in ("supported", "not supported")
+    assert verdict == f"hypothesis: {record['hypothesis']}"
+    gate = record["comparison"]["slice_gate"]
+    assert (gate["name"], gate["n"], gate["verdict"]) == ("promoted", 2, "n/a")
+    assert record["comparison"]["slices"]["promoted"]["delta_mae"] != 0
+    assert record["comparison"]["by_position"]["MID"]["delta_mae"] == 0
+    assert record["ship_value"] == {}
+
+
+def test_gate_slice_needs_a_variant(world, capsys):
+    assert _run(world, "--gate-slice", "promoted") == 1
+    assert "--gate-slice" in capsys.readouterr().err
+
+
+def test_record_all_accepts_policy_and_slice_entries(quiet_world, capsys, tmp_path):
+    _discount_gamma(quiet_world[2])
+    gates_root = tmp_path / "gates"
+    manifest = _write_manifest(
+        tmp_path / "manifest.toml",
+        ("baseline", "model", []),
+        ("drop-promoted", "policy", ["--inputs-policy", "drop_promoted",
+                                     "--gate-slice", "promoted"]),
+        ("no-history-k", "model", ["--sweep", "blend_k_no_history=none,300", "--cv",
+                                   "--gate-slice", "no_history"]),
+    )
+    assert _run(quiet_world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(gates_root)) == 0
+    records = _records(gates_root, "drop-promoted", "no-history-k", "combined")
+    assert records["drop-promoted"]["kind"] == "policy"
+    assert records["drop-promoted"]["slice_verdict"] == "n/a"
+    assert records["drop-promoted"]["hypothesis"] in ("supported", "not supported")
+    assert records["no-history-k"]["slice_verdict"] in ("PASS", "FAIL", "n/a")
+    assert "hypothesis" in records["no-history-k"]
+    assert "inputs_policy" not in records["combined"]["shipped_config"]
+
+
+@pytest.mark.parametrize("kind, argv, message", [
+    ("model", ["--inputs-policy", "drop_promoted"], "policy entry"),
+    ("policy", ["--set", "blend_k=300"], "--inputs-policy"),
+    ("model", ["--gate-slice", "promoted"], "--gate-slice"),
+])
+def test_record_all_refuses_a_policy_kind_mismatch(world, capsys, tmp_path, kind, argv,
+                                                   message):
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("bad", kind, argv))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(tmp_path / "gates")) == 1
+    err = capsys.readouterr().err
+    assert "manifest entry bad" in err and message in err
+
+
+def test_record_all_takes_the_policy_from_the_manifest(world, capsys, tmp_path):
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(tmp_path / "gates"),
+                "--inputs-policy", "drop_promoted") == 1
+    assert "--inputs-policy" in capsys.readouterr().err

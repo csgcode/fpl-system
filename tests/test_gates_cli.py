@@ -152,3 +152,17 @@ def test_records_without_a_manifest_keep_combined_last(tmp_path):
                            shipped_config=asdict(DEFAULT_CONFIG), reverted=[], recorded_at=same)):
         (root / f"{record['name']}.json").write_text(json.dumps(record), encoding="utf-8")
     assert [record.name for record in gates.load_records(root)] == ["k450", "combined"]
+
+
+def test_gates_summary_shows_policy_slice_and_hypothesis(tmp_path, capsys):
+    root = tmp_path / "gates"
+    root.mkdir()
+    policy = _record(
+        "drop-promoted", kind="policy", ship={}, verdict="PASS",
+        comparison=_comparison(-0.012, (-0.02, -0.004), (0.18, 0.16), (5, 5), []),
+        slice_verdict="PASS", hypothesis="supported")
+    (root / "drop-promoted.json").write_text(json.dumps(policy), encoding="utf-8")
+    assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    status = lines[lines.index(next(l for l in lines if l.startswith("drop-promoted:"))) + 1]
+    assert status.strip() == "passed (a policy never ships) · slice PASS · hypothesis supported"

@@ -19,7 +19,7 @@ import math
 import re
 import subprocess
 import sys
-from collections.abc import Callable, Hashable, Mapping, Sequence
+from collections.abc import Callable, Hashable, Mapping, Sequence, Set
 from dataclasses import asdict, dataclass, fields, replace
 from datetime import datetime, timezone
 from itertools import product
@@ -38,6 +38,7 @@ from fpl.ep import (
     build_predictions,
     load_fixtures,
     load_inputs,
+    prior_minutes,
 )
 from fpl.models import Bootstrap, ElementSummary, EventLive, PLAYING_POSITIONS, Position
 from fpl.service import load_cached_bootstrap, load_cached_summaries
@@ -46,12 +47,14 @@ from fpl.gates import GateRecord, ManifestEntry, signed, value_text
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
-INPUTS_POLICIES = ("keep",)
+INPUTS_POLICIES = ("keep", "drop_promoted", "drop_no_history")
 
 GATE_Z = 1.96
 GATE_BIAS_SLACK = 0.05
 GATE_POSITION_SLACK = 0.02
 GATE_MIN_EFFECT = -0.01
+GATE_SLICE_MIN_LINES = 40
+SLICE_MIN_POSITION_N = 30
 
 ANALYSIS_ROOT = Path("data/analysis")
 DECISIONS_ROOT = Path("data/decisions")
@@ -131,14 +134,31 @@ class RoundScore:
     warnings: tuple[str, ...]
 
 
+def strip_attack_mult(inputs: InputsDocument, ids: Set[int]) -> InputsDocument:
+    """`inputs` with the analyst's `attack_mult` removed from the rows of
+    `ids`, their other overrides kept. A row left with no override loses its
+    reason too, as an analyst row without overrides carries none."""
+    players = []
+    for row in inputs.players:
+        if row.id in ids and row.overrides is not None and row.overrides.attack_mult is not None:
+            overrides = row.overrides.model_copy(update={"attack_mult": None})
+            row = row.model_copy(update=(
+                {"overrides": None, "reason": None} if overrides.is_empty()
+                else {"overrides": overrides}))
+        players.append(row)
+    return inputs.model_copy(update={"players": players})
+
+
 def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
                 inputs_policy: str = "keep") -> RoundScore:
     """Every judged player of the round scored under `config`. An a/d player
     above the coverage floor with no inputs row is left unscored and named in
-    the warnings rather than refused: the round's inputs are fixed history."""
-    if inputs_policy not in INPUTS_POLICIES:
-        raise ValueError(f"unknown inputs policy {inputs_policy!r}; "
-                         f"expected one of {', '.join(INPUTS_POLICIES)}")
+    the warnings rather than refused: the round's inputs are fixed history.
+
+    `inputs_policy` edits the analyst's inputs before scoring: `keep` leaves
+    them; `drop_promoted` strips `attack_mult` from players of promoted clubs
+    and `drop_no_history` from players whose prior is the league mean."""
+    stripped = _policy_ids(data, inputs_policy)
     warnings = list(data.warnings)
     predictions: list[PlayerPrediction] = []
     no_history: dict[int, bool] = {}
@@ -146,6 +166,8 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
         inputs = data.inputs[position]
         if not inputs.players:
             continue
+        if stripped:
+            inputs = strip_attack_mult(inputs, stripped)
         result = build_predictions(
             data.bootstrap, data.summaries, data.fixtures, inputs, gw=data.gw,
             allow_missing=_uncovered(data.bootstrap, position, inputs), config=config,
@@ -178,6 +200,25 @@ class GroupComparison:
 
 
 @dataclass(frozen=True)
+class SliceGate:
+    """The five rules applied to one slice's lines. `verdict` is `n/a` below
+    GATE_SLICE_MIN_LINES lines; rule 3 is pooled across positions when a
+    position holds fewer than SLICE_MIN_POSITION_N of them. The statistics
+    are None only for an empty slice."""
+
+    name: str
+    n: int
+    verdict: str
+    reasons: tuple[str, ...]
+    pooled_positions: bool
+    delta_mae: float | None
+    ci: tuple[float, float] | None
+    round_wins: tuple[int, int] | None
+    baseline_bias: float | None
+    variant_bias: float | None
+
+
+@dataclass(frozen=True)
 class Comparison:
     """A variant against the baseline on the same (round, id) lines.
     `delta_mae`, `se`, `ci` and `round_deltas` come from the unrounded
@@ -196,6 +237,7 @@ class Comparison:
     slices: dict[str, GroupComparison | None]
     beats: bool
     reasons: tuple[str, ...]
+    slice_gate: SliceGate | None = None
 
 
 SLICES: dict[str, Callable[[BacktestLine], bool]] = {
@@ -203,14 +245,35 @@ SLICES: dict[str, Callable[[BacktestLine], bool]] = {
     "no_history": lambda line: line.no_history,
 }
 
+Pair = tuple[BacktestLine, BacktestLine]
 
-def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -> Comparison:
+
+@dataclass(frozen=True)
+class _Rules:
+    delta: float
+    se: float
+    ci: tuple[float, float]
+    round_deltas: dict[int, float]
+    wins: int
+    rounds: int
+    by_position: dict[str, GroupComparison]
+    bias_base: float
+    bias_variant: float
+    reasons: tuple[str, ...]
+
+
+def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine], *,
+            gate_slice: str | None = None) -> Comparison:
     """Pairs the two sides on (round, id), d = |e_variant| − |e_baseline|
     per line, and applies the gate: the CI of mean d, clustered by
     (round, club), lies below zero; the variant's bias is no worse than the
     baseline's plus a slack; no position worsens by more than a slack; the
     mean improvement reaches the minimum effect; and the variant wins all
-    rounds but at most one. Raises ValueError on unpaired or duplicate lines."""
+    rounds but at most one. With `gate_slice`, the same rules are also
+    applied to that slice's lines (SliceGate). Raises ValueError on
+    unpaired or duplicate lines."""
+    if gate_slice is not None and gate_slice not in SLICES:
+        raise ValueError(f"unknown slice {gate_slice!r}; expected one of {', '.join(SLICES)}")
     base_by_key = _keyed(baseline, "baseline")
     variant_by_key = _keyed(variant, "variant")
     if base_by_key.keys() != variant_by_key.keys():
@@ -223,6 +286,60 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -
     keys = sorted(base_by_key)
     pairs = [(base_by_key[k], variant_by_key[k]) for k in keys]
     d = [abs(v.error) - abs(b.error) for b, v in pairs]
+    rules = _rules(pairs, d, pooled=False)
+    slices = {name: _group(pairs, d, member) for name, member in SLICES.items()}
+    return Comparison(
+        n=len(d),
+        baseline=calibrate.aggregate([b for b, _ in pairs]),
+        variant=calibrate.aggregate([v for _, v in pairs]),
+        delta_mae=rules.delta,
+        se=rules.se,
+        ci=rules.ci,
+        round_deltas=rules.round_deltas,
+        round_wins=(rules.wins, rules.rounds),
+        by_position=rules.by_position,
+        slices=slices,
+        beats=not rules.reasons,
+        reasons=rules.reasons,
+        slice_gate=None if gate_slice is None else _slice_gate(gate_slice, pairs, d),
+    )
+
+
+def hypothesis(c: Comparison) -> str:
+    """`supported` iff the baseline under-rates the slice (bias > 0), the
+    variant shrinks the slice's |bias|, the overall gate passes and the
+    slice gate does not fail; else `not supported`."""
+    gate = c.slice_gate
+    if gate is None:
+        raise ValueError("no slice gate to judge a hypothesis on")
+    supported = (gate.n > 0 and gate.baseline_bias > 0
+                 and abs(gate.variant_bias) < abs(gate.baseline_bias)
+                 and c.beats and gate.verdict != "FAIL")
+    return "supported" if supported else "not supported"
+
+
+def _slice_gate(name: str, pairs: list[Pair], d: list[float]) -> SliceGate:
+    member = SLICES[name]
+    chosen = [(pair, di) for pair, di in zip(pairs, d) if member(pair[0])]
+    if not chosen:
+        return SliceGate(name, 0, "n/a", (), False, None, None, None, None, None)
+    slice_pairs = [pair for pair, _ in chosen]
+    counts: dict[str, int] = {}
+    for b, _ in slice_pairs:
+        counts[b.position] = counts.get(b.position, 0) + 1
+    pooled = min(counts.values()) < SLICE_MIN_POSITION_N
+    rules = _rules(slice_pairs, [di for _, di in chosen], pooled=pooled)
+    if len(chosen) < GATE_SLICE_MIN_LINES:
+        verdict, reasons = "n/a", ()
+    else:
+        verdict, reasons = ("FAIL" if rules.reasons else "PASS"), rules.reasons
+    return SliceGate(name=name, n=len(chosen), verdict=verdict, reasons=reasons,
+                     pooled_positions=pooled, delta_mae=rules.delta, ci=rules.ci,
+                     round_wins=(rules.wins, rules.rounds), baseline_bias=rules.bias_base,
+                     variant_bias=rules.bias_variant)
+
+
+def _rules(pairs: list[Pair], d: list[float], *, pooled: bool) -> _Rules:
     n = len(d)
     delta = sum(d) / n
 
@@ -244,7 +361,8 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -
         position: _group(pairs, d, lambda line, position=position: line.position == position)
         for position in _positions(b.position for b, _ in pairs)
     }
-    slices = {name: _group(pairs, d, member) for name, member in SLICES.items()}
+    position_deltas = {"pooled": delta} if pooled else {
+        position: group.delta_mae for position, group in by_position.items()}
 
     bias_base = _mean_error(b for b, _ in pairs)
     bias_variant = _mean_error(v for _, v in pairs)
@@ -254,29 +372,16 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine]) -
     if abs(bias_variant) > abs(bias_base) + GATE_BIAS_SLACK:
         reasons.append(f"bias: |b_v| {abs(bias_variant):.3f} > |b_b| {abs(bias_base):.3f} "
                        f"+ {GATE_BIAS_SLACK}")
-    for position, group in by_position.items():
-        if group.delta_mae > GATE_POSITION_SLACK:
-            reasons.append(f"position {position}: ΔMAE {signed(group.delta_mae, 3)} "
+    for position, value in position_deltas.items():
+        if value > GATE_POSITION_SLACK:
+            reasons.append(f"position {position}: ΔMAE {signed(value, 3)} "
                            f"> {signed(GATE_POSITION_SLACK, 2)}")
     if delta > GATE_MIN_EFFECT:
         reasons.append(f"effect: ΔMAE {signed(delta, 4)} > {signed(GATE_MIN_EFFECT, 2)}")
     if wins < rounds - 1:
         reasons.append(f"rounds: won {wins} of {rounds}, need {rounds - 1}")
-
-    return Comparison(
-        n=n,
-        baseline=calibrate.aggregate([b for b, _ in pairs]),
-        variant=calibrate.aggregate([v for _, v in pairs]),
-        delta_mae=delta,
-        se=se,
-        ci=ci,
-        round_deltas=round_deltas,
-        round_wins=(wins, rounds),
-        by_position=by_position,
-        slices=slices,
-        beats=not reasons,
-        reasons=tuple(reasons),
-    )
+    return _Rules(delta, se, ci, round_deltas, wins, rounds, by_position, bias_base,
+                  bias_variant, tuple(reasons))
 
 
 def cross_validate(
@@ -354,7 +459,7 @@ def _positions(seen) -> list[str]:
     return ordered + sorted(present - set(ordered))
 
 
-def _group(pairs: list[tuple[BacktestLine, BacktestLine]], d: list[float],
+def _group(pairs: list[Pair], d: list[float],
            member: Callable[[BacktestLine], bool]) -> GroupComparison | None:
     chosen = [(pair, di) for pair, di in zip(pairs, d) if member(pair[0])]
     if not chosen:
@@ -370,6 +475,24 @@ def _group(pairs: list[tuple[BacktestLine, BacktestLine]], d: list[float],
 def _mean_error(lines) -> float:
     errors = [line.error for line in lines]
     return sum(errors) / len(errors)
+
+
+def _policy_ids(data: RoundData, policy: str) -> frozenset[int]:
+    if policy == "keep":
+        return frozenset()
+    if policy == "drop_promoted":
+        teams = data.bootstrap.team_by_id()
+        return frozenset(p.id for p in data.bootstrap.elements
+                         if teams[p.team].short_name in data.promoted)
+    if policy == "drop_no_history":
+        # The same test as a line's `no_history` (prior_source == "league_mean"),
+        # so the stripped players and the no_history slice are the same set.
+        ids = {entry.id for doc in data.inputs.values() for entry in doc.players}
+        return frozenset(pid for pid in ids
+                         if pid not in data.summaries
+                         or prior_minutes(data.summaries[pid].history_past) == 0)
+    raise ValueError(f"unknown inputs policy {policy!r}; "
+                     f"expected one of {', '.join(INPUTS_POLICIES)}")
 
 
 def _uncovered(bootstrap: Bootstrap, position: Position,
@@ -629,6 +752,11 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
                         f"(repeatable, up to {MAX_SWEEP_KEYS} keys, cartesian)")
     p.add_argument("--cv", action="store_true",
                    help="pick the sweep value leave-one-round-out and gate the held-out lines")
+    p.add_argument("--inputs-policy", choices=INPUTS_POLICIES, default="keep",
+                   help="variant: edit the analyst inputs before scoring (the baseline keeps "
+                        "them)")
+    p.add_argument("--gate-slice", choices=tuple(SLICES),
+                   help="also apply the gate to this slice's lines and judge the hypothesis")
     p.add_argument("--detail", action="store_true",
                    help="add the baseline tables to a sweep and per-position and slice deltas")
     p.add_argument("--format", choices=("table", "json"), default="table")
@@ -660,7 +788,8 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
         baseline = DEFAULT_CONFIG
         fixed = _parse_sets(args.set, baseline)
         sweep = parse_sweep(args.sweep, baseline)
-        _check_variant(fixed, sweep, args.cv, recording=args.record is not None)
+        _check_variant(fixed, sweep, args.cv, recording=args.record is not None,
+                       inputs_policy=args.inputs_policy, gate_slice=args.gate_slice)
         if args.record is not None and not args.force:
             _refuse_existing(args.gates_root, args.record)
 
@@ -682,7 +811,8 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
         check_ledger_gap(checks, args.max_ledger_n_gap)
         return _record_all(scorer, entries, baseline, context)
 
-    report = _evaluate(scorer, baseline, fixed, sweep, cv=args.cv)
+    report = _evaluate(scorer, baseline, fixed, sweep, cv=args.cv,
+                       inputs_policy=args.inputs_policy, gate_slice=args.gate_slice)
     document = _document(args.gw, rounds, drift_check, data, report, checks)
     if args.format == "json":
         print(json.dumps(document, indent=1, ensure_ascii=False))
@@ -700,8 +830,12 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
     if args.record is not None:
         argv = ([a for text in args.set for a in ("--set", text)]
                 + [a for text in args.sweep for a in ("--sweep", text)]
-                + (["--cv"] if args.cv else []))
-        record = _record(context, args.record, "model", argv, report)
+                + (["--cv"] if args.cv else [])
+                + (["--inputs-policy", args.inputs_policy]
+                   if args.inputs_policy != "keep" else [])
+                + (["--gate-slice", args.gate_slice] if args.gate_slice else []))
+        kind = "model" if args.inputs_policy == "keep" else "policy"
+        record = _record(context, args.record, kind, argv, report)
         path = gates.write_record(args.gates_root, record, force=args.force)
         if args.format == "table":
             print(f"wrote {path}")
@@ -724,7 +858,9 @@ def _check_record_args(args: argparse.Namespace) -> None:
         gates.check_name(args.record)
     if args.record_all:
         given = [flag for flag, value in (("--set", args.set), ("--sweep", args.sweep),
-                                          ("--cv", args.cv), ("--out", args.out))
+                                          ("--cv", args.cv), ("--out", args.out),
+                                          ("--inputs-policy", args.inputs_policy != "keep"),
+                                          ("--gate-slice", args.gate_slice))
                  if value]
         if args.format == "json":
             given.append("--format json")
@@ -734,12 +870,16 @@ def _check_record_args(args: argparse.Namespace) -> None:
 
 
 def _check_variant(fixed: Mapping[str, ConfigValue], sweep: Mapping[str, list[ConfigValue]],
-                   cv: bool, *, recording: bool) -> None:
+                   cv: bool, *, recording: bool, inputs_policy: str = "keep",
+                   gate_slice: str | None = None) -> None:
     both = sorted(fixed.keys() & sweep.keys())
     if both:
         raise ValueError(f"{', '.join(both)} given to both --set and --sweep")
     if cv and not sweep:
         raise ValueError("--cv selects a --sweep value; give --sweep")
+    if gate_slice is not None and not (fixed or inputs_policy != "keep" or (sweep and cv)):
+        raise ValueError("--gate-slice gates a variant; give --set, --inputs-policy or "
+                         "--sweep with --cv")
     if recording and sweep and not cv:
         raise ValueError("a recorded sweep is gated on its leave-one-round-out lines; "
                          "pass --cv")
@@ -772,21 +912,39 @@ def _entry_parser() -> argparse.ArgumentParser:
     p.add_argument("--set", action="append", default=[])
     p.add_argument("--sweep", action="append", default=[])
     p.add_argument("--cv", action="store_true")
+    p.add_argument("--inputs-policy", choices=INPUTS_POLICIES, default="keep")
+    p.add_argument("--gate-slice", choices=tuple(SLICES))
     return p
 
 
-def _entry_variant(entry: ManifestEntry, config: ModelConfig
-                   ) -> tuple[dict[str, ConfigValue], dict[str, list[ConfigValue]], bool]:
+@dataclass(frozen=True)
+class _EntryVariant:
+    fixed: dict[str, ConfigValue]
+    sweep: dict[str, list[ConfigValue]]
+    cv: bool
+    inputs_policy: str
+    gate_slice: str | None
+
+
+def _entry_variant(entry: ManifestEntry, config: ModelConfig) -> _EntryVariant:
+    """The entry's arguments parsed against `config`. A `policy` entry
+    edits the inputs and a `model` entry does not: a model value gained on
+    edited inputs would ship into production, which reads them unedited."""
     try:
         parsed, unknown = _entry_parser().parse_known_args(list(entry.argv))
         if unknown:
             raise ValueError(f"unknown argument(s) {' '.join(unknown)}")
         fixed = _parse_sets(parsed.set, config)
         sweep = parse_sweep(parsed.sweep, config)
-        _check_variant(fixed, sweep, parsed.cv, recording=True)
+        _check_variant(fixed, sweep, parsed.cv, recording=True,
+                       inputs_policy=parsed.inputs_policy, gate_slice=parsed.gate_slice)
+        if entry.kind == "model" and parsed.inputs_policy != "keep":
+            raise ValueError("--inputs-policy belongs in a policy entry, not a model entry")
+        if entry.kind == "policy" and parsed.inputs_policy == "keep":
+            raise ValueError("a policy entry needs --inputs-policy")
     except (argparse.ArgumentError, ValueError) as exc:
         raise ValueError(f"manifest entry {entry.name}: {exc}") from None
-    return fixed, sweep, parsed.cv
+    return _EntryVariant(fixed, sweep, parsed.cv, parsed.inputs_policy, parsed.gate_slice)
 
 
 @dataclass(frozen=True)
@@ -819,8 +977,9 @@ def _record_all(scorer: _Scorer, entries: Sequence[ManifestEntry], base: ModelCo
                     and earlier.name not in reverted):
                 overlay.update(record.ship_value or {})
         entry_base = _overlay(base, overlay)
-        fixed, sweep, cv = _entry_variant(entry, entry_base)
-        report = _evaluate(scorer, entry_base, fixed, sweep, cv=cv)
+        spec = _entry_variant(entry, entry_base)
+        report = _evaluate(scorer, entry_base, spec.fixed, spec.sweep, cv=spec.cv,
+                           inputs_policy=spec.inputs_policy, gate_slice=spec.gate_slice)
         document = _record(context, entry.name, entry.kind, entry.argv, report)
         gates.write_record(root, document, force=force)
         records[entry.name] = GateRecord.model_validate(document)
@@ -848,7 +1007,7 @@ def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
         ship = report.variants[0].overrides
     else:
         ship = None
-    return {
+    record = {
         **_record_base(context, name, kind, argv, report.baseline),
         "grid": {key: list(values) for key, values in report.grid.items()} or None,
         "picks": None if report.picks is None
@@ -858,6 +1017,10 @@ def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
         "verdict": None if c is None else ("PASS" if c.beats else "FAIL"),
         "reasons": [] if c is None else list(c.reasons),
     }
+    if c is not None and c.slice_gate is not None:
+        record["slice_verdict"] = c.slice_gate.verdict
+        record["hypothesis"] = hypothesis(c)
+    return record
 
 
 def _combined_record(context: _RecordContext, baseline: Scored,
@@ -982,6 +1145,7 @@ class Scored:
     overrides: dict[str, ConfigValue]
     config: ModelConfig
     lines: tuple[BacktestLine, ...]
+    inputs_policy: str = "keep"
 
 
 @dataclass(frozen=True)
@@ -1002,33 +1166,39 @@ class _Scorer:
 
     def __init__(self, data: Sequence[RoundData]) -> None:
         self._data = data
-        self._cache: dict[ModelConfig, tuple[BacktestLine, ...]] = {}
+        self._cache: dict[tuple[ModelConfig, str], tuple[BacktestLine, ...]] = {}
         self.warnings: list[str] = [w for d in data for w in d.warnings]
 
-    def lines(self, config: ModelConfig) -> tuple[BacktestLine, ...]:
-        if config not in self._cache:
+    def lines(self, config: ModelConfig,
+              inputs_policy: str = "keep") -> tuple[BacktestLine, ...]:
+        key = (config, inputs_policy)
+        if key not in self._cache:
             lines: list[BacktestLine] = []
             for round_data in self._data:
-                result = score_round(round_data, config)
+                result = score_round(round_data, config, inputs_policy=inputs_policy)
                 lines += result.lines
                 self.warnings.extend(w for w in result.warnings if w not in self.warnings)
-            self._cache[config] = tuple(lines)
-        return self._cache[config]
+            self._cache[key] = tuple(lines)
+        return self._cache[key]
 
 
 def _evaluate(scorer: _Scorer, baseline: ModelConfig, fixed: dict[str, ConfigValue],
-              sweep: dict[str, list[ConfigValue]], *, cv: bool) -> Report:
-    def score(overrides: dict[str, ConfigValue]) -> Scored:
+              sweep: dict[str, list[ConfigValue]], *, cv: bool, inputs_policy: str = "keep",
+              gate_slice: str | None = None) -> Report:
+    def score(overrides: dict[str, ConfigValue], policy: str = "keep") -> Scored:
         config = replace(baseline, **overrides)
-        return Scored(_label(overrides), overrides, config, scorer.lines(config))
+        label = ",".join(filter(None, (
+            gates.overrides_text(overrides),
+            f"inputs_policy={policy}" if policy != "keep" else ""))) or "baseline"
+        return Scored(label, overrides, config, scorer.lines(config, policy), policy)
 
     base = score({})
     if sweep:
         keys = tuple(sweep)
-        variants = tuple(score({**fixed, **dict(zip(keys, combo))})
+        variants = tuple(score({**fixed, **dict(zip(keys, combo))}, inputs_policy)
                          for combo in product(*sweep.values()))
-    elif fixed:
-        keys, variants = (), (score(fixed),)
+    elif fixed or inputs_policy != "keep":
+        keys, variants = (), (score(fixed, inputs_policy),)
     else:
         keys, variants = (), ()
 
@@ -1038,9 +1208,9 @@ def _evaluate(scorer: _Scorer, baseline: ModelConfig, fixed: dict[str, ConfigVal
         cv_lines, label_picks = cross_validate({v.label: v.lines for v in variants})
         picks = {r: by_label[label] for r, label in label_picks.items()}
         ship = by_label[ship_value(label_picks, list(by_label))]
-        comparison = compare(base.lines, cv_lines)
+        comparison = compare(base.lines, cv_lines, gate_slice=gate_slice)
     elif not sweep and variants:
-        comparison = compare(base.lines, variants[0].lines)
+        comparison = compare(base.lines, variants[0].lines, gate_slice=gate_slice)
     return Report(base, variants, keys, dict(sweep), picks, ship, comparison,
                   tuple(scorer.warnings))
 
@@ -1057,7 +1227,8 @@ def _table(rounds: list[int], drift_check: bool, report: Report,
     if report.sweep_keys:
         base_mae = _mae(report.baseline.lines)
         for variant in report.variants:
-            note = "  (production)" if variant.config == report.baseline.config else ""
+            note = ("  (production)" if variant.config == report.baseline.config
+                    and variant.inputs_policy == "keep" else "")
             out.append(f"{variant.label}  {_aggregate_text(variant.lines)}  "
                        f"ΔMAE(in-sample) {signed(_mae(variant.lines) - base_mae, 4)}{note}")
         if report.picks is None:
@@ -1124,7 +1295,22 @@ def _comparison_text(c: Comparison, *, detail: bool) -> list[str]:
             f"{name} -" if g is None else f"{name} {signed(g.delta_mae, 4)} (n {g.n})"
             for name, g in c.slices.items()))
     out.append("gate: PASS" if c.beats else "gate: FAIL — " + "; ".join(c.reasons))
+    if c.slice_gate is not None:
+        out += _slice_gate_text(c)
     return out
+
+
+def _slice_gate_text(c: Comparison) -> list[str]:
+    g = c.slice_gate
+    head = f"slice {g.name} (n {g.n}): {g.verdict}"
+    if g.reasons:
+        head += " — " + "; ".join(g.reasons)
+    if g.n:
+        wins, rounds = g.round_wins
+        head += (f" · ΔMAE {signed(g.delta_mae, 4)} · bias {signed(g.baseline_bias, 3)}→"
+                 f"{signed(g.variant_bias, 3)} · wins {wins}/{rounds}"
+                 + (" · positions pooled" if g.pooled_positions else ""))
+    return [head, f"hypothesis: {hypothesis(c)}"]
 
 
 def _document(gw: int, rounds: list[int], drift_check: bool, data: Sequence[RoundData],
@@ -1152,6 +1338,7 @@ def _scored_document(scored: Scored) -> dict[str, Any]:
     return {
         "label": scored.label,
         "overrides": scored.overrides,
+        "inputs_policy": scored.inputs_policy,
         "config": asdict(scored.config),
         "digest": scored.config.digest(),
         "aggregate": calibrate.aggregate(scored.lines).model_dump(),
@@ -1175,7 +1362,17 @@ def comparison_document(c: Comparison) -> dict[str, Any]:
         "slices": {name: _group_document(g) for name, g in c.slices.items()},
         "beats": c.beats,
         "reasons": list(c.reasons),
+        "slice_gate": None if c.slice_gate is None else _slice_gate_document(c.slice_gate),
     }
+
+
+def _slice_gate_document(g: SliceGate) -> dict[str, Any]:
+    document = asdict(g)
+    document["reasons"] = list(g.reasons)
+    for key in ("ci", "round_wins"):
+        if document[key] is not None:
+            document[key] = list(document[key])
+    return document
 
 
 def _group_document(group: GroupComparison | None) -> dict[str, Any] | None:
@@ -1217,10 +1414,6 @@ def _parse_value(key: str, raw: str, types: dict[str, Any]) -> ConfigValue:
         return float(text)
     except ValueError:
         raise ValueError(f"{key}: expected a number, got {raw!r}") from None
-
-
-def _label(overrides: Mapping[str, ConfigValue]) -> str:
-    return gates.overrides_text(overrides) or "baseline"
 
 
 def _pick_text(scored: Scored, keys: Sequence[str]) -> str:

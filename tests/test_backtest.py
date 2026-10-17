@@ -17,12 +17,14 @@ from fpl.backtest import (
     code_drift,
     compare,
     cross_validate,
+    hypothesis,
     load_round,
     score_round,
     ship_value,
     signed,
+    strip_attack_mult,
 )
-from fpl.ep import DEFAULT_CONFIG, build_predictions
+from fpl.ep import DEFAULT_CONFIG, InputsDocument, build_predictions
 from fpl.models import Position
 from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
 from tests.factories import (
@@ -374,6 +376,80 @@ def test_score_round_refuses_an_unknown_inputs_policy(world):
         score_round(_load(raw, analysis), DEFAULT_CONFIG, inputs_policy="drop")
 
 
+def _inputs_document(rows: list[dict]) -> InputsDocument:
+    return InputsDocument.model_validate(
+        {"schema_version": 1, "gw": GW, "position": "MID", "players": rows})
+
+
+def test_strip_attack_mult_removes_only_the_named_rows():
+    inputs = _inputs_document([
+        {"id": 5, "p_start": 0.9, "uncertainty": "LOW",
+         "overrides": {"attack_mult": 0.8, "xg90": 0.3}, "reason": "role and club"},
+        {"id": 6, "p_start": 0.9, "uncertainty": "LOW",
+         "overrides": {"attack_mult": 0.8}, "reason": "club"},
+        {"id": 7, "p_start": 0.9, "uncertainty": "LOW",
+         "overrides": {"attack_mult": 0.9}, "reason": "club"},
+    ])
+    stripped = strip_attack_mult(inputs, ids={5, 7})
+    rows = {row.id: row for row in stripped.players}
+    assert rows[5].overrides.attack_mult is None
+    assert rows[5].overrides.xg90 == 0.3
+    assert rows[5].reason == "role and club"
+    assert rows[7].overrides is None
+    assert rows[7].reason is None
+    assert rows[6] == inputs.players[1]
+    InputsDocument.model_validate(stripped.model_dump())
+    assert inputs.players[0].overrides.attack_mult == 0.8
+
+
+def _set_attack_mult(analysis: Path, mults: dict[int, float]) -> None:
+    inputs = analysis / f"gw{GW}" / "inputs-MID.json"
+    document = json.loads(inputs.read_text())
+    for row in document["players"]:
+        if row["id"] in mults:
+            row.update(overrides={"attack_mult": mults[row["id"]]}, reason="club discount")
+    inputs.write_text(json.dumps(document), encoding="utf-8")
+
+
+def _predicted(data, **kwargs) -> dict[int, float]:
+    return {line.id: line.predicted for line in score_round(data, DEFAULT_CONFIG, **kwargs).lines}
+
+
+def test_inputs_policy_drop_promoted(world):
+    _, raw, analysis = world
+    _add_beta(raw, analysis)
+    _set_attack_mult(analysis, {1: 0.7, 2: 0.7})
+    data = _load(raw, analysis)
+    kept = _predicted(data)
+    dropped = _predicted(data, inputs_policy="drop_promoted")
+    assert dropped[1] == kept[1]
+    assert dropped[2] > kept[2]
+
+    path = analysis / f"gw{GW}" / "inputs-MID.json"
+    document = json.loads(path.read_text())
+    document["players"][1].pop("overrides")
+    document["players"][1].pop("reason")
+    path.write_text(json.dumps(document), encoding="utf-8")
+    assert _predicted(_load(raw, analysis))[2] == dropped[2]
+
+
+def test_inputs_policy_drop_no_history(world):
+    _, raw, analysis = world
+    _add_beta(raw, analysis)
+    _write_json(analysis / "club-priors.json",
+                priors_doc({"TST": (1.0, 1.0, True), "OPP": (0.8, 1.2, False)}))
+    _set_attack_mult(analysis, {1: 0.7, 2: 0.7})
+    data = _load(raw, analysis)
+    kept = _predicted(data)
+    no_history = _predicted(data, inputs_policy="drop_no_history")
+    promoted = _predicted(data, inputs_policy="drop_promoted")
+    assert no_history[1] == kept[1] and no_history[2] > kept[2]
+    assert promoted[1] > kept[1] and promoted[2] == kept[2]
+    lines = {line.id: line for line in score_round(data, DEFAULT_CONFIG,
+                                                   inputs_policy="drop_no_history").lines}
+    assert (lines[1].no_history, lines[2].no_history) == (False, True)
+
+
 def _line(error: float, *, id: int, round: int = GW, club: str | None = None,
           position: str = "MID", promoted: bool = False,
           no_history: bool = False) -> BacktestLine:
@@ -575,3 +651,86 @@ def test_loro_ignores_float_noise_between_decimal_equal_maes():
     }
     assert (0.1 + 0.2) / 2 != (0.3 + 0.0) / 2
     assert cross_validate(lines_by_value)[1] == {3: "a", 4: "a"}
+
+
+def _slice_sides(groups) -> tuple[list[BacktestLine], list[BacktestLine]]:
+    """`groups`: (count, position, promoted, baseline error, variant error);
+    every line in its own club."""
+    baseline, variant = [], []
+    i = 0
+    for count, position, promoted, before, after in groups:
+        for _ in range(count):
+            i += 1
+            kwargs = dict(id=i, club=f"C{i}", position=position, promoted=promoted)
+            baseline.append(_line(before, **kwargs))
+            variant.append(_line(after, **kwargs))
+    return baseline, variant
+
+
+def test_slice_gate_and_hypothesis_fields():
+    baseline, variant = _slice_sides([(40, "MID", True, 2.0, 1.0),
+                                      (20, "MID", False, 2.0, 2.0),
+                                      (20, "MID", False, -2.0, -2.0)])
+    assert compare(baseline, variant).slice_gate is None
+    result = compare(baseline, variant, gate_slice="promoted")
+    assert result.beats
+    gate = result.slice_gate
+    assert (gate.name, gate.n, gate.verdict, gate.reasons) == ("promoted", 40, "PASS", ())
+    assert gate.delta_mae == pytest.approx(-1.0)
+    assert (gate.baseline_bias, gate.variant_bias) == pytest.approx((2.0, 1.0))
+    assert gate.pooled_positions is False
+    assert hypothesis(result) == "supported"
+
+
+def test_slice_gate_pools_positions_below_the_minimum():
+    baseline, variant = _slice_sides([(36, "MID", True, 2.0, 1.0),
+                                      (4, "DEF", True, 2.0, 2.5),
+                                      (40, "MID", False, 2.0, 2.0)])
+    gate = compare(baseline, variant, gate_slice="promoted").slice_gate
+    assert gate.pooled_positions is True
+    assert gate.verdict == "PASS"
+
+    baseline, variant = _slice_sides([(10, "MID", True, 2.0, 1.95),
+                                      (30, "DEF", True, 2.0, 2.05),
+                                      (40, "MID", False, 2.0, 1.0)])
+    gate = compare(baseline, variant, gate_slice="promoted").slice_gate
+    assert gate.pooled_positions is True
+    assert [reason.split(":", 1)[0] for reason in gate.reasons] == [
+        "ci", "position pooled", "effect"]
+
+
+def test_slice_gate_is_not_applicable_below_the_minimum_lines():
+    baseline, variant = _slice_sides([(39, "MID", True, 2.0, 1.0),
+                                      (41, "MID", False, 2.0, 2.0)])
+    result = compare(baseline, variant, gate_slice="promoted")
+    assert (result.slice_gate.n, result.slice_gate.verdict) == (39, "n/a")
+    assert result.slice_gate.reasons == ()
+    assert hypothesis(result) == "supported"
+
+    baseline, variant = _slice_sides([(40, "MID", False, 2.0, 1.0)])
+    result = compare(baseline, variant, gate_slice="promoted")
+    assert (result.slice_gate.n, result.slice_gate.verdict) == (0, "n/a")
+    assert hypothesis(result) == "not supported"
+
+
+def test_hypothesis_needs_under_rating_a_smaller_bias_and_both_gates():
+    over_rated = _slice_sides([(40, "MID", True, -2.0, -1.0), (40, "MID", False, 2.0, 2.0)])
+    assert hypothesis(compare(*over_rated, gate_slice="promoted")) == "not supported"
+
+    bias_flips = _slice_sides([(40, "MID", True, 1.0, -1.0), (40, "MID", False, 2.0, 1.0)])
+    assert hypothesis(compare(*bias_flips, gate_slice="promoted")) == "not supported"
+
+    overall_fails = _slice_sides([(40, "MID", True, 2.0, 1.0), (40, "MID", False, 2.0, 3.5)])
+    result = compare(*overall_fails, gate_slice="promoted")
+    assert not result.beats and result.slice_gate.verdict == "PASS"
+    assert hypothesis(result) == "not supported"
+
+    slice_fails = _slice_sides([(40, "MID", True, 2.0, 1.995), (40, "MID", False, 2.0, 1.0)])
+    result = compare(*slice_fails, gate_slice="promoted")
+    assert result.beats and result.slice_gate.verdict == "FAIL"
+    assert hypothesis(result) == "not supported"
+
+
+def test_compare_refuses_an_unknown_slice():
+    with pytest.raises(ValueError, match="slice"):
+        compare(*_sides([2, -2], [1, -1]), gate_slice="nope")

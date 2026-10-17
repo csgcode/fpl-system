@@ -573,6 +573,12 @@ def _prior_totals(history_past: Sequence[PastSeason]) -> _Totals:
     return totals
 
 
+def prior_minutes(history_past: Sequence[PastSeason]) -> int:
+    """Minutes in the PL seasons the prior pools; zero means the prior is
+    the position league mean (`prior_source == "league_mean"`)."""
+    return _prior_totals(history_past).minutes
+
+
 def rates_from_seasons(
     history_past: Sequence[PastSeason], league: Rates
 ) -> tuple[Rates | None, int]:

@@ -188,7 +188,12 @@ def summary_lines(records: Sequence[GateRecord]) -> list[str]:
     out: list[str] = []
     for record in records:
         out.append(_headline(record))
-        out.append(f"  {_status(record, reverted)}")
+        status = _status(record, reverted)
+        if record.slice_verdict is not None:
+            status += f" · slice {record.slice_verdict}"
+        if record.hypothesis is not None:
+            status += f" · hypothesis {record.hypothesis}"
+        out.append(f"  {status}")
     return out
 
 
@@ -215,6 +220,8 @@ def _status(record: GateRecord, reverted: set[str]) -> str:
         return "reference"
     if record.verdict == "FAIL":
         return "rejected: " + "; ".join(_reason_text(reason) for reason in record.reasons)
+    if record.kind == "policy":
+        return "passed (a policy never ships)"
     if record.name in reverted:
         return "reverted: dropped from combined"
     return "shipped"
