@@ -933,10 +933,21 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Track:** WB
 - **Depends on / parallel with:** 4.4, 4.5, 4.6b. Independent of the other gates' order. Parallel with WA, WS.
 - **Effort:** S
-- **Test:** `test_p4_calibrated_positions_match_record`: when `p4.json` exists, `objective.P4_CALIBRATED == frozenset(pos for pos, v in record["comparison"]["p4"].items() if v["skill"] > 0)`.
+- **Test:** `test_p4_calibrated_positions_match_record`: when `combined.json` exists, with `p4 = record["comparison"]["p4"]`, `objective.P4_CALIBRATED == frozenset(pos for pos, v in p4.items() if v["starters"] is not None and v["starters"]["skill"] is not None and v["starters"]["skill"] > 0)`. A skill of None (the position was seen in one round only) never calibrates it.
 - **Implement:**
   - Append `[[gate]] name = "p4" kind = "calibration" argv = []` and run the standard gate invocation.
-  - Set `P4_CALIBRATED` to the positions with skill > 0.
+  - Set `P4_CALIBRATED` to the positions whose likely-starter skill is above 0.
+- **Note (user to confirm):** gate `P4_CALIBRATED` on the likely-starter skill, `p4[pos]["starters"]["skill"]`, not on the skill over all lines. The skill over all lines mostly rewards p4 for knowing who will play, because benched and fringe players almost never return. The tie-break only ever compares two incoming players who are both expected to start, so the question it needs answered is whether p4 tells steady starters from erratic ones. The likely-starter subset takes the lines with `p_start` of 0.5 or more and judges them against a base rate worked out from those lines only, again leaving out the round being scored. On real rounds 3–6 the two measures disagree:
+
+  | Position | Skill, all lines | Skill, p_start ≥ 0.5 | Skill, players who actually started |
+  |---|---|---|---|
+  | GKP | 0.160 | 0.034 | 0.045 |
+  | DEF | 0.087 | 0.013 | −0.035 |
+  | MID | 0.100 | 0.012 | −0.024 |
+  | FWD | 0.157 | 0.024 | 0.014 |
+
+  Every position passes on all lines, but among likely starters the gain is small. The last column cannot be used before a deadline, since it needs to know who started.
+- **Note:** read p4 from `combined.json`, not from `p4.json`. The `p4` entry is scored against the baseline plus the passing entries listed before it in the manifest. An entry listed after it, or a revert when the passing entries are combined, leaves `p4.json` judging a model that does not ship. `combined.json` always carries `comparison.p4`, starter block included, for the model that ships: the combined model's lines when the combination passed, the baseline's when it ships the baseline.
   - §9 defines `p4_gw` (Task 4.1 components and exclusions with their bias directions), `returns5` (Task 4.3), the tie-break (Task 4.6, singles only, uncalibrated positions skip p4), and holds the rendered p4 block. Run `uv run python -m fpl gates --gw 8 --render`.
 - **Verify:** `uv run pytest tests/test_gate_records.py -q`, then `uv run pytest -q` (phase end).
 

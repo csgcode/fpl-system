@@ -455,11 +455,11 @@ def test_inputs_policy_drop_no_history(world):
 def _line(error: float, *, id: int, round: int = GW, club: str | None = None,
           position: str = "MID", promoted: bool = False,
           no_history: bool = False, p4: float | None = None,
-          actual: int = 0) -> BacktestLine:
+          actual: int = 0, p_start: float = 0.9) -> BacktestLine:
     club = club or f"C{id}"
     return BacktestLine(
         id=id, name=f"P{id}", team=club, position=position, price=5.0, uncertainty="LOW",
-        p_start=0.9, predicted=actual - error, actual=actual, error=error, minutes=90,
+        p_start=p_start, predicted=actual - error, actual=actual, error=error, minutes=90,
         started=True, round=round, club=club, promoted=promoted, no_history=no_history, p4=p4,
     )
 
@@ -739,9 +739,10 @@ def test_compare_refuses_an_unknown_slice():
         compare(*_sides([2, -2], [1, -1]), gate_slice="nope")
 
 
-def _p4_lines(rows) -> list[BacktestLine]:
+def _p4_lines(rows, *, p_start: float = 0.9) -> list[BacktestLine]:
     """(round, position, p4, returned) → lines; a return scores 6, else 1."""
-    return [_line(0.0, id=i, round=r, position=pos, p4=p4, actual=6 if hit else 1)
+    return [_line(0.0, id=i, round=r, position=pos, p4=p4, actual=6 if hit else 1,
+                  p_start=p_start)
             for i, (r, pos, p4, hit) in enumerate(rows, start=1)]
 
 
@@ -782,6 +783,41 @@ def test_p4_skill_needs_a_second_round():
     calibration = p4_calibration(_p4_lines([(3, "GKP", 0.3, False), (3, "GKP", 0.6, True)]))
     assert calibration["GKP"].p4_brier == pytest.approx((0.09 + 0.16) / 2)
     assert (calibration["GKP"].base_rate_brier, calibration["GKP"].skill) == (None, None)
+
+
+def test_p4_starters_subset_scores_only_likely_starters_against_their_own_base_rate():
+    starters = _p4_lines([(3, "MID", 0.8, True), (3, "MID", 0.2, False),
+                          (4, "MID", 0.5, True), (4, "MID", 0.5, False)])
+    benched = [line.model_copy(update={"id": 100 + line.id, "p_start": 0.1})
+               for line in _p4_lines([(3, "MID", 0.0, False), (4, "MID", 0.0, False)])]
+    mid = p4_calibration([*starters, *benched])["MID"]
+    assert mid.n == 6
+    sub = mid.starters
+    assert sub.n == 4
+    assert sub.p4_brier == pytest.approx(0.145)
+    assert sub.base_rate_brier == pytest.approx(0.25)
+    assert sub.skill == pytest.approx(1 - 0.145 / 0.25)
+    assert sub.base_rate == "leave-one-round-out"
+    assert len(sub.reliability) == 5
+    assert sub.starters is None
+
+
+def test_p4_starters_threshold_is_inclusive_at_one_half():
+    lines = _p4_lines([(3, "DEF", 0.5, True), (4, "DEF", 0.5, False)], p_start=0.5)
+    assert p4_calibration(lines)["DEF"].starters.n == 2
+
+
+def test_p4_starters_is_none_when_no_line_is_a_likely_starter():
+    lines = _p4_lines([(3, "FWD", 0.1, False), (4, "FWD", 0.1, False)], p_start=0.2)
+    assert p4_calibration(lines)["FWD"].starters is None
+
+
+def test_p4_starters_skill_needs_a_second_round():
+    lines = [*_p4_lines([(3, "GKP", 0.3, False), (3, "GKP", 0.6, True)]),
+             *_p4_lines([(4, "GKP", 0.0, False)], p_start=0.1)]
+    sub = p4_calibration(lines)["GKP"].starters
+    assert sub.n == 2
+    assert (sub.base_rate_brier, sub.skill) == (None, None)
 
 
 def test_p4_calibration_skips_lines_without_p4():

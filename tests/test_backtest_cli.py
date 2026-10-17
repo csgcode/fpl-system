@@ -418,6 +418,8 @@ def test_record_all_runs_in_order_with_earlier_passes_as_baseline(quiet_world, c
     assert combined["shipped_config"] == asdict(replace(DEFAULT_CONFIG, blend_k=300.0))
     assert combined["reverted"] == []
     assert combined["verdict"] == "PASS"
+    assert combined["comparison"]["p4"]
+    assert all("starters" in v for v in combined["comparison"]["p4"].values())
     out = capsys.readouterr().out
     assert out.index("baseline:") < out.index("x:") < out.index("y:") < out.index("combined:")
 
@@ -489,6 +491,11 @@ def test_record_all_combined_failure_reverts_the_last_pass(quiet_world, capsys, 
     assert records["x"]["ship_value"] == {"blend_k": 300.0}
     assert records["combined"]["reverted"] == ["x"]
     assert records["combined"]["shipped_config"] == asdict(DEFAULT_CONFIG)
+    assert records["combined"]["verdict"] is None
+    p4 = records["combined"]["comparison"]["p4"]
+    assert set(records["combined"]["comparison"]) == {"p4"}
+    assert p4 and all("starters" in v for v in p4.values())
+    assert "combined: no passing entries — ships the baseline config" in capsys.readouterr().out
 
     _write_manifest(manifest_path, *entries, ("z", "model", ["--set", "blend_floor=0.9"]))
     assert _run(quiet_world, *run_all) == 0
@@ -690,6 +697,10 @@ def test_record_all_calibration_entry_records_p4_per_position(world, capsys, tmp
         assert position["base_rate"] == "leave-one-round-out"
         assert set(position) >= {"p4_brier", "base_rate_brier", "skill", "reliability"}
         assert len(position["reliability"]) == 5
+        starters = position["starters"]
+        assert starters["base_rate"] == "leave-one-round-out"
+        assert set(starters) >= {"n", "p4_brier", "base_rate_brier", "skill", "reliability"}
+        assert starters["starters"] is None
     out = capsys.readouterr().out
     assert any(line.startswith("p4: calibration — ") and "MID n 2" in line
                for line in out.splitlines())
@@ -709,6 +720,7 @@ def test_json_comparison_carries_p4(world, capsys):
     assert _run(world, "--set", "blend_k=300", "--format", "json") == 0
     document = json.loads(capsys.readouterr().out)
     assert set(document["comparison"]["p4"]) == {"DEF", "MID"}
+    assert all("starters" in v for v in document["comparison"]["p4"].values())
 
 
 def test_a_zero_no_history_blend_k_refuses(world, capsys):

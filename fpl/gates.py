@@ -202,7 +202,7 @@ def _slice_suffix(record: GateRecord) -> str:
 
 
 def _headline(record: GateRecord) -> str:
-    c = record.comparison
+    c = _gate_comparison(record)
     if record.kind == "calibration":
         return f"{record.name}: calibration — {_p4_text(record)}"
     if c is None:
@@ -239,6 +239,13 @@ def _status(record: GateRecord, reverted: set[str]) -> str:
     return "shipped"
 
 
+def _gate_comparison(record: GateRecord) -> dict[str, Any] | None:
+    """The record's gate statistics; None when it holds none, as for a
+    combined record that ships the baseline and carries only its p4."""
+    c = record.comparison
+    return c if c is not None and "round_wins" in c else None
+
+
 def _reason_text(reason: str) -> str:
     key, sep, text = reason.partition(": ")
     return f"{text} ({key})" if sep else reason
@@ -257,14 +264,29 @@ def _p4_text(record: GateRecord) -> str:
     if not p4:
         return "no p4 recorded"
     return "p4 skill " + "; ".join(
-        f"{pos} n {v['n']} Brier {v['p4_brier']:.3f} v base {_optional(v['base_rate_brier'])} "
-        f"skill {_optional_signed(v['skill'])}" for pos, v in p4.items())
+        f"{pos} {_p4_scores(v)}" + _starters_suffix(v, _p4_scores) for pos, v in p4.items())
+
+
+def _p4_scores(v: Mapping[str, Any]) -> str:
+    return (f"n {v['n']} Brier {v['p4_brier']:.3f} v base {_optional(v['base_rate_brier'])} "
+            f"skill {_optional_signed(v['skill'])}")
+
+
+def _starters_suffix(v: Mapping[str, Any], text: Callable[[Mapping[str, Any]], str]) -> str:
+    """Records written before the starter subset carry no `starters` key and
+    print nothing for it; a recorded None means no line was a likely starter."""
+    if "starters" not in v:
+        return ""
+    starters = v["starters"]
+    return " (starters none)" if starters is None else f" (starters {text(starters)})"
 
 
 def _p4_skills(record: GateRecord) -> str:
     p4 = (record.comparison or {}).get("p4") or {}
-    return "p4 skill " + (", ".join(f"{pos} {_optional_signed(v['skill'])}"
-                                    for pos, v in p4.items()) or "none recorded")
+    return "p4 skill " + (", ".join(
+        f"{pos} {_optional_signed(v['skill'])}"
+        + _starters_suffix(v, lambda s: _optional_signed(s["skill"]))
+        for pos, v in p4.items()) or "none recorded")
 
 
 def _optional(value: float | None) -> str:
@@ -293,7 +315,7 @@ def render(records: Sequence[GateRecord]) -> str:
 
 
 def _render_row(record: GateRecord) -> tuple[str, ...]:
-    c = record.comparison
+    c = _gate_comparison(record)
     rounds = record.rounds
     span = str(rounds[0]) if len(rounds) == 1 else f"{rounds[0]}-{rounds[-1]}"
     grid = "; ".join(f"{key}=" + ",".join(value_text(v) for v in values)

@@ -170,7 +170,10 @@ def test_gates_summary_shows_policy_slice_and_hypothesis(tmp_path, capsys):
 
 P4_CALIBRATION = _record("p4", kind="calibration", comparison={"p4": {
     "MID": {"n": 1688, "p4_brier": 0.18, "base_rate_brier": 0.2, "base_rate": "leave-one-round-out",
-            "skill": 0.1, "reliability": []},
+            "skill": 0.1, "reliability": [],
+            "starters": {"n": 900, "p4_brier": 0.21, "base_rate_brier": 0.22,
+                         "base_rate": "leave-one-round-out", "skill": 0.012,
+                         "reliability": [], "starters": None}},
     "DEF": {"n": 1500, "p4_brier": 0.25, "base_rate_brier": 0.2,
             "base_rate": "leave-one-round-out", "skill": -0.25, "reliability": []},
 }})
@@ -183,11 +186,25 @@ def test_calibration_record_summarises_and_renders_p4_skill(tmp_path, capsys):
     assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
     lines = capsys.readouterr().out.splitlines()
     assert lines[0] == ("p4: calibration — p4 skill MID n 1688 Brier 0.180 v base 0.200 "
-                        "skill +0.100; DEF n 1500 Brier 0.250 v base 0.200 skill −0.250")
+                        "skill +0.100 (starters n 900 Brier 0.210 v base 0.220 skill +0.012); "
+                        "DEF n 1500 Brier 0.250 v base 0.200 skill −0.250")
     assert lines[1].strip() == "calibration"
     [row] = gates.render(gates.load_records(root)).splitlines()[2:]
     assert row.startswith("| p4 | calibration |")
-    assert "p4 skill MID +0.100, DEF −0.250" in row
+    assert "p4 skill MID +0.100 (starters +0.012), DEF −0.250" in row
+
+
+def test_calibration_record_with_no_likely_starters_says_none(tmp_path, capsys):
+    record = json.loads(json.dumps(P4_CALIBRATION))
+    record["comparison"]["p4"]["DEF"]["starters"] = None
+    root = tmp_path / "gates"
+    root.mkdir()
+    (root / "p4.json").write_text(json.dumps(record), encoding="utf-8")
+    assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
+    assert "DEF n 1500 Brier 0.250 v base 0.200 skill −0.250 (starters none)" in (
+        capsys.readouterr().out)
+    [row] = gates.render(gates.load_records(root)).splitlines()[2:]
+    assert "DEF −0.250 (starters none)" in row
 
 
 def _policy(verdict: str) -> dict:

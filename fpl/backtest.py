@@ -58,6 +58,7 @@ GATE_SLICE_MIN_LINES = 40
 SLICE_MIN_POSITION_N = 30
 P4_BINS = 5
 P4_BASE_RATE = "leave-one-round-out"
+P4_STARTER_P_START = 0.5
 
 ANALYSIS_ROOT = Path("data/analysis")
 DECISIONS_ROOT = Path("data/decisions")
@@ -262,7 +263,12 @@ class P4Calibration:
     returned. `base_rate_brier` scores a forecast of the position's return
     rate in the other rounds (leave-one-round-out, so a round never
     forecasts itself); `skill` = 1 − p4_brier / base_rate_brier, positive
-    when p4 beats it. Both are None for a position seen in one round only."""
+    when p4 beats it. Both are None for a position seen in one round only.
+
+    Over all lines, skill mostly rewards p4 for knowing who plays. `starters`
+    repeats the scoring on the lines with p_start ≥ P4_STARTER_P_START, base
+    rate taken from those lines only, so its skill measures whether p4 ranks
+    likely starters by how often they return. None when no line qualifies."""
 
     n: int
     p4_brier: float
@@ -270,17 +276,24 @@ class P4Calibration:
     skill: float | None
     reliability: tuple[ReliabilityBin, ...]
     base_rate: str = P4_BASE_RATE
+    starters: P4Calibration | None = None
 
 
 def p4_calibration(lines: Sequence[BacktestLine]) -> dict[str, P4Calibration]:
     """Per position, the lines carrying a p4 judged against the outcome
     actual ≥ RETURN_POINTS: Brier score, the leave-one-round-out base-rate
-    Brier, skill, and P4_BINS equal-width reliability bins."""
+    Brier, skill, and P4_BINS equal-width reliability bins; the same for the
+    likely-starter subset under `starters`."""
     groups: dict[str, list[BacktestLine]] = {}
     for line in lines:
         if line.p4 is not None:
             groups.setdefault(line.position, []).append(line)
-    return {pos: _p4_position(groups[pos]) for pos in _positions(groups)}
+    calibration = {}
+    for pos in _positions(groups):
+        starters = [line for line in groups[pos] if line.p_start >= P4_STARTER_P_START]
+        calibration[pos] = replace(_p4_position(groups[pos]),
+                                   starters=_p4_position(starters) if starters else None)
+    return calibration
 
 
 def _p4_position(lines: list[BacktestLine]) -> P4Calibration:
@@ -1141,13 +1154,16 @@ def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
 
 def _combined_record(context: _RecordContext, baseline: Scored,
                      result: Combined) -> dict[str, Any]:
+    """`comparison.p4` always judges the shipped config: the combination's
+    lines when it passed, the baseline's when it ships the baseline."""
     c = result.comparison
     return {
         **_record_base(context, gates.COMBINED, "combined", (), baseline),
         "grid": None,
         "picks": None,
         "ship_value": result.overrides,
-        "comparison": None if c is None else comparison_document(c),
+        "comparison": ({"p4": p4_document(p4_calibration(baseline.lines))} if c is None
+                       else comparison_document(c)),
         "verdict": None if c is None else "PASS",
         "reasons": [],
         "shipped_config": asdict(result.config),
