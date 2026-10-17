@@ -71,8 +71,9 @@ prior-season reads the summaries cache and reports empty coverage otherwise.
 | players-slim.csv | `uv run python -m fpl slim-csv --gw N` | local only |
 | prior-season.json | `uv run python -m fpl prior-season --gw N` | local only |
 
-Cached commands print `(fetched)` or `(cached, age Xh)` — record which in
-meta.md. `flags` always hits the network.
+Cached commands print `(fetched)`, `(cached, age Xh)` or, for a final
+snapshot, `(cached, age Xh, final)` — record which in meta.md. `flags`
+always hits the network.
 
 `team_id` comes from data/entry.json. When non-null, run `entry`, `picks`, and
 `entry-history`; when null, skip all three and note the skip in meta.md.
@@ -97,7 +98,7 @@ Deadline: {next deadline from bootstrap stdout}
 Fetched at: {fetched at from bootstrap stdout}
 Previous GW: {M} finished={true|false} data_checked={true|false}
 Commands run:
-- <subcommand and flags> → <cache note exactly as printed: (fetched) | (cached, age Xh) | (F fetched, C cached) | local>
+- <subcommand and flags> → <cache note exactly as printed: (fetched) | (cached, age Xh) | (cached, age Xh, final) | (F fetched, C cached) | local>
 Coverage: players X, no_pl_history Y, missing_summaries Z
 Anomalies: <top-level-key diff vs data/raw/gw{M}/bootstrap.json, or "no prior snapshot">
 Errors: none
