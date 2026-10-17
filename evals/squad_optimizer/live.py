@@ -197,7 +197,14 @@ def views_of(files: dict[str, bytes], gw: int):
             if path.startswith((f"data/raw/gw{gw}/", f"data/analysis/gw{gw}/")):
                 (root / path).parent.mkdir(parents=True, exist_ok=True)
                 (root / path).write_bytes(data)
-        return load_views(SnapshotStore(root / "data/raw"), root / "data/analysis", gw)
+        return historical_views(root, gw)
+
+
+def historical_views(root: Path, gw: int):
+    """objective's views of a case's historical players files. Their model
+    stamps are fixed history, so a later model change must not refuse them."""
+    return load_views(SnapshotStore(root / "data/raw"), root / "data/analysis", gw,
+                      check_digest=False)
 
 
 def stack_expectations(case: LiveCase, blend, prior) -> dict[str, str]:
@@ -341,8 +348,7 @@ def optimizer_run(case: LiveCase, prepared: Prepared, transcript: Transcript,
     workspace = LiveWorkspace(before=ws.before, after=after, backlog_appended=appended,
                               served=served,
                               archived_before=text(proposal.replace(".md", ".v1.md")))
-    blend, prior = load_views(SnapshotStore(ws.root / "data/raw"), ws.root / "data/analysis",
-                              case.gw)
+    blend, prior = historical_views(ws.root, case.gw)
     run = OptimizerRun(
         transcript=transcript, instructions=instructions, root=str(ws.root), gw=case.gw,
         kind=case.kind, proposal=text(proposal),

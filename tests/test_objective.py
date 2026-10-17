@@ -633,6 +633,13 @@ def test_objective_refuses_a_digest_other_than_the_code(tmp_path):
     assert "players-MID.json" in str(exc.value) and "0badc0de" in str(exc.value)
 
 
+def test_load_views_skips_the_digest_check_for_historical_files(tmp_path):
+    store, analysis = _seed(tmp_path)
+    _restamp(_write_mid_players(tmp_path, analysis), "0badc0de")
+    blend, prior = load_views(store, analysis, GW, check_digest=False)
+    assert 1 in blend and 1 in prior
+
+
 def test_objective_accepts_rows_without_a_digest(tmp_path):
     store, analysis = _seed(tmp_path)
     _restamp(_write_mid_players(tmp_path, analysis), None)

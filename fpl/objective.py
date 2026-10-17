@@ -710,10 +710,12 @@ def _check_model_digests(digests: Mapping[Path, set[str]]) -> None:
         f"{code}; the files carry {stamped}")
 
 
-def load_views(store: SnapshotStore, analysis_root: Path, gw: int
-               ) -> tuple[dict[int, Row], dict[int, Row]]:
+def load_views(store: SnapshotStore, analysis_root: Path, gw: int, *,
+               check_digest: bool = True) -> tuple[dict[int, Row], dict[int, Row]]:
     """(blend, prior): players-*.json as published, and the prior-only
-    reading rebuilt in memory from the same inputs."""
+    reading rebuilt in memory from the same inputs. `check_digest=False`
+    is for reading historical files, whose stamps may predate this code's
+    model; the prior view is then rebuilt with this code regardless."""
     bootstrap = load_cached_bootstrap(store, gw)
     analysis_dir = analysis_root / f"gw{gw}"
     blend_documents: list[dict] = []
@@ -725,7 +727,8 @@ def load_views(store: SnapshotStore, analysis_root: Path, gw: int
         documents = json.loads(path.read_text(encoding="utf-8"))
         digests[path] = {d["model"] for d in documents if "model" in d}
         blend_documents += documents
-    _check_model_digests(digests)
+    if check_digest:
+        _check_model_digests(digests)
     blend = rows_from_documents(blend_documents, bootstrap)
     prior = rows_from_documents(prior_documents(store, analysis_root, gw, bootstrap), bootstrap)
     return blend, prior
