@@ -709,3 +709,8 @@ def test_json_comparison_carries_p4(world, capsys):
     assert _run(world, "--set", "blend_k=300", "--format", "json") == 0
     document = json.loads(capsys.readouterr().out)
     assert set(document["comparison"]["p4"]) == {"DEF", "MID"}
+
+
+def test_a_zero_no_history_blend_k_refuses(world, capsys):
+    assert _run(world, "--set", "blend_k_no_history=0") == 1
+    assert "blend_k_no_history must be > 0" in capsys.readouterr().err

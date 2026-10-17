@@ -737,6 +737,13 @@ class ModelConfig:
             raise ValueError(
                 f"half_life_matches must be > 0 or None, got {self.half_life_matches}"
             )
+        # prior_weight divides by them.
+        if not self.blend_k > 0:
+            raise ValueError(f"blend_k must be > 0, got {self.blend_k}")
+        if self.blend_k_no_history is not None and not self.blend_k_no_history > 0:
+            raise ValueError(
+                f"blend_k_no_history must be > 0 or None, got {self.blend_k_no_history}"
+            )
 
     def digest(self) -> str:
         return hashlib.sha256(repr(sorted(asdict(self).items())).encode()).hexdigest()[:8]

@@ -1190,6 +1190,17 @@ def test_config_refuses_a_half_life_that_is_not_positive(half_life):
         ModelConfig(half_life_matches=half_life)
 
 
+@pytest.mark.parametrize("field", ["blend_k", "blend_k_no_history"])
+@pytest.mark.parametrize("value", [0, 0.0, -300.0])
+def test_config_refuses_a_blend_k_that_is_not_positive(field, value):
+    with pytest.raises(ValueError, match=field):
+        ModelConfig(**{field: value})
+
+
+def test_config_validation_leaves_the_production_digest():
+    assert DEFAULT_CONFIG.digest() == "5f5a4d42"
+
+
 def test_config_half_life_from_int_has_the_float_digest():
     config = ModelConfig(half_life_matches=2)
     assert isinstance(config.half_life_matches, float)
