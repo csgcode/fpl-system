@@ -58,7 +58,8 @@ def run(tmp_path, *extra):
         return FplDataService(FplApi(NoNetworkGateway()), store)
 
     return main(["--data-root", str(tmp_path / "raw"), "fixtures-rate", "--gw", str(GW),
-                 "--analysis-root", str(tmp_path / "analysis"), *extra],
+                 "--analysis-root", str(tmp_path / "analysis"), "--history-from", "summaries",
+                 *extra],
                 service_factory=factory)
 
 
@@ -126,5 +127,6 @@ def test_never_builds_a_gateway(tmp_path, capsys):
         raise AssertionError("fixtures-rate built a data service")
 
     code = main(["--data-root", str(tmp_path / "raw"), "fixtures-rate", "--gw", str(GW),
-                 "--analysis-root", str(tmp_path / "analysis")], service_factory=factory)
+                 "--analysis-root", str(tmp_path / "analysis"), "--history-from", "summaries"],
+                service_factory=factory)
     assert code == 0

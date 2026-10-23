@@ -1,7 +1,10 @@
+import argparse
 import json
+import multiprocessing
 import os
 import shutil
 import sqlite3
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -510,8 +513,8 @@ def test_a_refused_rebuild_leaves_the_existing_store_untouched(raw, db):
 
     assert db.read_bytes() == before
     assert season_store._cache_path(db).read_bytes() == cache_before
-    assert sorted(p.name for p in db.parent.iterdir()) == [
-        db.name, season_store._cache_path(db).name]
+    assert sorted(p.name for p in db.parent.iterdir()) == sorted([
+        db.name, season_store._cache_path(db).name, db.name + season_store.LOCK_SUFFIX])
 
 
 def test_an_insert_error_rolls_back_and_leaves_the_store_untouched(raw, db, monkeypatch):
@@ -534,8 +537,8 @@ def test_an_insert_error_rolls_back_and_leaves_the_store_untouched(raw, db, monk
 
     assert db.read_bytes() == before
     assert season_store._cache_path(db).read_bytes() == cache_before
-    assert sorted(p.name for p in db.parent.iterdir()) == [
-        db.name, season_store._cache_path(db).name]
+    assert sorted(p.name for p in db.parent.iterdir()) == sorted([
+        db.name, season_store._cache_path(db).name, db.name + season_store.LOCK_SUFFIX])
 
 
 def _empty_sqlite_with_current_version(db: Path) -> None:
@@ -946,7 +949,6 @@ def test_missing_round_hint_names_non_default_roots(raw, db):
 
     message = str(caught.value)
     assert f"fpl --data-root {raw} event-live --gw 4 --round 3" in message
-    assert f"fpl --data-root {raw} store sync --gw 4 --store {db}" in message
 
 
 # --- open precheck and hints ----------------------------------------------------
@@ -1102,3 +1104,209 @@ def test_hint_for_an_empty_raw_tree_names_the_root_not_a_gw(tmp_path):
 def test_a_missing_store_over_an_empty_raw_tree_says_so(tmp_path):
     with pytest.raises(StoreReadError, match="no raw snapshots under"):
         open_ro(tmp_path / "s.sqlite", tmp_path / "raw")
+
+
+# --- readers sync a store that is behind ------------------------------------------
+
+
+def test_open_synced_builds_a_missing_store_and_says_so(raw, db):
+    Season().write(raw)
+    said: list[str] = []
+
+    with season_store.open_synced(db, raw, notify=said.append) as store:
+        assert set(store.rounds(3, [1])) == {1}
+
+    assert len(said) == 1
+    assert said[0].startswith(f"season store {db} synced (no store yet):")
+    assert "files ingested" in said[0]
+
+
+def test_open_synced_syncs_a_store_behind_the_raw_once(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    save_raw(raw, fetch_time(3) + timedelta(hours=3), 3, "players/summary-9", {
+        "fixtures": [], "history": [], "history_past": [past_season_payload()]})
+    said: list[str] = []
+
+    with season_store.open_synced(db, raw, notify=said.append) as store:
+        assert 9 in store.past([9])
+    with season_store.open_synced(db, raw, notify=said.append):
+        pass
+
+    assert len(said) == 1
+    assert "gw3/players/summary-9.json not ingested" in said[0]
+    assert "1 files ingested" in said[0]
+
+
+def test_open_synced_is_silent_when_the_store_is_in_sync(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    before = db.read_bytes()
+    said: list[str] = []
+
+    with season_store.open_synced(db, raw, notify=said.append):
+        pass
+
+    assert said == [] and db.read_bytes() == before
+
+
+def test_open_synced_rebuilds_a_store_of_another_schema(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    con = sqlite3.connect(db)
+    con.execute(f"PRAGMA user_version = {SCHEMA_VERSION + 1}")
+    con.commit()
+    con.close()
+    said: list[str] = []
+
+    with season_store.open_synced(db, raw, notify=said.append) as store:
+        assert set(store.rounds(3, [1])) == {1}
+
+    assert len(said) == 1 and "schema" in said[0]
+
+
+def test_open_synced_refuses_when_the_sync_fails_and_keeps_the_store(raw, db):
+    Season(final_sidecar={1}).write(raw)
+    sync(raw, db)
+    before = db.read_bytes()
+    save_raw(raw, fetch_time(3) + timedelta(hours=4), 3, "players/summary-1",
+             {"history": "not rows", "history_past": []})
+
+    with pytest.raises(StoreSyncError, match=r"gw3/players/summary-1\.json"):
+        season_store.open_synced(db, raw, notify=lambda line: None)
+
+    assert db.read_bytes() == before
+
+
+def test_open_synced_still_refuses_a_round_without_final_live_stats(raw, db):
+    Season().write(raw)
+
+    with season_store.open_synced(db, raw, notify=lambda line: None) as store:
+        with pytest.raises(StoreReadError) as caught:
+            store.rounds(4, [1])
+
+    message = str(caught.value)
+    assert f"fpl --data-root {raw} event-live --gw 4 --round 3" in message
+    assert "store sync" not in message
+
+
+def test_a_reader_waiting_on_a_sync_does_not_sync_again(raw, db):
+    """Two readers find the store behind at once: the second waits on the
+    sync lock, then finds the store in sync and reads it as it is."""
+    Season().write(raw)
+    said: list[str] = []
+    opened: list[set[int]] = []
+
+    def second_reader() -> None:
+        with season_store.open_synced(db, raw, notify=said.append) as store:
+            opened.append(set(store.rounds(3, [1])))
+
+    with season_store.sync_lock(db):
+        waiting = threading.Thread(target=second_reader)
+        waiting.start()
+        waiting.join(timeout=0.3)
+        assert waiting.is_alive()
+        season_store._sync(raw, db, force=False)
+    waiting.join(timeout=10)
+
+    assert opened == [{1}]
+    assert said == []
+
+
+def _auto_sync_in_a_process(db: str, raw: str, results) -> None:
+    said: list[str] = []
+    with season_store.open_synced(Path(db), Path(raw), notify=said.append) as store:
+        results.put((len(said), sorted(store.rounds(3, [1, 2]))))
+
+
+def test_two_processes_auto_syncing_at_once_sync_once_and_both_read(raw, db):
+    Season().write(raw)
+    context = multiprocessing.get_context("spawn")
+    results = context.Queue()
+    workers = [context.Process(target=_auto_sync_in_a_process,
+                               args=(str(db), str(raw), results)) for _ in range(2)]
+    for worker in workers:
+        worker.start()
+    got = [results.get(timeout=60) for _ in workers]
+    for worker in workers:
+        worker.join(timeout=60)
+
+    assert sorted(synced for synced, _ in got) == [0, 1]
+    assert all(ids == [1, 2] for _, ids in got)
+    fresh = db.with_name("fresh.sqlite")
+    rebuild(raw, fresh)
+    assert dump(db) == dump(fresh)
+
+
+def test_explicit_sync_waits_on_the_sync_lock(raw, db):
+    Season().write(raw)
+    done: list[int] = []
+
+    with season_store.sync_lock(db):
+        syncing = threading.Thread(target=lambda: done.append(sync(raw, db).files_ingested))
+        syncing.start()
+        syncing.join(timeout=0.3)
+        assert syncing.is_alive() and not db.exists()
+    syncing.join(timeout=10)
+
+    assert done and db.exists()
+
+
+# --- History, the source of ep, objective, players and fixtures-rate -----------
+
+
+def test_history_from_the_store_reads_the_shortlist_and_the_pinned_ids(raw, db):
+    """The set `fpl ep` loads: shortlisted in the gw bootstrap plus the ids
+    the caller pins, whichever gameweek's summary carried their history_past.
+    A summary in gw N is not needed."""
+    league_world().write(raw)
+    save_raw(raw, fetch_time(1) + timedelta(hours=2), 1, "players/summary-20", {
+        "fixtures": [], "history": [], "history_past": [past_season_payload(
+            element_code=900020, minutes=2000)]})
+    store = SnapshotStore(raw)
+    store.path(3, "players/summary-1").unlink()
+    store.meta_path(3, "players/summary-1").unlink()
+    history = season_store.History("store", raw, db)
+    ids = [1, 10, 20]
+
+    unpinned = history.summaries(3, ids)
+    pinned = history.summaries(3, ids, pinned=[20])
+
+    assert set(unpinned) == {1, 10}
+    assert set(pinned) == {1, 10, 20}
+    assert [m.round for m in unpinned[1].history] == [1, 2]
+
+
+def test_history_from_summaries_ignores_pinned(raw, db):
+    league_world().write(raw)
+    history = season_store.History("summaries", raw, db)
+
+    assert set(history.summaries(3, [1, 20], pinned=[20])) == {1}
+    assert not db.exists()
+
+
+def test_history_opens_the_store_synced(raw, db, capsys):
+    Season().write(raw)
+
+    assert set(season_store.History("store", raw, db).summaries(3, [1, 2])) == {1, 2}
+
+    assert f"season store {db} synced (no store yet)" in capsys.readouterr().err
+
+
+def test_the_default_history_source_is_the_store():
+    assert season_store.DEFAULT_HISTORY_SOURCE == "store"
+
+
+def test_the_default_store_sits_beside_the_raw_root(tmp_path):
+    """A run over another raw tree must never sync the repo's store from it."""
+    assert season_store.default_store_path(DEFAULT_RAW_ROOT) == DEFAULT_STORE_PATH
+    assert season_store.default_store_path(tmp_path / "raw") == (
+        tmp_path / "store" / DEFAULT_STORE_PATH.name)
+    assert season_store._hint(tmp_path / "raw", tmp_path / "store" / DEFAULT_STORE_PATH.name,
+                              [2]) == f"run: uv run python -m fpl --data-root {tmp_path / 'raw'} store sync --gw 2"
+
+
+def test_history_from_args_defaults_the_store_beside_the_raw_root(tmp_path):
+    args = argparse.Namespace(history_from="store", store=None)
+    history = season_store.History.from_args(tmp_path / "raw", args)
+    assert history.store_path == tmp_path / "store" / DEFAULT_STORE_PATH.name

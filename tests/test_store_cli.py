@@ -64,6 +64,27 @@ def test_sync_prints_the_report_and_exits_0(raw, db, capsys):
     assert "reconciliation: OK" in out
 
 
+def test_sync_prints_the_coverage_of_the_gw_bootstrap(raw, db, capsys):
+    """players: bootstrap ids with a kept summary in some gameweek, of which
+    no_pl_history have no past PL season; missing_past: ids with none."""
+    season = Season(summary_ids={1, 2})
+    season.history_past = {(gw, 2): [] for gw in (1, 2, 3)}
+    season.write(raw)
+
+    assert run(raw, db, "sync") == 0
+
+    assert "coverage gw3: players 2, no_pl_history 1, missing_past 1" in (
+        capsys.readouterr().out.splitlines())
+
+
+def test_sync_coverage_names_a_gw_without_a_bootstrap(raw, db, capsys):
+    Season().write(raw)
+
+    assert run(raw, db, "sync", gw=5) == 0
+
+    assert "coverage gw5: no bootstrap in the store" in capsys.readouterr().out.splitlines()
+
+
 def test_sync_reports_files_ingested_then_none_on_a_second_run(raw, db, capsys):
     Season().write(raw)
     run(raw, db, "sync")

@@ -80,10 +80,13 @@ def write_inputs(analysis_root, document, position="MID"):
 
 
 def run(data_root, analysis_root, *extra):
+    """The summaries worlds here have no event-live: they read summaries
+    unless a test names its source."""
+    source = [] if "--history-from" in extra else ["--history-from", "summaries"]
     return main([
         "--data-root", str(data_root), "ep", "--gw", str(GW), "--position", "MID",
         "--analysis-root", str(analysis_root),
-        "--decisions-root", str(analysis_root.parent / "decisions"), *extra,
+        "--decisions-root", str(analysis_root.parent / "decisions"), *source, *extra,
     ])
 
 
@@ -378,19 +381,42 @@ def test_ep_check_reads_the_store_too(tmp_path, capsys):
     assert "1 players scored, 0 without cached summary" in capsys.readouterr().out
 
 
-def test_ep_from_a_store_behind_the_raw_refuses_naming_the_sync(tmp_path, capsys):
+def test_ep_syncs_a_store_behind_the_raw_and_says_so(tmp_path, capsys):
     raw, db, analysis_root = store_world(tmp_path)
     SnapshotStore(raw).save(GW, "players/summary-9", element_summary_payload(), "seed://test")
 
     assert run(raw, analysis_root, "--history-from", "store", "--store", str(db),
-               "--out", str(tmp_path / "x.json")) == 1
+               "--out", str(tmp_path / "x.json")) == 0
     err = capsys.readouterr().err
-    assert "summary-9.json not ingested" in err and f"store sync --gw {GW}" in err
-    assert not (tmp_path / "x.json").exists()
+    assert f"season store {db} synced (gw{GW}/players/summary-9.json not ingested)" in err
+    assert (tmp_path / "x.json").exists()
 
 
-def test_ep_reads_summaries_by_default_and_never_opens_the_store(tmp_path, monkeypatch):
+def test_ep_reads_the_store_beside_the_raw_root_by_default(tmp_path, capsys):
     raw, _, analysis_root = store_world(tmp_path)
-    monkeypatch.chdir(tmp_path)  # the default store path, relative, names nothing here
-    out = tmp_path / "default.json"
-    assert run(raw, analysis_root, "--out", str(out)) == 0
+    default, summaries = tmp_path / "default.json", tmp_path / "summaries.json"
+
+    assert main(["--data-root", str(raw), "ep", "--gw", str(GW), "--position", "MID",
+                 "--analysis-root", str(analysis_root), "--out", str(default)]) == 0
+    assert run(raw, analysis_root, "--out", str(summaries)) == 0
+
+    assert default.read_bytes() == summaries.read_bytes()
+    assert "synced (no store yet)" in capsys.readouterr().err
+    assert (tmp_path / "store" / "season-2026-27.sqlite").is_file()
+
+
+def test_ep_from_the_store_names_missing_past_for_an_id_never_summarised(tmp_path, capsys):
+    from tests.test_season_store import Season
+
+    raw = tmp_path / "raw"
+    Season(summary_ids={2, 3}).write(raw)
+    _, _, analysis_root = store_world(tmp_path / "other")
+    analysis_root = analysis_root.rename(tmp_path / "analysis")
+
+    assert run(raw, analysis_root, "--history-from", "store", "--out",
+               str(tmp_path / "x.json")) == 0
+
+    err = capsys.readouterr().err
+    assert "missing summaries (1)" in err
+    assert f"summaries --gw {GW} --missing-past" in err
+    assert "--ids" not in err

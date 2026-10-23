@@ -112,7 +112,7 @@ def reference_outputs(ws: Workspace, case: LiveCase) -> tuple[int, dict[str, byt
     completed = subprocess.run(
         ["uv", "run", "python", "-m", "fpl", "--data-root", str(target / "data/raw"),
          "fixtures-rate", "--gw", str(case.gw),
-         "--analysis-root", str(target / "data/analysis")],
+         "--analysis-root", str(target / "data/analysis"), "--history-from", "summaries"],
         cwd=ws.root, env=agent_env(ws.replay_dir), capture_output=True, text=True,
         timeout=CLI_TIMEOUT_S, check=False,
     )

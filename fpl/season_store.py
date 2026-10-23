@@ -22,10 +22,12 @@ the one rule in `fpl.store.prove_live_final`, applied to the kept bootstraps
 the sync reads.
 
 `open_ro` serves as-of reads that return the existing models. It refuses a
-store that has not ingested exactly the current raw tree. Every input to the
-finality rule (each sidecar's fetch time and `final` key, each bootstrap's
-content) is in the manifest it compares, so a store it opens agrees with
-`fpl.store.live_final` on the current tree.
+store that has not ingested exactly the current raw tree; `open_synced`, which
+the CLI readers use, syncs such a store first and says so in one line. A sync
+holds a lock file beside the store, so two processes never build it at once.
+Every input to the finality rule (each sidecar's fetch time and `final` key,
+each bootstrap's content) is in the manifest it compares, so a store it opens
+agrees with `fpl.store.live_final` on the current tree.
 
 A sync also writes a scan cache beside the store: the size, mtime, inode and
 ctime of each raw file and sidecar it hashed, tied to that store's manifest.
@@ -37,6 +39,8 @@ the database stays a pure function of the raw tree.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
 import hashlib
 import json
 import os
@@ -44,7 +48,7 @@ import re
 import sqlite3
 import sys
 import tempfile
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -68,9 +72,19 @@ from fpl.service import load_cached_summaries
 from fpl.store import SeenBootstrap, SnapshotStore, prove_live_final
 
 SCHEMA_VERSION = 3
-DEFAULT_STORE_PATH = Path("data/store/season-2026-27.sqlite")
+STORE_FILENAME = "season-2026-27.sqlite"
 DEFAULT_RAW_ROOT = Path("data/raw")
+
+
+def default_store_path(raw_root: Path) -> Path:
+    """The store beside the raw tree it is derived from: data/store for
+    data/raw. A run over another raw tree never touches the repo's store."""
+    return raw_root.parent / "store" / STORE_FILENAME
+
+
+DEFAULT_STORE_PATH = default_store_path(DEFAULT_RAW_ROOT)
 SCAN_CACHE_SUFFIX = ".scan.json"
+LOCK_SUFFIX = ".lock"
 XG_RECORDED_FROM = "2022/23"
 DC_RECORDED_FROM = "2024/25"
 
@@ -254,11 +268,27 @@ class _RawFile:
 
 
 def sync(raw_root: Path, db_path: Path) -> SyncReport:
-    return _sync(raw_root, db_path, force=False)
+    with sync_lock(db_path):
+        return _sync(raw_root, db_path, force=False)
 
 
 def rebuild(raw_root: Path, db_path: Path) -> SyncReport:
-    return _sync(raw_root, db_path, force=True)
+    with sync_lock(db_path):
+        return _sync(raw_root, db_path, force=True)
+
+
+@contextlib.contextmanager
+def sync_lock(db_path: Path) -> Iterator[None]:
+    """Held while the store is built. The store itself is replaced
+    atomically, so readers need no lock; the lock stops two syncs from
+    building it at once."""
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(db_path.with_name(db_path.name + LOCK_SUFFIX), "a") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
 
 
 def _sync(raw_root: Path, db_path: Path, *, force: bool) -> SyncReport:
@@ -892,6 +922,15 @@ class StoreReadError(ValueError):
     """The store cannot answer an as-of question without leaking or guessing."""
 
 
+class StoreStaleError(StoreReadError):
+    """The store is missing, unreadable, of another schema, or behind the raw
+    tree: a sync fixes it."""
+
+    def __init__(self, message: str, reason: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
+
 class StoredMatch(MatchRecord):
     """A per-match row as the readers return it: an element-summary `history`
     row, with the opponent the summary also carries."""
@@ -956,6 +995,32 @@ def open_ro(db_path: Path, raw_root: Path) -> SeasonReader:
     return SeasonReader(con, raw_root, db_path)
 
 
+def open_synced(
+    db_path: Path, raw_root: Path, *, notify: Callable[[str], None] | None = None
+) -> SeasonReader:
+    """`open_ro`, syncing the store first when it is stale. The staleness is
+    re-checked under the sync lock, so a reader that waited on another's sync
+    reads that result instead of syncing again. A failed sync refuses and
+    leaves the store as it was."""
+    try:
+        return open_ro(db_path, raw_root)
+    except StoreStaleError:
+        pass
+    with sync_lock(db_path):
+        try:
+            return open_ro(db_path, raw_root)
+        except StoreStaleError as stale:
+            reason = stale.reason
+        report = _sync(raw_root, db_path, force=False)
+    (notify or _stderr_line)(
+        f"season store {db_path} synced ({reason}): {report.files_ingested} files ingested")
+    return open_ro(db_path, raw_root)
+
+
+def _stderr_line(line: str) -> None:
+    print(line, file=sys.stderr)
+
+
 def _open_checked(
     db_path: Path, raw_root: Path, files: Sequence[_RawFile] | None = None
 ) -> tuple[sqlite3.Connection, Sequence[_RawFile]]:
@@ -969,12 +1034,13 @@ def _open_checked(
             files = _scan(raw_root, _trusted(db_path, known) if known is not None else None)
         hint = _hint(raw_root, db_path, _gws(files))
         if known is None:
-            raise StoreReadError(
-                f"season store {db_path} has another schema version — {hint}")
+            raise StoreStaleError(
+                f"season store {db_path} has another schema version — {hint}",
+                "another schema version")
         stale = _first_difference(known, {f.path: f.key for f in files})
         if stale is not None:
-            raise StoreReadError(
-                f"season store {db_path} is behind {raw_root}: {stale} — {hint}")
+            raise StoreStaleError(
+                f"season store {db_path} is behind {raw_root}: {stale} — {hint}", stale)
     except BaseException:
         con.close()
         raise
@@ -983,8 +1049,9 @@ def _open_checked(
 
 def _open_existing(db_path: Path, raw_root: Path) -> sqlite3.Connection:
     if not db_path.is_file():
-        raise StoreReadError(
-            f"no season store at {db_path} — {_hint(raw_root, db_path, _raw_gws(raw_root))}")
+        raise StoreStaleError(
+            f"no season store at {db_path} — {_hint(raw_root, db_path, _raw_gws(raw_root))}",
+            "no store yet")
     return sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
 
 
@@ -997,7 +1064,8 @@ def _readable(db_path: Path, raw_root: Path, read: Callable[[], Any]) -> Any:
         return read()
     except sqlite3.DatabaseError as exc:
         hint = _hint(raw_root, db_path, _raw_gws(raw_root), "rebuild")
-        raise StoreReadError(f"season store {db_path} is unreadable ({exc}) — {hint}") from None
+        raise StoreStaleError(f"season store {db_path} is unreadable ({exc}) — {hint}",
+                              f"unreadable: {exc}") from None
 
 
 def _gws(files: Sequence[_RawFile]) -> list[int]:
@@ -1026,7 +1094,7 @@ def _hint(raw_root: Path, db_path: Path, gws: Iterable[int], action: str = "sync
     latest = max(gws, default=None)
     if latest is None:
         return f"no raw snapshots under {raw_root} — fetch them first"
-    store = "" if db_path == DEFAULT_STORE_PATH else f" --store {db_path}"
+    store = "" if db_path == default_store_path(raw_root) else f" --store {db_path}"
     return f"run: {_fpl(raw_root)} store {action} --gw {latest}{store}"
 
 
@@ -1193,8 +1261,8 @@ class SeasonReader:
             r = missing[0]
             raise StoreReadError(
                 f"round(s) {missing} have no final live stats in the store — fetch: "
-                f"{_fpl(self._raw_root)} event-live --gw {r + 1} --round {r}, then "
-                f"{_hint(self._raw_root, self._db_path, [r + 1])}"
+                f"{_fpl(self._raw_root)} event-live --gw {r + 1} --round {r} "
+                f"(the next read syncs it into the store)"
             )
 
     def _require_before_deadline(self, kind: str, gw: int) -> None:
@@ -1221,7 +1289,7 @@ class SeasonReader:
 
 HistorySource = Literal["summaries", "store"]
 HISTORY_SOURCES: tuple[HistorySource, ...] = ("summaries", "store")
-DEFAULT_HISTORY_SOURCE: HistorySource = "summaries"
+DEFAULT_HISTORY_SOURCE: HistorySource = "store"
 
 
 def add_history_arguments(parser: argparse.ArgumentParser) -> None:
@@ -1229,13 +1297,13 @@ def add_history_arguments(parser: argparse.ArgumentParser) -> None:
     this season's per-match history."""
     parser.add_argument(
         "--history-from", choices=HISTORY_SOURCES, default=DEFAULT_HISTORY_SOURCE,
-        help="this season's per-match history: the cached element summaries "
-             f"(default) or the season store, which must be in sync with the raw tree",
+        help="this season's per-match history: the season store (default), synced "
+             "first when it is behind the raw tree, or the cached element summaries of gw N",
     )
     parser.add_argument("--store", type=Path, default=None,
-                        help=f"season store for --history-from store "
-                             f"(default: {DEFAULT_STORE_PATH}); refused with any "
-                             f"other --history-from")
+                        help=f"season store for --history-from store (default: "
+                             f"store/{STORE_FILENAME} beside --data-root); refused "
+                             f"with any other --history-from")
 
 
 def check_history_arguments(args: argparse.Namespace) -> None:
@@ -1250,9 +1318,12 @@ def check_history_arguments(args: argparse.Namespace) -> None:
 @dataclass(frozen=True)
 class History:
     """Where a gw N run reads per-match history. `summaries` reads the cached
-    element summaries of gw N; `store` reads the season store as of round N
-    with production coverage, so an id has a summary exactly when the raw
-    tree holds one, and the rows equal that summary's."""
+    element summaries of gw N. `store` reads the season store as of round N,
+    synced first when it is behind, with shortlist coverage: the ids
+    shortlisted in the gw N bootstrap plus the ids the caller pins (the
+    round's inputs ids), each with the history_past of whichever summary the
+    raw tree holds for it. gw N's own summaries are only the players the
+    collector fetched with `--missing-past`, so they are not the pool."""
 
     source: HistorySource
     raw_root: Path
@@ -1261,13 +1332,22 @@ class History:
     @classmethod
     def from_args(cls, raw_root: Path, args: argparse.Namespace) -> History:
         check_history_arguments(args)
-        return cls(args.history_from, raw_root, args.store or DEFAULT_STORE_PATH)
+        return cls(args.history_from, raw_root, args.store or default_store_path(raw_root))
 
-    def summaries(self, gw: int, ids: Iterable[int]) -> dict[int, ElementSummary]:
+    def summaries(
+        self, gw: int, ids: Iterable[int], *, pinned: Iterable[int] = ()
+    ) -> dict[int, ElementSummary]:
         if self.source == "summaries":
             return load_cached_summaries(SnapshotStore(self.raw_root), gw, ids)
         with self.open() as reader:
-            return reader.summaries(gw, ids, coverage="production")
+            return reader.summaries(gw, ids, coverage="shortlist", pinned=pinned)
+
+    def fetch_hint(self, gw: int, ids: Sequence[int]) -> str:
+        """The command that gives `ids` a summary this source reads."""
+        if self.source == "summaries":
+            return f"{_fpl(self.raw_root)} summaries --gw {gw} --ids {','.join(map(str, ids))}"
+        return (f"{_fpl(self.raw_root)} summaries --gw {gw} --missing-past "
+                f"(the next read syncs it into the store)")
 
     def matches_by_player(
         self, gw: int, ids: Iterable[int]
@@ -1286,7 +1366,7 @@ class History:
     def open(self) -> SeasonReader:
         if self.source != "store":
             raise ValueError("the season store is read only with --history-from store")
-        return open_ro(self.store_path, self.raw_root)
+        return open_synced(self.store_path, self.raw_root)
 
 
 # --- fpl store ---------------------------------------------------------------
@@ -1309,18 +1389,40 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
              "manifest summary (writes nothing). Every action covers the whole raw tree; "
              f"exit {EXIT_MISMATCH}: a reconciliation mismatch",
     )
-    p.add_argument("--store", type=Path, default=DEFAULT_STORE_PATH,
-                   help=f"store file (default: {DEFAULT_STORE_PATH})")
+    p.add_argument("--store", type=Path, default=None,
+                   help=f"store file (default: store/{STORE_FILENAME} beside --data-root)")
 
 
 def run(raw_root: Path, args: argparse.Namespace) -> int:
+    args.store = args.store or default_store_path(raw_root)
     if args.action == "status":
         return _status(raw_root, args.store)
     if args.action == "verify":
         return _verify(raw_root, args.store)
     report = (rebuild if args.action == "rebuild" else sync)(raw_root, args.store)
     print(f"store {args.store}: {report.files_ingested} files ingested")
-    return _print_report(report)
+    exit_code = _print_report(report)
+    print(_coverage_line(args.store, args.gw))
+    return exit_code
+
+
+def _coverage_line(db_path: Path, gw: int) -> str:
+    """How much of the gw bootstrap the store has history_past for: players
+    with a kept summary in some gameweek (no_pl_history of them with no past
+    PL season), and missing_past, the ids `summaries --missing-past` fetches."""
+    con = _connect(db_path)
+    try:
+        ids = {e for (e,) in con.execute(
+            "SELECT element FROM player_state WHERE gw = ?", (gw,))}
+        covered = {e for (e,) in con.execute("SELECT DISTINCT element FROM summary_coverage")}
+        with_past = {e for (e,) in con.execute("SELECT DISTINCT element FROM history_past")}
+    finally:
+        con.close()
+    if not ids:
+        return f"coverage gw{gw}: no bootstrap in the store"
+    players = ids & covered
+    return (f"coverage gw{gw}: players {len(players)}, "
+            f"no_pl_history {len(players - with_past)}, missing_past {len(ids - covered)}")
 
 
 def _print_report(report: SyncReport) -> int:

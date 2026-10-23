@@ -220,6 +220,11 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument(
         "--shortlist", action="store_true", help="all shortlisted players"
     )
+    group.add_argument(
+        "--missing-past", action="store_true",
+        help="every bootstrap player with no kept summary in any gameweek, i.e. "
+             "no history_past for the season store",
+    )
     entry = add("entry", "fetch our FPL entry (bank, team value)")
     entry.add_argument("--team-id", type=int, required=True, help="our FPL entry id")
     entry_history = add("entry-history", "fetch our per-gameweek entry history")
@@ -848,7 +853,8 @@ def run_command(
         print(f"{store.path(gw, 'fixtures')} ({len(fixtures)} fixtures) "
               f"{_cache_note(service)}")
     elif args.command == "summaries":
-        ids = service.shortlist_ids(gw) if args.shortlist else args.ids
+        ids = (service.shortlist_ids(gw) if args.shortlist
+               else service.missing_past_ids(gw) if args.missing_past else args.ids)
         summaries = service.player_summaries(
             gw,
             player_ids=ids,
@@ -857,7 +863,7 @@ def run_command(
             allow_post_deadline=args.allow_post_deadline,
         )
         print(f"{len(summaries)} summaries under {store.dir(gw) / 'players'} "
-              f"{_cache_note(service)}")
+              f"{_cache_note(service) or '(0 fetched, 0 cached)'}")
     elif args.command == "entry":
         entry = service.entry(
             gw, team_id=args.team_id, max_age_hours=args.max_age, force=args.force
@@ -925,7 +931,7 @@ def run_command(
         if result.players == 0:
             _stderr(
                 "WARNING: prior-season has no players — fetch element summaries "
-                f"first (python -m fpl summaries --gw {gw} --shortlist)"
+                f"first (python -m fpl summaries --gw {gw} --missing-past)"
             )
             return EXIT_EMPTY
     elif args.command == "flags":
@@ -1085,9 +1091,10 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         inputs = force_prior_weight(inputs, args.prior_weight)
     fixtures = load_fixtures(fixtures_path)
     bootstrap = load_cached_bootstrap(store, gw)
-    wanted = [p.id for p in bootstrap.elements if p.element_type == position]
-    wanted += [entry.id for entry in inputs.players]
-    summaries = History.from_args(args.data_root, args).summaries(gw, wanted)
+    judged = [entry.id for entry in inputs.players]
+    wanted = [p.id for p in bootstrap.elements if p.element_type == position] + judged
+    history = History.from_args(args.data_root, args)
+    summaries = history.summaries(gw, wanted, pinned=judged)
     result = build_predictions(
         bootstrap, summaries, fixtures, inputs, gw=gw,
         allow_missing=frozenset(args.allow_missing_ids),
@@ -1101,10 +1108,10 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
         print_ep(result, args.limit)
     print(f"wrote {out_path}")
     if result.missing_summaries:
-        ids = ",".join(str(i) for i in result.missing_summaries)
         _stderr(
             f"WARNING: missing summaries ({len(result.missing_summaries)}) scored on "
-            f"league-mean priors — fetch with: uv run python -m fpl summaries --gw {gw} --ids {ids}"
+            f"league-mean priors — fetch with: "
+            f"{history.fetch_hint(gw, result.missing_summaries)}"
         )
     for warning in result.warnings:
         _stderr(f"WARNING: {warning}")
@@ -1130,10 +1137,10 @@ def run_ep_check(
         raise ValueError(
             f"{inputs_path} is for {inputs.position.name}, not --position {position.name}"
         )
-    wanted = [p.id for p in bootstrap.elements if p.element_type == position]
-    wanted += [entry.id for entry in inputs.players]
+    judged = [entry.id for entry in inputs.players]
+    wanted = [p.id for p in bootstrap.elements if p.element_type == position] + judged
     result = build_predictions(
-        bootstrap, History.from_args(args.data_root, args).summaries(gw, wanted),
+        bootstrap, History.from_args(args.data_root, args).summaries(gw, wanted, pinned=judged),
         load_fixtures(fixtures_path),
         inputs, gw=gw, allow_missing=frozenset(args.allow_missing_ids),
     )

@@ -498,7 +498,7 @@ def prior_documents(store: SnapshotStore, analysis_root: Path, gw: int,
                              and p.now_cost > COVERAGE_PRICE_FLOOR_TENTHS
                              and p.status.value in POOL_STATUSES)
         wanted = [p.id for p in members] + sorted(judged)
-        summaries = (history.summaries(gw, wanted) if history is not None
+        summaries = (history.summaries(gw, wanted, pinned=judged) if history is not None
                      else load_cached_summaries(store, gw, wanted))
         result = build_predictions(bootstrap, summaries, fixtures, inputs, gw=gw,
                                    allow_missing=unjudged)
