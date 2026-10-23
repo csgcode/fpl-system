@@ -158,7 +158,8 @@ did not beat the shared one. The numbers are in the gate table in §8.
 Some players score more goals than their xG says, season after season. The
 code can scale a player's blended `xg90` by his finishing record:
 `(goals + k) / (xG + k)`, summed over every Premier League season since
-2022/23 (the first with xG recorded). `k` pseudo-goals on each side pull the
+2022/23, the first with xG recorded (`XG_RECORDED_FROM`, the same rule that
+sets `xg_recorded` in the season store). `k` pseudo-goals on each side pull the
 multiplier toward 1, so a short record barely moves it. An analyst's `xg90`
 override is never scaled, and `rates.finishing_mult` then shows 1.0.
 
@@ -393,8 +394,11 @@ Inputs:
   each row on the side of the club the player played for in that match. With
   `--history-from summaries`, they come from every cached player summary in
   `data/raw/gw{N}/players/` (steps 2 and 3).
-- `event-live-e{r}.json` from `data/raw/gw{r+1}/` for every round r before N.
-  The retro's `calibrate` writes it; without it the command refuses.
+- `event-live-e{r}.json` from `data/raw/gw{r+1}/` for every round r before N,
+  on either path (the season store is built from these snapshots). The data
+  collector's `event-live` step fetches the latest one. Without it the
+  command refuses and names the command that fetches it,
+  `event-live --gw r+1 --round r`.
 - `club-priors.json`: one ATT and DEFW per club, fixed at GW1, never edited.
 - `data/analysis/gw{N-1}/fixtures.json`, if present, only for the Δ columns.
 
