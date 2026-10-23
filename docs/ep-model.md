@@ -511,8 +511,9 @@ rewards knowing who will play, is not the test.
 The `p4` calibration record (data/model/gates/p4.json) and `combined.json`
 hold the scores; the `p4` row of the gate table in §8 shows them. The
 positions with a starter skill above 0 are `objective.P4_CALIBRATED`, and the
-`ep` table shows `p4` only for those positions. A test keeps the constant equal
-to `combined.json`.
+`ep` table shows `p4` only for those positions. The calibrated positions are
+GKP and FWD. A test keeps the constant and this sentence equal to
+`combined.json`.
 
 ## 10. Form
 
