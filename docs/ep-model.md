@@ -406,5 +406,8 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | drop-promoted | policy | 3-7 | — | — | +0.0021 | [−0.001, +0.005] | +0.183→+0.174 | 1/5 | FAIL · slice FAIL · hypothesis not supported | ci: upper +0.005 ≥ 0; effect: ΔMAE +0.0021 > −0.01; rounds: won 1 of 5, need 4 |
 | drop-no-history | policy | 3-7 | — | — | +0.0017 | [−0.001, +0.004] | +0.183→+0.173 | 1/5 | FAIL · slice FAIL · hypothesis not supported | ci: upper +0.004 ≥ 0; effect: ΔMAE +0.0017 > −0.01; rounds: won 1 of 5, need 4 |
 | no-history-k | model | 3-7 | blend_k_no_history=none,150,300 | blend_k_no_history=150 | +0.0002 | [−0.002, +0.003] | +0.183→+0.183 | 2/5 | FAIL · slice FAIL · hypothesis not supported | ci: upper +0.003 ≥ 0; effect: ΔMAE +0.0002 > −0.01; rounds: won 2 of 5, need 4 |
+| recency | model | 3-7 | half_life_matches=none,2,3,4,6; opponent_adjust=false,true | half_life_matches=none,opponent_adjust=true | +0.0007 | [−0.001, +0.002] | +0.183→+0.185 | 3/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE +0.0007 > −0.01; rounds: won 3 of 5, need 4 |
+| saves-adjust | model | 3-7 | — | opponent_adjust_saves=true | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
+| effective-minutes | model | 3-7 | — | blend_on_effective_minutes=true | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
 | combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->

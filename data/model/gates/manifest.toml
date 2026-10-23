@@ -22,3 +22,18 @@ argv = ["--inputs-policy", "drop_no_history", "--gate-slice", "no_history"]
 name = "no-history-k"
 kind = "model"
 argv = ["--sweep", "blend_k_no_history=none,150,300", "--cv", "--gate-slice", "no_history"]
+
+[[gate]]
+name = "recency"
+kind = "model"
+argv = ["--sweep", "half_life_matches=none,2,3,4,6", "--sweep", "opponent_adjust=false,true", "--cv"]
+
+[[gate]]
+name = "saves-adjust"
+kind = "model"
+argv = ["--set", "opponent_adjust_saves=true"]
+
+[[gate]]
+name = "effective-minutes"
+kind = "model"
+argv = ["--set", "blend_on_effective_minutes=true"]
