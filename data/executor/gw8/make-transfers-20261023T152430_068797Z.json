@@ -1,0 +1,61 @@
+{
+ "command": "make-transfers",
+ "team_id": 8455344,
+ "payload": {
+  "entry": 8455344,
+  "event": 8,
+  "transfers": [
+   {
+    "element_in": 385,
+    "element_out": 1,
+    "purchase_price": 50,
+    "selling_price": 60
+   },
+   {
+    "element_in": 496,
+    "element_out": 497,
+    "purchase_price": 45,
+    "selling_price": 40
+   },
+   {
+    "element_in": 8,
+    "element_out": 202,
+    "purchase_price": 60,
+    "selling_price": 49
+   },
+   {
+    "element_in": 60,
+    "element_out": 229,
+    "purchase_price": 55,
+    "selling_price": 61
+   },
+   {
+    "element_in": 332,
+    "element_out": 423,
+    "purchase_price": 45,
+    "selling_price": 43
+   },
+   {
+    "element_in": 127,
+    "element_out": 94,
+    "purchase_price": 50,
+    "selling_price": 62
+   },
+   {
+    "element_in": 453,
+    "element_out": 124,
+    "purchase_price": 61,
+    "selling_price": 60
+   },
+   {
+    "element_in": 379,
+    "element_out": 106,
+    "purchase_price": 90,
+    "selling_price": 78
+   }
+  ],
+  "chip": "wildcard"
+ },
+ "verified": true,
+ "problems": []
+}
