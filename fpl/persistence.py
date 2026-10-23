@@ -259,7 +259,8 @@ def record_document(args: argparse.Namespace, paths: Sequence[Path],
         "argv": ["--window", str(args.window), "--min-starts", str(args.min_starts)],
         "rounds": [report.round for report in reports],
         "data": {"retro_root": str(args.retro_root), "ledgers": ledgers},
-        "decision_commits": {
+        "decision_commits": None,
+        "predictions_commits": {
             str(report.round): _commit(report.predictions_source) for report in reports
         },
         "code": code_state(),

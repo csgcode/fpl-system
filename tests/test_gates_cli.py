@@ -243,6 +243,7 @@ def _window(window: int, n: int, slope: float, ci: tuple[float, float], r: float
 
 PERSISTENCE = _record(
     "persistence", kind="persistence", baseline_config=None,
+    decision_commits=None, predictions_commits={"3": None},
     comparison={"significant": False, "windows": [
         _window(3, 711, 0.034, (-0.095, 0.162), 0.020),
         _window(1, 1098, 0.007, (-0.046, 0.060), 0.007),
@@ -351,3 +352,23 @@ def test_write_record_archives_a_combined_record_only_when_its_content_changes(t
     gates.write_record(root, changed, force=True, archive_unchanged=False)
     [archived] = (root / gates.ARCHIVE_DIR).glob("combined.*.json")
     assert json.loads(archived.read_text())["code"] == {"head": "abc", "dirty": False}
+
+
+@pytest.mark.parametrize("kind", ["model", "policy", "calibration", "combined"])
+def test_a_record_judging_a_config_needs_its_baseline_config(kind):
+    record = _record("x", kind=kind, baseline_config=None)
+    with pytest.raises(ValueError, match="baseline_config"):
+        gates.GateRecord.model_validate(record)
+
+
+def test_only_a_persistence_record_carries_significant():
+    with pytest.raises(ValueError, match="significant"):
+        gates.GateRecord.model_validate(_record("x", significant=False))
+    gates.GateRecord.model_validate(PERSISTENCE)
+
+
+def test_predictions_commits_belong_to_persistence_and_decision_commits_to_the_rest():
+    with pytest.raises(ValueError, match="predictions_commits"):
+        gates.GateRecord.model_validate(_record("x", predictions_commits={"3": None}))
+    with pytest.raises(ValueError, match="decision_commits"):
+        gates.GateRecord.model_validate({**_record("x"), "decision_commits": None})

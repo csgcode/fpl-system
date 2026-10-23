@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from fpl.store import ARCHIVE_STAMP_FORMAT
 
@@ -59,7 +59,7 @@ class GateRecord(BaseModel):
     argv: tuple[str, ...]
     rounds: tuple[int, ...]
     data: dict[str, Any]
-    decision_commits: dict[str, str | None]
+    decision_commits: dict[str, str | None] | None
     code: dict[str, Any]
     baseline_config: dict[str, Any] | None
     grid: dict[str, list[Any]] | None
@@ -76,6 +76,27 @@ class GateRecord(BaseModel):
     shipped_config: dict[str, Any] | None = None
     reverted: tuple[str, ...] | None = None
     significant: bool | None = None
+    predictions_commits: dict[str, str | None] | None = None
+
+    @model_validator(mode="after")
+    def _fields_match_kind(self) -> GateRecord:
+        """A persistence record reads ledgers, so it names each ledger's
+        predictions commit and judges no config; every other kind judges a
+        config on rounds with decision commits."""
+        if self.kind == "persistence":
+            if self.decision_commits is not None:
+                raise ValueError("a persistence record has predictions_commits, "
+                                 "not decision_commits")
+            return self
+        if self.baseline_config is None:
+            raise ValueError(f"a {self.kind} record needs baseline_config")
+        if self.decision_commits is None:
+            raise ValueError(f"a {self.kind} record needs decision_commits")
+        if self.significant is not None:
+            raise ValueError("significant belongs to a persistence record only")
+        if self.predictions_commits is not None:
+            raise ValueError("predictions_commits belong to a persistence record only")
+        return self
 
 
 class ManifestEntry(BaseModel):

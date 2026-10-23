@@ -153,6 +153,8 @@ def test_persistence_record_holds_three_windows(strong, tmp_path, capsys):
     assert record.baseline_config is None
     assert sorted(record.data["ledgers"], key=int) == [str(r) for r in range(1, 7)]
     assert set(record.data["ledgers"]["1"]) == {"path", "sha256", "predictions_source"}
+    assert record.decision_commits is None
+    assert sorted(record.predictions_commits, key=int) == [str(r) for r in range(1, 7)]
     assert f"wrote {gates_root / 'persistence.json'}" in capsys.readouterr().out
 
 
