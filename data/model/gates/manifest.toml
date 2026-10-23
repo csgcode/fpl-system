@@ -7,3 +7,18 @@ argv = []
 name = "prior-weight"
 kind = "model"
 argv = ["--sweep", "blend_k=600,300,450,900,1200", "--cv"]
+
+[[gate]]
+name = "drop-promoted"
+kind = "policy"
+argv = ["--inputs-policy", "drop_promoted", "--gate-slice", "promoted"]
+
+[[gate]]
+name = "drop-no-history"
+kind = "policy"
+argv = ["--inputs-policy", "drop_no_history", "--gate-slice", "no_history"]
+
+[[gate]]
+name = "no-history-k"
+kind = "model"
+argv = ["--sweep", "blend_k_no_history=none,150,300", "--cv", "--gate-slice", "no_history"]
