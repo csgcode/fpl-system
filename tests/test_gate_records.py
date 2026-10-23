@@ -31,6 +31,12 @@ def test_ep_model_gate_block_matches_records():
     assert block.strip() == gates.render(gates.load_records(GATES_ROOT)).strip()
 
 
+@pytest.mark.parametrize("path", sorted((GATES_ROOT / gates.ARCHIVE_DIR).glob("*.json")),
+                         ids=lambda path: path.name)
+def test_archived_records_still_validate(path):
+    gates.GateRecord.model_validate_json(path.read_text(encoding="utf-8"))
+
+
 def test_manifest_starts_with_the_baseline_entry():
     entries = gates.load_manifest(GATES_ROOT / gates.MANIFEST)
     assert entries[0] == gates.ManifestEntry(name="baseline", kind="model", argv=())

@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from fpl.store import ARCHIVE_STAMP_FORMAT
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 GATES_ROOT = Path("data/model/gates")
 EP_MODEL_DOC = Path("docs/ep-model.md")
 MANIFEST = "manifest.toml"
@@ -53,7 +53,7 @@ def overrides_text(overrides: Mapping[str, Any]) -> str:
 class GateRecord(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: Literal[1]
+    schema_version: Literal[1, 2]
     name: str = Field(pattern=NAME_PATTERN)
     kind: Kind
     argv: tuple[str, ...]
@@ -82,11 +82,19 @@ class GateRecord(BaseModel):
     def _fields_match_kind(self) -> GateRecord:
         """A persistence record reads ledgers, so it names each ledger's
         predictions commit and judges no config; every other kind judges a
-        config on rounds with decision commits."""
+        config on rounds with decision commits. A version 1 persistence
+        record may name decision commits instead of predictions commits."""
         if self.kind == "persistence":
+            if self.baseline_config is not None:
+                raise ValueError("a persistence record judges no config, "
+                                 "so baseline_config must be null")
+            if self.schema_version == 1:
+                return self
             if self.decision_commits is not None:
                 raise ValueError("a persistence record has predictions_commits, "
                                  "not decision_commits")
+            if self.predictions_commits is None:
+                raise ValueError("a persistence record needs predictions_commits")
             return self
         if self.baseline_config is None:
             raise ValueError(f"a {self.kind} record needs baseline_config")

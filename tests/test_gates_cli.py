@@ -410,3 +410,40 @@ def test_summary_shows_a_tiny_negative_starter_skill_with_its_sign(tmp_path, cap
     (root / "p4.json").write_text(json.dumps(record), encoding="utf-8")
     assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
     assert "(starters n 900 Brier 0.210 v base 0.220 skill −0.0001)" in capsys.readouterr().out
+
+
+def test_new_records_are_written_at_schema_version_2_and_version_1_still_reads():
+    assert gates.SCHEMA_VERSION == 2
+    gates.GateRecord.model_validate({**_record("x"), "schema_version": 2})
+    gates.GateRecord.model_validate({**_record("x"), "schema_version": 1})
+    with pytest.raises(ValueError, match="schema_version"):
+        gates.GateRecord.model_validate({**_record("x"), "schema_version": 3})
+
+
+def _persistence(**changes) -> dict:
+    return {**PERSISTENCE, "schema_version": 2, **changes}
+
+
+def test_a_persistence_record_rejects_decision_commits():
+    with pytest.raises(ValueError, match="decision_commits"):
+        gates.GateRecord.model_validate(_persistence(decision_commits={"3": None}))
+
+
+def test_a_persistence_record_requires_predictions_commits():
+    with pytest.raises(ValueError, match="predictions_commits"):
+        gates.GateRecord.model_validate(_persistence(predictions_commits=None))
+    record = _persistence()
+    del record["predictions_commits"]
+    with pytest.raises(ValueError, match="predictions_commits"):
+        gates.GateRecord.model_validate(record)
+
+
+def test_a_persistence_record_judges_no_baseline_config():
+    with pytest.raises(ValueError, match="baseline_config"):
+        gates.GateRecord.model_validate(_persistence(baseline_config=asdict(DEFAULT_CONFIG)))
+
+
+def test_a_version_1_persistence_record_may_carry_decision_commits():
+    legacy = {**PERSISTENCE, "schema_version": 1, "decision_commits": {"3": None}}
+    del legacy["predictions_commits"]
+    gates.GateRecord.model_validate(legacy)

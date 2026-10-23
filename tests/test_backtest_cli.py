@@ -349,7 +349,7 @@ def test_record_writes_once_and_force_archives(world, capsys, tmp_path):
     path = gates_root / "k300.json"
     record = json.loads(path.read_text())
     assert RECORD_FIELDS <= set(record)
-    assert record["schema_version"] == 1
+    assert record["schema_version"] == 2
     assert (record["name"], record["kind"]) == ("k300", "model")
     assert record["argv"] == ["--set", "blend_k=300"]
     assert record["rounds"] == [3, 4]
