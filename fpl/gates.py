@@ -161,8 +161,8 @@ def write_record(root: Path, record: Mapping[str, Any], *, force: bool,
                  now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)) -> Path:
     """Writes the record once. With `force`, an existing record moves to
     archive/<name>.<UTC stamp>.json first — unless `archive_unchanged` is
-    False and the two differ only in `code` and `recorded_at`, when the old
-    one is simply replaced."""
+    False and the two differ only in `code`, `recorded_at` and the file
+    paths under `data`, when the old one is simply replaced."""
     parsed = GateRecord.model_validate(record)
     path = record_path(root, parsed.name)
     if path.exists():
@@ -180,7 +180,19 @@ def write_record(root: Path, record: Mapping[str, Any], *, force: bool,
 
 
 def _content(record: GateRecord) -> dict[str, Any]:
-    return record.model_dump(mode="json", exclude={"code", "recorded_at"})
+    """The record minus what changes from one checkout to the next: the
+    code state, the recording time, and the file paths under `data` (the
+    snapshot hashes stay)."""
+    content = record.model_dump(mode="json", exclude={"code", "recorded_at"})
+    content["data"] = _without_paths(content["data"])
+    return content
+
+
+def _without_paths(value: Any) -> Any:
+    if not isinstance(value, dict):
+        return value
+    return {key: _without_paths(item) for key, item in value.items()
+            if key != "path" and not key.endswith("_root")}
 
 
 def load_manifest(path: Path) -> list[ManifestEntry]:

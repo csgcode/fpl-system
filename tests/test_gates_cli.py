@@ -379,3 +379,24 @@ def test_predictions_commits_belong_to_persistence_and_decision_commits_to_the_r
         gates.GateRecord.model_validate(_record("x", predictions_commits={"3": None}))
     with pytest.raises(ValueError, match="decision_commits"):
         gates.GateRecord.model_validate({**_record("x"), "decision_commits": None})
+
+
+def test_a_combined_record_run_from_another_checkout_is_not_archived(tmp_path):
+    root = tmp_path / "gates"
+    combined = _record("combined", kind="combined", ship={},
+                       shipped_config=asdict(DEFAULT_CONFIG), reverted=[])
+    combined["data"]["actuals"] = {"3": {"path": "/a/raw/gw4/event-live-e3.json",
+                                         "sha256": "aa"}}
+    gates.write_record(root, combined, force=True, archive_unchanged=False)
+    elsewhere = json.loads(json.dumps(combined))
+    elsewhere["data"].update(data_root="/b/raw", analysis_root="/b/analysis",
+                             decisions_root="/b/decisions", retro_root="/b/retro")
+    elsewhere["data"]["actuals"]["3"]["path"] = "/b/raw/gw4/event-live-e3.json"
+    gates.write_record(root, elsewhere, force=True, archive_unchanged=False)
+    assert not (root / gates.ARCHIVE_DIR).exists()
+    assert gates.read_record(root, "combined").data["data_root"] == "/b/raw"
+
+    other_snapshot = json.loads(json.dumps(elsewhere))
+    other_snapshot["data"]["actuals"]["3"]["sha256"] = "bb"
+    gates.write_record(root, other_snapshot, force=True, archive_unchanged=False)
+    assert len(list((root / gates.ARCHIVE_DIR).glob("combined.*.json"))) == 1
