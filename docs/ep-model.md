@@ -102,6 +102,25 @@ the league mean rather than from 90.
 | yellow90 | 0.05 | 0.15 | 0.15 | 0.12 |
 | minutes_per_start | 90 | 85 | 80 | 78 |
 
+### Promoted clubs and no-history players
+
+A player with no Premier League history gets the position league mean as his
+prior (step 1), and player analysts discount some of them with `attack_mult`.
+The backtest tests both choices, each with its own gate record:
+
+- `drop-promoted` (data/model/gates/drop-promoted.json) removes the analysts'
+  `attack_mult` from players at promoted clubs only, and judges the result on
+  those players. Analysts set `attack_mult` on many other players for other
+  reasons; this gate leaves those rows as they are.
+- `drop-no-history` (data/model/gates/drop-no-history.json) does the same for
+  players with no PL history.
+- `no-history-k` (data/model/gates/no-history-k.json) tries a separate blend K
+  for players with no PL history.
+
+None of them changed the model or the analyst instructions: removing the
+discounts did not make those players' predictions better, and the separate K
+did not beat the shared one. The numbers are in the gate table in §8.
+
 ### DefCon rate (dc90)
 
 The API reports `defensive_contribution` as 0 for every season before
@@ -384,5 +403,8 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | baseline | model | 3-7 | — | — | — | — | — | — | — | reference: n 2127, bias +0.183, MAE 1.643 |
 | prior-weight | model | 3-7 | blend_k=600,300,450,900,1200 | blend_k=300 | −0.0043 | [−0.008, −0.001] | +0.183→+0.192 | 5/5 | FAIL | effect: ΔMAE −0.0043 > −0.01 |
+| drop-promoted | policy | 3-7 | — | — | +0.0021 | [−0.001, +0.005] | +0.183→+0.174 | 1/5 | FAIL · slice FAIL · hypothesis not supported | ci: upper +0.005 ≥ 0; effect: ΔMAE +0.0021 > −0.01; rounds: won 1 of 5, need 4 |
+| drop-no-history | policy | 3-7 | — | — | +0.0017 | [−0.001, +0.004] | +0.183→+0.173 | 1/5 | FAIL · slice FAIL · hypothesis not supported | ci: upper +0.004 ≥ 0; effect: ΔMAE +0.0017 > −0.01; rounds: won 1 of 5, need 4 |
+| no-history-k | model | 3-7 | blend_k_no_history=none,150,300 | blend_k_no_history=150 | +0.0002 | [−0.002, +0.003] | +0.183→+0.183 | 2/5 | FAIL · slice FAIL · hypothesis not supported | ci: upper +0.003 ≥ 0; effect: ΔMAE +0.0002 > −0.01; rounds: won 2 of 5, need 4 |
 | combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->

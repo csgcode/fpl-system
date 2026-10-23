@@ -32,3 +32,11 @@ def test_ep_model_worked_examples(marker):
     expected = f"{EXAMPLES[marker]():.2f}"
     numbers = re.findall(r"(?<![\d.])\d+\.\d+(?![\d.])", line)
     assert expected in numbers, f"line after '{marker}' states {numbers}, code gives {expected}: {line!r}"
+
+
+def test_ep_model_names_only_gate_records_that_exist():
+    text = EP_MODEL_DOC.read_text(encoding="utf-8")
+    named = set(re.findall(r"data/model/gates/([\w.-]+\.json)", text))
+    gates_root = EP_MODEL_DOC.parent.parent / "data" / "model" / "gates"
+    assert {"drop-promoted.json", "drop-no-history.json", "no-history-k.json"} <= named
+    assert sorted(n for n in named if not (gates_root / n).exists()) == []
