@@ -749,3 +749,25 @@ def test_record_judges_the_hypothesis_by_the_entry_kind(monkeypatch, kind, expec
     record = backtest._record(None, "p", kind, (), report)
     assert (record["verdict"], record["slice_verdict"]) == ("FAIL", "PASS")
     assert record["hypothesis"] == expected
+
+
+def test_record_all_refuses_a_persistence_entry(world, capsys, tmp_path):
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []),
+                               ("persistence", "persistence", ["--window", "3"]))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(tmp_path / "gates")) == 1
+    err = capsys.readouterr().err
+    assert "manifest entry persistence" in err and "fpl persistence --record" in err
+
+
+def test_record_all_refuses_a_baseline_record_of_another_kind(world, capsys, tmp_path):
+    from tests.test_gates_cli import PERSISTENCE
+
+    gates_root = tmp_path / "gates"
+    gates_root.mkdir()
+    (gates_root / "baseline.json").write_text(
+        json.dumps({**PERSISTENCE, "name": "baseline"}), encoding="utf-8")
+    manifest = _write_manifest(tmp_path / "manifest.toml", ("baseline", "model", []))
+    assert _run(world, "--manifest", str(manifest), "--record-all",
+                "--gates-root", str(gates_root)) == 1
+    assert "kind persistence" in capsys.readouterr().err

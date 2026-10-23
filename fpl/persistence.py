@@ -178,13 +178,26 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
     parser.add_argument("--retro-root", type=Path, default=RETRO_ROOT,
                         help="where gw{M}-calibration.json ledgers live; only M < --gw is read")
     parser.add_argument("--format", choices=("table", "json"), default="table")
-    parser.add_argument("--record", metavar="NAME", type=gates.check_name,
+    parser.add_argument("--record", metavar="NAME", type=_record_name,
                         help="also write the result as gate record NAME (written once); "
                              f"the exit code is still {EXIT_NOT_SIGNIFICANT} when not significant")
     parser.add_argument("--gates-root", type=Path, default=gates.GATES_ROOT,
                         help="where --record writes")
     parser.add_argument("--force", action="store_true",
                         help="with --record: archive an existing record and write it again")
+
+
+def _record_name(name: str) -> str:
+    """`baseline` names the backtest's reference record, which the manifest
+    run reads as a model config."""
+    try:
+        gates.check_name(name)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from None
+    if name == gates.BASELINE:
+        raise argparse.ArgumentTypeError(
+            f"gate name {name!r} is reserved for the backtest baseline")
+    return name
 
 
 def run(args: argparse.Namespace) -> int:

@@ -183,3 +183,12 @@ def test_persistence_shares_the_gate_critical_value():
 
     assert persistence.GATE_Z is backtest.GATE_Z
     assert not hasattr(persistence, "Z")
+
+
+def test_record_refuses_the_baseline_name(strong, tmp_path, capsys):
+    gates_root = tmp_path / "gates"
+    with pytest.raises(SystemExit):
+        run("--gw", "7", "--retro-root", str(strong), "--record", "baseline",
+            "--gates-root", str(gates_root))
+    assert "reserved" in capsys.readouterr().err
+    assert not gates_root.exists()

@@ -1018,6 +1018,9 @@ def _recorded_baseline(root: Path) -> ModelConfig:
     record = gates.read_record(root, gates.BASELINE)
     if record is None:
         return DEFAULT_CONFIG
+    if record.kind != "model":
+        raise ValueError(f"{gates.record_path(root, gates.BASELINE)} is a record of kind "
+                         f"{record.kind}; the baseline must be a model record")
     recorded = record.baseline_config or {}
     missing = [f.name for f in fields(ModelConfig) if f.name not in recorded]
     if missing:
@@ -1052,6 +1055,9 @@ def _entry_variant(entry: ManifestEntry, config: ModelConfig) -> _EntryVariant:
     edits the inputs and a `model` entry does not: a model value gained on
     edited inputs would ship into production, which reads them unedited."""
     try:
+        if entry.kind == "persistence":
+            raise ValueError("a persistence record is written by fpl persistence --record, "
+                             "not by the manifest")
         if entry.kind == "calibration" and entry.argv:
             raise ValueError("a calibration entry judges the baseline it is given and takes "
                              "no arguments")
