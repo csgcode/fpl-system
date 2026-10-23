@@ -56,6 +56,7 @@ HALF_LIFE_MATCHES: float | None = None
 OPPONENT_ADJUST = False
 OPPONENT_ADJUST_SAVES = False
 BLEND_ON_EFFECTIVE_MINUTES = False
+FINISHING_K: float | None = None
 # Starts-equivalent pseudo-counts: bonus per start is noisy match to match and
 # barely differs between players, so a player's own record needs dozens of
 # starts before it outweighs the position mean.
@@ -749,7 +750,7 @@ class ModelConfig:
     opponent_adjust_saves: bool = OPPONENT_ADJUST_SAVES
     blend_on_effective_minutes: bool = BLEND_ON_EFFECTIVE_MINUTES
     blend_k_no_history: float | None = None
-    finishing_k: float | None = None
+    finishing_k: float | None = FINISHING_K
 
     def __post_init__(self) -> None:
         # An int and the equal float compare equal but repr differently, so

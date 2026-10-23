@@ -138,6 +138,20 @@ None of them changed the model or the analyst instructions: removing the
 discounts did not make those players' predictions better, and the separate K
 did not beat the shared one. The numbers are in the gate table in §8.
 
+### Finishing
+
+Some players score more goals than their xG says, season after season. The
+code can scale a player's blended `xg90` by his finishing record:
+`(goals + k) / (xG + k)`, summed over every Premier League season since
+2022/23 (the first with xG recorded). `k` pseudo-goals on each side pull the
+multiplier toward 1, so a short record barely moves it. An analyst's `xg90`
+override is never scaled, and `rates.finishing_mult` then shows 1.0.
+
+The multiplier is off (`FINISHING_K = None`, multiplier 1.0). The `finishing`
+gate (data/model/gates/finishing.json) tried k = 20, 10, 5, 2 and 1. Every
+fold picked the smallest k, but the gain was too small and too uncertain to
+ship. The numbers are in the gate table in §8.
+
 ### DefCon rate (dc90)
 
 The API reports `defensive_contribution` as 0 for every season before
@@ -426,5 +440,6 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | recency | model | 3-7 | half_life_matches=none,2,3,4,6; opponent_adjust=false,true | half_life_matches=none,opponent_adjust=true | +0.0007 | [−0.001, +0.002] | +0.183→+0.185 | 3/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE +0.0007 > −0.01; rounds: won 3 of 5, need 4 |
 | saves-adjust | model | 3-7 | — | opponent_adjust_saves=true | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
 | effective-minutes | model | 3-7 | — | blend_on_effective_minutes=true | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
+| finishing | model | 3-7 | finishing_k=none,20,10,5,2,1 | finishing_k=1 | −0.0026 | [−0.008, +0.002] | +0.183→+0.192 | 4/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE −0.0026 > −0.01 |
 | combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->

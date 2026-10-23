@@ -134,6 +134,13 @@ def test_phase_three_constants_are_the_config_defaults_and_ship_off():
     assert DEFAULT_CONFIG.blend_on_effective_minutes == ep.BLEND_ON_EFFECTIVE_MINUTES
 
 
+def test_finishing_constant_is_the_config_default_and_ships_off():
+    from fpl import ep
+
+    assert ep.FINISHING_K is None
+    assert DEFAULT_CONFIG.finishing_k == ep.FINISHING_K
+
+
 def test_config_digest_is_stable_and_changes_with_a_field():
     digest = DEFAULT_CONFIG.digest()
     assert digest == ModelConfig().digest()

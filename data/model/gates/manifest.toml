@@ -37,3 +37,8 @@ argv = ["--set", "opponent_adjust_saves=true"]
 name = "effective-minutes"
 kind = "model"
 argv = ["--set", "blend_on_effective_minutes=true"]
+
+[[gate]]
+name = "finishing"
+kind = "model"
+argv = ["--sweep", "finishing_k=none,20,10,5,2,1", "--cv"]
