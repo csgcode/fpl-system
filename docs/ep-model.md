@@ -12,7 +12,8 @@ cached bootstrap + element summaries   ─┘              (schema calibrate rea
 ```
 
 Local-only: cached snapshots, no network, no credentials. Output is derived —
-regenerating it from the same inputs is always safe.
+regenerating it from the same inputs is safe until the gameweek is decided
+(§4).
 
 ## 1. Formula
 
@@ -289,6 +290,16 @@ ep_gw ep_total6 ep_per_million uncertainty notes`) plus, per row:
 - `fixtures`: strings such as `"CHE(H)"`, `"AVL(A)+BHA(H)"`, `"-"`
 - `terms`: window sums of the eight terms, weighted by `p_start_gw`, so they add up to `ep_total6`
 - `rates`: the effective rates, `dc90_prior`, `prior_weight`, `prior_source`, `attack_mult`, prior and current minutes
+- `rates.finishing_mult`: always present. The finishing multiplier applied to
+  `xg90` (§2 Finishing): 1.0 while the multiplier is off, as it is now, and
+  1.0 when an analyst's `xg90` override bypasses it
+- `model`: the model version, the first 8 hex digits of a hash of the model
+  constants (`ModelConfig.digest()`). `objective` refuses players files whose
+  version differs from the code's
+- `p4_gw` and `returns5`: the consistency columns (§9). They are not EP terms
+- `share_flag`: the team-xG share check's finding for the row (§4), or null
+
+There is no `terms.form`: the model has no form term (§10).
 
 Rows sort by `ep_total6` descending. `calibrate` reads the documented fields
 and ignores the rest.
@@ -301,9 +312,25 @@ uv run python -m fpl ep --gw 3 --position MID
 
 Defaults: `data/analysis/gw3/inputs-MID.json` and `fixtures.json` in, `players-MID.json`
 out; `--inputs`, `--fixtures`, `--out` override, `--format json` prints the
-document. The table shows the top rows with their term breakdown, the coverage
-line, and the ids that lack a cached element summary together with the
-`summaries --ids` command that fetches them.
+document. The output starts with a `model <digest>` line. The table shows the
+top rows with their term breakdown and the `p4`, `ret5` and `share` columns,
+the coverage line, and the ids that lack a cached element summary together
+with the `summaries --ids` command that fetches them.
+
+Once `data/decisions/gw{N}/final.md` exists (`--decisions-root` moves it), the
+gameweek is decided and its players files are the decision record: `ep`
+refuses to write `players-{pos}.json` and only writes elsewhere with `--out`.
+
+Team-xG share check: for each player with at least 3 counted starts, `ep`
+compares the share of his club's xG and xA that his EP rates assume with the
+share he has actually taken this season, and flags the row when the two
+differ by more than 0.05 or 40% of the season share, whichever is larger
+(`fpl/team_share.py`). It prints one `share check: <k> flagged (ids …)` line;
+`--share-detail` adds one line per flagged row with both shares. The flag is
+a reading aid for the analyst: a reason to look again at that player's rates,
+never on its own a reason to override them. When the check cannot run (no
+event-live snapshot to measure club xG from), `ep` prints a `share check
+skipped` warning and still writes the file.
 
 What-if view: `--prior-weight W` (W in [0, 1]) forces every row's
 `prior_weight` to W, replacing any per-row `prior_weight` override; the other
@@ -325,6 +352,9 @@ instruction to an analyst. The judgment inputs stay where they are.
 A decided round's players-*.json is the decision record. `calibrate` scores the
 predictions lock, or else the files in the commit that first added that round's
 final.md, and warns when the working tree differs.
+
+A model change is judged with `fpl backtest` (§8) and recorded under
+data/model/gates/; a decided round is never regenerated to judge it.
 
 ## 6. Fixture ratings
 
@@ -425,6 +455,171 @@ it is code.
   slots (`p_start_gw[0]` < 0.5).
 
 ## 8. Backtest
+
+`fpl backtest` scores past rounds again under a changed model (a variant) and
+compares it with the current model on the same player-rounds. It reads only
+files already on disk: no network, no credentials.
+
+### What the gates found
+
+Every change tested so far failed its gate, so none shipped. The model runs
+the same constants it ran before the backtest existed: `combined.json`
+`shipped_config` equals `DEFAULT_CONFIG`, and a test keeps them equal.
+
+The code for each tested change is kept, switched off. Each is a
+`ModelConfig` field whose default is a constant in `fpl/ep.py`:
+
+| Change | Setting (off value) | Gate |
+|---|---|---|
+| a different blend K | `BLEND_EQUIV_MINUTES` (stays 600) | `prior-weight` |
+| a separate blend K for players with no PL history | `blend_k_no_history` (None) | `no-history-k` |
+| weighting recent matches more | `HALF_LIFE_MATCHES` (None) | `recency` |
+| adjusting xG and xA for the opponent | `OPPONENT_ADJUST` (False) | `recency` |
+| adjusting saves for the opponent | `OPPONENT_ADJUST_SAVES` (False) | `saves-adjust` |
+| blend weight from recency-weighted minutes | `BLEND_ON_EFFECTIVE_MINUTES` (False) | `effective-minutes` |
+| finishing multiplier | `FINISHING_K` (None) | `finishing` |
+
+The policy gates asked whether the analysts should stop discounting players
+at promoted clubs (`drop-promoted`) and players with no PL history
+(`drop-no-history`). Neither result supported a change, so the analyst
+instructions stay as they are (§2).
+
+`fpl persistence` found that a player's recent prediction errors do not carry
+over to his next round, so no form term was built (§10).
+
+The one change the work made: `p4_gw` breaks near ties in `objective` only
+for the positions where it beats a plain base rate among likely starters,
+GKP and FWD (§9).
+
+### Where the records live
+
+- `data/model/gates/<name>.json`: one gate record per test, written once.
+- `data/model/gates/manifest.toml`: the tests in the order they run, each with
+  its name, kind and arguments.
+- `data/model/gates/combined.json`: every passing model change together, and
+  `shipped_config`, the full set of constants that must ship.
+- `data/model/gates/archive/`: records replaced with `--force`.
+
+The records are derived from files on disk, but they are committed: they are
+the evidence for each model decision.
+
+### Running the gates again
+
+From the repo root, once the latest round's event-live snapshot is final:
+
+```
+uv run python -m fpl backtest --gw 8 --rounds 3-7 \
+  --manifest data/model/gates/manifest.toml --record-all
+uv run python -m fpl persistence --gw 8 --window 3 --min-starts 2 --record persistence
+uv run python -m fpl gates --gw 8 --summary
+uv run python -m fpl gates --gw 8 --render
+```
+
+- `--record-all` runs each manifest entry that has no record yet, in order,
+  then writes `combined.json` again. `--force` archives the existing records
+  and runs every entry again. `combined.json` is archived only when its
+  content changes.
+- `--record <name>` with `--set` or `--sweep` records a single test outside
+  the manifest.
+- `gates --summary` prints each record's result and what happened to it;
+  `gates --render` rewrites the table at the end of this section.
+- Without `--record` or `--record-all` the command writes nothing, so trying a
+  variant is free: `--set blend_k=450`, or `--sweep blend_k=300,450 --cv`.
+
+Other options: `--analysis-root`, `--decisions-root` and `--retro-root` move
+the inputs; `--inputs-policy` and `--gate-slice` run a policy test; `--detail`
+adds per-position and slice tables; `--format json` and `--out` give the full
+document; `--max-ledger-n-gap N` exits 1 when a round's line count differs
+from its calibration ledger's by more than N.
+
+### Which rounds, and what is read
+
+A round r can be scored when it has analyst inputs under
+`data/analysis/gw{r}/` and a final event-live snapshot at
+`data/raw/gw{r+1}/event-live-e{r}.json`. Final means its `.meta` sidecar says
+`final: true`, or a bootstrap of a later gameweek, fetched no later than the
+snapshot, shows round r data-checked. The gates use rounds from 3 on: before
+GW3 the analysts computed EP by hand, so there is no code prediction to
+compare with.
+
+Nothing from after a round's deadline may reach its prediction:
+
+- every model input (the gw r `bootstrap.json`, `fixtures.json` and player
+  summaries) must have been fetched before round r's deadline, by its sidecar;
+- every player summary may hold only matches from rounds before r;
+- the inputs on disk must equal those in the round's decision commit (the
+  commit that first added its final.md); `--no-drift-check` skips this;
+- the actual points come only from the final event-live snapshot.
+
+A player the coverage rule (§3) requires but the analyst left out is not
+scored, as in production, and the run names him in a warning instead of
+refusing.
+
+The baseline is today's code run on the recorded inputs. It is not the
+calibration ledger, which scores what was predicted at the time. The
+per-round table prints the gap as `code drift`: the mean difference per
+player between the two predictions. In `baseline.json` it is about 0.05
+points for rounds 3–6 and 0 for round 7.
+
+### The gate
+
+Lines are paired by (round, id). Per line, d = |e_variant| − |e_baseline|,
+computed from the line errors, never from rounded aggregates.
+
+- ΔMAE = mean d.
+- SE clustered by (round, club), CR0: SE = √(Σ_g (Σ_{i∈g} (dᵢ − ΔMAE))²) / n.
+- CI = ΔMAE ± 1.96·SE.
+- Per-round ΔMAE_r = mean d over round r; a round is a win when ΔMAE_r < 0.
+
+A variant beats the baseline iff all five hold:
+
+| Rule | Key in `reasons` | Condition | Constant |
+|---|---|---|---|
+| 1 | `ci` | CI upper bound < 0 | `GATE_Z = 1.96` |
+| 2 | `bias` | \|bias_variant\| ≤ \|bias_baseline\| + 0.05 | `GATE_BIAS_SLACK = 0.05` |
+| 3 | `position <POS>` | every position: ΔMAE_pos ≤ +0.02 | `GATE_POSITION_SLACK = 0.02` |
+| 4 | `effect` | ΔMAE ≤ −0.01 | `GATE_MIN_EFFECT = -0.01` |
+| 5 | `rounds` | round wins ≥ M − 1 of M rounds | — |
+
+For a sweep, the variant's lines are its leave-one-round-out (LORO) predictions.
+The output always prints the per-round ΔMAE.
+
+### Sweeps: leave-one-round-out and the ship value
+
+A sweep (`--sweep key=v1,v2,… --cv`) tries several values of a setting, with
+the current value always first. For each round, it picks the value with the
+lowest MAE on the other rounds and scores the held-out round with it; the
+gate judges those held-out predictions. This measures how well the choosing
+works, not one fixed value. A fold may learn from rounds after the one it
+holds out, which is acceptable for a setting like this.
+
+The ship value is the value picked most often across the rounds, ties going
+to the earlier value in the grid. It ships only when the gate passes.
+
+### Policy tests and slices
+
+A policy test (`--inputs-policy`) changes the analysts' inputs rather than the
+code, for example removing their `attack_mult` from players at promoted
+clubs. A policy never ships a constant. `--gate-slice` applies the same five
+rules to the lines of one group of players (promoted clubs, or no PL
+history); with fewer than 40 lines the slice verdict is n/a, and rule 3 is
+pooled across positions when a position has fewer than 30 lines.
+
+A policy's hypothesis is `supported` when the baseline under-rates the group
+(its bias is above 0), the variant brings that bias closer to 0, the slice
+gate passes, and the overall ΔMAE is not above 0. The overall gate need not
+pass, since a change confined to a small group barely moves it. For a model
+test on a slice, the overall gate must pass and the slice gate must not fail.
+
+### The manifest and `combined.json`
+
+Each manifest entry runs against the `baseline` record's config plus the ship
+values of earlier passing model entries, so a run after constants have
+changed reproduces the same records. `combined.json` then tests every passing
+ship value together against the baseline. If that fails, the last pass is
+dropped and the rest tested again, until it passes or none is left; dropped
+names go in `reverted`. A `calibration` entry (`p4`) records the `p4_gw`
+scores and has no verdict.
 
 Gate records live under `data/model/gates/`. The table between the markers
 below is generated from them by `fpl gates --render`; do not edit it by hand.
