@@ -22,6 +22,7 @@ from evals.harness.fpl_output import (
     note_from_text,
     parse_datetime,
     prior_season_counts,
+    store_coverage_counts,
 )
 from evals.harness.shell import (
     UNKNOWN,
@@ -36,8 +37,8 @@ from evals.harness.workspace import Manifest, diff
 from fpl.models import Bootstrap, is_shortlisted
 
 CACHED_SUBCOMMANDS = ("bootstrap", "fixtures", "summaries", "entry", "picks",
-                      "entry-history")
-LOCAL_SUBCOMMANDS = ("slim-csv", "prior-season")
+                      "entry-history", "event-live")
+LOCAL_SUBCOMMANDS = ("slim-csv", "prior-season", "store")
 TEAM_SUBCOMMANDS = ("entry", "picks", "entry-history")
 FORBIDDEN_SUBCOMMANDS = frozenset({"actuals", "flags", "auth-import", "auth-refresh",
                                    "my-team", "set-lineup", "make-transfers"})
@@ -54,6 +55,9 @@ MARK_PREVIOUS_GW = "Previous GW:"
 MARK_RETURN = "Return exactly these lines"
 MARK_AUTH = "## Auth pre-flight"
 MARK_SHORTLIST = "at least one start this season"
+# The store-era spec: summaries only for ids with no history_past anywhere,
+# then `store sync`, whose coverage line is meta.md's Coverage.
+MARK_MISSING_PAST = "summaries --gw N --missing-past"
 
 _NETWORK_TOOLS = re.compile(r"\bcurl\b|\bwget\b|\brequests\.|\burllib\b|\bhttpx\b")
 _GIT_WRITE = re.compile(r"\bgit\s+(?:-\S+\s+)*(?:commit|push)\b")
@@ -204,14 +208,18 @@ def _describe(call: ToolCall) -> str:
 
 
 def check_c3(run: CollectorRun) -> CheckResult:
-    """bootstrap first; summaries in the foreground with a long timeout;
-    prior-season only after a summaries call has finished."""
+    """bootstrap first; prior-season only after a summaries call has
+    finished. Summary-era spec: summaries in the foreground with a long
+    timeout. Store-era spec: no shortlist refetch, and a `store sync` after
+    the last summaries call."""
     invoked = _invoked(run)
     if not invoked:
         return CheckResult.failed("no fpl command ran")
     problems = []
     if invoked[0].inv.subcommand != "bootstrap":
         problems.append(f"first fpl command was `{invoked[0].label}`, not bootstrap")
+    if MARK_MISSING_PAST in run.instructions:
+        return _fails(problems + _store_order_problems(invoked))
     summaries_done = False
     for item in invoked:
         if item.inv.subcommand == "summaries":
@@ -224,6 +232,28 @@ def check_c3(run: CollectorRun) -> CheckResult:
         elif item.inv.subcommand == "prior-season" and not summaries_done:
             problems.append(f"`{item.label}` ran before any summaries call")
     return _fails(problems)
+
+
+def _store_order_problems(invoked: list[_Invoked]) -> list[str]:
+    problems = [f"`{i.label}` refetches the shortlist" for i in invoked
+                if i.inv.subcommand == "summaries" and i.inv.has("--shortlist")]
+    syncs = [i.index for i in invoked if _is_store_sync(i)]
+    summaries = [i.index for i in invoked if i.inv.subcommand == "summaries"]
+    if not syncs:
+        problems.append("no `store sync` ran")
+    elif summaries and max(syncs) < max(summaries):
+        problems.append("no `store sync` after the last summaries call")
+    summaries_done = False
+    for item in invoked:
+        if item.inv.subcommand == "summaries":
+            summaries_done = True
+        elif item.inv.subcommand == "prior-season" and not summaries_done:
+            problems.append(f"`{item.label}` ran before any summaries call")
+    return problems
+
+
+def _is_store_sync(item: _Invoked) -> bool:
+    return item.inv.subcommand == "store" and item.inv.has("sync")
 
 
 # --- C4 ---------------------------------------------------------------------
@@ -307,14 +337,19 @@ def check_c6(run: CollectorRun) -> CheckResult:
         if subcommand not in lines:
             problems.append(f"`{subcommand}` ran but has no Commands run line")
 
+    syncs = [i for i in succeeded if _is_store_sync(i)]
     priors = [i for i in succeeded if i.inv.subcommand == "prior-season"]
-    counts = prior_season_counts(priors[-1].call.result.text) if priors else None
+    if syncs:
+        source, counts = "store sync", store_coverage_counts(syncs[-1].call.result.text)
+    else:
+        source = "prior-season"
+        counts = prior_season_counts(priors[-1].call.result.text) if priors else None
     if counts is not None:
         coverage = _key_value(meta, "Coverage") or ""
         numbers = re.findall(r"\d+", coverage)
         missing = [str(n) for n in counts if str(n) not in numbers]
         if missing:
-            problems.append(f"Coverage {coverage!r} lacks prior-season counts {counts}")
+            problems.append(f"Coverage {coverage!r} lacks {source} counts {counts}")
     return _fails(problems)
 
 
@@ -617,6 +652,9 @@ def check_c14(run: CollectorRun) -> CheckResult:
 
 
 def check_c15(run: CollectorRun) -> CheckResult:
+    """Store-era spec: every bootstrap id has history_past for the store, i.e.
+    a kept summary in some gameweek. Summary-era spec: every shortlisted id
+    has a summary in this gameweek."""
     if run.workspace is None:
         return CheckResult.na("needs a live workspace")
     raw = run.workspace.root / _raw(run)
@@ -625,6 +663,16 @@ def check_c15(run: CollectorRun) -> CheckResult:
     except (OSError, ValueError) as exc:
         return CheckResult.failed(f"cannot read bootstrap: {exc}")
     injected = set(run.workspace.error_keys)
+    if MARK_MISSING_PAST in run.instructions:
+        kept = {path.name for path in (run.workspace.root / "data/raw").glob(
+            "gw*/players/summary-*.json")}
+        missing = [p.id for p in bootstrap.elements
+                   if f"summary-{p.id}.json" not in kept
+                   and f"element-summary/{p.id}" not in injected]
+        if missing:
+            return CheckResult.failed(
+                f"{len(missing)} bootstrap ids have no summary in any gameweek: {missing[:10]}")
+        return CheckResult.passed()
     missing = [p.id for p in bootstrap.elements
                if is_shortlisted(p)
                and not (raw / "players" / f"summary-{p.id}.json").is_file()
@@ -652,4 +700,4 @@ CHECKS: tuple[Check, ...] = (
     Check("C15", check_c15, requires=MARK_SHORTLIST, mode="live"),
 )
 MARKERS = (MARK_LINE_BUDGET, MARK_ERRORS, MARK_PREVIOUS_GW, MARK_RETURN, MARK_AUTH,
-           MARK_SHORTLIST)
+           MARK_SHORTLIST, MARK_MISSING_PAST)

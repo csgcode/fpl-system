@@ -65,8 +65,10 @@ and counted. Copy names from the CSV (accents may be dropped). With
 table. If a p_start or an override looks wrong in the light of the numbers,
 fix the inputs and rerun — one rerun at most. A refusal naming an override
 field is a unit slip (0.50 typed as 50): fix the number, never argue with the
-bound. If it lists missing summaries for players you care about, run the
-printed `summaries --ids` command once and rerun.
+bound. If it lists missing summaries for players you care about, run
+`uv run python -m fpl summaries --gw N --missing-past` once (it fetches only
+players with no summary in any gameweek; the next `ep` syncs them into the
+season store) and rerun.
 
 **Call 5 — Write data/analysis/gwN/players-POS.md** (template below).
 
