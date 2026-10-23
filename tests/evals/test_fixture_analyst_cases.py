@@ -31,7 +31,7 @@ def materialise(case, root):
 
 def rate(root, gw, capsys):
     code = main(["--data-root", str(root / "data/raw"), "fixtures-rate", "--gw", str(gw),
-                 "--analysis-root", str(root / "data/analysis")])
+                 "--analysis-root", str(root / "data/analysis"), "--history-from", "summaries"])
     return code, capsys.readouterr()
 
 

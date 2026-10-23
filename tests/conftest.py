@@ -5,7 +5,9 @@ the run log. A CLI test that forgets --data-root or --executor-root while the
 working directory is the repo root writes there and still passes. Every
 in-process write, directory creation, rename or delete under data/ is refused
 with RepoDataWriteError, and the test fails even when the code under test
-catches the error. Reads stay allowed. Subprocesses are not covered.
+catches the error. Reads stay allowed. Subprocesses are covered only for
+data/store, the season store a CLI reader builds by default: a test fails
+when that directory differs after it from before it.
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from pathlib import Path
 import pytest
 
 REPO_DATA = Path(__file__).resolve().parent.parent / "data"
+REPO_STORE = REPO_DATA / "store"
 _DATA = os.path.realpath(REPO_DATA)
 _WRITE_MODE = frozenset("wax+")
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_APPEND | os.O_TRUNC
@@ -106,3 +109,20 @@ def _fail_on_repo_data_write(_repo_data_is_read_only):
         found = list(violations)
         violations.clear()
         pytest.fail("\n".join(found), pytrace=False)
+
+
+def _store_fingerprint() -> dict[str, tuple[int, int]]:
+    if not REPO_STORE.is_dir():
+        return {}
+    return {p.name: (p.stat().st_size, p.stat().st_mtime_ns)
+            for p in REPO_STORE.iterdir()}
+
+
+@pytest.fixture(autouse=True)
+def _fail_on_repo_store_write():
+    before = _store_fingerprint()
+    yield
+    if _store_fingerprint() != before:
+        pytest.fail(f"a test changed the repo's season store under {REPO_STORE} "
+                    f"(a subprocess fpl reader without --store or --history-from "
+                    f"summaries?)", pytrace=False)

@@ -64,7 +64,8 @@ def test_gw6_stdout_and_table_anchors(tmp_path, capsys):
     if not (RAW / "gw6" / "players").is_dir():
         pytest.skip("data/raw/gw6/players is absent")
     code = main(["--data-root", str(RAW), "fixtures-rate", "--gw", "6",
-                 "--priors", str(PRIORS), "--analysis-root", str(tmp_path / "analysis")])
+                 "--priors", str(PRIORS), "--analysis-root", str(tmp_path / "analysis"),
+                 "--store", str(tmp_path / "store.sqlite")])
     out = capsys.readouterr().out
     assert code == 0
     assert "clipped: 64 of 200" in out

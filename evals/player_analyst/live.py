@@ -184,6 +184,11 @@ def case_files(case: LiveCase, auth: DummyAuth) -> dict[str, bytes | Content]:
     return files
 
 
+# The cases are summary-era snapshots of one gameweek, with no final
+# event-live for every earlier round, so the season store cannot be built.
+CASE_HISTORY = ("--history-from", "summaries")
+
+
 def _cli(ws: Workspace, *args: str) -> subprocess.CompletedProcess[str]:
     assert ws.replay_dir is not None
     return subprocess.run(["uv", "run", "python", "-m", "fpl", *args], cwd=ws.root,
@@ -202,7 +207,7 @@ def stage_reopen(ws: Workspace, case: LiveCase) -> tuple[Workspace, str]:
     """players-POS.json from the analysis bootstrap, then the refresh: the
     new bootstrap in place, the old one archived, the delta beside them."""
     gw, raw = case.gw, ws.root / f"data/raw/gw{case.gw}"
-    built = _cli(ws, "ep", "--gw", str(gw), "--position", case.pos)
+    built = _cli(ws, "ep", "--gw", str(gw), "--position", case.pos, *CASE_HISTORY)
     if built.returncode != 0:
         raise RunInvalid(f"reopen staging: ep failed: {built.stderr[-300:]}")
     old = (raw / "bootstrap.json").read_bytes()
@@ -250,7 +255,8 @@ def _read_json(path: Path):
 def reference_players(ws: Workspace, case: LiveCase) -> list[dict] | None:
     out = ws.root.parent / "reference" / f"players-{case.pos}.json"
     out.parent.mkdir(exist_ok=True)
-    completed = _cli(ws, "ep", "--gw", str(case.gw), "--position", case.pos, "--out", str(out))
+    completed = _cli(ws, "ep", "--gw", str(case.gw), "--position", case.pos, "--out", str(out),
+                     *CASE_HISTORY)
     return _read_json(out) if completed.returncode == 0 else None
 
 
