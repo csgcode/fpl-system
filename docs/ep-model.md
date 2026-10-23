@@ -561,6 +561,10 @@ uv run python -m fpl gates --gw 8 --render
   records judged without it.
 - `--record <name>` with `--set` or `--sweep` records a single test outside
   the manifest.
+- The match history comes from the season store beside `--data-root`
+  (`data/store/`), synced first when it is behind the raw tree; `--store`
+  names another file. Each record says which source it read, under
+  `data.history_from`.
 - `gates --summary` prints each record's result and what happened to it;
   `gates --render` rewrites the table at the end of this section.
 - Without `--record` or `--record-all` the command writes nothing, so trying a
@@ -589,16 +593,27 @@ compare with.
 
 Nothing from after a round's deadline may reach its prediction:
 
-- every model input (the gw r `bootstrap.json`, `fixtures.json` and player
-  summaries) must have been fetched before round r's deadline, by its sidecar;
-- every player summary may hold only matches from rounds before r;
+- every model input (the gw r `bootstrap.json` and `fixtures.json`) must
+  have been fetched before round r's deadline, by its sidecar;
+- this season's match rows come from the season store as of round r, so only
+  from rounds before r, for the players `fpl ep` reads: those shortlisted in
+  the gw r bootstrap plus the round's inputs ids. Their past seasons come from
+  whichever summary the raw tree holds, as past seasons do not change during
+  a season;
+- with `--history-from summaries` they come instead from the gw r cached
+  summaries, each fetched before the deadline and holding only rounds before
+  r. From GW9 the collector keeps a summary only for players with no past
+  seasons on file, so this reading suits rounds before 9 only;
 - the inputs on disk must equal those in the round's decision commit (the
   commit that first added its final.md); `--no-drift-check` skips this;
 - the actual points come only from the final event-live snapshot.
 
 A player the coverage rule (§3) requires but the analyst left out is not
 scored, as in production, and the run names him in a warning instead of
-refusing.
+refusing. A player the analyst did judge but who has no history in the
+chosen source refuses the round, naming the round and how many players: he
+would be scored on the league mean, and a backtest must not do that
+silently.
 
 The baseline is today's code run on the recorded inputs. It is not the
 calibration ledger, which scores what was predicted at the time. The
