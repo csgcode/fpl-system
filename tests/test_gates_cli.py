@@ -186,7 +186,7 @@ def test_calibration_record_summarises_and_renders_p4_skill(tmp_path, capsys):
     assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
     lines = capsys.readouterr().out.splitlines()
     assert lines[0] == ("p4: calibration — p4 skill MID n 1688 Brier 0.180 v base 0.200 "
-                        "skill +0.100 (starters n 900 Brier 0.210 v base 0.220 skill +0.012); "
+                        "skill +0.100 (starters n 900 Brier 0.210 v base 0.220 skill +0.0120); "
                         "DEF n 1500 Brier 0.250 v base 0.200 skill −0.250")
     assert lines[1].strip() == "calibration"
     [row] = gates.render(gates.load_records(root)).splitlines()[2:]
@@ -400,3 +400,13 @@ def test_a_combined_record_run_from_another_checkout_is_not_archived(tmp_path):
     other_snapshot["data"]["actuals"]["3"]["sha256"] = "bb"
     gates.write_record(root, other_snapshot, force=True, archive_unchanged=False)
     assert len(list((root / gates.ARCHIVE_DIR).glob("combined.*.json"))) == 1
+
+
+def test_summary_shows_a_tiny_negative_starter_skill_with_its_sign(tmp_path, capsys):
+    record = json.loads(json.dumps(P4_CALIBRATION))
+    record["comparison"]["p4"]["MID"]["starters"]["skill"] = -0.0001
+    root = tmp_path / "gates"
+    root.mkdir()
+    (root / "p4.json").write_text(json.dumps(record), encoding="utf-8")
+    assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
+    assert "(starters n 900 Brier 0.210 v base 0.220 skill −0.0001)" in capsys.readouterr().out

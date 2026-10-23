@@ -340,12 +340,13 @@ def _p4_text(record: GateRecord) -> str:
     if not p4:
         return "no p4 recorded"
     return "p4 skill " + "; ".join(
-        f"{pos} {_p4_scores(v)}" + _starters_suffix(v, _p4_scores) for pos, v in p4.items())
+        f"{pos} {_p4_scores(v)}" + _starters_suffix(v, lambda s: _p4_scores(s, 4))
+        for pos, v in p4.items())
 
 
-def _p4_scores(v: Mapping[str, Any]) -> str:
+def _p4_scores(v: Mapping[str, Any], skill_digits: int = 3) -> str:
     return (f"n {v['n']} Brier {v['p4_brier']:.3f} v base {_optional(v['base_rate_brier'])} "
-            f"skill {_optional_signed(v['skill'])}")
+            f"skill {_optional_signed(v['skill'], skill_digits)}")
 
 
 def _starters_suffix(v: Mapping[str, Any], text: Callable[[Mapping[str, Any]], str]) -> str:
