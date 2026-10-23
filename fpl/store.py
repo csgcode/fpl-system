@@ -4,21 +4,31 @@ Invariant (CLAUDE.md): raw files are never destroyed. A refresh moves the
 previous snapshot into .archive/ before writing the new one, and refuses to
 write if that would overwrite an existing archive entry. Each snapshot
 carries a .meta/ sidecar with fetch time and source URL for freshness checks
-and provenance. Writes are atomic: an interrupted write can never leave a
+and provenance, plus `final: true` (and the `basis` for it) when the payload
+can no longer change, so a cached copy is valid at any age. Writes are atomic: an interrupted write can never leave a
 truncated file where a valid snapshot was.
+
+An event-live snapshot is final by one rule, `live_final`, used by every
+reader of live stats.
 """
 
 from __future__ import annotations
 
 import json
 import os
-from collections.abc import Callable
+import re
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from fpl.clock import utcnow
 
 ARCHIVE_STAMP_FORMAT = "%Y%m%dT%H%M%S_%fZ"
+
+_GW_DIR = re.compile(r"^gw(\d+)$")
+_LIVE_NAME = re.compile(r"^event-live-e(\d+)$")
 
 
 class SnapshotMissingError(FileNotFoundError):
@@ -78,9 +88,50 @@ class SnapshotStore:
             return None
         return (self._now() - fetched_at).total_seconds() / 3600
 
-    def save(self, gw: int, name: str, payload: dict | list, source_url: str) -> Path:
+    def meta(self, gw: int, name: str) -> dict[str, Any]:
+        """The sidecar's keys, with `final` always present and True only when
+        the sidecar says exactly `true`. A missing or unreadable sidecar reads
+        as `{"final": False}`."""
+        meta_path = self._meta_path(gw, f"{_safe_name(name)}.json")
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            meta = {}
+        if not isinstance(meta, dict):
+            meta = {}
+        return {**meta, "final": meta.get("final") is True}
+
+    def meta_path(self, gw: int, name: str) -> Path:
+        return self._meta_path(gw, f"{_safe_name(name)}.json")
+
+    def is_final(self, gw: int, name: str) -> bool:
+        """An event-live snapshot is final by `live_final`; any other by its
+        sidecar's `final` key."""
+        if (live := _LIVE_NAME.match(name)) is not None:
+            return live_final(self._root, gw, int(live.group(1))) is not None
+        return self.exists(gw, name) and self.meta(gw, name)["final"]
+
+    def save(
+        self,
+        gw: int,
+        name: str,
+        payload: dict | list,
+        source_url: str,
+        *,
+        final: bool = False,
+        basis: str | None = None,
+        reason: str | None = None,
+    ) -> Path:
+        extra: dict[str, Any] = {}
+        if final:
+            extra["final"] = True
+        if basis is not None:
+            extra["basis"] = basis
+        if reason is not None:
+            extra["reason"] = reason
         return self._write(
-            gw, f"{_safe_name(name)}.json", json.dumps(payload, indent=1), source_url
+            gw, f"{_safe_name(name)}.json", json.dumps(payload, indent=1), source_url,
+            extra,
         )
 
     def save_text(self, gw: int, filename: str, text: str, source_url: str) -> Path:
@@ -93,7 +144,14 @@ class SnapshotStore:
             raise SnapshotMissingError(gw, name)
         return json.loads(self.path(gw, name).read_text(encoding="utf-8"))
 
-    def _write(self, gw: int, filename: str, content: str, source_url: str) -> Path:
+    def _write(
+        self,
+        gw: int,
+        filename: str,
+        content: str,
+        source_url: str,
+        extra: dict[str, Any] | None = None,
+    ) -> Path:
         path = self.dir(gw) / filename
         meta_path = self._meta_path(gw, filename)
         self._archive_existing(path, meta_path)
@@ -101,7 +159,11 @@ class SnapshotStore:
         _atomic_write(
             meta_path,
             json.dumps(
-                {"fetched_at": self._now().isoformat(), "source_url": source_url},
+                {
+                    "fetched_at": self._now().isoformat(),
+                    "source_url": source_url,
+                    **(extra or {}),
+                },
                 indent=1,
             ),
         )
@@ -138,6 +200,103 @@ class SnapshotStore:
         if archive_path.exists():
             raise ArchiveCollisionError(archive_path)
         path.rename(archive_path)
+
+
+@dataclass(frozen=True)
+class FinalProof:
+    """The file that shows an event-live snapshot can no longer change."""
+
+    path: Path
+    fetched_at: datetime | None
+    basis: str
+
+
+@dataclass(frozen=True)
+class SeenBootstrap:
+    """A kept bootstrap, reduced to what proves a round's live stats final."""
+
+    gw: int
+    path: Path
+    fetched_at: datetime
+    checked: frozenset[int]
+
+
+def live_final(raw_root: Path, gw: int, round_: int) -> FinalProof | None:
+    """The proof that `gw{gw}/event-live-e{round_}.json` under `raw_root` is
+    final, or None. See `prove_live_final` for the rule."""
+    store = SnapshotStore(raw_root)
+    name = f"event-live-e{round_}"
+    if not store.exists(gw, name):
+        return None
+    return prove_live_final(
+        raw_root, gw, round_,
+        sidecar_final=store.meta(gw, name)["final"],
+        fetched_at=store.fetched_at(gw, name),
+        bootstraps=_kept_bootstraps(raw_root, round_ + 1, store.fetched_at(gw, name)),
+    )
+
+
+def prove_live_final(
+    raw_root: Path,
+    gw: int,
+    round_: int,
+    *,
+    sidecar_final: bool,
+    fetched_at: datetime | None,
+    bootstraps: Iterable[SeenBootstrap],
+) -> FinalProof | None:
+    """The one rule for a final event-live snapshot of round r: its sidecar
+    says `final: true`, or a kept bootstrap of gw ≥ r+1 fetched at or before
+    the snapshot shows event r data_checked. data_checked never reverts, so a
+    check seen before the fetch proves the fetch came after it. Only kept
+    bootstraps count: `.archive/` is git-ignored, and a proof must be
+    reproducible from tracked files."""
+    if sidecar_final:
+        meta = SnapshotStore(raw_root)._meta_path(gw, f"event-live-e{round_}.json")
+        when = fetched_at.isoformat() if fetched_at else "at an unknown time"
+        return FinalProof(meta, fetched_at,
+                          f"{_rel(meta, raw_root)} final sidecar, fetched {when}")
+    if fetched_at is None:
+        return None
+    for seen in sorted(bootstraps, key=lambda b: (b.fetched_at, b.gw)):
+        if seen.gw > round_ and seen.fetched_at <= fetched_at and round_ in seen.checked:
+            return FinalProof(
+                seen.path, seen.fetched_at,
+                f"{_rel(seen.path, raw_root)} fetched {seen.fetched_at.isoformat()} "
+                f"shows event {round_} data_checked",
+            )
+    return None
+
+
+def _kept_bootstraps(raw_root: Path, first_gw: int, until: datetime | None):
+    """Kept bootstraps of gw ≥ first_gw fetched at or before `until`, parsed
+    lazily: only those that could prove anything are read."""
+    if until is None or not raw_root.is_dir():
+        return
+    store = SnapshotStore(raw_root)
+    for directory in raw_root.iterdir():
+        m = _GW_DIR.match(directory.name)
+        if m is None or int(m.group(1)) < first_gw:
+            continue
+        n = int(m.group(1))
+        fetched = store.fetched_at(n, "bootstrap")
+        if fetched is None or fetched > until or not store.exists(n, "bootstrap"):
+            continue
+        try:
+            events = json.loads(store.path(n, "bootstrap").read_text(encoding="utf-8"))["events"]
+            checked = frozenset(
+                e["id"] for e in events if isinstance(e, dict) and e.get("data_checked") is True
+            )
+        except (OSError, ValueError, TypeError, KeyError):
+            continue
+        yield SeenBootstrap(n, store.path(n, "bootstrap"), fetched, checked)
+
+
+def _rel(path: Path, root: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def _archive_target(path: Path, fetched_at: datetime) -> Path:

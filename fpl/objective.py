@@ -39,6 +39,7 @@ from fpl.ep import (
     load_inputs,
 )
 from fpl.models import PLAYING_POSITIONS, Bootstrap, PlayerStatus, Position
+from fpl.season_store import History
 from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.store import SnapshotStore
 
@@ -673,7 +674,7 @@ def rows_from_documents(documents: Iterable[Mapping], bootstrap: Bootstrap) -> d
 
 
 def prior_documents(store: SnapshotStore, analysis_root: Path, gw: int,
-                    bootstrap: Bootstrap) -> list[dict]:
+                    bootstrap: Bootstrap, history: History | None = None) -> list[dict]:
     """The prior-only reading: every inputs-*.json at prior weight 1.0, scored
     and rounded exactly as `fpl ep` writes players-*.json."""
     analysis_dir = analysis_root / f"gw{gw}"
@@ -688,8 +689,10 @@ def prior_documents(store: SnapshotStore, analysis_root: Path, gw: int,
                              and p.now_cost > COVERAGE_PRICE_FLOOR_TENTHS
                              and p.status.value in POOL_STATUSES)
         wanted = [p.id for p in members] + sorted(judged)
-        result = build_predictions(bootstrap, load_cached_summaries(store, gw, wanted), fixtures,
-                                   inputs, gw=gw, allow_missing=unjudged)
+        summaries = (history.summaries(gw, wanted) if history is not None
+                     else load_cached_summaries(store, gw, wanted))
+        result = build_predictions(bootstrap, summaries, fixtures, inputs, gw=gw,
+                                   allow_missing=unjudged)
         documents += result.to_documents()
     return documents
 
@@ -710,7 +713,8 @@ def _check_model_digests(digests: Mapping[Path, set[str]]) -> None:
         f"{code}; the files carry {stamped}")
 
 
-def load_views(store: SnapshotStore, analysis_root: Path, gw: int, *,
+def load_views(store: SnapshotStore, analysis_root: Path, gw: int,
+               history: History | None = None, *,
                check_digest: bool = True) -> tuple[dict[int, Row], dict[int, Row]]:
     """(blend, prior): players-*.json as published, and the prior-only
     reading rebuilt in memory from the same inputs. `check_digest=False`
@@ -730,5 +734,6 @@ def load_views(store: SnapshotStore, analysis_root: Path, gw: int, *,
     if check_digest:
         _check_model_digests(digests)
     blend = rows_from_documents(blend_documents, bootstrap)
-    prior = rows_from_documents(prior_documents(store, analysis_root, gw, bootstrap), bootstrap)
+    prior = rows_from_documents(prior_documents(store, analysis_root, gw, bootstrap, history),
+                                bootstrap)
     return blend, prior

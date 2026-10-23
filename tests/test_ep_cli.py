@@ -516,3 +516,118 @@ def test_ep_share_check_skips_a_summary_row_without_a_venue(tmp_path, capsys):
     lines = share_lines(captured.err)
     assert len(lines) == 1 and lines[0].startswith("WARNING: share check skipped: ")
     assert "was_home" in lines[0]
+
+
+# --- --history-from store ------------------------------------------------------
+
+
+def store_world(tmp_path, season=None, after_write=None):
+    """A synced season (rounds 1–2, gw3 open) with gw3 inputs and fixtures for
+    its three clubs; element 1 is the MID judged. `after_write(raw)` edits
+    the raw tree before the sync."""
+    from fpl.season_store import sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "store" / "s.sqlite"
+    (season or Season()).write(raw)
+    if after_write is not None:
+        after_write(raw)
+    sync(raw, db)
+    analysis_root = tmp_path / "analysis"
+    (analysis_root / f"gw{GW}").mkdir(parents=True)
+    clubs = ("C1", "C2", "C3")
+    document = {
+        "schema_version": 1, "gw": GW, "base_lambda": {"home": 1.54, "away": 1.33},
+        "ratings": {c: {"att": 1.0, "defw": 1.0} for c in clubs},
+        "fixtures": [
+            {"club": c, "gw": g, "opp": "C2" if c != "C2" else "C1", "venue": "H",
+             "lambda_att": 1.5, "lambda_def": 1.0, "p_cs": 0.3}
+            for c in clubs for g in range(GW, GW + 6)
+        ],
+    }
+    (analysis_root / f"gw{GW}" / "fixtures.json").write_text(json.dumps(document))
+    write_inputs(analysis_root, inputs_document(
+        [{"id": 1, "name": "P1", "p_start": 0.9, "uncertainty": "LOW", "notes": "starter"}]))
+    return raw, db, analysis_root
+
+
+def test_ep_from_store_equals_ep_from_summaries(tmp_path):
+    raw, db, analysis_root = store_world(tmp_path)
+    outputs = {}
+    for source in ("store", "summaries"):
+        out = tmp_path / f"{source}.json"
+        store = ["--store", str(db)] if source == "store" else []
+        assert run(raw, analysis_root, "--history-from", source, *store,
+                   "--out", str(out)) == 0
+        outputs[source] = out.read_bytes()
+
+    assert outputs["store"] == outputs["summaries"]
+    (row,) = json.loads(outputs["store"])
+    assert row["id"] == 1 and row["rates"]["prior_weight"] < 1
+
+
+def test_ep_check_reads_the_store_too(tmp_path, capsys):
+    raw, db, analysis_root = store_world(tmp_path)
+    assert run(raw, analysis_root, "--check", "--history-from", "store", "--store",
+               str(db)) == 0
+    assert "1 players scored, 0 without cached summary" in capsys.readouterr().out
+
+
+def test_ep_from_a_store_behind_the_raw_refuses_naming_the_sync(tmp_path, capsys):
+    raw, db, analysis_root = store_world(tmp_path)
+    SnapshotStore(raw).save(GW, "players/summary-9", element_summary_payload(), "seed://test")
+
+    assert run(raw, analysis_root, "--history-from", "store", "--store", str(db),
+               "--out", str(tmp_path / "x.json")) == 1
+    err = capsys.readouterr().err
+    assert "summary-9.json not ingested" in err and f"store sync --gw {GW}" in err
+    assert not (tmp_path / "x.json").exists()
+
+
+def test_ep_reads_summaries_by_default_and_never_opens_the_store(tmp_path, monkeypatch):
+    raw, _, analysis_root = store_world(tmp_path)
+    monkeypatch.chdir(tmp_path)  # the default store path, relative, names nothing here
+    out = tmp_path / "default.json"
+    assert run(raw, analysis_root, "--out", str(out)) == 0
+
+
+def test_ep_share_check_reads_the_store_with_history_from_store(tmp_path, capsys):
+    """Element 1 starts three times (round 2 a double) and takes all of C1's
+    event-live xG. The cached summary of his teammate, element 3, claims 1.50
+    xG in round 1 that event-live does not, so the summaries halve element 1's
+    share while the store keeps it whole. His xg90 override implies about all
+    of C1's xG: flagged against the summaries, not against the store."""
+    from datetime import timedelta
+
+    from tests.test_season_store import double_gameweek, fetch_time, save_raw
+
+    season = double_gameweek()
+
+    def inflate_teammate_summary(raw):
+        rows = season.summary_rows(3, before_gw=GW)
+        for row in rows:
+            if row["round"] == 1:
+                row["expected_goals"] = "1.50"
+        save_raw(raw, fetch_time(GW) + timedelta(hours=4), GW, "players/summary-3",
+                 {"fixtures": [], "history": rows, "history_past": []})
+
+    raw, db, analysis_root = store_world(tmp_path, season, inflate_teammate_summary)
+    (analysis_root / "club-priors.json").write_text(json.dumps(priors_doc(
+        {c: (1.0, 1.0, False) for c in ("C1", "C2", "C3")})), encoding="utf-8")
+    write_inputs(analysis_root, inputs_document([{
+        "id": 1, "name": "P1", "p_start": 0.9, "uncertainty": "LOW",
+        "overrides": {"xg90": 1.4, "xa90": 0.0, "minutes_per_start": 90},
+        "reason": "synthetic share test",
+    }]))
+    flags = {}
+    for source in ("summaries", "store"):
+        out = tmp_path / f"{source}.json"
+        store = ["--store", str(db)] if source == "store" else []
+        assert run(raw, analysis_root, "--history-from", source, *store,
+                   "--out", str(out)) == 0
+        assert "share check skipped" not in capsys.readouterr().err
+        (row,) = json.loads(out.read_text())
+        flags[source] = row["share_flag"]
+
+    assert flags["summaries"] is not None and flags["summaries"].startswith("xG EP>club")
+    assert flags["store"] is None

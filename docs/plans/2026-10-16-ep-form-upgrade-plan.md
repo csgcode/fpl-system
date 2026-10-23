@@ -206,7 +206,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Gate record**: `data/model/gates/<name>.json`, written once by `fpl backtest --record <name>` (or `--record-all`). Fields: `schema_version` 1, `name`, `kind` (`model`, `policy`, `calibration`, `persistence`, `combined`), `argv`, `rounds`, `data` (roots, plus path and sha256 of each round's actuals snapshot), `decision_commits` (round → sha or null), `code` (`git rev-parse HEAD` and a dirty flag), `baseline_config`, `grid`, `picks`, `ship_value`, `comparison` (n, ΔMAE, SE, CI, per-round ΔMAE, round wins, baseline and variant aggregates, `by_position`, `slices`, optional `p4`), `verdict` (`PASS`/`FAIL`), `reasons`, optional `slice_verdict` and `hypothesis`, `recorded_at`.
   - `--force` moves an existing record to `data/model/gates/archive/<name>.<UTC stamp>.json` before writing.
 - **Gate manifest**: `data/model/gates/manifest.toml`, an ordered list of `[[gate]]` tables with `name`, `kind` and `argv`. `fpl backtest --manifest <p> --record-all` runs each entry that has no record yet, in order. Each entry's baseline = the `baseline` record's `baseline_config` overlaid with the ship values of earlier `model` entries whose verdict is PASS and that are not in `combined.json` `reverted`; `DEFAULT_CONFIG` is never read by the manifest run, so a `--force` re-run after ship tasks have changed constants reproduces the same records. "Production value first" in a grid means that baseline's value. It then rewrites `combined.json` (archiving the previous one): all PASS ship values together against the `baseline` record's `baseline_config`. If `combined` fails, the last PASS entry is dropped from the overlay and `combined` re-runs, until it passes or nothing is left; dropped names go in `combined.json` `reverted`. `combined.json` `shipped_config` is the full `ModelConfig` that must ship. `--record-all --force` re-runs every entry.
-- **Rounds available for gates**: 3..M, where M is the latest round that has inputs under `data/analysis/gw{M}/` and a **final** `event-live-e{M}.json` snapshot. Final means the `.meta` sidecar has `final: true` (Task S.1), or a cached bootstrap of gw ≥ M+1, fetched at or before the snapshot, shows event M `data_checked` (`data_checked` never reverts, so a check seen before the fetch proves the fetch came after it; a bootstrap fetched after the snapshot proves nothing). Today every `event-live-e{r}` passes: the collector's `bootstrap --gw r+1` precedes the retro's fetch and `calibrate` refuses to fetch before the check. The snapshot is looked for under the data root at `gw{M+1}/event-live-e{M}.json`. M = 6 today; 7 once round 7 is final (about 21 Oct).
+- **Rounds available for gates**: 3..M, where M is the latest round that has inputs under `data/analysis/gw{M}/` and a **final** `event-live-e{M}.json` snapshot. Final means the `.meta` sidecar has `final: true` (Task S.1), or a kept bootstrap (`gw{n}/bootstrap.json`; never one under `.archive/`, which git ignores, so a proof must rest on tracked files) of gw ≥ M+1, fetched at or before the snapshot, shows event M `data_checked` (`data_checked` never reverts, so a check seen before the fetch proves the fetch came after it; a bootstrap fetched after the snapshot proves nothing). One function decides this everywhere: `fpl.store.live_final(raw_root, gw, round)` (WS), which returns the proof, with a `basis` naming the proving file and its fetch time, or None. On WS's data rounds 1–6 pass: round 1 by the kept gw2 bootstrap, rounds 2–6 by final sidecars. The snapshot is looked for under the data root at `gw{M+1}/event-live-e{M}.json`. M = 6 today; 7 once round 7 is final (about 21 Oct).
 - **Standard gate invocation** (from `WB`, once `MAIN/data/raw/gw8/event-live-e7.json` is final):
 
   ```
@@ -1131,8 +1131,8 @@ Fetch policy, recorded at fetch time in the `.meta` sidecar and enforced in `Fpl
 | element-summary `history_past` | fetched once per player per season (every id with no `history_past` in the store); served at any age |
 | element-summary `history` | rebuilt from event-live × fixtures × bootstrap; targeted fetches only for DGW players, unresolved sides, or a reconciliation mismatch |
 | element-summary `fixtures` | never needed (derivable from fixtures.json) |
-| event/{r}/live | final once fetched while a bootstrap fetched ≤ 1h before shows event r `data_checked`; served at any age; `--force` refetches and archives |
-| entry/{id}/event/{M}/picks | final when fetched after deadline M |
+| event/{r}/live | final once fetched while a cached bootstrap of any age, fetched before it, shows event r `data_checked`; served at any age; `--force` refetches and archives |
+| entry/{id}/event/{M}/picks | final when fetched while the cached bootstrap of the same GW shows event M `finished` and `data_checked` (automatic subs, multipliers and `entry_history` change until then); otherwise the sidecar records the reason |
 | entry, entry history | TTL 24h (unchanged) |
 | my-team, writes | never cached (unchanged) |
 | `actuals` | local: reads the final event-live snapshot, zero calls |
@@ -1182,15 +1182,15 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
 - **Implement:** `add("event-live", "fetch one data-checked round's live stats (final once fetched)")` with `--round`; `final_when` = the cached bootstrap gw N, fetched before this fetch (any age: `data_checked` never reverts), shows event R `data_checked`; calibrate calls the same service method.
 - **Verify:** `uv run pytest tests/test_service.py tests/test_calibrate_cli.py tests/test_cli.py -q`
 
-### Task S.3: Picks final after their deadline; post-deadline write guard
+### Task S.3: Picks final once their round is data-checked; post-deadline write guard
 - [ ] **Files:** `fpl/service.py`, `fpl/__main__.py`, `tests/test_service.py`, `tests/test_cli.py`.
 - **Track:** WS
 - **Depends on / parallel with:** S.2 (serial on `fpl/service.py`). Parallel with S.5, WA, WB, WC.
 - **Effort:** S
 - **Test:**
-  - `test_picks_fetched_after_the_event_deadline_are_final`.
+  - `test_picks_of_a_data_checked_event_are_final`: the basis names the bootstrap and its fetch time; `test_picks_past_the_deadline_of_an_unchecked_event_are_not_final`: the sidecar `reason` names the event and the bootstrap.
   - `test_summaries_into_a_past_gw_refuse_after_its_deadline`: cached bootstrap says deadline 6 passed; `summaries --gw 6 --ids 1 --force` exits 1 naming `--allow-post-deadline`; bootstrap and fixtures likewise; `event-live` into gw 7 for round 6 is allowed.
-- **Implement:** deadline from the cached bootstrap of the same GW (`deadline_for`); guard in `_load_or_fetch` for kinds bootstrap, fixtures, summary; `--allow-post-deadline` on those three commands.
+- **Implement:** picks final when the cached bootstrap of the same GW shows the event `finished` and `data_checked`, with the basis or reason in the sidecar; deadline from the cached bootstrap of the same GW (`deadline_for`), checked before fetching fixtures and summaries; a bootstrap refresh is never pre-guarded on the cached deadline (a postponed deadline is only learned by refetching) and refuses before saving when the fresh payload's deadline has passed — the `flags` refresh included; `--allow-post-deadline` on those three commands.
 - **Verify:** `uv run pytest tests/test_service.py tests/test_cli.py -q`
 
 ### Task S.4: `actuals` from event-live, no network
@@ -1222,7 +1222,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - `test_history_past_ingested_once_per_player`.
   - `test_archives_are_not_ingested`.
   - `test_reconciliation_flags_a_total_mismatch`: bootstrap totals ≠ Σ rounds for one id gives a mismatch line; skipped when the current event is not data-checked.
-- **Implement:** schema per the table above; `sync(raw_root, db_path) -> SyncReport`; models validate every file at the boundary; one transaction per sync; `PRAGMA user_version`; no clock reads. An event-live snapshot is ingested as final only if its sidecar says `final` or a bootstrap of the same or a later GW, fetched after it, shows the round data-checked.
+- **Implement:** schema per the table above; `sync(raw_root, db_path) -> SyncReport`; models validate every file at the boundary; one transaction per sync; `PRAGMA user_version`; no clock reads. An event-live snapshot is ingested as final only if its sidecar says `final` or a bootstrap of the same or a later GW, fetched at or before it, shows the round data-checked (a bootstrap fetched after the snapshot proves nothing).
 - **Verify:** `uv run pytest tests/test_season_store.py tests/test_models.py -q`
 
 ### Task S.6: As-of readers returning existing models
@@ -1261,6 +1261,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - Golden: update `test_analyst_view_golden.py` for the `no summary` → minutes change, under `--history-from store` only (the default stays `summaries`).
 - **Implement:** `--history-from {store,summaries}` on `ep`, `objective`, `players`, `fixtures-rate`. The default stays `summaries` until S.10. Put the source switch in one helper `_history(store, gw, ids, source)` in `fpl/__main__.py`, so `run_ep`, `run_ep_check`, `_minutes_by_round` and `objective.prior_documents` change one call each; Tasks 0.6b, 5.4 and 6.3 also edit `run_ep`, so WB merges main immediately after WS lands and resolves that one block.
 - **Verify:** `uv run pytest tests/test_ep_cli.py tests/test_fixture_ratings.py tests/test_cli.py tests/test_analyst_view_golden.py -q`; real-data parity, writing only to the scratchpad and the git-ignored `data/store/` (GW7 is decided, so `--out` is required): `uv run python -m fpl store sync --gw 7 --store data/store/season-2026-27.sqlite`, then for each POS in GKP DEF MID FWD: `uv run python -m fpl ep --gw 7 --position POS --history-from store --out <SCRATCH>/s-POS.json` and `… --history-from summaries --out <SCRATCH>/r-POS.json`, then `cmp <SCRATCH>/s-POS.json <SCRATCH>/r-POS.json` (must be identical for all four).
+- **Note:** `open_ro` re-scans and re-hashes the whole raw tree on every open (4.9 s at GW7, 3,447 files, and the tree grows each round to GW38). Before readers switch to the store, compare each file's size and mtime against the manifest and hash only the files that changed (or cache the scan once per process).
 
 ### Task S.9: `fpl history` agent views and the CLAUDE.md rows for WS
 - [ ] **Files:** `fpl/season_store.py` (or `fpl/history_view.py`, create, with `register`), `fpl/__main__.py` (one register call), `tests/test_history_cli.py` (create), `CLAUDE.md` (data-tooling rows and one persistence line).
@@ -1272,6 +1273,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - Read-only over S.6; same `--fields`/`--format` conventions as `players`.
   - CLAUDE.md data-tooling table: new rows `event-live --round R` (final once data-checked; served at any age), `store sync|verify|status|rebuild [--store <p>]` (local only), `history …` (local only); amend `actuals` (local only, reads the final event-live snapshot); amend `ep`, `objective`, `players`, `fixtures-rate` with `--history-from store|summaries`; amend the `Cached commands` mechanics line for final snapshots and the post-deadline guard (`--allow-post-deadline`). Persistence rules: "data/store/ is derived from data/raw and git-ignored; rebuild with `fpl store rebuild`."
 - **Verify:** `uv run pytest tests/test_history_cli.py -q && grep -n "event-live\|store sync\|history-from" CLAUDE.md`, then `uv run pytest -q` (phase end, WS).
+- **Note:** `actuals` no longer touches the network on WS (Task S.4), so this task also corrects the agent specs that say it does: agents/data-collector.md, the tool-table row for `actuals` ("always refreshes") and the sentence "`flags` and `actuals` always hit the network" (about lines 70 and 75), and the retro-analyst's `actuals` call (Call 2) and its "Every fetch uses `--gw N`" wording, which must say `actuals` reads the final event-live snapshot that `calibrate` or `event-live` wrote. WS must not merge into main before this task is done.
 
 ### Task S.10: Collector stops refetching summaries (cycle-facing; needs the user's go-ahead)
 - [ ] **Files:** `fpl/__main__.py` (`summaries --missing-past`), `agents/data-collector.md`, `agents/retro-analyst.md` (`actuals` line: "local, from event-live"), `CLAUDE.md`, `evals/data_collector/checks.py` (C15), `tests/evals/test_data_collector_spec_markers.py`, `tests/evals/test_data_collector_checks.py`, `tests/test_cli.py`.
@@ -1283,6 +1285,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - Spec markers and C15 updated to "every bootstrap id has `history_past` in the store".
 - **Implement:** collector order: `bootstrap` → `fixtures` → `summaries --missing-past` → `store sync` → entry/picks/history → `slim-csv` → (GW1 only) `prior-season` → auth-check. Default `--history-from store` everywhere. Drop the 600000 timeout note; meta.md `Coverage:` line from `store sync`.
 - **Verify:** `uv run pytest tests/test_cli.py tests/evals -q -k "data_collector or cli"` and `grep -n "missing-past\|store sync" agents/data-collector.md CLAUDE.md`.
+- **Note:** the default flip changes what a gw N run reads for round N−1. The store reads it from the final event-live snapshot, with the corrected values; the summaries path reads whatever summary was cached at gw N, which may predate the round's data check. The store also refuses until round N−1's final event-live exists, so the collector (or the retro step before it) must fetch that snapshot before any `--history-from store` reader runs.
 
 ### Task S.11: Model consumers read the store when it exists
 - [ ] **Files:** `fpl/backtest.py` (`load_round` history from the store with coverage `production`; `drop_no_history` from `history_past`), `fpl/consistency.py` callers in `fpl/ep.py` (`returns_last5` from store rows), `fpl/ep.py` (finishing multiplier uses `xg_recorded`), `fpl/__main__.py` (`run_ep` club xG from `season_store.club_match_xg(as_of=N)`), `tests/test_backtest.py`, `tests/test_consistency.py`, `tests/test_ep.py`, `tests/test_ep_cli.py`.
@@ -1296,6 +1299,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - `test_ep_share_check_reads_the_store`: `test_ep_flags_a_share_disagreement`'s world built as a tmp store instead of event-live snapshots gives the same flag; a store missing a round gives the `share check skipped: …` warning.
 - **Implement:** each consumer takes the store when `data/store/season-2026-27.sqlite` (or `--store`) exists and is in sync, else the current path. `returns5` is `(0, 0)` only when the store has no rows for the player.
 - **Verify:** `uv run pytest tests/test_backtest.py tests/test_consistency.py tests/test_ep.py tests/test_ep_cli.py -q`
+- **Note:** once WS has merged, `fpl/backtest.py` `_is_final` (WB) is replaced by `fpl.store.live_final`, so the backtest stops accepting proofs from `.archive/` bootstraps. `RoundData` and every gate record's `data` then record each round's proof `basis` beside the actuals path and sha256 (follow-up S3).
 
 ### Phase 7 — Docs, process, hand-off
 

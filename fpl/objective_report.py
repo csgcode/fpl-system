@@ -37,6 +37,7 @@ from fpl.objective import (
     pool,
     ret5_text,
 )
+from fpl.season_store import History
 from fpl.state import parse_state
 from fpl.store import SnapshotStore
 
@@ -76,7 +77,8 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
     if state.picks is None:
         raise ValueError(f"{final_path} has no picks: in its STATE block")
     squad = [pick.id for pick in sorted(state.picks.picks, key=lambda p: p.position)]
-    blend, prior = load_views(SnapshotStore(data_root), args.analysis_root, gw)
+    blend, prior = load_views(SnapshotStore(data_root), args.analysis_root, gw,
+                              History.from_args(data_root, args))
     missing = [pid for pid in squad if pid not in blend or pid not in prior]
     if missing:
         raise ValueError(f"squad ids missing from the EP views: {', '.join(map(str, missing))}")

@@ -1,0 +1,247 @@
+{
+ "gw": 8,
+ "refreshed_at": "2026-10-23T13:40:15.536401+00:00",
+ "baseline": {
+  "source": "data/raw/gw8/.archive/bootstrap-20261023T131322_242608Z.json",
+  "fetched_at": "2026-10-23T13:13:22.242608+00:00",
+  "age_hours": 0.44813716472222226,
+  "stale": false
+ },
+ "gate_ids": [
+  385,
+  496,
+  4,
+  8,
+  202,
+  332,
+  112,
+  427,
+  542,
+  68,
+  127,
+  12,
+  411,
+  249,
+  464
+ ],
+ "gate_changed": true,
+ "gate": [
+  {
+   "id": 12,
+   "web_name": "Saka",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 50,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Thigh injury - 50% chance of playing",
+     "after": "Thigh injury - Unknown return date"
+    }
+   ]
+  }
+ ],
+ "pool": [
+  {
+   "id": 12,
+   "web_name": "Saka",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 50,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Thigh injury - 50% chance of playing",
+     "after": "Thigh injury - Unknown return date"
+    }
+   ]
+  },
+  {
+   "id": 144,
+   "web_name": "Gusto",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Illness - 75% chance of playing",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "id": 147,
+   "web_name": "Tosin",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Calf injury - 75% chance of playing",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "id": 377,
+   "web_name": "Munoz",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 25
+    },
+    {
+     "field": "news",
+     "before": "Knee injury - 75% chance of playing",
+     "after": "Knee injury - 25% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 401,
+   "web_name": "Marmoush",
+   "position": "FWD",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Calf injury - 75% chance of playing",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "id": 499,
+   "web_name": "Pedro Porro",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "i",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 0,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Hamstring injury - Expected back 24 Oct",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "id": 502,
+   "web_name": "Robertson",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Foot injury - 75% chance of playing",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "id": 506,
+   "web_name": "Udogie",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Knee injury - 75% chance of playing",
+     "after": "Knee injury - Unknown return date"
+    }
+   ]
+  },
+  {
+   "id": 583,
+   "web_name": "Chavarria",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Unspecified injury - 75% chance of playing",
+     "after": "Unspecified injury - Expected back 31 Oct"
+    }
+   ]
+  }
+ ]
+}

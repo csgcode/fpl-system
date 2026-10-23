@@ -61,6 +61,12 @@ def test_run_is_invalid_when_the_replay_served_nothing(tmp_path):
                      replay_dir=tmp_path, real_repo=Path("/real/repo"))
 
 
+def test_event_live_counts_as_a_network_command(tmp_path):
+    with pytest.raises(RunInvalid, match="served.jsonl"):
+        validate_run(transcript("uv run python -m fpl event-live --gw 8 --round 7"),
+                     replay_dir=tmp_path, real_repo=Path("/real/repo"))
+
+
 def test_run_is_valid_when_the_replay_served_requests(tmp_path):
     (tmp_path / "served.jsonl").write_text('{"outcome": "hit"}\n')
     validate_run(transcript("uv run python -m fpl bootstrap --gw 6"),

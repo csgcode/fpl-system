@@ -26,7 +26,7 @@ from fpl.models import (
     EventLive,
     EventPicks,
     Fixture,
-    MatchRecord,
+    LiveStats,
     Player,
     is_shortlisted,
 )
@@ -83,14 +83,25 @@ class GameweekMismatchError(ValueError):
         self.payload_gw = payload_gw
 
 
+class PostDeadlineError(ValueError):
+    def __init__(self, gw: int, deadline: datetime) -> None:
+        super().__init__(
+            f"gw{gw} deadline ({deadline.isoformat()}) has passed — its snapshots "
+            f"are the record of that gameweek and are not refetched"
+        )
+        self.gw = gw
+        self.deadline = deadline
+
+
 @dataclass(frozen=True)
 class FetchEvent:
-    """One snapshot access: whether the network was touched, and the age of
-    the snapshot served from cache."""
+    """One snapshot access: whether the network was touched, the age of the
+    snapshot served from cache, and whether that snapshot is final."""
 
     name: str
     fetched: bool
     age_hours: float | None = None
+    final: bool = False
 
 
 @dataclass(frozen=True)
@@ -208,10 +219,18 @@ class FplDataService:
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
         require_next_gw: bool = False,
+        allow_post_deadline: bool = False,
     ) -> Bootstrap:
+        # The deadline is read from the fresh payload, not the cached one: a
+        # postponed deadline is only learned by refetching.
         def guard(parsed: Bootstrap) -> None:
             if require_next_gw and parsed.next_gw() != gw:
                 raise GameweekMismatchError(gw, parsed.next_gw())
+            deadline = parsed.deadline_for(gw)
+            if allow_post_deadline or deadline is None:
+                return
+            if self._now() >= deadline:
+                raise PostDeadlineError(gw, deadline)
 
         return self._load_or_fetch(
             gw,
@@ -229,6 +248,7 @@ class FplDataService:
         *,
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
+        allow_post_deadline: bool = False,
     ) -> tuple[Fixture, ...]:
         return self._load_or_fetch(
             gw,
@@ -237,6 +257,7 @@ class FplDataService:
             lambda raw: tuple(Fixture.model_validate(f) for f in raw),
             max_age_hours,
             force,
+            before_fetch=None if allow_post_deadline else self._deadline_guard(gw),
         )
 
     def entry(
@@ -289,6 +310,7 @@ class FplDataService:
             EventPicks.model_validate,
             max_age_hours,
             force,
+            final_when=lambda _: self._round_settled(gw, event),
         )
 
     def event_live(
@@ -299,14 +321,44 @@ class FplDataService:
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
     ) -> EventLive:
+        """One round's live stats, only once the round is data-checked. Every
+        snapshot fetched here is final (see data_checked_basis)."""
+        basis = self.data_checked_basis(gw, event)
+        name = f"event-live-e{event}"
+        # The round is data-checked, so a cached snapshot that is not final
+        # (fetched before the check, or without a sidecar verdict) is replaced
+        # by a final one at any age, never served.
+        stale = self._store.exists(gw, name) and not self._store.is_final(gw, name)
         return self._load_or_fetch(
             gw,
-            f"event-live-e{event}",
+            name,
             lambda: self._api.event_live(event),
             EventLive.model_validate,
             max_age_hours,
-            force,
+            force or stale,
+            final_when=lambda _: (True, basis),
         )
+
+    def data_checked_basis(self, gw: int, event: int) -> str:
+        """Why a live snapshot of `event` fetched now is final: the cached gw
+        bootstrap, fetched before it, shows the round data-checked, and
+        data_checked never reverts. Refuses while it does not."""
+        bootstrap = self._cached_bootstrap(gw)
+        checked = next((e for e in bootstrap.events if e.id == event), None)
+        if checked is None:
+            raise ValueError(f"cached bootstrap has no event {event}")
+        if not checked.data_checked:
+            raise ValueError(
+                f"round {event} is not data-checked yet — bonus points are not "
+                f"final. Refetch once FPL marks it checked: "
+                f"python -m fpl bootstrap --gw {gw} --force"
+            )
+        return f"{self._bootstrap_label(gw)} shows event {event} data_checked"
+
+    def _bootstrap_label(self, gw: int) -> str:
+        fetched_at = self._store.fetched_at(gw, "bootstrap")
+        when = fetched_at.isoformat() if fetched_at else "at an unknown time"
+        return f"bootstrap gw{gw} fetched {when}"
 
     def player_summaries(
         self,
@@ -315,9 +367,11 @@ class FplDataService:
         player_ids: Sequence[int],
         max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
         force: bool = False,
+        allow_post_deadline: bool = False,
     ) -> dict[int, ElementSummary]:
         summaries: dict[int, ElementSummary] = {}
         previous_was_fetched = False
+        guard = None if allow_post_deadline else self._deadline_guard(gw)
         for player_id in _dedupe(player_ids):
             if previous_was_fetched:
                 self._sleep(self._throttle_s)
@@ -329,6 +383,7 @@ class FplDataService:
                 ElementSummary.model_validate,
                 max_age_hours,
                 force,
+                before_fetch=guard,
             )
             previous_was_fetched = self._log.events[before].fetched
         return summaries
@@ -391,13 +446,22 @@ class FplDataService:
     def actuals(
         self, gw: int, *, player_ids: Sequence[int], match_round: int
     ) -> list[ActualLine]:
-        """Force-refreshes each summary, then sums every history row for the
-        round — a double gameweek contributes two rows."""
-        ids = _dedupe(player_ids)
-        summaries = self.player_summaries(gw, player_ids=ids, force=True)
-        return [
-            _aggregate_round(pid, summaries[pid].history, match_round) for pid in ids
-        ]
+        """Reads the round's final event-live snapshot, from gw or else the gw
+        after the round; never fetches. Live stats arrive already summed over
+        a double gameweek."""
+        name = f"event-live-e{match_round}"
+        places = _dedupe([gw, match_round + 1])
+        source = next((g for g in places if self._store.is_final(g, name)), None)
+        if source is None:
+            force = " --force" if self._store.exists(gw, name) else ""
+            where = " or ".join(f"gw{g}" for g in places)
+            raise ValueError(
+                f"no final event-live snapshot of round {match_round} in {where} — "
+                f"fetch it first: "
+                f"python -m fpl event-live --gw {gw} --round {match_round}{force}"
+            )
+        stats = EventLive.model_validate(self._store.load(source, name)).by_id()
+        return [_actual_line(pid, stats.get(pid)) for pid in _dedupe(player_ids)]
 
     def export_players_csv(self, gw: int) -> Path:
         rows = PlayerRepository(self._store).query(gw, sort="id")
@@ -463,6 +527,54 @@ class FplDataService:
     def _cached_bootstrap(self, gw: int) -> Bootstrap:
         return load_cached_bootstrap(self._store, gw)
 
+    def _readable_cached_bootstrap(self, gw: int) -> Bootstrap | None:
+        """The cached bootstrap, or None when it is missing or unreadable —
+        a corrupt snapshot must not block the refetch that replaces it."""
+        if not self._store.exists(gw, "bootstrap"):
+            return None
+        try:
+            return self._cached_bootstrap(gw)
+        except ValueError:
+            return None
+
+    def _cached_deadline(self, gw: int, event: int) -> datetime | None:
+        bootstrap = self._readable_cached_bootstrap(gw)
+        return None if bootstrap is None else bootstrap.deadline_for(event)
+
+    def _round_settled(self, gw: int, event: int) -> tuple[bool, str]:
+        """Picks for an event keep changing (automatic subs, multipliers,
+        entry_history) until the round is processed, so they are final only
+        once the cached gw bootstrap shows the event finished and data-checked."""
+        bootstrap = self._readable_cached_bootstrap(gw)
+        if bootstrap is None:
+            return False, (
+                f"no readable cached gw{gw} bootstrap shows event {event} data_checked"
+            )
+        settled = next((e for e in bootstrap.events if e.id == event), None)
+        if settled is not None and settled.finished and settled.data_checked:
+            return True, self.data_checked_basis(gw, event)
+        return False, (
+            f"event {event} not finished/data_checked in {self._bootstrap_label(gw)}"
+        )
+
+    def _deadline_guard(self, gw: int) -> Callable[[], None]:
+        """Refuses a fetch into gw{gw} once its deadline has passed: that
+        directory is the record of what the gameweek's analysis read. The
+        deadline is looked up once, on the first fetch, so a run serving
+        every snapshot from cache never parses the bootstrap."""
+        checked = False
+
+        def guard() -> None:
+            nonlocal checked
+            if checked:
+                return
+            deadline = self._cached_deadline(gw, gw)
+            if deadline is not None and self._now() >= deadline:
+                raise PostDeadlineError(gw, deadline)
+            checked = True
+
+        return guard
+
     def _load_or_fetch(
         self,
         gw: int,
@@ -472,23 +584,37 @@ class FplDataService:
         max_age_hours: float,
         force: bool,
         guard: Callable[[Any], None] | None = None,
+        final_when: Callable[[Any], tuple[bool, str | None]] | None = None,
+        before_fetch: Callable[[], None] | None = None,
     ) -> Any:
         if not force and self._store.exists(gw, name):
             age = self._store.age_hours(gw, name)
+            final = self._store.is_final(gw, name)
             # max_age_hours == inf means "any snapshot will do", including one
-            # whose sidecar is missing or unreadable.
-            if _is_positive_inf(max_age_hours) or (
+            # whose sidecar is missing or unreadable. A final snapshot can no
+            # longer change, so it is served at any age.
+            if final or _is_positive_inf(max_age_hours) or (
                 age is not None and age <= max_age_hours
             ):
                 parsed = parse(self._store.load(gw, name))
-                self._log.events.append(FetchEvent(name, fetched=False, age_hours=age))
+                self._log.events.append(
+                    FetchEvent(name, fetched=False, age_hours=age, final=final)
+                )
                 return parsed
+        if before_fetch is not None:
+            before_fetch()
         fetched = fetch()
         parsed = parse(fetched.payload)
         if guard is not None:
             guard(parsed)
-        self._store.save(gw, name, fetched.payload, fetched.url)
-        self._log.events.append(FetchEvent(name, fetched=True))
+        # final_when explains its verdict either way: the basis of a final
+        # snapshot, or the reason a snapshot is not final yet.
+        final, why = final_when(parsed) if final_when is not None else (False, None)
+        self._store.save(
+            gw, name, fetched.payload, fetched.url, final=final,
+            basis=why if final else None, reason=None if final else why,
+        )
+        self._log.events.append(FetchEvent(name, fetched=True, final=final))
         return parsed
 
 
@@ -496,22 +622,19 @@ def _is_positive_inf(value: float) -> bool:
     return math.isinf(value) and value > 0
 
 
-def _aggregate_round(
-    player_id: int, history: Sequence[MatchRecord], match_round: int
-) -> ActualLine:
-    rows = [row for row in history if row.round == match_round]
-    if not rows:
+def _actual_line(player_id: int, stats: LiveStats | None) -> ActualLine:
+    if stats is None:
         return ActualLine(player_id=player_id, matched=False)
     return ActualLine(
         player_id=player_id,
         matched=True,
-        minutes=sum(row.minutes for row in rows),
-        total_points=sum(row.total_points for row in rows),
-        goals_scored=sum(row.goals_scored for row in rows),
-        assists=sum(row.assists for row in rows),
-        bonus=sum(row.bonus or 0 for row in rows),
-        bps=sum(row.bps or 0 for row in rows),
-        expected_goals=round(sum(row.expected_goals or 0.0 for row in rows), 2),
-        expected_assists=round(sum(row.expected_assists or 0.0 for row in rows), 2),
-        defensive_contribution=sum(row.defensive_contribution or 0.0 for row in rows),
+        minutes=stats.minutes,
+        total_points=stats.total_points,
+        goals_scored=stats.goals_scored,
+        assists=stats.assists,
+        bonus=stats.bonus,
+        bps=stats.bps,
+        expected_goals=round(stats.expected_goals or 0.0, 2),
+        expected_assists=round(stats.expected_assists or 0.0, 2),
+        defensive_contribution=stats.defensive_contribution or 0.0,
     )

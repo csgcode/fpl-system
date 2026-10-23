@@ -1,0 +1,270 @@
+{
+ "gw": 8,
+ "refreshed_at": "2026-10-23T13:13:22.242608+00:00",
+ "baseline": {
+  "source": "data/raw/gw8/.archive/bootstrap-20261023T095820_571308Z.json",
+  "fetched_at": "2026-10-23T09:58:20.571308+00:00",
+  "age_hours": 3.25046425,
+  "stale": false
+ },
+ "gate_ids": [
+  1,
+  4,
+  229,
+  112,
+  202,
+  423,
+  427,
+  124,
+  68,
+  542,
+  94,
+  411,
+  249,
+  106,
+  497
+ ],
+ "gate_changed": false,
+ "gate": [],
+ "pool": [
+  {
+   "id": 63,
+   "web_name": "Milosavljevi\u0107",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "news",
+     "before": "Thigh injury - Expected back 8 Nov",
+     "after": "Thigh injury - Expected back 31 Oct"
+    }
+   ]
+  },
+  {
+   "id": 76,
+   "web_name": "T\u00f3th.A",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Hamstring injury - Unknown return date"
+    }
+   ]
+  },
+  {
+   "id": 78,
+   "web_name": "Kroupi.Jr",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 50,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "Foot injury - 50% chance of playing",
+     "after": "Foot injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 122,
+   "web_name": "Minteh",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "i",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 0,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "Leg injury - Expected back 28 Nov",
+     "after": "Leg injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 130,
+   "web_name": "Wieffer",
+   "position": "DEF",
+   "changes": [
+    {
+     "field": "status",
+     "before": "i",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 0,
+     "after": 25
+    },
+    {
+     "field": "news",
+     "before": "Knee injury - Unknown return date",
+     "after": "Knee injury - 25% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 262,
+   "web_name": "Smith Rowe",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Knock - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 335,
+   "web_name": "Stach",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Foot injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 336,
+   "web_name": "Okafor",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Thigh injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 346,
+   "web_name": "Calvert-Lewin",
+   "position": "FWD",
+   "changes": [
+    {
+     "field": "status",
+     "before": "a",
+     "after": "d"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": null,
+     "after": 50
+    },
+    {
+     "field": "news",
+     "before": "",
+     "after": "Foot injury - 50% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 589,
+   "web_name": "Gourna-Douath",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 50,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "Calf injury - 50% chance of playing",
+     "after": "Calf injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 617,
+   "web_name": "Cho",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 50,
+     "after": 75
+    },
+    {
+     "field": "news",
+     "before": "Unspecified injury - 50% chance of playing",
+     "after": "Unspecified injury - 75% chance of playing"
+    }
+   ]
+  },
+  {
+   "id": 635,
+   "web_name": "Larsson",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 25,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Groin injury - 25% chance of playing",
+     "after": ""
+    }
+   ]
+  }
+ ]
+}

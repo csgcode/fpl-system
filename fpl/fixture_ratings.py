@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 from fpl.ep import CLUB_RATING_RANGE, HORIZON, SCHEMA_VERSION, FixturesDocument, load_fixtures
 from fpl.models import Bootstrap, ElementSummary, EventLive, Fixture
+from fpl.season_store import History, PlayerMatch
 from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.state import MAX_GW
 from fpl.store import SnapshotMissingError, SnapshotStore
@@ -169,6 +170,7 @@ class RatingInputs:
     live: Mapping[int, EventLive]
     priors: PriorsDocument
     previous: FixturesDocument | None = None
+    matches: Sequence[PlayerMatch] | None = None
 
 
 @dataclass(frozen=True)
@@ -337,6 +339,8 @@ def _side_xg(played: Sequence[Fixture], inputs: RatingInputs) -> _Tally:
     """Summary rows are attributed by their own fixture and venue, so a
     transferred player's old matches stay with his old club. Players without
     a summary row are recovered from event-live, on their current club's side."""
+    if inputs.matches is not None:
+        return _stored_side_xg(played, inputs)
     by_id = {f.id: f for f in played}
     tally = _Tally(xg={(f.id, side): 0.0 for f in played for side in ("H", "A")})
     seen: set[tuple[int, int]] = set()
@@ -371,6 +375,36 @@ def _side_xg(played: Sequence[Fixture], inputs: RatingInputs) -> _Tally:
                 tally.xg[(fid, side)] += xg
                 tally.recovered += 1
                 tally.recovered_xg += xg
+    return tally
+
+
+def _stored_side_xg(played: Sequence[Fixture], inputs: RatingInputs) -> _Tally:
+    """The season store's rows, each on the side of the club the player played
+    for in that match. A row of a player without a summary counts as
+    recovered, as on the summaries path. Rows are summed in the summaries
+    path's order (summarised players first, then the rest by round), so the
+    rounded match xG agree wherever both paths attribute a row alike."""
+    by_id = {f.id: f for f in played}
+    tally = _Tally(xg={(f.id, side): 0.0 for f in played for side in ("H", "A")})
+    order = {element: i for i, element in enumerate(inputs.summaries)}
+    rows = sorted(
+        (m for m in inputs.matches or () if m.fixture in by_id),
+        key=lambda m: ((0, order[m.element], 0, 0) if m.element in order
+                       else (1, m.round or 0, m.element, m.fixture)),
+    )
+    for m in rows:
+        xg = m.expected_goals or 0.0
+        recovered = m.element not in order
+        if m.team is None:
+            if m.minutes > 0:
+                tally.unresolved += 1
+                tally.unresolved_xg += xg
+            continue
+        fixture = by_id[m.fixture]
+        tally.xg[(m.fixture, "H" if m.team == fixture.team_h else "A")] += xg
+        if recovered and m.minutes > 0:
+            tally.recovered += 1
+            tally.recovered_xg += xg
     return tally
 
 
@@ -686,7 +720,7 @@ def _details(run: RatingRun) -> list[str]:
 
 
 def load_inputs(store: SnapshotStore, gw: int, *, priors_path: Path,
-                analysis_root: Path) -> RatingInputs:
+                analysis_root: Path, history: History | None = None) -> RatingInputs:
     priors = load_priors(priors_path)
     bootstrap = load_cached_bootstrap(store, gw)
     try:
@@ -696,7 +730,17 @@ def load_inputs(store: SnapshotStore, gw: int, *, priors_path: Path,
     if not isinstance(raw_fixtures, list):
         raise ValueError(f"gw{gw} fixtures.json is not a list")
     fixtures = tuple(Fixture.model_validate(f) for f in raw_fixtures)
-    summaries = load_cached_summaries(store, gw, [p.id for p in bootstrap.elements])
+    ids = [p.id for p in bootstrap.elements]
+    previous_path = analysis_root / f"gw{gw - 1}" / JSON_FILENAME
+    previous = load_fixtures(previous_path) if gw > 1 and previous_path.is_file() else None
+    if history is not None and history.source == "store":
+        with history.open() as reader:
+            summaries = reader.summaries(gw, ids, coverage="production")
+            matches = reader.matches(gw)
+        return RatingInputs(gw=gw, bootstrap=bootstrap, fixtures=fixtures,
+                            summaries=summaries, live={}, priors=priors, previous=previous,
+                            matches=matches)
+    summaries = load_cached_summaries(store, gw, ids)
     live = {}
     for r in range(1, gw):
         name = f"event-live-e{r}"
@@ -706,8 +750,6 @@ def load_inputs(store: SnapshotStore, gw: int, *, priors_path: Path,
                 f"the retro's 'calibrate --gw {r + 1} --round {r}' writes it — run step 0 first",
             )
         live[r] = EventLive.model_validate(store.load(r + 1, name))
-    previous_path = analysis_root / f"gw{gw - 1}" / JSON_FILENAME
-    previous = load_fixtures(previous_path) if gw > 1 and previous_path.is_file() else None
     return RatingInputs(gw=gw, bootstrap=bootstrap, fixtures=fixtures, summaries=summaries,
                         live=live, priors=priors, previous=previous)
 

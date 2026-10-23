@@ -654,3 +654,26 @@ def test_objective_judges_legacy_and_current_rows_on_the_current_digest(tmp_path
     (analysis / f"gw{GW}" / "players-DEF.json").write_text(json.dumps([dict(legacy, id=2)]))
     blend, _ = load_views(store, analysis, GW)
     assert set(blend) == {1, 2}
+
+
+def test_load_views_reads_the_prior_reading_through_the_history_it_is_given(tmp_path):
+    from fpl.__main__ import main
+    from fpl.season_store import History
+
+    store, analysis = _seed(tmp_path)
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+                 "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions")]) == 0
+    asked: list[tuple[int, tuple[int, ...]]] = []
+
+    class Recording(History):
+        def summaries(self, gw, ids):
+            ids = tuple(ids)
+            asked.append((gw, ids))
+            return super().summaries(gw, ids)
+
+    default = load_views(store, analysis, GW)
+    recorded = load_views(store, analysis, GW, Recording("summaries", tmp_path / "raw"))
+
+    assert recorded == default
+    assert [gw for gw, _ in asked] == [GW] * 4 and any(1 in ids for _, ids in asked)

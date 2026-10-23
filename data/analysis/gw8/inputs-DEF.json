@@ -1,0 +1,1362 @@
+{
+ "schema_version": 1,
+ "gw": 8,
+ "position": "DEF",
+ "players": [
+  {
+   "id": 4,
+   "name": "Gabriel",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken R5-R7"
+  },
+  {
+   "id": 8,
+   "name": "Calafiori",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken R5-R7; hooked 66,81"
+  },
+  {
+   "id": 31,
+   "name": "Konsa",
+   "p_start": 0.94,
+   "p_start_gw": [
+    0.94,
+    0.9,
+    0.85,
+    0.8,
+    0.76,
+    0.74
+   ],
+   "uncertainty": "MED",
+   "notes": "90x5 R3-R7 beside Gabriel; Saliba return (guess) pressures later"
+  },
+  {
+   "id": 6,
+   "name": "Saliba",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.15,
+    0.3,
+    0.45,
+    0.55,
+    0.6
+   ],
+   "uncertainty": "MED",
+   "notes": "back, unknown return, no minutes all season - ramp is a guess"
+  },
+  {
+   "id": 10,
+   "name": "White",
+   "p_start": 0.72,
+   "uncertainty": "MED",
+   "notes": "62,65 R6-R7 starts at RB; 0 R5"
+  },
+  {
+   "id": 5,
+   "name": "J.Timber",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "59,27,24 R5-R7 off the bench; 1 start all season"
+  },
+  {
+   "id": 11,
+   "name": "Mosquera",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "no minutes since R2"
+  },
+  {
+   "id": 9,
+   "name": "Hincapie",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "ankle 75%; 40 minutes all season"
+  },
+  {
+   "id": 37,
+   "name": "Lindelöf",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 33,
+   "name": "Mings",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "90x3 R5-R7, unbroken"
+  },
+  {
+   "id": 34,
+   "name": "Pau",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "0,0,13 R5-R7 behind Mings"
+  },
+  {
+   "id": 36,
+   "name": "Maatsen",
+   "p_start": 0.35,
+   "p_start_gw": [
+    0.35,
+    0.45,
+    0.5,
+    0.55,
+    0.55,
+    0.55
+   ],
+   "uncertainty": "HIGH",
+   "notes": "ankle cleared, 0 R5-R7; regaining the LB slot is a guess"
+  },
+  {
+   "id": 32,
+   "name": "Cash",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "90,90 R6-R7 at RB; Wan-Bissaka out to 21 Nov"
+  },
+  {
+   "id": 611,
+   "name": "Wan-Bissaka",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0,
+    0,
+    0.15,
+    0.3,
+    0.4
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, expected back 21 Nov: 0 GW8-GW10; later values a guess"
+  },
+  {
+   "id": 630,
+   "name": "Harwood-Bellis",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "no minutes"
+  },
+  {
+   "id": 504,
+   "name": "Vuskovic",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken R5-R7"
+  },
+  {
+   "id": 115,
+   "name": "De Cuyper",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken R5-R7; corners 2, FK 4"
+  },
+  {
+   "id": 114,
+   "name": "Boscagli",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, hooked 67,80 R6-R7"
+  },
+  {
+   "id": 113,
+   "name": "F.Kadıoğlu",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "90x3 R5-R7 at LB"
+  },
+  {
+   "id": 116,
+   "name": "Dunk",
+   "p_start": 0.6,
+   "uncertainty": "MED",
+   "notes": "30,89 R6-R7 - back in R7 with Struijk out"
+  },
+  {
+   "id": 328,
+   "name": "Struijk",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "hamstring 75%; 0 R7 after 85,56"
+  },
+  {
+   "id": 119,
+   "name": "Costinha",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "cameos only"
+  },
+  {
+   "id": 120,
+   "name": "Svoboda",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "5 minutes all season"
+  },
+  {
+   "id": 117,
+   "name": "Coppola",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "no minutes"
+  },
+  {
+   "id": 614,
+   "name": "Hadjam",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "11 minutes all season"
+  },
+  {
+   "id": 130,
+   "name": "Wieffer",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.15,
+    0.25,
+    0.35,
+    0.4,
+    0.4
+   ],
+   "uncertainty": "HIGH",
+   "notes": "knee, unknown return - ramp is a guess"
+  },
+  {
+   "id": 60,
+   "name": "Hill",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 566,
+   "name": "Silva",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 61,
+   "name": "Truffert",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken R5-R7"
+  },
+  {
+   "id": 64,
+   "name": "Smith",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "7/7 starts, unbroken R5-R7; hooked 74,71"
+  },
+  {
+   "id": 62,
+   "name": "Diakité",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "1 minute all season"
+  },
+  {
+   "id": 87,
+   "name": "Ajer",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 88,
+   "name": "Kayode",
+   "p_start": 0.86,
+   "uncertainty": "HIGH",
+   "notes": "68,90,90 R5-R7 - holds RB"
+  },
+  {
+   "id": 85,
+   "name": "Van den Berg",
+   "p_start": 0.55,
+   "uncertainty": "HIGH",
+   "notes": "70' start R7, first of the season, over a fit Collins"
+  },
+  {
+   "id": 84,
+   "name": "Collins",
+   "p_start": 0.4,
+   "p_start_gw": [
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.55,
+    0.55
+   ],
+   "uncertainty": "MED",
+   "notes": "flag cleared, still 0 R4-R7; VdB started R7 - share is a guess"
+  },
+  {
+   "id": 93,
+   "name": "Schuster",
+   "p_start": 0.4,
+   "uncertainty": "MED",
+   "notes": "ankle 75%; 45,0 R6-R7"
+  },
+  {
+   "id": 620,
+   "name": "Diouf",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "90 start R6, 13 R7"
+  },
+  {
+   "id": 90,
+   "name": "Hickey",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "1 start all season, bench minutes"
+  },
+  {
+   "id": 89,
+   "name": "Henry",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "2 minutes all season"
+  },
+  {
+   "id": 149,
+   "name": "Colwill",
+   "p_start": 0.95,
+   "uncertainty": "MED",
+   "notes": "90x4 R4-R7, unbroken"
+  },
+  {
+   "id": 200,
+   "name": "Lacroix",
+   "p_start": 0.94,
+   "uncertainty": "MED",
+   "notes": "90x3 R5-R7 after the R4 4-minute drop"
+  },
+  {
+   "id": 151,
+   "name": "Acheampong",
+   "p_start": 0.7,
+   "uncertainty": "HIGH",
+   "notes": "90,90 R6-R7 with Fofana dropped"
+  },
+  {
+   "id": 583,
+   "name": "Chavarria",
+   "p_start": 0.5,
+   "uncertainty": "HIGH",
+   "notes": "injury 75%; 0 R7 after 90,90"
+  },
+  {
+   "id": 148,
+   "name": "Hato",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "90 start R7 after 0,0 - C21 case"
+  },
+  {
+   "id": 145,
+   "name": "Fofana",
+   "p_start": 0.35,
+   "uncertainty": "MED",
+   "notes": "0,0 R6-R7 - out of the side, no flag"
+  },
+  {
+   "id": 144,
+   "name": "Gusto",
+   "p_start": 0.2,
+   "uncertainty": "HIGH",
+   "notes": "illness 75%; 0,2,0 R5-R7"
+  },
+  {
+   "id": 152,
+   "name": "Palestra",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "18,1 cameos R6-R7"
+  },
+  {
+   "id": 561,
+   "name": "Anselmino",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "no minutes"
+  },
+  {
+   "id": 142,
+   "name": "James",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.3,
+    0.5,
+    0.62,
+    0.68,
+    0.7
+   ],
+   "uncertainty": "HIGH",
+   "notes": "knee, unknown return - ramp is a guess; corners + direct FKs when fit"
+  },
+  {
+   "id": 173,
+   "name": "Thomas",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "90x5 R3-R7, unbroken",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 176,
+   "name": "Dasilva",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "7/7 starts, unbroken",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 91,
+   "name": "Pinnock",
+   "p_start": 0.95,
+   "uncertainty": "MED",
+   "notes": "90x5 R3-R7, unbroken",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 175,
+   "name": "van Ewijk",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "0,90,90 R5-R7",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 656,
+   "name": "Mfuni",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "7,0 R6-R7",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 177,
+   "name": "Kesler-Hayden",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "3 minutes all season",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 182,
+   "name": "Amenda",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.25,
+    0.45,
+    0.6,
+    0.65,
+    0.68
+   ],
+   "uncertainty": "HIGH",
+   "notes": "calf, unknown return - ramp is a guess",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 202,
+   "name": "Richards",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 588,
+   "name": "Khalaili",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x5 R3-R7, unbroken"
+  },
+  {
+   "id": 204,
+   "name": "Mitchell",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken R5-R7"
+  },
+  {
+   "id": 203,
+   "name": "Canvot",
+   "p_start": 0.94,
+   "uncertainty": "MED",
+   "notes": "90x3 R5-R7"
+  },
+  {
+   "id": 633,
+   "name": "Ahanor",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "52' R7 start, 18 R6"
+  },
+  {
+   "id": 153,
+   "name": "Disasi",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "suspension served; out of the side since R4"
+  },
+  {
+   "id": 643,
+   "name": "Chilwell",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "29 minutes all season"
+  },
+  {
+   "id": 207,
+   "name": "Mingueza",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "16 minutes all season"
+  },
+  {
+   "id": 577,
+   "name": "Tomiyasu",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0,
+    0.15,
+    0.25,
+    0.3,
+    0.35
+   ],
+   "uncertainty": "HIGH",
+   "notes": "calf, expected back 8 Nov = CRY GW10 kickoff day: 0 GW8-GW9"
+  },
+  {
+   "id": 229,
+   "name": "Tarkowski",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 230,
+   "name": "Branthwaite",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 233,
+   "name": "Mykolenko",
+   "p_start": 0.88,
+   "uncertainty": "MED",
+   "notes": "90 R7 back at LB after 0 R6"
+  },
+  {
+   "id": 649,
+   "name": "Maitland-Niles",
+   "p_start": 0.88,
+   "uncertainty": "HIGH",
+   "notes": "90,77,54 R5-R7 starts, hooked twice"
+  },
+  {
+   "id": 231,
+   "name": "Keane",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "0 R7 after covering R6"
+  },
+  {
+   "id": 232,
+   "name": "O'Brien",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "28 minutes all season"
+  },
+  {
+   "id": 257,
+   "name": "Bassey",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 650,
+   "name": "Affengruber",
+   "p_start": 0.95,
+   "uncertainty": "MED",
+   "notes": "90x4 R4-R7, unbroken"
+  },
+  {
+   "id": 258,
+   "name": "Castagne",
+   "p_start": 0.86,
+   "uncertainty": "MED",
+   "notes": "90 R7 back at RB after 0 R6"
+  },
+  {
+   "id": 254,
+   "name": "Robinson",
+   "p_start": 0.88,
+   "uncertainty": "MED",
+   "notes": "flag cleared; 90 R7 after 0 R6"
+  },
+  {
+   "id": 256,
+   "name": "Tete",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "90 R6, 0 R7"
+  },
+  {
+   "id": 253,
+   "name": "Andersen",
+   "p_start": 0.12,
+   "uncertainty": "HIGH",
+   "notes": "0,10,0,0 R4-R7"
+  },
+  {
+   "id": 255,
+   "name": "J.Cuenca",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "one start in R1"
+  },
+  {
+   "id": 279,
+   "name": "Ajayi",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "90x6 R2-R7, unbroken",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 277,
+   "name": "Egan",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "7/7 starts, unbroken R5-R7",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 280,
+   "name": "Coyle",
+   "p_start": 0.94,
+   "uncertainty": "HIGH",
+   "notes": "81,90,90,90 R4-R7",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 282,
+   "name": "Giles",
+   "p_start": 0.75,
+   "uncertainty": "HIGH",
+   "notes": "63,22 R6-R7 - bench R7 as Norton-Cuffy started; primary direct FKs, corner order 4",
+   "overrides": {
+    "attack_mult": 1.0
+   },
+   "reason": "the promoted-club 0.80 discount is cancelled by primary direct-FK duty"
+  },
+  {
+   "id": 638,
+   "name": "Norton-Cuffy",
+   "p_start": 0.4,
+   "uncertainty": "HIGH",
+   "notes": "67' start R7, first of the season",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 585,
+   "name": "Herrington",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "0,45 R6-R7",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 586,
+   "name": "Mendy",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.3,
+    0.5,
+    0.55,
+    0.58,
+    0.6
+   ],
+   "uncertainty": "HIGH",
+   "notes": "groin, expected back 31 Oct = HUL GW9 kickoff day",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 285,
+   "name": "McNair",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "26 minutes all season",
+   "overrides": {
+    "attack_mult": 0.8
+   },
+   "reason": "promoted club: the fixture attack multiplier divides ATT_club out, so a prior drawn from the second tier over-states the attacking rate; 0.80 restores the discount"
+  },
+  {
+   "id": 259,
+   "name": "Diop",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 304,
+   "name": "O'Shea",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 305,
+   "name": "Davis",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "90x6 R2-R7, unbroken; direct-FK order 2"
+  },
+  {
+   "id": 592,
+   "name": "Ouattara",
+   "p_start": 0.93,
+   "uncertainty": "HIGH",
+   "notes": "90x3 R5-R7, unbroken",
+   "overrides": {
+    "attack_mult": 0.88
+   },
+   "reason": "promoted club with a league-mean prior (no PL history), so the attack term carries no penalty of its own"
+  },
+  {
+   "id": 306,
+   "name": "Greaves",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "90 start R7 after 0,0"
+  },
+  {
+   "id": 308,
+   "name": "Furlong",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "17 minutes all season"
+  },
+  {
+   "id": 334,
+   "name": "Muharemović",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 332,
+   "name": "Justin",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken"
+  },
+  {
+   "id": 598,
+   "name": "Elvedi",
+   "p_start": 0.94,
+   "uncertainty": "MED",
+   "notes": "90,85,90 R5-R7"
+  },
+  {
+   "id": 331,
+   "name": "Gudmundsson",
+   "p_start": 0.94,
+   "uncertainty": "MED",
+   "notes": "90x3 R5-R7"
+  },
+  {
+   "id": 330,
+   "name": "Bogle",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "7/7 starts, hooked often"
+  },
+  {
+   "id": 327,
+   "name": "Bijol",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "4 minutes R4-R7"
+  },
+  {
+   "id": 641,
+   "name": "Bard",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "18 minutes all season"
+  },
+  {
+   "id": 356,
+   "name": "Virgil",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 362,
+   "name": "Jacquet",
+   "p_start": 0.95,
+   "uncertainty": "MED",
+   "notes": "90,87,90 R5-R7"
+  },
+  {
+   "id": 358,
+   "name": "Kerkez",
+   "p_start": 0.94,
+   "uncertainty": "MED",
+   "notes": "90x3 R5-R7"
+  },
+  {
+   "id": 579,
+   "name": "Araujo",
+   "p_start": 0.85,
+   "uncertainty": "MED",
+   "notes": "90,74,45 R5-R7 starts"
+  },
+  {
+   "id": 359,
+   "name": "Gomez",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "2,11 cameos R6-R7"
+  },
+  {
+   "id": 364,
+   "name": "Tsimikas",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "64 minutes all season"
+  },
+  {
+   "id": 357,
+   "name": "Frimpong",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.15,
+    0.25,
+    0.35,
+    0.4,
+    0.4
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, unknown return - ramp is a guess; behind Jacquet when fit"
+  },
+  {
+   "id": 388,
+   "name": "Guéhi",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 390,
+   "name": "Rúben",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 389,
+   "name": "Matheus N.",
+   "p_start": 0.75,
+   "p_start_gw": [
+    0.75,
+    0.9,
+    0.92,
+    0.92,
+    0.92,
+    0.92
+   ],
+   "uncertainty": "MED",
+   "notes": "injury 75%; 90,90,75 R5-R7; penalty order 4"
+  },
+  {
+   "id": 387,
+   "name": "O'Reilly",
+   "p_start": 0.65,
+   "p_start_gw": [
+    0.65,
+    0.7,
+    0.7,
+    0.7,
+    0.7,
+    0.7
+   ],
+   "uncertainty": "HIGH",
+   "notes": "back 75%; 65,60 R6-R7 starts ahead of Gvardiol"
+  },
+  {
+   "id": 391,
+   "name": "Gvardiol",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "uncertainty": "LOW",
+   "notes": "24,29 R6-R7 off the bench; covers O'Reilly's doubt GW8"
+  },
+  {
+   "id": 393,
+   "name": "Khusanov",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "14 R7, no start since R3"
+  },
+  {
+   "id": 392,
+   "name": "Aït-Nouri",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "no minutes all season"
+  },
+  {
+   "id": 395,
+   "name": "Lewis",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "56 minutes all season"
+  },
+  {
+   "id": 418,
+   "name": "Maguire",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 419,
+   "name": "Martinez",
+   "p_start": 0.75,
+   "p_start_gw": [
+    0.75,
+    0.88,
+    0.9,
+    0.9,
+    0.9,
+    0.9
+   ],
+   "uncertainty": "LOW",
+   "notes": "thigh 75%; hooked 45 R7 after 90x5"
+  },
+  {
+   "id": 417,
+   "name": "Dalot",
+   "p_start": 0.85,
+   "uncertainty": "MED",
+   "notes": "90 R7 start; 31 R6"
+  },
+  {
+   "id": 420,
+   "name": "Yoro",
+   "p_start": 0.7,
+   "p_start_gw": [
+    0.7,
+    0.55,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "uncertainty": "HIGH",
+   "notes": "58,90 R6-R7 starts; covers Martinez's doubt GW8"
+  },
+  {
+   "id": 422,
+   "name": "Mazraoui",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "45 R7, first minutes since R2"
+  },
+  {
+   "id": 421,
+   "name": "Heaven",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "illness 75%; one 90 all season"
+  },
+  {
+   "id": 416,
+   "name": "De Ligt",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "no minutes all season"
+  },
+  {
+   "id": 423,
+   "name": "Shaw",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.3,
+    0.45,
+    0.55,
+    0.6,
+    0.6
+   ],
+   "uncertainty": "MED",
+   "notes": "unspecified, unknown return - ramp is a guess"
+  },
+  {
+   "id": 445,
+   "name": "Thiaw",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 449,
+   "name": "Hall",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "7/7 starts, unbroken; primary corners + direct FKs",
+   "overrides": {
+    "attack_mult": 1.15
+   },
+   "reason": "primary direct-FK and corner duty this season, absent from his prior-season rates, which sat behind Trippier"
+  },
+  {
+   "id": 447,
+   "name": "Botman",
+   "p_start": 0.93,
+   "p_start_gw": [
+    0.93,
+    0.9,
+    0.88,
+    0.88,
+    0.88,
+    0.88
+   ],
+   "uncertainty": "MED",
+   "notes": "90x6 R2-R7; Burn fit (1' cameos) contests the slot"
+  },
+  {
+   "id": 593,
+   "name": "Dedić",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "0,31,0 R5-R7"
+  },
+  {
+   "id": 448,
+   "name": "Burn",
+   "p_start": 0.12,
+   "p_start_gw": [
+    0.12,
+    0.25,
+    0.3,
+    0.35,
+    0.35,
+    0.35
+   ],
+   "uncertainty": "HIGH",
+   "notes": "1' cameos R6-R7 - ramp back"
+  },
+  {
+   "id": 446,
+   "name": "Schär",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "25 minutes all season; penalty order 2"
+  },
+  {
+   "id": 450,
+   "name": "Livramento",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0,
+    0.15,
+    0.3,
+    0.4,
+    0.45
+   ],
+   "uncertainty": "HIGH",
+   "notes": "knee, expected back 7 Nov = NEW GW10 kickoff day: 0 GW8-GW9"
+  },
+  {
+   "id": 472,
+   "name": "Murillo",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "7/7 near-full starts, unbroken; direct-FK order 2"
+  },
+  {
+   "id": 469,
+   "name": "N.Williams",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 201,
+   "name": "Muñoz",
+   "p_start": 0.94,
+   "uncertainty": "HIGH",
+   "notes": "82,90,90 R5-R7"
+  },
+  {
+   "id": 581,
+   "name": "Diomande",
+   "p_start": 0.88,
+   "p_start_gw": [
+    0.88,
+    0.8,
+    0.75,
+    0.72,
+    0.72,
+    0.72
+   ],
+   "uncertainty": "HIGH",
+   "notes": "72,90,90 R5-R7; Milenković fit again"
+  },
+  {
+   "id": 471,
+   "name": "Milenković",
+   "p_start": 0.25,
+   "p_start_gw": [
+    0.25,
+    0.4,
+    0.5,
+    0.55,
+    0.55,
+    0.55
+   ],
+   "uncertainty": "HIGH",
+   "notes": "flag cleared, 0 R4-R7 - regaining the slot is a guess"
+  },
+  {
+   "id": 474,
+   "name": "Jair Cunha",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "84 start R7, 0 R6"
+  },
+  {
+   "id": 473,
+   "name": "Aina",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "82 R6, 0 R7"
+  },
+  {
+   "id": 533,
+   "name": "Mukiele",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 501,
+   "name": "Danso",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.85,
+    0.88,
+    0.88,
+    0.88,
+    0.88
+   ],
+   "uncertainty": "LOW",
+   "notes": "suspended until 31 Oct = SUN GW9 kickoff day: 0 GW8"
+  },
+  {
+   "id": 536,
+   "name": "Reinildo",
+   "p_start": 0.88,
+   "uncertainty": "MED",
+   "notes": "72,90 R6-R7"
+  },
+  {
+   "id": 534,
+   "name": "Hume",
+   "p_start": 0.75,
+   "uncertainty": "HIGH",
+   "notes": "90,90 R6-R7 starts"
+  },
+  {
+   "id": 535,
+   "name": "Alderete",
+   "p_start": 0.6,
+   "p_start_gw": [
+    0.6,
+    0.2,
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "uncertainty": "HIGH",
+   "notes": "58 R7, first start; likeliest Danso cover GW8"
+  },
+  {
+   "id": 541,
+   "name": "Meunier",
+   "p_start": 0.45,
+   "uncertainty": "MED",
+   "notes": "groin 75%; 33,0 R6-R7"
+  },
+  {
+   "id": 539,
+   "name": "O'Nien",
+   "p_start": 0.25,
+   "p_start_gw": [
+    0.25,
+    0.08,
+    0.06,
+    0.06,
+    0.06,
+    0.06
+   ],
+   "uncertainty": "HIGH",
+   "notes": "31 R7; alternative Danso cover GW8"
+  },
+  {
+   "id": 612,
+   "name": "Methalie",
+   "p_start": 0.15,
+   "uncertainty": "HIGH",
+   "notes": "17,0 R6-R7"
+  },
+  {
+   "id": 532,
+   "name": "Ballard",
+   "p_start": 0,
+   "p_start_gw": [
+    0,
+    0.2,
+    0.35,
+    0.45,
+    0.5,
+    0.55
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, unknown return - ramp is a guess"
+  },
+  {
+   "id": 112,
+   "name": "Van Hecke",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90x6 R2-R7, unbroken"
+  },
+  {
+   "id": 503,
+   "name": "Van de Ven",
+   "p_start": 0.88,
+   "uncertainty": "MED",
+   "notes": "90 R7 after the R6 benching"
+  },
+  {
+   "id": 502,
+   "name": "Robertson",
+   "p_start": 0.65,
+   "uncertainty": "MED",
+   "notes": "foot 75%; 68 R7 start after 0 R6; corner order 6"
+  },
+  {
+   "id": 498,
+   "name": "Senesi",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "88 start R6, 0 R7"
+  },
+  {
+   "id": 506,
+   "name": "Udogie",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "knee 75%; 73 R6, 0 R7"
+  },
+  {
+   "id": 147,
+   "name": "Tosin",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "calf 75%; 70 start R7, first of the season"
+  },
+  {
+   "id": 499,
+   "name": "Pedro Porro",
+   "p_start": 0.15,
+   "p_start_gw": [
+    0.15,
+    0.5,
+    0.65,
+    0.7,
+    0.72,
+    0.72
+   ],
+   "uncertainty": "HIGH",
+   "notes": "hamstring, expected back 24 Oct = TOT GW8 kickoff day: cameo risk; pens/FK/corners when fit"
+  },
+  {
+   "id": 508,
+   "name": "Davies",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "21 minutes all season"
+  }
+ ]
+}
