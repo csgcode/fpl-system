@@ -189,6 +189,16 @@ def test_annotate_leaves_a_null_flag_when_nothing_is_flagged() -> None:
     assert [d["share_flag"] for d in documents] == [None, None]
 
 
+def test_annotate_judges_xg_before_the_finishing_multiplier() -> None:
+    """A strong finisher's xg90 carries his finishing multiplier; his share of
+    club xG is judged on the xG it was built from, so it is not flagged."""
+    document = _document(xg90=0.1 * 1.435 * 2.0, xa90=0.1 * 1.435)
+    document["rates"]["finishing_mult"] = 2.0
+    assert annotate([document], histories={1: _three_starts()}, club_xg=THREE_CLUB_MATCHES,
+                    base_mean=1.435, att_by_club={"TST": 1.0}) == {}
+    assert document["share_flag"] is None
+
+
 def test_annotate_without_club_xg_flags_nothing() -> None:
     document = _document(xg90=1.0, xa90=1.0)
     assert annotate([document], histories={1: _three_starts()}, club_xg={},

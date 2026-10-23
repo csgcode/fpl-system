@@ -651,6 +651,7 @@ def test_multiplier_scales_xg90_but_not_an_override():
 
     overridden = finishing_rates(overrides={"xg90": 0.5}, finishing_k=10)
     assert overridden.xg90 == 0.5
+    assert overridden.finishing_mult == 1.0
 
 
 def test_none_disables():

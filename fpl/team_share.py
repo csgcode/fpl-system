@@ -135,7 +135,8 @@ def annotate(
 ) -> dict[int, tuple[ShareFlag, ...]]:
     """Set `share_flag` on each players-{pos}.json row: the flag details, or
     None. The implied shares use the row's own rates and the club rating and
-    base mean the EP was scored with. Returns the flags of the flagged rows
+    base mean the EP was scored with; xG is taken before the finishing
+    multiplier, since the observed share is of xG, not goals. Returns the flags of the flagged rows
     by id. An empty `club_xg` flags nothing."""
     flagged: dict[int, tuple[ShareFlag, ...]] = {}
     for document in documents:
@@ -147,7 +148,8 @@ def annotate(
                                  attack_mult=rates["attack_mult"], base_mean=base_mean,
                                  att_club=att_by_club[document["team"]])
 
-        flags = share_flags(implied_xg=implied(rates["xg90"]), implied_xa=implied(rates["xa90"]),
+        xg90 = rates["xg90"] / rates.get("finishing_mult", 1.0)
+        flags = share_flags(implied_xg=implied(xg90), implied_xa=implied(rates["xa90"]),
                             shares=shares)
         document["share_flag"] = details(flags)
         if flags:

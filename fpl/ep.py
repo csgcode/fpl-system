@@ -1176,7 +1176,8 @@ def _effective_rates(
         attack_mult=overrides.attack_mult if overrides.attack_mult is not None else 1.0,
         prior_minutes=prior_minutes,
         current_minutes=current_totals.minutes,
-        finishing_mult=finishing,
+        # The multiplier actually applied: an xg90 override bypasses it.
+        finishing_mult=1.0 if overrides.xg90 is not None else finishing,
     )
 
 
