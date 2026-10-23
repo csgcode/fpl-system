@@ -7,13 +7,16 @@ import json
 
 import pytest
 
-from fpl.ep import force_prior_weight, load_inputs
-from fpl.models import Position
+from fpl.ep import DEFAULT_CONFIG, force_prior_weight, load_inputs
+from fpl.models import Bootstrap, Position
 from fpl.objective import (
     FORMATIONS,
     Market,
     Move,
     Row,
+    Criterion,
+    Scored,
+    TieBreak,
     apply_moves,
     best_lineup,
     boundary_pairs,
@@ -27,7 +30,10 @@ from fpl.objective import (
     move_marginals,
     objective,
     pool,
+    rows_from_documents,
     squad_violations,
+    tie_break_moves,
+    tie_break_winner,
 )
 from fpl.store import SnapshotStore
 from tests.factories import (
@@ -45,10 +51,11 @@ SQUAD = list(range(1, 16))
 
 
 def row(pid, position, ep, *, club=None, price=50, status="a", p0=1.0, unc="LOW",
-        share=0.0) -> Row:
+        share=0.0, p4_3=None, ret5=None) -> Row:
     eps = tuple(ep) if isinstance(ep, (tuple, list)) else (float(ep),) * 6
     return Row(id=pid, name=f"P{pid}", position=position, club=club or pid, price=price,
-               status=status, ep_gw=eps, p_start0=p0, uncertainty=unc, defcon_share=share)
+               status=status, ep_gw=eps, p_start0=p0, uncertainty=unc, defcon_share=share,
+               p4_3=p4_3, ret5=ret5)
 
 
 def squad_view(eps=None, **kw) -> dict[int, Row]:
@@ -299,6 +306,217 @@ def test_dead_bench_lists_bench_players_unlikely_to_start():
     assert dead_bench(lineup, view) == [2]
 
 
+# ------------------------------------------------------------ tie-break
+
+MID = frozenset({M})
+
+
+def tie_view(*, a_ep=3 + 2.4 / 6, b_ep=3 + 2.1 / 6, a_p4=0.30, b_p4=0.42, a_ret=(1, 5),
+             b_ret=(4, 5), eps=None):
+    return with_pool(squad_view(eps), row(20, M, a_ep, p4_3=a_p4, ret5=a_ret),
+                     row(21, M, b_ep, p4_3=b_p4, ret5=b_ret))
+
+
+def single(out, into, gain):
+    return Scored(Move(out, into), gain, gain, 0)
+
+
+def test_tie_break_picks_the_steadier_incoming_player():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == [
+        TieBreak(a, b, b, "p4 0.42 v 0.30", Criterion.P4)]
+
+
+def test_no_tie_outside_the_band():
+    a, b = single(11, 20, 2.70), single(11, 21, 2.10)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == []
+
+
+def test_ties_need_the_same_out_player():
+    a, b = single(11, 20, 2.40), single(12, 21, 2.10)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == []
+
+
+def test_a_challenger_must_pass_the_free_gate():
+    a, b = single(11, 20, 2.40), single(11, 21, 1.95)
+    assert tie_break_moves([a, b], tie_view(), calibrated=MID) == []
+
+
+def test_ret5_breaks_an_equal_p4():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    view = tie_view(a_p4=0.40, b_p4=0.42)
+    assert tie_break_moves([a, b], view, calibrated=MID) == [
+        TieBreak(a, b, b, "ret5 4/5 v 1/5", Criterion.RET5)]
+    view = tie_view(a_p4=0.40, b_p4=0.42, a_ret=(3, 5), b_ret=(3, 4))
+    assert tie_break_moves([a, b], view, calibrated=MID) == [
+        TieBreak(a, b, a, "blend", Criterion.BLEND)]
+
+
+def test_uncalibrated_position_skips_p4():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    view = tie_view(a_p4=0.90, b_p4=0.10)
+    assert tie_break_moves([a, b], view, calibrated=frozenset()) == [
+        TieBreak(a, b, b, "ret5 4/5 v 1/5", Criterion.RET5)]
+    view = tie_view(a_p4=0.90, b_p4=0.10, a_ret=(2, 5), b_ret=(2, 5))
+    assert tie_break_moves([a, b], view, calibrated=frozenset()) == [
+        TieBreak(a, b, a, "blend", Criterion.BLEND)]
+
+
+def test_ret5_with_zero_rounds_is_na():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    for a_ret, b_ret in (((0, 0), (4, 5)), ((1, 5), (0, 0)), (None, (4, 5))):
+        view = tie_view(a_p4=None, b_p4=None, a_ret=a_ret, b_ret=b_ret)
+        assert tie_break_moves([a, b], view, calibrated=MID) == [
+            TieBreak(a, b, a, "n/a — blend", Criterion.BLEND)]
+
+
+def test_ret5_needs_three_rounds_for_each_incoming_player():
+    a, b = single(11, 20, 2.40), single(11, 21, 2.10)
+    few = tie_view(a_p4=None, b_p4=None, a_ret=(3, 5), b_ret=(1, 1))
+    assert tie_break_winner(a, b, few, calibrated=frozenset()) == (
+        a, "n/a — blend", Criterion.BLEND)
+    enough = tie_view(a_p4=None, b_p4=None, a_ret=(1, 5), b_ret=(3, 3))
+    assert tie_break_winner(a, b, enough, calibrated=frozenset()) == (
+        b, "ret5 3/3 v 1/5", Criterion.RET5)
+
+
+def test_greedy_reference_takes_the_tie_break_winner():
+    view = tie_view()
+    taken = greedy_reference(SQUAD, market(), view, view, calibrated=MID)
+    assert [s.move for s in taken] == [Move(11, 21)]
+    view = tie_view(a_ret=None, b_ret=None)
+    taken = greedy_reference(SQUAD, market(), view, view, calibrated=frozenset())
+    assert [s.move for s in taken] == [Move(11, 20)]
+
+
+def test_plan_taking_the_tie_break_winner_passes_the_reference_check():
+    view = tie_view()
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(), view, view, calibrated=MID)
+    assert report.verdict_reasons == ()
+    assert [(t.incumbent.move, t.winner.move, t.reason) for t in report.tie_breaks] \
+        == [(Move(11, 20), Move(11, 21), "p4 0.42 v 0.30")]
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, calibrated=MID)
+    assert len(report.verdict_reasons) == 1
+    assert "tie-break" in report.verdict_reasons[0]
+    assert "P11 → P21" in report.verdict_reasons[0]
+
+
+def test_a_blend_decided_tie_adds_no_reason():
+    view = tie_view(a_p4=None, b_p4=None, a_ret=None, b_ret=None)
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, calibrated=MID)
+    assert report.verdict_reasons == ()
+
+
+def test_a_tie_the_plan_does_not_touch_leaves_the_gain_bar_alone():
+    """C replaces P12 at +2.15. The blend-best single is A (P11 → P20, +2.40);
+    adding B, which wins A's tie at +2.10, must not lower the bar for C."""
+    def view(with_b):
+        v = with_pool(squad_view(), row(20, M, 3 + 2.4 / 6, p4_3=0.30, ret5=(1, 5)),
+                      row(22, M, 3 + 2.15 / 6))
+        if with_b:
+            v[21] = row(21, M, 3 + 2.1 / 6, p4_3=0.42, ret5=(4, 5))
+        return v
+
+    for with_b in (False, True):
+        v = view(with_b)
+        report = evaluate_plan(SQUAD, [Move(12, 22)], market(), v, v, calibrated=MID)
+        assert any("below the blend-only greedy reference +2.400" in reason
+                   for reason in report.verdict_reasons), with_b
+    v = view(True)
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(), v, v, calibrated=MID)
+    assert report.verdict_reasons == ()
+
+
+def bank_view():
+    """A (P11 → P20, £5.0m, +2.4) and B (P11 → P21, £5.5m, +2.1) tie and B wins
+    on ret5. The goalkeeper P22 (£5.5m, +2.2) stays affordable from a £0.5m
+    bank only after the cheaper A, so the tie-break reference is [B] at +2.1
+    while the blend-only reference is [A, P2 → P22] at +4.6."""
+    eps = [5, 1, 4, 4, 4, 2, 2, 5, 5, 5, 3, 3.5, 6, 4, 1]
+    return with_pool(squad_view(eps), row(20, M, 3 + 2.4 / 6, ret5=(1, 5)),
+                     row(21, M, 3 + 2.1 / 6, price=55, ret5=(4, 5)),
+                     row(22, G, 5 + 2.2 / 6, price=55))
+
+
+def test_the_tie_break_reference_bars_a_plan_that_takes_its_winners():
+    view, none = bank_view(), frozenset()
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(bank=5, free=2), view, view,
+                           calibrated=none)
+    assert [s.move for s in report.reference] == [Move(11, 21)]
+    assert report.blend_reference_gain[0] == pytest.approx(4.6)
+    assert report.verdict_reasons == ()
+
+
+def test_a_plan_off_the_tie_break_keeps_the_blend_only_bar_when_references_diverge():
+    view, none = bank_view(), frozenset()
+    report = evaluate_plan(SQUAD, [Move(11, 20), Move(2, 22)], market(bank=5, free=2),
+                           view, view, calibrated=none)
+    assert any("departs from the tie-break" in r for r in report.verdict_reasons)
+
+
+def chain_view(a_ret, b_ret, c_ret):
+    return with_pool(squad_view(), row(20, M, 3 + 2.4 / 6, ret5=a_ret),
+                     row(21, M, 3 + 2.3 / 6, ret5=b_ret), row(22, M, 3 + 2.1 / 6, ret5=c_ret))
+
+
+def test_a_tie_chain_is_judged_by_its_final_winner():
+    view = chain_view((2, 5), (2, 5), (4, 5))
+    none = frozenset()
+    for move in (Move(11, 20), Move(11, 21)):
+        report = evaluate_plan(SQUAD, [move], market(), view, view, calibrated=none)
+        (tie,) = [r for r in report.verdict_reasons if "departs from the tie-break" in r]
+        assert "takes P11 → P22 (ret5 4/5 v 2/5)" in tie, move
+    report = evaluate_plan(SQUAD, [Move(11, 22)], market(), view, view, calibrated=none)
+    assert report.verdict_reasons == ()
+
+
+def test_a_group_is_decided_by_the_criterion_that_unseated_the_blend_best_move():
+    view = chain_view((1, 5), (4, 5), (4, 5))
+    report = evaluate_plan(SQUAD, [], market(), view, view, calibrated=frozenset())
+    (group,) = report.tie_groups
+    assert [t.criterion for t in group.ties] == [Criterion.RET5, Criterion.BLEND]
+    assert group.winner.move == Move(11, 21) and group.decided_by is Criterion.RET5
+    view = chain_view((3, 5), (3, 5), (3, 5))
+    report = evaluate_plan(SQUAD, [], market(), view, view, calibrated=frozenset())
+    (group,) = report.tie_groups
+    assert group.winner == group.best and group.decided_by is Criterion.BLEND
+
+
+def test_a_displaced_move_names_the_final_winner_not_an_intermediate_one():
+    view = chain_view((1, 5), (3, 5), (5, 5))
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view,
+                           calibrated=frozenset())
+    (reason,) = report.verdict_reasons
+    assert "takes P11 → P22" in reason and "P11 → P21" not in reason
+
+
+def test_the_chip_gate_measures_against_the_blend_only_reference():
+    view = tie_view()
+    report = evaluate_plan(SQUAD, [Move(11, 20)], market(), view, view, chip="wildcard",
+                           calibrated=MID)
+    assert [s.move for s in report.reference] == [Move(11, 21)]
+    (reason,) = report.verdict_reasons
+    assert "+0.000 / +0.000 over the greedy plan" in reason
+
+
+def test_next_best_after_the_winner_skips_the_displaced_swap():
+    view = tie_view(eps=[5, 1, 4, 4, 4, 2, 2, 5, 5, 5, 3, 3.5, 6, 4, 1])
+    report = evaluate_plan(SQUAD, [Move(11, 21)], market(free=2), view, view, calibrated=MID)
+    assert report.verdict_reasons == ()
+    assert report.next_best is not None and report.next_best.move != Move(21, 20)
+
+
+def test_rows_without_consistency_fields_load():
+    bootstrap = Bootstrap.model_validate(bootstrap_payload(
+        elements=[player_payload(id=1, element_type=3), player_payload(id=2, element_type=3)],
+        teams=[team_payload(id=1)], events=[event_payload(id=GW, is_next=True)]))
+    old = {"id": 1, "ep_gw": [1.0] * 6}
+    new = {"id": 2, "ep_gw": [1.0] * 6, "p4_gw": [0.3, 0.6, 0.0, 0.9], "returns5": [2, 4]}
+    rows = rows_from_documents([old, new], bootstrap)
+    assert rows[1].p4_3 is None and rows[1].ret5 is None
+    assert rows[2].p4_3 == pytest.approx(0.3) and rows[2].ret5 == (2, 4)
+
+
 # ----------------------------------------------------------- load_views
 
 GW = 3
@@ -372,6 +590,71 @@ def test_load_views_allows_unjudged_players_the_blend_view_lacks(tmp_path):
                  "--allow-missing-ids", "3"]) == 0
     blend, prior = load_views(store, analysis, GW)
     assert 3 not in blend and 3 not in prior and 1 in prior
+
+
+def _write_mid_players(tmp_path, analysis):
+    from fpl.__main__ import main
+
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+                 "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions"),
+                 "--history-from", "summaries"]) == 0
+    return analysis / f"gw{GW}" / "players-MID.json"
+
+
+def _restamp(path, digest):
+    rows = json.loads(path.read_text())
+    for document in rows:
+        if digest is None:
+            document.pop("model", None)
+        else:
+            document["model"] = digest
+    path.write_text(json.dumps(rows))
+    return rows
+
+
+def test_objective_refuses_mixed_model_digests(tmp_path):
+    store, analysis = _seed(tmp_path)
+    mid = _write_mid_players(tmp_path, analysis)
+    other = dict(json.loads(mid.read_text())[0], id=2, model="0badc0de")
+    (analysis / f"gw{GW}" / "players-DEF.json").write_text(json.dumps([other]))
+    with pytest.raises(ValueError, match="players files built by another model version") as exc:
+        load_views(store, analysis, GW)
+    message = str(exc.value)
+    assert "players-DEF.json" in message and "0badc0de" in message
+    assert "players-MID.json" in message and DEFAULT_CONFIG.digest() in message
+    assert "rerun `fpl ep`" in message
+
+
+def test_objective_refuses_a_digest_other_than_the_code(tmp_path):
+    store, analysis = _seed(tmp_path)
+    _restamp(_write_mid_players(tmp_path, analysis), "0badc0de")
+    with pytest.raises(ValueError, match="players files built by another model version") as exc:
+        load_views(store, analysis, GW)
+    assert "players-MID.json" in str(exc.value) and "0badc0de" in str(exc.value)
+
+
+def test_load_views_skips_the_digest_check_for_historical_files(tmp_path):
+    store, analysis = _seed(tmp_path)
+    _restamp(_write_mid_players(tmp_path, analysis), "0badc0de")
+    blend, prior = load_views(store, analysis, GW, check_digest=False)
+    assert 1 in blend and 1 in prior
+
+
+def test_objective_accepts_rows_without_a_digest(tmp_path):
+    store, analysis = _seed(tmp_path)
+    _restamp(_write_mid_players(tmp_path, analysis), None)
+    blend, prior = load_views(store, analysis, GW)
+    assert 1 in blend and 1 in prior
+
+
+def test_objective_judges_legacy_and_current_rows_on_the_current_digest(tmp_path):
+    store, analysis = _seed(tmp_path)
+    mid = _write_mid_players(tmp_path, analysis)
+    legacy = {k: v for k, v in json.loads(mid.read_text())[0].items() if k != "model"}
+    (analysis / f"gw{GW}" / "players-DEF.json").write_text(json.dumps([dict(legacy, id=2)]))
+    blend, _ = load_views(store, analysis, GW)
+    assert set(blend) == {1, 2}
 
 
 def test_load_views_reads_the_prior_reading_through_the_history_it_is_given(tmp_path):

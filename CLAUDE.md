@@ -67,8 +67,11 @@ Scoring context that changes valuation this season:
    (data/retro/gw{N-1}-calibration.json) is its arithmetic ground truth —
    the agent attributes errors, it never recomputes stats.
    A `**C<n> — CODE (fpl/ep.py): …**` correction in the retro is outside the
-   GW cycle: the orchestrator surfaces it to the user, who ships it as a code
-   change with tests (docs/ep-model.md §5). No agent acts on it.
+   GW cycle: the orchestrator surfaces it to the user. A change to the model
+   lands as a `ModelConfig` field, switched off by default, and its
+   `fpl backtest` gate record decides whether it is switched on
+   (docs/ep-model.md §5, §8). A fix that is not a model setting ships as an
+   ordinary code change with tests. No agent acts on it.
    Run it once the data collector (step 1) has written
    data/raw/gw{N}/bootstrap.json: calibrate reads that snapshot's
    data_checked flag.
@@ -83,6 +86,9 @@ Scoring context that changes valuation this season:
    order, scored on the 6-GW EP horizon. It reads the current squad from the
    STATE block of the latest data/decisions/*/final.md, any correction
    notes from data/retro/, and any open rows of data/suggestions.md.
+   When it hands back because `objective` refused players files built by
+   another model version, re-run the player analyst (its `fpl ep` step) for
+   every position, then re-run the optimizer.
 7. Run `agents/plan-builder.md`      → data/decisions/gw{N}/plan.json
    Compiles final.md's STATE block plus the cached bootstrap into the
    deterministic execution plan. Local-only: no network, no credentials. The
@@ -245,9 +251,13 @@ instruction to read `agents/<name>.md` in full first and follow it, any
 cycle-specific inputs (the position for player-analyst, review.md on a REVISE
 loop, the printed delta on a REOPEN), and the no-`git commit` rule.
 
-Subagents never run `git commit` — the orchestrator makes exactly one commit
-per GW cycle, plus a separate `gw{N}: correct record — <why>` commit after a
-post-deadline record correction. Every subagent prompt must restate this.
+Code merges land on main only between a cycle's decision commit and the next
+cycle's first step (the data collector).
+
+Subagents never run `git commit` — the orchestrator makes one decision commit
+per GW cycle (progress commits `gw{N}: … (decision pending)` aside), plus a
+separate `gw{N}: correct record — <why>` commit after a post-deadline record
+correction. Every subagent prompt must restate this.
 
 | Agent | Model | Why |
 |---|---|---|
@@ -287,7 +297,7 @@ All FPL API access goes through the deterministic CLI
 | `prior-season` | writes prior-season.json from gw N's cached summaries (GW1) | local only |
 | `players --position --min-price --max-price --team --status --min-ownership --shortlist --sort --limit --format table\|csv\|json [--fields <cols>] [--minutes [--minutes-last K]] [--history-from store\|summaries --store <p>]` | filtered read over the cached bootstrap; `--fields` picks and orders the csv/json columns; `--minutes` appends minutes per completed round from the season store, one entry per round (`-` = no fixture row, double gameweeks summed) under a header naming the rounds, `--minutes-last` keeps the last K; `--history-from summaries` reads gw N's cached summaries instead (`no summary` for a player without one) | local only |
 | `corrections [--round M] [--agent <code>] [--retro-root <p>]` | retro corrections from data/retro/gw*.md. Without `--agent`: the latest status table verbatim, rules new in it, and the text of every active rule, from the retros before round M (default N−1). With `--agent` (A3 now; usable by any agent code): only the active corrections addressed to that agent, with status and source, from every retro before GW N; retired ones are named, not shown | local only |
-| `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --decisions-root <p> --format table\|json --limit N --allow-missing-ids <ids>] \| --check [--history-from store\|summaries --store <p>]` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes no analysis file; with `--position` it reads the season store and, like every reader, may sync it first. Refuses to write players-{pos}.json once data/decisions/gw{N}/final.md exists; what-ifs still write with `--out`. This season's matches come from the season store (default `--history-from store`): the players shortlisted in the gw N bootstrap plus the inputs ids, each with the past seasons of whichever summary data/raw holds. A store behind data/raw is synced first, with one `season store … synced (…)` line on stderr; a round with no final event-live refuses, naming the `event-live` command. `--history-from summaries` reads gw N's cached summaries instead. A missing-summary warning names `summaries --missing-past`. `--store` without `--history-from store` refuses, on `ep`, `objective`, `players` and `fixtures-rate` alike. Contracts and formula: docs/ep-model.md | local only |
+| `ep --position POS [--analysis-root <p> --inputs <p> --fixtures <p> --out <p> --decisions-root <p> --format table\|json --limit N --allow-missing-ids <ids> --share-detail] \| --check [--history-from store\|summaries --store <p>]` | compiles inputs-{pos}.json + fixtures.json + cached snapshots into players-{pos}.json (prediction schema plus per-term breakdown); refuses malformed or incomplete inputs with the offending row. `--allow-missing-ids` lets the listed a/d players above £4.5m lack an inputs row: they go unscored and are named in the warnings. `--check` validates fixtures.json (and inputs when `--position` is given) and writes no analysis file; with `--position` it reads the season store and, like every reader, may sync it first. `--share-detail` names each row the team-xG share check flags. Refuses to write players-{pos}.json once data/decisions/gw{N}/final.md exists; what-ifs still write with `--out`. This season's matches come from the season store (default `--history-from store`): the players shortlisted in the gw N bootstrap plus the inputs ids, each with the past seasons of whichever summary data/raw holds. A store behind data/raw is synced first, with one `season store … synced (…)` line on stderr; a round with no final event-live refuses, naming the `event-live` command. `--history-from summaries` reads gw N's cached summaries instead. A missing-summary warning names `summaries --missing-past`. `--store` without `--history-from store` refuses, on `ep`, `objective`, `players` and `fixtures-rate` alike. Contracts and formula: docs/ep-model.md | local only |
 | `plan [--from-final <path>] [--prev-final <path>] [--analysis-root <p>] [--format table\|json] [--out <path>]` | compiles final.md's STATE block + cached bootstrap into the execution plan JSON. Before the GW deadline it also writes data/decisions/gw{N}/predictions.lock.json from the players-*.json under `--analysis-root`, replacing a lock those files no longer match (old lock archived as predictions.lock.v{k}.json, one WARNING); after the deadline it warns and writes no lock | local only |
 | `final-check [--proposal <p>] [--final <p>] [--prev-final <p>] [--suggestions <p>]` | carry rules for final.md: the proposal's STATE parses; its ledger is present and drops nothing against the previous final.md; final.md's STATE equals the proposal's; explicit chip keys; ledger verbatim; STATE last. Exit 0/1 | local only |
 | `objective [--analysis-root <p>] [--from-final <p>] [--sell ID:£m,…] [--bank B] [--free-transfers K] [--moves OUT:IN,…\|none] [--chip wildcard\|freehit] [--top N] [--format table\|json] [--history-from store\|summaries --store <p>]` | the squad optimizer's scorer: Σ over 6 GWs of best-XI EP + captain EP, on blend (players-*.json) and prior-only (the same inputs at prior weight 1.0, built in memory). Squad from the latest earlier final.md; prints the baseline, the legal single moves, the plan's per-move marginals against the transfer rule, the greedy reference, the GW-N XI, captain ranking, near-tie pairs and dead bench slots. Without `--sell`, selling price = now_cost, labelled unverified. Exit 1 when `--moves` fails the rule. `--history-from` as for `ep`. Formula: docs/ep-model.md §7 | local only |
@@ -299,6 +309,9 @@ All FPL API access goes through the deterministic CLI
 | `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`, else the `FPL_TRANSCRIPTS_ROOT` env var). `--list` indexes sessions by the GW tags of their cycle spawns — a GW{N} retro or usage-ledger spawn counts toward the next cycle, not GW{N} — by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn/commit timeline and the window to use verbatim (end = first human prompt after both the last cycle agent finished and the last `gw{N}:` commit); the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
 | `store sync\|verify\|status\|rebuild [--store <p>]` | the local season store, a SQLite file built from data/raw (default: store/season-2026-27.sqlite beside `--data-root`, i.e. data/store/ for data/raw). `sync` rebuilds the store from the whole raw tree when any raw file is new or changed (`rebuilt from T raw files (K new or changed)`; otherwise `up to date, …`) and ends with `coverage gwN: players X, no_pl_history Y, missing_past Z` (the gw N bootstrap's players with a kept summary, those of them with no past PL season, and those with none); `rebuild` starts again from nothing; one sync at a time (a lock file beside the store). The readers (`ep`, `objective`, `players --minutes`, `fixtures-rate`, `history`) sync a store that is behind themselves, so `sync` is needed only by the collector; `verify` checks the store matches data/raw and equals a fresh build, and exits 1 when it does not (run `store rebuild`); `status` summarises what it holds. `verify` and `status` write nothing. Exit 3 when a player's season totals in the bootstrap differ from the sum of his stored rounds | local only |
 | `history [--position POS] [--ids <ids>] [--last K] [--per match\|round] [--past [--season YYYY/YY]] [--min-minutes M] [--group-by team] [--format table\|csv\|json] [--fields <cols>] [--store <p>]` | views over the season store (no analysis or raw file written), for the players in the gw N bootstrap: one row per match of the completed rounds before GW N (`--last K` keeps the last K rounds; `--per round` adds a double gameweek's matches together), or with `--past` one row per past season. `--min-minutes` drops shorter rows; `--group-by team` then adds them up to one row per club (a match counts for the club he played for, a past season for his current club; matches whose side the store could not work out count under `?`). An `--ids` value not in the gw N bootstrap refuses with exit 1, naming it. `--fields` works as in `players`; an unknown field lists the valid ones. Syncs a store that is behind data/raw first, as `ep` does | local only |
+| `backtest --rounds A-B [--analysis-root <p> --decisions-root <p> --retro-root <p>] [--set k=v] [--sweep k=v1,v2] [--cv] [--inputs-policy keep\|drop_promoted\|drop_no_history] [--gate-slice promoted\|no_history] [--record <name> \| --manifest <p> --record-all] [--force] [--max-ledger-n-gap N] [--gates-root <p>] [--no-drift-check] [--detail] [--format table\|json] [--out <p>]` | re-scores past rounds under a model variant from files on disk; compares each player's error under the variant with his error under the current model, and passes the variant only when it meets all five rules in §8; writes gate records only with `--record`/`--record-all`. Rules and results: docs/ep-model.md §8 | local only |
+| `gates (--render \| --summary) [--gates-root <p>] [--doc <p>]` | `--summary` prints each gate record's result and status; `--render` rewrites the gate table in docs/ep-model.md §8 from the records | local only |
+| `persistence [--window W] [--min-starts S] [--retro-root <p>] [--format table\|json] [--record <name> [--gates-root <p>] [--force]]` | does a player's recent EP error predict his next one: slope with a player-clustered CI from the calibration ledgers. `--record` writes a gate record once; `--force` archives the old one and records again. Exit 0 significant, 3 not | local only |
 
 Authenticated write mechanics (details: docs/api-write.md):
 - Credentials live in git-ignored data/auth.json (template:
@@ -365,6 +378,10 @@ Mechanics:
 - Position token is GKP (GK is accepted as a CLI alias).
 - Analysts pull filtered views (e.g. `players --position MID --format json`)
   instead of reading full dumps, to keep context small.
+- `ep` prints a `model <digest>` line, `p4`/`ret5`/`share` columns and one
+  `share check` line (`--share-detail` names each flagged row). `objective`
+  prints a `tie-break move:` line and `p4₃`/`ret5` columns, and refuses
+  players files built by another model version. docs/ep-model.md §3, §4, §9.
 
 ## Persistence rules
 - Never overwrite raw or decision files; each GW gets its own directory —
@@ -390,6 +407,14 @@ Mechanics:
   changed, archiving the old one as predictions.lock.v{k}.json. Never edited
   by hand; committed in the cycle commit, together with any archived
   predictions.lock.v{k}.json. `calibrate` scores it first.
+- data/model/gates/ holds the backtest gate records: derived, but committed
+  as the evidence for each model decision. Each is written once; `--force`
+  moves the old one to data/model/gates/archive/ — except combined.json,
+  which every `--record-all` rewrites and archives only when its content
+  changes.
+- Progress commits `gw{N}: … (decision pending)` are allowed. The decision
+  record is the commit that adds data/decisions/gw{N}/final.md; without a
+  predictions lock, calibrate scores the players-*.json in it.
 - A re-run squad optimizer (revision loop, REOPEN) archives the previous
   squad-proposal.md as squad-proposal.v{k}.md before writing the new one.
 - data/executor/gw{N}/runs.jsonl is append-only: the CLI adds a line per run

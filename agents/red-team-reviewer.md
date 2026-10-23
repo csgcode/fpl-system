@@ -37,6 +37,8 @@ analysis files but must form independent judgments.
    gain changes sign on prior-only rates (retro C14)? Reproduce the
    prior-only view with
    `uv run python -m fpl ep --gw N --position POS --prior-weight 1.0 --out <scratch>/players-POS-prior.json`.
+   A move that `objective`'s `tie-break group:` line names as the winner is
+   not a finding. The optimizer pastes these lines in its swap pass.
 8. Captaincy: is the pick the highest undiscounted single-GW EP? A lower pick
    is justified only by the optimizer's tiebreak — within 0.5 EP, prefer
    `p_start_gw[0]` ≥ 0.85. Never weight EP by the `uncertainty` tag.

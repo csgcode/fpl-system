@@ -211,6 +211,7 @@ class MatchRecord(_FrozenModel):
     defensive_contribution: float | None = None
     yellow_cards: int | None = None
     was_home: bool | None = None
+    opponent_team: int | None = None
 
 
 class PastSeason(_FrozenModel):

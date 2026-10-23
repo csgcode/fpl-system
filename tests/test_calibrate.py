@@ -429,3 +429,23 @@ def test_squad_misses_without_squad_is_empty():
 
     rows, live = full_squad_inputs()
     assert squad_misses(build_report(rows, live, match_round=1)) == ()
+
+
+def test_aggregate_and_brier_are_public():
+    from fpl.calibrate import Aggregate, PlayerLine, Uncertainty, aggregate, brier, grouped
+
+    def line(id, error, p_start, started, position):
+        return PlayerLine(
+            id=id, name=f"P{id}", team="ARS", position=position, price=5.0,
+            uncertainty=Uncertainty.LOW, p_start=p_start, predicted=4.0,
+            actual=round(4.0 + error), error=error, minutes=90 if started else 0,
+            started=started,
+        )
+
+    lines = [line(1, 1.0, 0.8, True, "MID"), line(2, -3.0, 0.3, False, "DEF")]
+    assert aggregate(lines) == Aggregate(n=2, bias=-1.0, mae=2.0)
+    assert brier(lines) == round((0.04 + 0.09) / 2, 4) == 0.065
+    assert grouped(lines, lambda l: l.position) == {
+        "MID": Aggregate(n=1, bias=1.0, mae=1.0),
+        "DEF": Aggregate(n=1, bias=-3.0, mae=3.0),
+    }

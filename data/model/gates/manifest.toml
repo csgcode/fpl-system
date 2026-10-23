@@ -1,0 +1,49 @@
+[[gate]]
+name = "baseline"
+kind = "model"
+argv = []
+
+[[gate]]
+name = "prior-weight"
+kind = "model"
+argv = ["--sweep", "blend_k=600,300,450,900,1200", "--cv"]
+
+[[gate]]
+name = "drop-promoted"
+kind = "policy"
+argv = ["--inputs-policy", "drop_promoted", "--gate-slice", "promoted"]
+
+[[gate]]
+name = "drop-no-history"
+kind = "policy"
+argv = ["--inputs-policy", "drop_no_history", "--gate-slice", "no_history"]
+
+[[gate]]
+name = "no-history-k"
+kind = "model"
+argv = ["--sweep", "blend_k_no_history=none,150,300", "--cv", "--gate-slice", "no_history"]
+
+[[gate]]
+name = "recency"
+kind = "model"
+argv = ["--sweep", "half_life_matches=none,2,3,4,6", "--sweep", "opponent_adjust=false,true", "--cv"]
+
+[[gate]]
+name = "saves-adjust"
+kind = "model"
+argv = ["--set", "opponent_adjust_saves=true"]
+
+[[gate]]
+name = "effective-minutes"
+kind = "model"
+argv = ["--set", "blend_on_effective_minutes=true"]
+
+[[gate]]
+name = "finishing"
+kind = "model"
+argv = ["--sweep", "finishing_k=none,20,10,5,2,1", "--cv"]
+
+[[gate]]
+name = "p4"
+kind = "calibration"
+argv = []

@@ -12,11 +12,12 @@ Formula, constants and contracts: docs/ep-model.md.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import unicodedata
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, Literal
 
@@ -30,6 +31,7 @@ from pydantic import (
 )
 
 from fpl.calibrate import DEFCON_MINUTES_FLOOR, Uncertainty
+from fpl.consistency import RETURN_POINTS, FixtureMeans, p_at_least, returns_last5
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -40,6 +42,7 @@ from fpl.models import (
     PlayerStatus,
     Position,
 )
+from fpl.season_store import DEFAULT_HISTORY_SOURCE, HistorySource
 from fpl.state import MAX_GW, MIN_GW
 
 SCHEMA_VERSION = 1
@@ -50,6 +53,11 @@ PRIOR_POOL_TARGET_MINUTES = 900
 PRIOR_MAX_SEASONS = 2
 BLEND_EQUIV_MINUTES = 600.0
 BLEND_PRIOR_FLOOR = 0.2
+HALF_LIFE_MATCHES: float | None = None
+OPPONENT_ADJUST = False
+OPPONENT_ADJUST_SAVES = False
+BLEND_ON_EFFECTIVE_MINUTES = False
+FINISHING_K: float | None = None
 # Starts-equivalent pseudo-counts: bonus per start is noisy match to match and
 # barely differs between players, so a player's own record needs dozens of
 # starts before it outweighs the position mean.
@@ -59,6 +67,9 @@ BONUS_SHRINK_STARTS: dict[Position, int] = {
 # The API reports defensive_contribution 0 for every season before the stat
 # existed; those zeros are missing data, not evidence.
 DEFCON_FIRST_SEASON = "2024/25"
+# Likewise expected_goals: seasons before it existed report 0, which would read
+# as a player scoring from nothing.
+XG_FIRST_SEASON = "2022/23"
 LEAGUE_POOL_MIN = 8
 LEAGUE_POOL_MIN_MINUTES = 900
 COVERAGE_PRICE_FLOOR_TENTHS = 45
@@ -242,6 +253,9 @@ class BaseLambda(_Contract):
     home: float = Field(ge=BASE_LAMBDA_RANGE[0], le=BASE_LAMBDA_RANGE[1])
     away: float = Field(ge=BASE_LAMBDA_RANGE[0], le=BASE_LAMBDA_RANGE[1])
 
+    def mean(self) -> float:
+        return (self.home + self.away) / 2
+
 
 class ClubRating(_Contract):
     att: float = Field(ge=CLUB_RATING_RANGE[0], le=CLUB_RATING_RANGE[1])
@@ -271,7 +285,7 @@ class FixturesDocument(_Contract):
     fixtures: list[FixtureRow]
 
     def base_mean(self) -> float:
-        return (self.base_lambda.home + self.base_lambda.away) / 2
+        return self.base_lambda.mean()
 
     def by_club_gw(self) -> dict[tuple[str, int], list[FixtureRow]]:
         grouped: dict[tuple[str, int], list[FixtureRow]] = {}
@@ -372,8 +386,10 @@ def defcon_minutes_factor(minutes_per_start: float) -> float:
     return interpolate(DEFCON_MINUTES_ANCHORS, minutes_per_start)
 
 
-def prior_weight(current_minutes: float) -> float:
-    return max(BLEND_PRIOR_FLOOR, BLEND_EQUIV_MINUTES / (BLEND_EQUIV_MINUTES + current_minutes))
+def prior_weight(
+    current_minutes: float, *, k: float = BLEND_EQUIV_MINUTES, floor: float = BLEND_PRIOR_FLOOR
+) -> float:
+    return max(floor, k / (k + current_minutes))
 
 
 def shrink_rate(observed: float, minutes: float, league: float) -> float:
@@ -417,6 +433,39 @@ def defcon_hit_probability(
 # ------------------------------------------------------------- rates
 
 
+def played_matches(history: Iterable[MatchRecord]) -> list[MatchRecord]:
+    return sorted(
+        (row for row in history if row.minutes > 0),
+        key=lambda row: (row.round or 0, row.fixture),
+    )
+
+
+def match_weights(count: int, half_life: float | None) -> list[float]:
+    """Recency weights for `count` played matches, oldest first: the latest
+    weighs 1 and each older match 0.5^(age/half_life). The age counts played
+    matches, not rounds, so a spell out injured does not age a player's form."""
+    if half_life is None:
+        return [1.0] * count
+    return [0.5 ** ((count - 1 - j) / half_life) for j in range(count)]
+
+
+def attack_factor(was_home: bool, opp_defw: float | None, base: BaseLambda | None) -> float:
+    """Opponent adjustment of a past match's xG/xA: the inverse of the
+    forecast multiplier base[venue] × DEFW_opp / base_mean. The player's own
+    ATT_club appears in both and cancels. Missing ratings leave the match as is."""
+    if opp_defw is None or base is None:
+        return 1.0
+    return base.mean() / ((base.home if was_home else base.away) * opp_defw)
+
+
+def saves_factor(was_home: bool, opp_att: float | None, base: BaseLambda | None) -> float:
+    """Opponent adjustment of a past match's saves: the inverse of the
+    opponent's attacking expectation, which plays at the other venue."""
+    if opp_att is None or base is None:
+        return 1.0
+    return base.mean() / ((base.away if was_home else base.home) * opp_att)
+
+
 @dataclass
 class _Totals:
     minutes: int = 0
@@ -426,29 +475,40 @@ class _Totals:
     xa: float = 0.0
     dc: float = 0.0
     dc_minutes: int = 0
-    saves: int = 0
+    saves: float = 0.0
     bonus: int = 0
-    yellow: int = 0
+    yellow: float = 0.0
+    w_minutes: float = 0.0
+    w_dc_minutes: float = 0.0
+    unadjusted: int = 0
 
-    def add(self, row: PastSeason | MatchRecord) -> None:
+    def add(
+        self,
+        row: PastSeason | MatchRecord,
+        weight: float = 1.0,
+        attack_factor: float = 1.0,
+        saves_factor: float = 1.0,
+    ) -> None:
         self.minutes += row.minutes
+        self.w_minutes += weight * row.minutes
         self.starts += row.starts or 0
         # A row without a start (substitute-only spell, season predating the
         # starts field) still earned its bonus; count its minutes as starts.
         self.start_equivalents += row.starts or row.minutes / FULL_MATCH_MINUTES
-        self.xg += row.expected_goals or 0.0
-        self.xa += row.expected_assists or 0.0
+        self.xg += weight * attack_factor * (row.expected_goals or 0.0)
+        self.xa += weight * attack_factor * (row.expected_assists or 0.0)
         if not isinstance(row, PastSeason) or row.season_name >= DEFCON_FIRST_SEASON:
-            self.dc += row.defensive_contribution or 0.0
+            self.dc += weight * (row.defensive_contribution or 0.0)
             self.dc_minutes += row.minutes
-        self.saves += row.saves or 0
+            self.w_dc_minutes += weight * row.minutes
+        self.saves += weight * saves_factor * (row.saves or 0)
         self.bonus += row.bonus or 0
-        self.yellow += row.yellow_cards or 0
+        self.yellow += weight * (row.yellow_cards or 0)
 
     def rates(self, league: Rates) -> Rates:
         if self.minutes <= 0:
             return league
-        per90 = FULL_MATCH_MINUTES / self.minutes
+        per90 = FULL_MATCH_MINUTES / self.w_minutes
         # Rows without a start (substitute-only spells, seasons predating the
         # starts field) say nothing about how long the player lasts when he
         # does start: take that from the league, not from 90.
@@ -459,13 +519,54 @@ class _Totals:
         return Rates(
             xg90=self.xg * per90,
             xa90=self.xa * per90,
-            dc90=self.dc * FULL_MATCH_MINUTES / self.dc_minutes if self.dc_minutes > 0
+            dc90=self.dc * FULL_MATCH_MINUTES / self.w_dc_minutes if self.dc_minutes > 0
             else league.dc90,
             saves90=self.saves * per90,
             bonus_per_start=self.bonus / self.start_equivalents,
             yellow90=self.yellow * per90,
             minutes_per_start=minutes_per_start,
         )
+
+
+def current_totals(
+    history: Iterable[MatchRecord],
+    config: ModelConfig,
+    ratings: Mapping[str, ClubRating] | None,
+    team_names: Mapping[int, str],
+    base: BaseLambda | None,
+    *,
+    scores_saves: bool = True,
+) -> _Totals:
+    """This season's played matches, each weighted by recency and, when the
+    config asks, adjusted for the opponent it faced. `unadjusted` counts the
+    matches an enabled adjustment could not rate; they count as played. The
+    saves adjustment counts only when `scores_saves`: other positions score
+    no saves, so it changes nothing for them."""
+    played = played_matches(history)
+    weights = match_weights(len(played), config.half_life_matches)
+    adjusting = config.opponent_adjust or (config.opponent_adjust_saves and scores_saves)
+    totals = _Totals()
+    for row, weight in zip(played, weights, strict=True):
+        rating = _opponent_rating(row, ratings, team_names)
+        if adjusting and (rating is None or base is None):
+            totals.unadjusted += 1
+        attack = saves = 1.0
+        if rating is not None:
+            if config.opponent_adjust:
+                attack = attack_factor(row.was_home, rating.defw, base)
+            if config.opponent_adjust_saves:
+                saves = saves_factor(row.was_home, rating.att, base)
+        totals.add(row, weight, attack, saves)
+    return totals
+
+
+def _opponent_rating(
+    row: MatchRecord, ratings: Mapping[str, ClubRating] | None, team_names: Mapping[int, str]
+) -> ClubRating | None:
+    if ratings is None or row.opponent_team is None or row.was_home is None:
+        return None
+    name = team_names.get(row.opponent_team)
+    return ratings.get(name) if name is not None else None
 
 
 def _prior_seasons(history_past: Sequence[PastSeason]) -> list[PastSeason]:
@@ -484,6 +585,25 @@ def _prior_totals(history_past: Sequence[PastSeason]) -> _Totals:
     for row in _prior_seasons(history_past):
         totals.add(row)
     return totals
+
+
+def finishing_multiplier(history_past: Sequence[PastSeason], k: float | None) -> float:
+    """Goals over xG across every season since xG was recorded, shrunk toward
+    1 by `k` pseudo-goals on each side; `k=None` disables it."""
+    if k is None:
+        return 1.0
+    goals = xg = 0.0
+    for row in history_past:
+        if row.season_name >= XG_FIRST_SEASON:
+            goals += row.goals_scored
+            xg += row.expected_goals or 0.0
+    return (goals + k) / (xg + k)
+
+
+def prior_minutes(history_past: Sequence[PastSeason]) -> int:
+    """Minutes in the PL seasons the prior pools; zero means the prior is
+    the position league mean (`prior_source == "league_mean"`)."""
+    return _prior_totals(history_past).minutes
 
 
 def rates_from_seasons(
@@ -549,6 +669,7 @@ class EffectiveRates(Rates):
     attack_mult: float
     prior_minutes: int
     current_minutes: int
+    finishing_mult: float
 
 
 class Terms(_Frozen):
@@ -588,6 +709,8 @@ class EpRow(_Frozen):
     fixtures: list[str]
     terms: Terms
     rates: EffectiveRates
+    p4_gw: list[float]
+    returns5: tuple[int, int]
 
 
 class FixturesCheck(_Frozen):
@@ -616,6 +739,50 @@ def inspect_fixtures(bootstrap: Bootstrap, fixtures: FixturesDocument, *, gw: in
     )
 
 
+@dataclass(frozen=True)
+class ModelConfig:
+    """The tunable model constants. The defaults are production; a variant is
+    a `replace` of them, identified by its digest."""
+
+    blend_k: float = BLEND_EQUIV_MINUTES
+    blend_floor: float = BLEND_PRIOR_FLOOR
+    half_life_matches: float | None = HALF_LIFE_MATCHES
+    opponent_adjust: bool = OPPONENT_ADJUST
+    opponent_adjust_saves: bool = OPPONENT_ADJUST_SAVES
+    blend_on_effective_minutes: bool = BLEND_ON_EFFECTIVE_MINUTES
+    blend_k_no_history: float | None = None
+    finishing_k: float | None = FINISHING_K
+
+    def __post_init__(self) -> None:
+        # An int and the equal float compare equal but repr differently, so
+        # the digest would name two configs for one model.
+        for f in fields(self):
+            value = getattr(self, f.name)
+            if f.type in ("float", float, "float | None") and value is not None:
+                object.__setattr__(self, f.name, float(value))
+        # match_weights divides by it; a negative one would weigh old matches above 1.
+        if self.half_life_matches is not None and not self.half_life_matches > 0:
+            raise ValueError(
+                f"half_life_matches must be > 0 or None, got {self.half_life_matches}"
+            )
+        # prior_weight divides by them.
+        if not self.blend_k > 0:
+            raise ValueError(f"blend_k must be > 0, got {self.blend_k}")
+        if self.blend_k_no_history is not None and not self.blend_k_no_history > 0:
+            raise ValueError(
+                f"blend_k_no_history must be > 0 or None, got {self.blend_k_no_history}"
+            )
+        # finishing_multiplier divides by xG + k, and xG can be 0.
+        if self.finishing_k is not None and not self.finishing_k > 0:
+            raise ValueError(f"finishing_k must be > 0 or None, got {self.finishing_k}")
+
+    def digest(self) -> str:
+        return hashlib.sha256(repr(sorted(asdict(self).items())).encode()).hexdigest()[:8]
+
+
+DEFAULT_CONFIG = ModelConfig()
+
+
 class EpResult(_Frozen):
     gw: int
     position: Position
@@ -626,14 +793,16 @@ class EpResult(_Frozen):
     league: Rates
     league_source: str
     league_pool: int
+    config: ModelConfig = DEFAULT_CONFIG
 
     def to_documents(self) -> list[dict[str, Any]]:
         """Rounded rows in the documented prediction schema plus the term and
         rate breakdown — what players-{pos}.json holds."""
-        return [_round_row(row) for row in self.rows]
+        digest = self.config.digest()
+        return [_round_row(row, digest) for row in self.rows]
 
 
-def _round_row(row: EpRow) -> dict[str, Any]:
+def _round_row(row: EpRow, digest: str) -> dict[str, Any]:
     return {
         "id": row.id,
         "name": row.name,
@@ -652,14 +821,17 @@ def _round_row(row: EpRow) -> dict[str, Any]:
             k: (round(v, 3) if isinstance(v, float) else v)
             for k, v in row.rates.model_dump().items()
         },
+        "model": digest,
+        "p4_gw": [round(v, 3) for v in row.p4_gw],
+        "returns5": list(row.returns5),
     }
 
 
-def write_predictions(path: Path, result: EpResult) -> None:
+def write_predictions(path: Path, documents: Sequence[Mapping[str, Any]]) -> None:
     """One row per line inside a JSON list: still `json.loads`-able as a
     whole, and a `grep` for a name returns the complete row."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    body = ",\n".join(json.dumps(row, ensure_ascii=False) for row in result.to_documents())
+    body = ",\n".join(json.dumps(row, ensure_ascii=False) for row in documents)
     path.write_text(f"[\n{body}\n]\n", encoding="utf-8")
 
 
@@ -675,19 +847,32 @@ def _score_fixture(
     att_club: float,
     attack_mult: float,
     p_hit: float,
-) -> Terms:
+) -> tuple[Terms, FixtureMeans]:
     mps = min(rates.minutes_per_start, FULL_MATCH_MINUTES)
     share = mps / FULL_MATCH_MINUTES
     p60 = p_sixty(mps)
     fixture_mult = fixture.lambda_att / (base_mean * att_club) * attack_mult
-    saves = 0.0
+    saves = saves_mean = 0.0
     if points.saves_per_three:
         saves_mean = rates.saves90 * share * fixture.lambda_def / base_mean
         saves = points.saves_per_three * expected_floor_div(saves_mean, 3) + points.pen_save_tail
-    defcon = 0.0
+    defcon = p_defcon = 0.0
     if points.defcon_threshold is not None:
-        defcon = points.defcon_points * p_hit * defcon_minutes_factor(mps)
-    return Terms(
+        p_defcon = p_hit * defcon_minutes_factor(mps)
+        defcon = points.defcon_points * p_defcon
+    means = FixtureMeans(
+        goal_pts=points.goal,
+        goal_mean=rates.xg90 * share * fixture_mult,
+        assist_mean=rates.xa90 * share * fixture_mult,
+        p60=p60,
+        p_cs=fixture.p_cs,
+        cs_pts=points.clean_sheet,
+        p_defcon=p_defcon,
+        saves_mean=saves_mean,
+        assist_pts=points.assist,
+        defcon_pts=points.defcon_points,
+    )
+    terms = Terms(
         appearance=1 + p60,
         attack=(rates.xg90 * points.goal + rates.xa90 * points.assist) * share * fixture_mult,
         clean_sheet=fixture.p_cs * points.clean_sheet * p60,
@@ -698,6 +883,7 @@ def _score_fixture(
         bonus=rates.bonus_per_start * points.bonus_adjust,
         cards=-rates.yellow90 * share,
     )
+    return terms, means
 
 
 P_START_TOLERANCE = 0.005
@@ -725,6 +911,8 @@ def build_predictions(
     *,
     gw: int,
     allow_missing: frozenset[int] = frozenset(),
+    config: ModelConfig = DEFAULT_CONFIG,
+    history_from: HistorySource = DEFAULT_HISTORY_SOURCE,
 ) -> EpResult:
     if inputs.gw != gw:
         raise ValueError(f"inputs document is for gw{inputs.gw}, not gw{gw}")
@@ -733,7 +921,8 @@ def build_predictions(
     position = inputs.position
     points = POINTS[position]
     teams = bootstrap.team_by_id()
-    clubs = {team.short_name for team in teams.values()}
+    team_names = {team_id: team.short_name for team_id, team in teams.items()}
+    clubs = set(team_names.values())
     _check_clubs(fixtures, clubs)
     _check_fixture_rows(fixtures)
     by_id = bootstrap.player_by_id()
@@ -766,27 +955,40 @@ def build_predictions(
     not_scored = _check_coverage(position, position_players, inputs, allow_missing, warnings)
     league, league_source, league_pool = _league_mean(position, position_players, summaries)
     if league_source == "fallback":
+        fetch = (f"summaries --gw {gw} --shortlist" if history_from == "summaries"
+                 else f"summaries --gw {gw} --missing-past (the next read syncs the store)")
         warnings.append(
             f"league mean for {position.name} uses the v1 fallback table — only "
-            f"{league_pool} cached summaries with ≥ {LEAGUE_POOL_MIN_MINUTES} prior "
-            f"minutes (need {LEAGUE_POOL_MIN}); run summaries --shortlist first"
+            f"{league_pool} players at this position have at least "
+            f"{LEAGUE_POOL_MIN_MINUTES} minutes of past-season history "
+            f"(need {LEAGUE_POOL_MIN}); fetch more with {fetch}"
         )
     base_mean = fixtures.base_mean()
     missing_summaries: list[int] = []
     blanks: set[tuple[str, int]] = set()
     rows: list[EpRow] = []
+    unadjusted = 0
     for entry in inputs.players:
         player = by_id[entry.id]
         club = teams[player.team].short_name
         summary = summaries.get(entry.id)
         if summary is None:
             missing_summaries.append(entry.id)
-        rates = _effective_rates(entry, summary, league, BONUS_SHRINK_STARTS[position])
+        current = current_totals(
+            summary.history if summary else (), config,
+            fixtures.ratings, team_names, fixtures.base_lambda,
+            scores_saves=points.saves_per_three > 0,
+        )
+        unadjusted += current.unadjusted
+        rates = _effective_rates(
+            entry, summary, current, league, BONUS_SHRINK_STARTS[position], config
+        )
         p_hit = 0.0
         if points.defcon_threshold is not None:
             p_hit = _defcon_probability(summary, rates, points.defcon_threshold)
         starts = entry.start_probabilities()[: len(window)]
         ep_gw: list[float] = []
+        p4_gw: list[float] = []
         labels: list[str] = []
         terms = Terms()
         for index, g in enumerate(window):
@@ -794,22 +996,25 @@ def build_predictions(
             if not rows_for_gw:
                 blanks.add((club, g))
                 ep_gw.append(0.0)
+                p4_gw.append(0.0)
                 labels.append("-")
                 continue
             gw_terms = Terms()
+            gw_means: list[FixtureMeans] = []
             for fixture in rows_for_gw:
-                gw_terms = gw_terms.plus(
-                    _score_fixture(
-                        points, rates, fixture,
-                        base_mean=base_mean,
-                        att_club=fixtures.ratings[club].att,
-                        attack_mult=rates.attack_mult,
-                        p_hit=p_hit,
-                    )
+                fixture_terms, means = _score_fixture(
+                    points, rates, fixture,
+                    base_mean=base_mean,
+                    att_club=fixtures.ratings[club].att,
+                    attack_mult=rates.attack_mult,
+                    p_hit=p_hit,
                 )
+                gw_terms = gw_terms.plus(fixture_terms)
+                gw_means.append(means)
             weighted = gw_terms.scaled(starts[index])
             terms = terms.plus(weighted)
             ep_gw.append(weighted.total())
+            p4_gw.append(p_at_least(gw_means, starts[index], RETURN_POINTS))
             labels.append("+".join(f.label() for f in rows_for_gw))
         ep_total = sum(ep_gw)
         rows.append(
@@ -828,7 +1033,14 @@ def build_predictions(
                 fixtures=labels,
                 terms=terms,
                 rates=rates,
+                p4_gw=p4_gw,
+                returns5=returns_last5(summary.history if summary else (), gw),
             )
+        )
+    if unadjusted:
+        warnings.append(
+            f"opponent adjustment: {unadjusted} played match row(s) have no opponent "
+            f"rating or venue and count unadjusted"
         )
     for club, g in sorted(blanks):
         warnings.append(f"{club} has no fixture in gw{g} (blank) — scored 0 for that gameweek")
@@ -843,6 +1055,7 @@ def build_predictions(
         league=league,
         league_source=league_source,
         league_pool=league_pool,
+        config=config,
     )
 
 
@@ -920,23 +1133,34 @@ def _check_coverage(
 
 
 def _effective_rates(
-    entry: PlayerInput, summary: ElementSummary | None, league: Rates, bonus_k: int
+    entry: PlayerInput,
+    summary: ElementSummary | None,
+    current_totals: _Totals,
+    league: Rates,
+    bonus_k: int,
+    config: ModelConfig,
 ) -> EffectiveRates:
     prior_totals = _prior_totals(summary.history_past) if summary else _Totals()
     prior_minutes = prior_totals.minutes
     prior_rates = prior_totals.rates(league) if prior_minutes > 0 else None
     prior = _shrunk(prior_rates, prior_totals, league)
-    current_totals = _Totals()
-    if summary is not None:
-        for row in summary.history:
-            if row.minutes > 0:
-                current_totals.add(row)
     current = current_totals.rates(league) if current_totals.minutes > 0 else None
-    overrides = entry.overrides or RateOverrides()
-    w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
-        current_totals.minutes
+    blend_minutes = (
+        current_totals.w_minutes if config.blend_on_effective_minutes else current_totals.minutes
     )
-    blended = _blend(prior, current, w).model_copy(update={
+    overrides = entry.overrides or RateOverrides()
+    k = (
+        config.blend_k_no_history
+        if prior_minutes == 0 and config.blend_k_no_history is not None
+        else config.blend_k
+    )
+    w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
+        blend_minutes, k=k, floor=config.blend_floor
+    )
+    finishing = finishing_multiplier(summary.history_past if summary else (), config.finishing_k)
+    blended = _blend(prior, current, w)
+    blended = blended.model_copy(update={
+        "xg90": blended.xg90 * finishing,
         "bonus_per_start": bonus_rate(
             prior_bonus=prior_totals.bonus,
             prior_starts=prior_totals.start_equivalents,
@@ -962,6 +1186,8 @@ def _effective_rates(
         attack_mult=overrides.attack_mult if overrides.attack_mult is not None else 1.0,
         prior_minutes=prior_minutes,
         current_minutes=current_totals.minutes,
+        # The multiplier actually applied: an xg90 override bypasses it.
+        finishing_mult=1.0 if overrides.xg90 is not None else finishing,
     )
 
 

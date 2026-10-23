@@ -68,7 +68,9 @@ field is a unit slip (0.50 typed as 50): fix the number, never argue with the
 bound. If it lists missing summaries for players you care about, run
 `uv run python -m fpl summaries --gw N --missing-past` once (it fetches only
 players with no summary in any gameweek; the next `ep` syncs them into the
-season store) and rerun.
+season store) and rerun. A `share check` warning or a `share` flag is
+evidence about the rates. Act on it only for a row where you set `xg90`,
+`xa90` or `attack_mult`. Never file a backlog row per flag.
 
 **Call 5 — Write data/analysis/gwN/players-POS.md** (template below).
 

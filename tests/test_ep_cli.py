@@ -8,14 +8,19 @@ import json
 import pytest
 
 from fpl.__main__ import main
+from fpl.ep import DEFAULT_CONFIG
+from fpl.models import Position
 from fpl.store import SnapshotStore
 from tests.factories import (
     bootstrap_payload,
     element_summary_payload,
+    event_live_payload,
     event_payload,
+    fixture_payload,
     match_record_payload,
     past_season_payload,
     player_payload,
+    priors_doc,
     team_payload,
 )
 
@@ -114,6 +119,16 @@ def test_ep_writes_predictions_to_the_default_path_and_prints_a_table(tmp_path, 
     assert "Alpha" in out
     assert "wrote" in out and "players-MID.json" in out
     assert "missing summaries" not in out
+
+
+def test_documents_and_table_carry_the_model_digest(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(data_root, analysis_root) == 0
+    out = capsys.readouterr().out
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert written and all(row["model"] == DEFAULT_CONFIG.digest() for row in written)
+    assert out.splitlines()[1] == f"model {DEFAULT_CONFIG.digest()}"
 
 
 def test_ep_lists_missing_summaries_with_the_fetch_command(tmp_path, capsys):
@@ -329,17 +344,197 @@ def test_ep_writes_before_final_md_exists(tmp_path):
     assert (analysis_root / f"gw{GW}" / "players-MID.json").is_file()
 
 
+def seed_with_returns(tmp_path):
+    data_root, analysis_root = seed(tmp_path)
+    SnapshotStore(data_root).save(
+        GW, "players/summary-1",
+        element_summary_payload(
+            history_past=[past_season_payload(minutes=2700, expected_goals="9.0")],
+            history=[
+                match_record_payload(round=1, minutes=90, total_points=6),
+                match_record_payload(round=2, minutes=90, total_points=2),
+            ],
+        ),
+        "seed://test",
+    )
+    return data_root, analysis_root
+
+
+def alpha_line(out):
+    return next(line for line in out.splitlines() if " Alpha " in line)
+
+
+def header_line(out):
+    return next(line for line in out.splitlines() if line.lstrip().startswith("id "))
+
+
+@pytest.mark.parametrize("calibrated", [True, False])
+def test_ep_table_and_file_carry_p4_and_ret5(tmp_path, capsys, monkeypatch, calibrated):
+    monkeypatch.setattr(
+        "fpl.objective.P4_CALIBRATED", frozenset({Position.MID}) if calibrated else frozenset()
+    )
+    data_root, analysis_root = seed_with_returns(tmp_path)
+    write_inputs(analysis_root, inputs_document(players=[
+        {"id": 1, "name": "Alpha", "p_start": 0.9, "uncertainty": "LOW"},
+        {"id": 2, "name": "Beta", "p_start": 0.5, "uncertainty": "MED"},
+    ]))
+    assert run(data_root, analysis_root) == 0
+    out = capsys.readouterr().out
+    written = {row["id"]: row for row in json.loads(
+        (analysis_root / f"gw{GW}" / "players-MID.json").read_text()
+    )}
+    assert written[1]["returns5"] == [1, 2]
+    assert written[2]["returns5"] == [0, 0]
+    header = header_line(out)
+    assert " p4 " in header and "ret5" in header
+    assert header.index("ep/£m") < header.index(" p4 ") < header.index("ret5")
+    p4_text = f"{written[1]['p4_gw'][0]:.2f}" if calibrated else "-"
+    fields = alpha_line(out).split()
+    ep_m = fields.index(f"{written[1]['ep_per_million']:.2f}")
+    assert fields[ep_m + 1 : ep_m + 3] == [p4_text, "1/2"]
+
+
+ALPHA_SHARE_DETAIL = "xG EP>club (implied 0.40, season 0.10, 3 starts)"
+
+
+def seed_share_check(tmp_path):
+    """Rounds 1–2 played (round 2 a double): TST took 1.0 xG a match, Alpha
+    0.1 of it over 3 starts. His overrides put the EP at 0.40 of club xG for
+    xG and 0.10 for xA, so only xG is flagged."""
+    data_root, analysis_root = seed(tmp_path)
+    store = SnapshotStore(data_root)
+    bootstrap = store.load(GW, "bootstrap")
+    bootstrap["elements"].append(
+        player_payload(id=3, web_name="Gamma", team=1, element_type=4, now_cost=70)
+    )
+    store.save(GW, "bootstrap", bootstrap, "seed://test")
+    played = [(101, 1, True), (102, 2, False), (103, 2, True)]
+    store.save(GW, "fixtures", [
+        fixture_payload(id=fid, event=rnd, team_h=1 if home else 2, team_a=2 if home else 1,
+                        finished=True)
+        for fid, rnd, home in played
+    ], "seed://test")
+
+    def history(xg):
+        return [match_record_payload(fixture=fid, round=rnd, was_home=home, starts=1,
+                                     expected_goals=xg, expected_assists="0.10")
+                for fid, rnd, home in played]
+
+    store.save(GW, "players/summary-1", element_summary_payload(
+        history_past=[past_season_payload(minutes=2700, expected_goals="9.0")],
+        history=history("0.10")), "seed://test")
+    store.save(GW, "players/summary-3", element_summary_payload(history=history("0.90")),
+               "seed://test")
+    store.save(2, "event-live-e1", event_live_payload([]), "seed://test")
+    store.save(3, "event-live-e2", event_live_payload([]), "seed://test")
+    (analysis_root / "club-priors.json").write_text(
+        json.dumps(priors_doc({"TST": (1.0, 1.0, False), "OPP": (1.0, 1.0, False)})),
+        encoding="utf-8",
+    )
+    write_inputs(analysis_root, inputs_document(players=[{
+        "id": 1, "name": "Alpha", "p_start": 0.9, "uncertainty": "LOW",
+        "overrides": {"xg90": 0.574, "xa90": 0.1435, "minutes_per_start": 90},
+        "reason": "synthetic share test",
+    }]))
+    return data_root, analysis_root
+
+
+def share_lines(err):
+    return [line for line in err.splitlines() if "share check" in line]
+
+
+def test_ep_flags_a_share_disagreement(tmp_path, capsys):
+    data_root, analysis_root = seed_share_check(tmp_path)
+    assert run(data_root, analysis_root) == 0
+    captured = capsys.readouterr()
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert written[0]["share_flag"] == ALPHA_SHARE_DETAIL
+    header = header_line(captured.out)
+    assert header.index("crd") < header.index("share") < header.index("fixtures")
+    assert "xG EP>club" in alpha_line(captured.out)
+    assert share_lines(captured.err) == ["share check: 1 flagged (ids 1)"]
+
+
+def test_ep_share_detail_names_each_flagged_row(tmp_path, capsys):
+    data_root, analysis_root = seed_share_check(tmp_path)
+    assert run(data_root, analysis_root, "--share-detail") == 0
+    assert share_lines(capsys.readouterr().err) == [
+        "share check: 1 flagged (ids 1)",
+        f"share check: id 1 Alpha {ALPHA_SHARE_DETAIL}",
+    ]
+
+
+def test_ep_json_format_prints_the_share_flag(tmp_path, capsys):
+    data_root, analysis_root = seed_share_check(tmp_path)
+    assert run(data_root, analysis_root, "--format", "json") == 0
+    out = capsys.readouterr().out
+    assert json.loads(out[: out.rindex("]") + 1])[0]["share_flag"] == ALPHA_SHARE_DETAIL
+
+
+def test_ep_unflagged_rows_carry_a_null_share_flag(tmp_path, capsys):
+    data_root, analysis_root = seed_share_check(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(data_root, analysis_root) == 0
+    captured = capsys.readouterr()
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert [row["share_flag"] for row in written] == [None]
+    assert share_lines(captured.err) == ["share check: 0 flagged"]
+
+
+def test_ep_share_check_leaves_the_ep_fields_unchanged(tmp_path):
+    data_root, analysis_root = seed_share_check(tmp_path)
+    assert run(data_root, analysis_root) == 0
+    flagged = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    (analysis_root / "club-priors.json").unlink()
+    assert run(data_root, analysis_root) == 0
+    skipped = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert flagged[0]["share_flag"] and skipped[0]["share_flag"] is None
+    assert [{k: v for k, v in row.items() if k != "share_flag"} for row in flagged] == [
+        {k: v for k, v in row.items() if k != "share_flag"} for row in skipped
+    ]
+
+
+def test_ep_runs_without_rating_inputs(tmp_path, capsys):
+    data_root, analysis_root = seed(tmp_path)
+    write_inputs(analysis_root, inputs_document())
+    assert run(data_root, analysis_root) == 0
+    captured = capsys.readouterr()
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert all(row["share_flag"] is None for row in written)
+    lines = share_lines(captured.err)
+    assert len(lines) == 1 and lines[0].startswith("WARNING: share check skipped: ")
+    assert "club-priors.json" in lines[0]
+
+
+def test_ep_share_check_skips_a_summary_row_without_a_venue(tmp_path, capsys):
+    data_root, analysis_root = seed_share_check(tmp_path)
+    store = SnapshotStore(data_root)
+    store.save(GW, "players/summary-3", element_summary_payload(history=[
+        match_record_payload(fixture=101, round=1, starts=1, expected_goals="0.90")
+    ]), "seed://test")
+    assert run(data_root, analysis_root) == 0
+    captured = capsys.readouterr()
+    written = json.loads((analysis_root / f"gw{GW}" / "players-MID.json").read_text())
+    assert written[0]["share_flag"] is None
+    lines = share_lines(captured.err)
+    assert len(lines) == 1 and lines[0].startswith("WARNING: share check skipped: ")
+    assert "was_home" in lines[0]
+
+
 # --- --history-from store ------------------------------------------------------
 
 
-def store_world(tmp_path):
+def store_world(tmp_path, season=None, after_write=None):
     """A synced season (rounds 1–2, gw3 open) with gw3 inputs and fixtures for
-    its three clubs; element 1 is the MID judged."""
+    its three clubs; element 1 is the MID judged. `after_write(raw)` edits
+    the raw tree before the sync."""
     from fpl.season_store import sync
     from tests.test_season_store import Season
 
     raw, db = tmp_path / "raw", tmp_path / "store" / "s.sqlite"
-    Season().write(raw)
+    (season or Season()).write(raw)
+    if after_write is not None:
+        after_write(raw)
     sync(raw, db)
     analysis_root = tmp_path / "analysis"
     (analysis_root / f"gw{GW}").mkdir(parents=True)
@@ -403,6 +598,48 @@ def test_ep_reads_the_store_beside_the_raw_root_by_default(tmp_path, capsys):
     assert default.read_bytes() == summaries.read_bytes()
     assert "synced (no store yet)" in capsys.readouterr().err
     assert (tmp_path / "store" / "season-2026-27.sqlite").is_file()
+
+
+def test_ep_share_check_reads_the_store_with_history_from_store(tmp_path, capsys):
+    """Element 1 starts three times (round 2 a double) and takes all of C1's
+    event-live xG. The cached summary of his teammate, element 3, claims 1.50
+    xG in round 1 that event-live does not, so the summaries halve element 1's
+    share while the store keeps it whole. His xg90 override implies about all
+    of C1's xG: flagged against the summaries, not against the store."""
+    from datetime import timedelta
+
+    from tests.test_season_store import double_gameweek, fetch_time, save_raw
+
+    season = double_gameweek()
+
+    def inflate_teammate_summary(raw):
+        rows = season.summary_rows(3, before_gw=GW)
+        for row in rows:
+            if row["round"] == 1:
+                row["expected_goals"] = "1.50"
+        save_raw(raw, fetch_time(GW) + timedelta(hours=4), GW, "players/summary-3",
+                 {"fixtures": [], "history": rows, "history_past": []})
+
+    raw, db, analysis_root = store_world(tmp_path, season, inflate_teammate_summary)
+    (analysis_root / "club-priors.json").write_text(json.dumps(priors_doc(
+        {c: (1.0, 1.0, False) for c in ("C1", "C2", "C3")})), encoding="utf-8")
+    write_inputs(analysis_root, inputs_document([{
+        "id": 1, "name": "P1", "p_start": 0.9, "uncertainty": "LOW",
+        "overrides": {"xg90": 1.4, "xa90": 0.0, "minutes_per_start": 90},
+        "reason": "synthetic share test",
+    }]))
+    flags = {}
+    for source in ("summaries", "store"):
+        out = tmp_path / f"{source}.json"
+        store = ["--store", str(db)] if source == "store" else []
+        assert run(raw, analysis_root, "--history-from", source, *store,
+                   "--out", str(out)) == 0
+        assert "share check skipped" not in capsys.readouterr().err
+        (row,) = json.loads(out.read_text())
+        flags[source] = row["share_flag"]
+
+    assert flags["summaries"] is not None and flags["summaries"].startswith("xG EP>club")
+    assert flags["store"] is None
 
 
 def test_ep_from_the_store_names_missing_past_for_an_id_never_summarised(tmp_path, capsys):

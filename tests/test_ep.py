@@ -5,40 +5,53 @@ docs/ep-model.md."""
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 import pytest
 
 from fpl.calibrate import PlayerPrediction
+from fpl.consistency import FixtureMeans, p_at_least
+from fpl import ep
 from fpl.ep import (
     BLEND_EQUIV_MINUTES,
     BONUS_SHRINK_STARTS,
+    BaseLambda,
     DEFCON_FIRST_SEASON,
     BLEND_PRIOR_FLOOR,
+    DEFAULT_CONFIG,
     EffectiveRates,
     HORIZON,
     LEAGUE_FALLBACK,
     LEAGUE_POOL_MIN,
     POINTS,
+    ModelConfig,
     PRIOR_SHRINK_MINUTES,
     Rates,
+    attack_factor,
     bonus_rate,
     build_predictions,
+    current_totals,
     defcon_hit_probability,
     defcon_minutes_factor,
     expected_floor_div,
+    finishing_multiplier,
     force_prior_weight,
     inspect_fixtures,
     interpolate,
     league_bonus_per_start,
+    match_weights,
     names_match,
     p_sixty,
     parse_fixtures,
     parse_inputs,
+    played_matches,
     prior_weight,
     rates_from_seasons,
+    saves_factor,
     shrink_rate,
+    XG_FIRST_SEASON,
 )
-from fpl.models import Bootstrap, ElementSummary, PastSeason, Player, Position
+from fpl.models import Bootstrap, ElementSummary, MatchRecord, PastSeason, Player, Position
 from tests.factories import (
     bootstrap_payload,
     element_summary_payload,
@@ -99,6 +112,64 @@ def test_prior_weight_decays_with_current_minutes_to_a_floor():
     assert prior_weight(0) == 1.0
     assert prior_weight(BLEND_EQUIV_MINUTES) == pytest.approx(0.5)
     assert prior_weight(60_000) == BLEND_PRIOR_FLOOR
+
+
+def test_prior_weight_floor_from_config():
+    assert prior_weight(10_000, k=600, floor=0.1) == 0.1
+
+
+def test_default_config_reproduces_the_production_constants():
+    assert DEFAULT_CONFIG.blend_k == BLEND_EQUIV_MINUTES
+    assert DEFAULT_CONFIG.blend_floor == BLEND_PRIOR_FLOOR
+
+
+def test_config_digest_is_stable_and_changes_with_a_field():
+    digest = DEFAULT_CONFIG.digest()
+    assert digest == ModelConfig().digest()
+    assert len(digest) == 8 and all(c in "0123456789abcdef" for c in digest)
+    assert replace(DEFAULT_CONFIG, blend_k=300.0).digest() != digest
+
+
+def test_config_from_int_has_the_same_digest_as_the_equal_float_config():
+    config = ModelConfig(blend_k=600)
+    assert isinstance(config.blend_k, float)
+    assert config == DEFAULT_CONFIG
+    assert config.digest() == DEFAULT_CONFIG.digest() == "64ad9c9c"
+
+
+def test_match_weights_halve_every_half_life():
+    assert match_weights(4, half_life=2.0) == [0.5**1.5, 0.5**1.0, 0.5**0.5, 1.0]
+    assert match_weights(3, None) == [1.0, 1.0, 1.0]
+    assert match_weights(0, 2.0) == []
+
+
+def test_opponent_factors_match_hand_values():
+    base = BaseLambda(**BASE)
+    assert attack_factor(True, 1.25, base) == pytest.approx(BASE_MEAN / (1.54 * 1.25))
+    assert attack_factor(False, 0.8, base) == pytest.approx(BASE_MEAN / (1.33 * 0.8))
+    # The opponent of a home side plays away.
+    assert saves_factor(True, 1.2, base) == pytest.approx(BASE_MEAN / (1.33 * 1.2))
+    assert saves_factor(False, 1.2, base) == pytest.approx(BASE_MEAN / (1.54 * 1.2))
+    assert attack_factor(True, None, base) == 1.0
+    assert saves_factor(False, None, base) == 1.0
+    assert attack_factor(True, 1.25, None) == 1.0
+    assert saves_factor(True, 1.2, None) == 1.0
+
+
+def test_played_matches_drop_unplayed_rows_and_order_oldest_first():
+    rows = [
+        MatchRecord.model_validate(match_record_payload(**fields))
+        for fields in (
+            {"fixture": 30, "round": 3},
+            {"fixture": 11, "round": 1, "minutes": 0},
+            {"fixture": 21, "round": 2},
+            {"fixture": 20, "round": 2},
+            {"fixture": 5, "round": None},
+        )
+    ]
+    assert [(row.round, row.fixture) for row in played_matches(rows)] == [
+        (None, 5), (2, 20), (2, 21), (3, 30),
+    ]
 
 
 def test_shrink_rate_moves_from_league_mean_to_observed_with_minutes():
@@ -348,6 +419,70 @@ def test_double_gameweek_sums_two_fixtures_and_blank_scores_zero():
     assert any("blank" in w and "TST" in w and str(GW + 1) in w for w in result.warnings)
 
 
+# ------------------------------------------------------- consistency (p4)
+
+GOAL_ONLY = {"xg90": 0.5, "xa90": 0.0, "dc90": 0.0, "minutes_per_start": 90, "prior_weight": 1.0}
+
+
+def test_p4_matches_the_hand_value_for_a_goal_only_forward():
+    rows = [fixture("TST", GW, "OPP", "H", lambda_att=BASE_MEAN)]
+    rows += [fixture("TST", g, "OPP", "H", lambda_att=BASE_MEAN) for g in range(GW + 2, GW + HORIZON)]
+    _, row = run_single(4, "FWD", overrides=GOAL_ONLY, fixtures=fixtures_doc(rows))
+    # 90 minutes is 2 points; one goal (4) takes it to 6, so P(≥4) = P(goals ≥ 1).
+    assert row.p4_gw[0] == pytest.approx(1 - math.exp(-0.5))
+    assert row.p4_gw[1] == 0.0
+    assert len(row.p4_gw) == len(row.ep_gw)
+
+
+def test_p4_feeds_the_same_fixture_means_as_the_ep_terms():
+    bootstrap = make_bootstrap([player(element_type=1)])
+    doc = inputs_doc("GKP", [judged(p_start=0.5, overrides=FULL_OVERRIDES, reason="t")])
+    row = build_predictions(bootstrap, {1: summary()}, fixtures_doc(), doc, gw=GW).rows[0]
+    means = FixtureMeans(
+        goal_pts=6, goal_mean=0.5, assist_mean=0.2, p60=1.0, p_cs=0.3, cs_pts=4,
+        saves_mean=3.0 / BASE_MEAN,
+    )
+    assert row.p4_gw[0] == pytest.approx(p_at_least([means], 0.5, 4))
+
+
+def test_p4_reads_assist_points_from_the_points_table(monkeypatch):
+    monkeypatch.setitem(ep.POINTS, Position.FWD,
+                        ep.POINTS[Position.FWD].model_copy(update={"assist": 1}))
+    rows = [fixture("TST", g, "OPP", "H", lambda_att=BASE_MEAN) for g in range(GW, GW + HORIZON)]
+    assists_only = {**GOAL_ONLY, "xg90": 0.0, "xa90": 0.5}
+    _, row = run_single(4, "FWD", overrides=assists_only, fixtures=fixtures_doc(rows))
+    # 90 minutes is 2 points and an assist 1, so P(≥4) = P(assists ≥ 2).
+    assert row.p4_gw[0] == pytest.approx(1 - math.exp(-0.5) * 1.5)
+
+
+def test_p4_never_exceeds_the_start_probability():
+    bootstrap = make_bootstrap([player(element_type=4)])
+    starts = [0.9, 0.8, 0.0, 0.6, 0.5, 0.4]
+    doc = inputs_doc("FWD", [judged(p_start=0.9, p_start_gw=starts,
+                                    overrides={**GOAL_ONLY, "xg90": 2.0}, reason="t")])
+    row = build_predictions(bootstrap, {1: summary()}, fixtures_doc(), doc, gw=GW).rows[0]
+    assert row.p_start_gw == starts
+    for p4, p_start in zip(row.p4_gw, row.p_start_gw, strict=True):
+        assert p4 <= p_start
+
+
+def test_p4_convolves_a_double_gameweek():
+    rows = [fixture("TST", GW, "OPP", "H", lambda_att=BASE_MEAN), fixture("TST", GW, "OPP", "A", lambda_att=BASE_MEAN)]
+    rows += [fixture("TST", g, "OPP", "H", lambda_att=BASE_MEAN) for g in range(GW + 1, GW + HORIZON)]
+    _, row = run_single(4, "FWD", overrides=GOAL_ONLY, fixtures=fixtures_doc(rows))
+    # Two 90-minute appearances already make 4.
+    assert row.p4_gw[0] == pytest.approx(1.0)
+
+
+def test_rows_still_parse_as_calibrate_predictions():
+    result, _ = run_single(3, "MID")
+    for doc in result.to_documents():
+        assert doc["p4_gw"] == [round(v, 3) for v in doc["p4_gw"]]
+        assert len(doc["p4_gw"]) == len(doc["ep_gw"])
+        assert all(0.0 <= v <= 1.0 for v in doc["p4_gw"])
+        PlayerPrediction.model_validate({**doc, "position": Position.MID})
+
+
 # ------------------------------------------------------------- rates
 
 
@@ -364,7 +499,21 @@ def test_prior_comes_from_history_past_shrunk_toward_league_mean():
     assert row.rates.xg90 == pytest.approx((observed_xg90 + league) / 2, abs=1e-3)
     assert row.rates.prior_source == "history_past"
     assert row.rates.prior_weight == 1.0
-    assert any("fallback" in w for w in result.warnings)
+    [warning] = [w for w in result.warnings if "fallback" in w]
+    assert warning == (
+        "league mean for MID uses the v1 fallback table — only 0 players at this "
+        "position have at least 900 minutes of past-season history (need 8); "
+        f"fetch more with summaries --gw {GW} --missing-past "
+        "(the next read syncs the store)")
+
+
+def test_league_fallback_warning_from_summaries_names_the_shortlist_fetch():
+    result = build_predictions(
+        make_bootstrap([player()]), {1: summary()}, fixtures_doc(),
+        inputs_doc("MID", [judged()]), gw=GW, history_from="summaries",
+    )
+    [warning] = [w for w in result.warnings if "fallback" in w]
+    assert warning.endswith(f"(need 8); fetch more with summaries --gw {GW} --shortlist")
 
 
 def test_current_season_rows_blend_in_by_minutes():
@@ -380,6 +529,36 @@ def test_current_season_rows_blend_in_by_minutes():
     prior_xg90 = shrink_rate(0.0, 9000, LEAGUE_FALLBACK[Position.MID].xg90)
     assert row.rates.prior_weight == pytest.approx(w)
     assert row.rates.xg90 == pytest.approx(w * prior_xg90 + (1 - w) * 0.9, abs=1e-3)
+
+
+def test_config_blend_k_changes_the_computed_prior_weight():
+    bootstrap = make_bootstrap([player()])
+    history = [match_record_payload(minutes=90, round=1), match_record_payload(minutes=90, round=2)]
+    result = build_predictions(
+        bootstrap, {1: summary(history=history)}, fixtures_doc(),
+        inputs_doc("MID", [judged()]), gw=GW, config=replace(DEFAULT_CONFIG, blend_k=300.0),
+    )
+    assert result.rows[0].rates.prior_weight == pytest.approx(300 / 480)
+
+
+def test_no_history_blend_k_applies_only_to_league_mean_priors():
+    history = [match_record_payload(minutes=90, round=1), match_record_payload(minutes=90, round=2)]
+    hist_past = [past_season_payload(season_name="2025/26", minutes=1800)]
+
+    def rates(history_past, config):
+        result = build_predictions(
+            make_bootstrap([player()]), {1: summary(history_past=history_past, history=history)},
+            fixtures_doc(), inputs_doc("MID", [judged()]), gw=GW, config=config,
+        )
+        return result.rows[0].rates
+
+    config = replace(DEFAULT_CONFIG, blend_k_no_history=300.0)
+    no_history = rates([], config)
+    assert no_history.prior_source == "league_mean"
+    assert no_history.prior_weight == pytest.approx(300 / 480)
+    assert rates(hist_past, config).prior_weight == pytest.approx(600 / 780)
+    assert DEFAULT_CONFIG.blend_k_no_history is None
+    assert rates([], DEFAULT_CONFIG).prior_weight == pytest.approx(600 / 780)
 
 
 def test_missing_summary_falls_back_to_league_mean_and_is_listed():
@@ -443,6 +622,68 @@ def test_a_recorded_zero_from_a_defcon_season_stays_zero():
     genuine = past_season_payload(season_name="2024/25", minutes=2700, defensive_contribution=0.0)
     _, rates = mid_rates([genuine])
     assert rates.dc90 == pytest.approx(shrink_rate(0.0, 2700, LEAGUE_FALLBACK[Position.MID].dc90))
+
+
+# ------------------------------------------------------------- finishing
+
+
+def finishing_seasons() -> list[dict]:
+    return [past_season_payload(season_name="2023/24", goals_scored=7, expected_goals="5.0"),
+            past_season_payload(season_name="2024/25", goals_scored=5, expected_goals="3.0")]
+
+
+def as_seasons(payloads: list[dict]) -> list[PastSeason]:
+    return [PastSeason.model_validate(p) for p in payloads]
+
+
+def finishing_rates(*, overrides=None, **fields) -> EffectiveRates:
+    bootstrap = make_bootstrap([player()])
+    extra = {"overrides": overrides, "reason": "t"} if overrides else {}
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=finishing_seasons())}, fixtures_doc(),
+        inputs_doc("MID", [judged(**extra)]), gw=GW, config=replace(DEFAULT_CONFIG, **fields),
+    )
+    return result.rows[0].rates
+
+
+def test_finishing_multiplier_is_heavily_shrunk():
+    assert finishing_multiplier(as_seasons(finishing_seasons()), 10) == pytest.approx(22 / 18)
+
+
+def test_seasons_before_xg_existed_are_ignored():
+    assert XG_FIRST_SEASON == "2022/23"
+    old = past_season_payload(season_name="2021/22", goals_scored=9, expected_goals="0.0")
+    assert finishing_multiplier(as_seasons([*finishing_seasons(), old]), 10) == pytest.approx(22 / 18)
+    assert finishing_multiplier(as_seasons([old]), 10) == 1.0
+
+
+def test_multiplier_scales_xg90_but_not_an_override():
+    off, on = finishing_rates(), finishing_rates(finishing_k=10)
+    assert on.finishing_mult == pytest.approx(22 / 18)
+    assert on.xg90 == pytest.approx(off.xg90 * 22 / 18)
+    assert on.xa90 == off.xa90
+
+    overridden = finishing_rates(overrides={"xg90": 0.5}, finishing_k=10)
+    assert overridden.xg90 == 0.5
+    assert overridden.finishing_mult == 1.0
+
+
+def test_none_disables():
+    assert DEFAULT_CONFIG.finishing_k is None
+    assert finishing_multiplier(as_seasons(finishing_seasons()), None) == 1.0
+    assert finishing_rates().finishing_mult == 1.0
+
+
+@pytest.mark.parametrize("value", [0, 0.0, -10.0])
+def test_config_refuses_a_finishing_k_that_is_not_positive(value):
+    with pytest.raises(ValueError, match="finishing_k"):
+        ModelConfig(finishing_k=value)
+
+
+def test_config_finishing_k_from_int_has_the_float_digest():
+    config = ModelConfig(finishing_k=10)
+    assert isinstance(config.finishing_k, float)
+    assert config.digest() == ModelConfig(finishing_k=10.0).digest() != DEFAULT_CONFIG.digest()
 
 
 def test_league_dc90_ignores_minutes_from_before_defcon_existed():
@@ -856,3 +1097,321 @@ def test_forced_prior_weight_reaches_the_effective_rates():
         force_prior_weight(inputs_doc("MID", [judged()]), 1.0), gw=GW,
     )
     assert result.rows[0].rates.prior_weight == 1.0
+
+
+# ------------------------------------------------- weighted, adjusted current rates
+
+
+RATED = {"TST": {"att": 1.1, "defw": 0.9}, "OPP": {"att": 1.2, "defw": 1.25}}
+
+
+def rich_history() -> list[dict]:
+    rows = [
+        (1, 90, "0.60", "0.20", 11.0, 4, 2, 1, True),
+        (2, 0, "0.00", "0.00", 0.0, 0, 0, 0, False),
+        (3, 75, "0.10", "0.40", 7.0, 2, 0, 0, False),
+        (4, 90, "0.90", "0.05", 13.0, 5, 3, 0, True),
+    ]
+    return [
+        match_record_payload(
+            fixture=100 + rnd, round=rnd, minutes=minutes, starts=int(minutes > 0),
+            expected_goals=xg, expected_assists=xa, defensive_contribution=dc,
+            saves=saves, bonus=bonus, yellow_cards=yellow, was_home=home, opponent_team=2,
+        )
+        for rnd, minutes, xg, xa, dc, saves, bonus, yellow, home in rows
+    ]
+
+
+def rich_documents(position_code: int, position_name: str, config=DEFAULT_CONFIG) -> list[dict]:
+    bootstrap = make_bootstrap([player(element_type=position_code)])
+    past = [
+        past_season_payload(season_name="2025/26", minutes=1500, starts=17, saves=40,
+                            yellow_cards=3, defensive_contribution=150.0),
+        past_season_payload(season_name="2024/25", minutes=900, starts=10, saves=25,
+                            yellow_cards=2, defensive_contribution=90.0),
+    ]
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=past, history=rich_history())},
+        fixtures_doc(ratings=RATED), inputs_doc(position_name, [judged()]), gw=GW, config=config,
+    )
+    documents = [{k: v for k, v in doc.items() if k not in ("model", "p4_gw", "returns5")}
+                 for doc in result.to_documents()]
+    for doc in documents:
+        assert doc["rates"].pop("finishing_mult") == 1.0
+    return documents
+
+
+# Built by the code before the weighted, adjusted current totals existed.
+PRE_CHANGE_DOCUMENTS = {'GKP': {'id': 1,
+         'name': 'Alpha',
+         'team': 'TST',
+         'price': 6.0,
+         'p_start': 1.0,
+         'p_start_gw': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+         'ep_gw': [8.771, 8.771, 8.771, 8.771, 8.771, 8.771],
+         'ep_total6': 52.63,
+         'ep_per_million': 8.771,
+         'uncertainty': 'LOW',
+         'notes': 'n',
+         'fixtures': ['OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)'],
+         'terms': {'appearance': 11.98,
+                   'attack': 28.88,
+                   'clean_sheet': 7.18,
+                   'goals_conceded': -1.63,
+                   'defcon': 0.0,
+                   'saves': 2.63,
+                   'bonus': 4.82,
+                   'cards': -1.23},
+         'rates': {'xg90': 0.726,
+                   'xa90': 0.363,
+                   'dc90': 8.121,
+                   'saves90': 2.939,
+                   'bonus_per_start': 0.73,
+                   'yellow90': 0.211,
+                   'minutes_per_start': 87.556,
+                   'dc90_prior': 6.923,
+                   'prior_weight': 0.702,
+                   'prior_source': 'history_past',
+                   'attack_mult': 1.0,
+                   'prior_minutes': 1500,
+                   'current_minutes': 255}},
+ 'DEF': {'id': 1,
+         'name': 'Alpha',
+         'team': 'TST',
+         'price': 6.0,
+         'p_start': 1.0,
+         'p_start_gw': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+         'ep_gw': [9.012, 9.012, 9.012, 9.012, 9.012, 9.012],
+         'ep_total6': 54.07,
+         'ep_per_million': 9.012,
+         'uncertainty': 'LOW',
+         'notes': 'n',
+         'fixtures': ['OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)'],
+         'terms': {'appearance': 11.95,
+                   'attack': 29.18,
+                   'clean_sheet': 7.14,
+                   'goals_conceded': -1.61,
+                   'defcon': 5.55,
+                   'saves': 0.0,
+                   'bonus': 3.17,
+                   'cards': -1.31},
+         'rates': {'xg90': 0.737,
+                   'xa90': 0.376,
+                   'dc90': 9.498,
+                   'saves90': 2.453,
+                   'bonus_per_start': 0.588,
+                   'yellow90': 0.227,
+                   'minutes_per_start': 86.746,
+                   'dc90_prior': 8.885,
+                   'prior_weight': 0.702,
+                   'prior_source': 'history_past',
+                   'attack_mult': 1.0,
+                   'prior_minutes': 1500,
+                   'current_minutes': 255}},
+ 'MID': {'id': 1,
+         'name': 'Alpha',
+         'team': 'TST',
+         'price': 6.0,
+         'p_start': 1.0,
+         'p_start_gw': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+         'ep_gw': [7.698, 7.698, 7.698, 7.698, 7.698, 7.698],
+         'ep_total6': 46.19,
+         'ep_per_million': 7.698,
+         'uncertainty': 'LOW',
+         'notes': 'n',
+         'fixtures': ['OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)'],
+         'terms': {'appearance': 11.92,
+                   'attack': 25.71,
+                   'clean_sheet': 1.78,
+                   'goals_conceded': 0.0,
+                   'defcon': 2.83,
+                   'saves': 0.0,
+                   'bonus': 5.25,
+                   'cards': -1.3},
+         'rates': {'xg90': 0.755,
+                   'xa90': 0.387,
+                   'dc90': 9.255,
+                   'saves90': 2.453,
+                   'bonus_per_start': 0.875,
+                   'yellow90': 0.227,
+                   'minutes_per_start': 85.937,
+                   'dc90_prior': 8.538,
+                   'prior_weight': 0.702,
+                   'prior_source': 'history_past',
+                   'attack_mult': 1.0,
+                   'prior_minutes': 1500,
+                   'current_minutes': 255}},
+ 'FWD': {'id': 1,
+         'name': 'Alpha',
+         'team': 'TST',
+         'price': 6.0,
+         'p_start': 1.0,
+         'p_start_gw': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+         'ep_gw': [6.982, 6.982, 6.982, 6.982, 6.982, 6.982],
+         'ep_total6': 41.89,
+         'ep_per_million': 6.982,
+         'uncertainty': 'LOW',
+         'notes': 'n',
+         'fixtures': ['OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)', 'OPP(H)', 'OPP(A)'],
+         'terms': {'appearance': 11.91,
+                   'attack': 22.36,
+                   'clean_sheet': 0.0,
+                   'goals_conceded': 0.0,
+                   'defcon': 2.51,
+                   'saves': 0.0,
+                   'bonus': 6.39,
+                   'cards': -1.27},
+         'rates': {'xg90': 0.79,
+                   'xa90': 0.383,
+                   'dc90': 8.688,
+                   'saves90': 2.453,
+                   'bonus_per_start': 1.064,
+                   'yellow90': 0.222,
+                   'minutes_per_start': 85.613,
+                   'dc90_prior': 7.731,
+                   'prior_weight': 0.702,
+                   'prior_source': 'history_past',
+                   'attack_mult': 1.0,
+                   'prior_minutes': 1500,
+                   'current_minutes': 255}}}
+
+
+@pytest.mark.parametrize("code, name", [(1, "GKP"), (2, "DEF"), (3, "MID"), (4, "FWD")])
+def test_defaults_reproduce_today_documents(code, name):
+    assert rich_documents(code, name) == [PRE_CHANGE_DOCUMENTS[name]]
+
+
+def test_new_config_fields_default_off():
+    assert DEFAULT_CONFIG.half_life_matches is None
+    assert DEFAULT_CONFIG.opponent_adjust is False
+    assert DEFAULT_CONFIG.opponent_adjust_saves is False
+    assert DEFAULT_CONFIG.blend_on_effective_minutes is False
+
+
+@pytest.mark.parametrize("half_life", [0, 0.0, -1.0])
+def test_config_refuses_a_half_life_that_is_not_positive(half_life):
+    with pytest.raises(ValueError, match="half_life_matches"):
+        ModelConfig(half_life_matches=half_life)
+
+
+@pytest.mark.parametrize("field", ["blend_k", "blend_k_no_history"])
+@pytest.mark.parametrize("value", [0, 0.0, -300.0])
+def test_config_refuses_a_blend_k_that_is_not_positive(field, value):
+    with pytest.raises(ValueError, match=field):
+        ModelConfig(**{field: value})
+
+
+def test_config_validation_leaves_the_production_digest():
+    assert DEFAULT_CONFIG.digest() == "64ad9c9c"
+
+
+def test_config_half_life_from_int_has_the_float_digest():
+    config = ModelConfig(half_life_matches=2)
+    assert isinstance(config.half_life_matches, float)
+    assert config.digest() == ModelConfig(half_life_matches=2.0).digest()
+
+
+def two_rounds() -> list[MatchRecord]:
+    return [
+        MatchRecord.model_validate(match_record_payload(
+            fixture=11, round=1, minutes=90, expected_goals="1.0")),
+        MatchRecord.model_validate(match_record_payload(
+            fixture=12, round=2, minutes=90, expected_goals="0.0")),
+    ]
+
+
+def test_recency_weighted_current_rate():
+    league = LEAGUE_FALLBACK[Position.MID]
+    config = replace(DEFAULT_CONFIG, half_life_matches=1.0)
+    totals = current_totals(two_rounds(), config, ratings=None, team_names={}, base=None)
+    # 0.5×1.0 / (0.5×90 + 1×90) × 90
+    assert totals.rates(league).xg90 == pytest.approx(1 / 3)
+
+    def rates(**fields):
+        bootstrap = make_bootstrap([player()])
+        history = [r.model_dump() for r in two_rounds()]
+        result = build_predictions(
+            bootstrap, {1: summary(history=history)}, fixtures_doc(),
+            inputs_doc("MID", [judged()]), gw=GW, config=replace(config, **fields),
+        )
+        return result.rows[0].rates
+
+    assert rates().current_minutes == 180
+    assert rates().prior_weight == pytest.approx(600 / 780)
+    assert rates(blend_on_effective_minutes=True).prior_weight == pytest.approx(600 / 735)
+    assert rates(blend_on_effective_minutes=True).current_minutes == 180
+
+
+def adjusted_row(**overrides) -> MatchRecord:
+    payload = {"fixture": 11, "round": 1, "minutes": 90, "expected_goals": "0.6",
+               "expected_assists": "0.0", "saves": 3, "was_home": True, "opponent_team": 2}
+    return MatchRecord.model_validate(match_record_payload(**{**payload, **overrides}))
+
+
+def adjusted_totals(rows, **fields):
+    config = replace(DEFAULT_CONFIG, **fields)
+    ratings = fixtures_doc(ratings={"TST": {"att": 1.0, "defw": 1.0},
+                                    "OPP": {"att": 1.2, "defw": 1.2}}).ratings
+    return current_totals(rows, config, ratings=ratings, team_names={1: "TST", 2: "OPP"},
+                          base=BaseLambda(**BASE))
+
+
+def test_opponent_adjusted_current_rate():
+    league = LEAGUE_FALLBACK[Position.GKP]
+    totals = adjusted_totals([adjusted_row()], opponent_adjust=True)
+    assert totals.rates(league).xg90 == pytest.approx(0.6 * BASE_MEAN / (1.54 * 1.2))
+    assert totals.rates(league).saves90 == pytest.approx(3.0)
+    assert totals.unadjusted == 0
+
+    saves = adjusted_totals([adjusted_row()], opponent_adjust_saves=True)
+    assert saves.rates(league).xg90 == pytest.approx(0.6)
+    assert saves.rates(league).saves90 == pytest.approx(3.0 * BASE_MEAN / (1.33 * 1.2))
+
+    off = adjusted_totals([adjusted_row()])
+    assert off.rates(league).xg90 == pytest.approx(0.6)
+    assert off.unadjusted == 0
+
+
+@pytest.mark.parametrize("missing", [{"opponent_team": None}, {"opponent_team": 99},
+                                     {"was_home": None}])
+def test_a_row_without_an_opponent_rating_contributes_unadjusted(missing):
+    rows = [adjusted_row(), adjusted_row(fixture=12, round=2, **missing)]
+    totals = adjusted_totals(rows, opponent_adjust=True)
+    adjusted = 0.6 * BASE_MEAN / (1.54 * 1.2)
+    assert totals.rates(LEAGUE_FALLBACK[Position.MID]).xg90 == pytest.approx((adjusted + 0.6) / 2)
+    assert totals.unadjusted == 1
+
+
+def adjustment_warnings(position: str = "MID", **fields) -> list[str]:
+    code = {"GKP": 1, "MID": 3}[position]
+    bootstrap = make_bootstrap([player(element_type=code),
+                                player(id=2, web_name="Beta", element_type=code)])
+    rows = [adjusted_row().model_dump(), adjusted_row(fixture=12, round=2, opponent_team=None)
+            .model_dump()]
+    result = build_predictions(
+        bootstrap, {1: summary(history=rows), 2: summary(history=rows)}, fixtures_doc(),
+        inputs_doc(position, [judged(), judged(id=2, name="Beta")]), gw=GW,
+        config=replace(DEFAULT_CONFIG, **fields),
+    )
+    return [w for w in result.warnings if "opponent" in w]
+
+
+def test_one_warning_line_counts_the_unadjusted_rows():
+    [line] = adjustment_warnings(opponent_adjust=True)
+    assert "2 played match row(s)" in line
+    assert adjustment_warnings(opponent_adjust=True, opponent_adjust_saves=True) == [line]
+    assert adjustment_warnings("GKP", opponent_adjust_saves=True) == [line]
+    assert adjustment_warnings() == []
+
+
+def test_the_saves_adjustment_alone_never_warns_for_an_outfield_position():
+    assert adjustment_warnings("MID", opponent_adjust_saves=True) == []
+
+
+def test_recency_weights_defcon_but_never_adjusts_it_for_the_opponent():
+    rows = [adjusted_row(defensive_contribution=12.0),
+            adjusted_row(fixture=12, round=2, defensive_contribution=6.0)]
+    totals = adjusted_totals(rows, opponent_adjust=True, half_life_matches=1.0)
+    # (0.5×12 + 1×6) / (0.5×90 + 1×90) × 90
+    assert totals.rates(LEAGUE_FALLBACK[Position.DEF]).dc90 == pytest.approx(8.0)
+    assert totals.minutes == 180 and totals.starts == 2

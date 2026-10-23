@@ -157,7 +157,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
    - Alternative: v1's three rules. K=300 would then ship on a 0.27% gain.
 3. **Opponent rating used to adjust a past match** (Phase 3). Proposed: the ratings in round N's `fixtures.json`, the latest estimate available before the deadline. Two caveats go in §2: round-N ratings already include the adjusted match at weight about 1/10 by GW7 (mild self-influence, not leakage), and rounds 3–6 `fixtures.json` ratings were written by the LLM fixture analyst before `fixtures-rate` existed.
    - **Recommend round N's ratings.** The alternative (the rating as of the match's round) is noisier and needs every past round's ratings.
-4. **Promoted-club sentence edit** (Task 2.6). If the `drop-promoted` gate record has verdict PASS and `hypothesis: supported`, replace the analyst sentence that tells analysts to discount promoted-club players (agents/player-analyst.md § Overrides, "discount them (`attack_mult`, or `xg90`/`xa90`) and tag them HIGH") with the text given in Task 2.6.
+4. **Promoted-club sentence edit** (Task 2.6). If the `drop-promoted` gate record has `hypothesis: supported` (its overall verdict need not be PASS — user decision 2026-10-23), replace the analyst sentence that tells analysts to discount promoted-club players (agents/player-analyst.md § Overrides, "discount them (`attack_mult`, or `xg90`/`xa90`) and tag them HIGH") with the text given in Task 2.6.
    - **Recommend making the edit when the record triggers it.** Otherwise analysts keep applying a discount that the evidence says loses points.
 5. **Team-share flag reaches the analyst with one rule** (v1 Decision 6 reversed). Add one sentence to agents/player-analyst.md Call 4 (Task 6.3): act on a share flag only for a row where you set `xg90`, `xa90` or `attack_mult`; never file a backlog row per flag.
    - **Recommend adding the sentence.** Without it, a dozen flags per position become either override churn or backlog spam.
@@ -585,6 +585,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   1. Dev run now (no record): `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw backtest --gw 7 --rounds 3-6 --analysis-root /Users/gokul/Dev/Personal/fpl-system/data/analysis --retro-root /Users/gokul/Dev/Personal/fpl-system/data/retro --decisions-root /Users/gokul/Dev/Personal/fpl-system/data/decisions --max-ledger-n-gap 10`.
   2. Round-7 actuals (data operation, network, public endpoints; skip when `MAIN/data/raw/gw8/event-live-e7.json` already exists and is final): once round 7 is data-checked, from the WS worktree with S.1–S.2 built: `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw bootstrap --gw 8` then `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw event-live --gw 8 --round 7`. The second prints `(fetched)` and writes a final sidecar into main's `data/raw/gw8/`; the GW8 collector and retro then find both snapshots cached (the collector's `bootstrap --gw 8` refetches and archives ours only when it is over 24h old). Until WS merges, main's `calibrate` refetches an event-live snapshot older than 24h (no `final` sidecar yet): run this step within 24h before the GW8 retro, or rely on the retro's own fetch, which is final under the Shared-definitions rule because the collector's `bootstrap --gw 8` precedes it.
   3. Recorded run: the standard gate invocation (Shared definitions). With only the `baseline` entry in the manifest it writes `baseline.json` and `combined.json`.
+- **Note:** `baseline.json` scores today's code on the recorded inputs, not the decisions as made. Measured code drift against the decision records is 0.047–0.051 points per player-round. The record's reading and the §8 text (Task 7.1) say so.
 - **Verify:** `uv run python -m fpl gates --gw 8 --summary` lists `baseline`; then `uv run pytest -q` (phase end, WB).
 
 ### Phase 2 — Prior-weight calibration and promoted clubs (WB)
@@ -636,8 +637,11 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Test:**
   - `test_strip_attack_mult_removes_only_the_named_rows`: `strip_attack_mult(inputs, ids={5})` drops `attack_mult` on id 5 and keeps its other overrides; a row left with no overrides has `overrides=None` and `reason=None` and still validates; id 6 is untouched.
   - `test_inputs_policy_drop_promoted`: `score_round(..., inputs_policy="drop_promoted")` strips rows whose club is in `data.promoted`; `drop_no_history` strips ids whose summary has no `history_past` minutes.
-  - `test_slice_gate_and_hypothesis_fields`: with `--gate-slice promoted`, the comparison also applies the five rules to the promoted lines (rule 3 pooled across positions when the slice has under `SLICE_MIN_POSITION_N = 30` lines); the record gets `slice_verdict` and `hypothesis`. `hypothesis == "supported"` iff the baseline slice bias > 0, the variant slice |bias| < the baseline slice |bias|, and the overall verdict is PASS; else `"not supported"`.
+  - `test_slice_gate_and_hypothesis_fields`: with `--gate-slice promoted`, the comparison also applies the five rules to the promoted lines (rule 3 pooled across positions when the slice has under `SLICE_MIN_POSITION_N = 30` lines); the record gets `slice_verdict` and `hypothesis`. `hypothesis == "supported"` iff the baseline slice bias > 0 and the variant slice |bias| < the baseline slice |bias|, plus: for a `policy` entry, the slice verdict is PASS and the overall ΔMAE ≤ 0 (the overall five-rule PASS is not required; a slice verdict `n/a` is not supported) (user decision 2026-10-23); for a `model` entry, the overall verdict is PASS and the slice verdict is not FAIL. Else `"not supported"`.
 - **Implement:** `strip_attack_mult`; `inputs_policy` parameter (`keep`, `drop_promoted`, `drop_no_history`); CLI flags `--inputs-policy` and `--gate-slice promoted|no_history`. `ModelConfig` does not hold the policy.
+- **Note:** `--inputs-policy` and `--gate-slice` must also be accepted by the manifest entry parser (`_entry_parser` in fpl/backtest.py), not only by the CLI; otherwise a manifest entry using them is refused as an unknown argument.
+- **Note (as built):** `drop_no_history` strips players whose prior is the league mean (`ep.prior_minutes(history_past) == 0`, the `no_history` line flag), not any player with `history_past` minutes, so the policy and the `no_history` slice cover the same players.
+- **Note (as built), reconciling 2.4 with 2.5:** the slice verdict is `n/a` below `GATE_SLICE_MIN_LINES = 40` lines; rule 3 is pooled across positions when any position in the slice has under `SLICE_MIN_POSITION_N = 30` lines; `hypothesis` is `supported` iff the baseline slice bias > 0 and the variant's slice |bias| is smaller, plus — for a `policy` entry — the slice verdict is PASS and the overall ΔMAE ≤ 0, the overall five-rule PASS not required (user decision 2026-10-23), or — for a `model` entry — the overall verdict is PASS and the slice verdict is not FAIL. A `model` entry may not use `--inputs-policy` and a `policy` entry must.
 - **Verify:** `uv run pytest tests/test_backtest.py tests/test_backtest_cli.py -q`
 
 ### Task 2.5: Promoted-club and no-history gates
@@ -665,11 +669,11 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   argv = ["--sweep", "blend_k_no_history=none,150,300", "--cv", "--gate-slice", "no_history"]
   ```
 
-  The user's hypothesis is that the model under-rates high performers from promoted clubs. `attack_mult` is set on 54–69 rows per round for many reasons, so `drop_promoted` tests only the promoted subset. `policy` records never enter `combined`. For a `model` entry run with `--gate-slice`, `slice_verdict` is informational: PASS and the ship value come from the overall five-rule gate only. `hypothesis` is `supported` iff the baseline slice bias is > 0 and the variant's slice |bias| is smaller without the slice failing the five rules pooled across positions (`GATE_SLICE_MIN_LINES = 40`, below which the slice verdict is `n/a`).
+  The user's hypothesis is that the model under-rates high performers from promoted clubs. `attack_mult` is set on 54–69 rows per round for many reasons, so `drop_promoted` tests only the promoted subset. `policy` records never enter `combined`. For a `model` entry run with `--gate-slice`, `slice_verdict` is informational: PASS and the ship value come from the overall five-rule gate only. For a `policy` entry the slice decides (user decision 2026-10-23): `hypothesis` is `supported` iff the baseline slice bias is > 0, the variant's slice |bias| is smaller, the slice verdict is PASS (at least `GATE_SLICE_MIN_LINES = 40` lines, below which it is `n/a` and the hypothesis is not supported; rule 3 pooled across positions only when a slice position has under `SLICE_MIN_POSITION_N = 30` lines) and the overall ΔMAE ≤ 0 (no harm); the overall five-rule PASS is not required.
 - **Verify:** `uv run python -m fpl gates --gw 8 --summary` prints the three lines.
 
 ### Task 2.6: Ship or record the promoted-club result
-- [ ] **Files:** `fpl/ep.py` (only if `no-history-k` passes), `tests/test_ep.py`, `docs/ep-model.md` (§2 new "Promoted clubs and no-history players" paragraph), `agents/player-analyst.md` (only if `drop-promoted.json` has verdict PASS and `hypothesis == "supported"`).
+- [ ] **Files:** `fpl/ep.py` (only if `no-history-k` passes), `tests/test_ep.py`, `docs/ep-model.md` (§2 new "Promoted clubs and no-history players" paragraph), `agents/player-analyst.md` (only if `drop-promoted.json` has `hypothesis == "supported"`; the policy's overall verdict need not be PASS — user decision 2026-10-23).
 - **Track:** WB
 - **Depends on / parallel with:** 2.5. Parallel with WA, WC, WS.
 - **Effort:** S
@@ -677,7 +681,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Implement:**
   - `no-history-k` PASS: add `BLEND_EQUIV_MINUTES_NO_HISTORY = <ship value>` and make it the `ModelConfig.blend_k_no_history` default.
   - The §2 paragraph names the records, says `drop_promoted` tests only the promoted subset, and points at the gates block for the numbers.
-  - Decision 4 trigger: in agents/player-analyst.md § Overrides (the sentence wraps across lines 139–141; replace it in one edit), replace "The code's default for a player with no PL history is the position league mean for a regular starter, which flatters promoted-club and prior-league players: discount them (`attack_mult`, or `xg90`/`xa90`) and tag them HIGH." with "The code's default for a player with no PL history is the position league mean for a regular starter. The backtest found that a blanket discount for promoted-club players loses points (data/model/gates/drop-promoted.json): discount one only for a stated, player-specific reason, and tag it HIGH."
+  - Decision 4 trigger (`drop-promoted.json` has `hypothesis == "supported"`; user decision 2026-10-23): in agents/player-analyst.md § Overrides (the sentence wraps across lines 139–141; replace it in one edit), replace "The code's default for a player with no PL history is the position league mean for a regular starter, which flatters promoted-club and prior-league players: discount them (`attack_mult`, or `xg90`/`xa90`) and tag them HIGH." with "The code's default for a player with no PL history is the position league mean for a regular starter. The backtest found that a blanket discount for promoted-club players loses points (data/model/gates/drop-promoted.json): discount one only for a stated, player-specific reason, and tag it HIGH."
   - `uv run python -m fpl gates --gw 8 --render`.
 - **Verify:** `uv run pytest tests/test_ep.py tests/test_gate_records.py -q`, then `uv run pytest -q` (phase end).
 
@@ -743,6 +747,8 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `current_totals(history, config, ratings, team_names, base) -> _Totals` is a module helper used by `_effective_rates`.
   - The blend's `w_prior` uses raw current minutes, or `m_eff = w_minutes` when `blend_on_effective_minutes`. `EffectiveRates.current_minutes` stays raw. Bonus and the observed DefCon hit rate stay unweighted. The DefCon P(hit) blend uses the same `w_prior` as the rates.
   - `build_predictions` passes `fixtures.ratings`, `fixtures.base_lambda` and `bootstrap.team_by_id()` short names to `_effective_rates`. No import of `fixture_ratings`.
+- **Note:** the new `ModelConfig` fields change `DEFAULT_CONFIG.digest()` although the output is unchanged; update the hard-coded `044ed4c1` in tests/test_ep.py. A digest change in the middle of a cycle is fine only if every players-*.json of that cycle is regenerated together, because `objective` refuses mixed digests (Task 4.6b).
+- **Note:** when `half_life_matches` joins `ModelConfig`, validate that it is greater than 0 or None. `match_weights` divides by it, and a negative value gives old matches a weight above 1.
 - **Verify:** `uv run pytest tests/test_ep.py -q`
 
 ### Task 3.5: Gate the half-life and the adjustment
@@ -865,6 +871,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - the base rate for each round comes from the other rounds (0.5 both ways), so `base_rate_brier == 0.25`;
   - `p4_skill == pytest.approx(1 - 0.145/0.25)` (0.42).
 - **Implement:** `score_round` copies `doc["p4_gw"][0]` onto `BacktestLine.p4`. `p4_calibration(lines)` returns per position: n, `p4_brier`, `base_rate_brier` (base rate computed leave-one-round-out and labelled so), skill, and a 5-bin reliability table (mean p4 against observed rate). The comparison and record carry it under `p4`.
+- **Note:** calibration entries in the manifest (`argv = []`) are recorded today with `comparison: null`, but Task 4.8's test reads `record["comparison"]["p4"]`. This task must give a calibration record a comparison holding `p4`, or move `p4` to its own record field and change 4.8's test to match.
 - **Verify:** `uv run pytest tests/test_backtest.py -q`
 
 ### Task 4.6: Tie-break move inside `objective`'s greedy reference
@@ -892,6 +899,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `greedy_reference` applies it at each step among passing singles with the same `out` within `NEAR_TIE_MOVE` of the best. The "further free move passes" check ignores a single whose `out` matches a tie-break winner already in the plan.
   - The JSON document gains `tie_breaks`. Applies to singles only, not wildcard package marginals (stated in §9).
 - **Verify:** `uv run pytest tests/test_objective.py tests/test_objective_cli.py tests/evals/test_squad_optimizer_checks.py tests/evals/test_squad_optimizer_replay.py -q`, and `uv run python -m evals replay squad-optimizer` (offline) diffed against a run from before this task; explain any O3/O4 verdict that flips in the session log.
+- **Note:** decision of 2026-10-17: ret5 decides a tie only when both players have at least 3 rounds of data (`RET5_MIN_ROUNDS = 3`), not merely n > 0. When either player has fewer, ret5 does not decide and the next criterion, the higher blend, applies.
 
 ### Task 4.6b: `objective` refuses mixed model digests
 - [ ] **Files:** `fpl/objective.py`, `tests/test_objective.py`.
@@ -903,6 +911,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `test_objective_refuses_a_digest_other_than_the_code`: one digest that differs from `DEFAULT_CONFIG.digest()` → same refusal.
   - `test_objective_accepts_rows_without_a_digest`: rows with no `model` key (files written before 1.1) load.
 - **Implement:** in the blend loader, collect the `model` values; refuse on more than one, or on one that differs from `DEFAULT_CONFIG.digest()`.
+- **Note:** players files from GW ≤ 8 carry no `model` key. A row without the key is legacy: leave it out of the digest set, so a mix of legacy rows and rows carrying one digest is judged on that digest alone and never refused as a mismatch.
 - **Verify:** `uv run pytest tests/test_objective.py tests/test_objective_cli.py -q`
 
 ### Task 4.7: Tie-break sentences in the squad-optimizer and red-team specs
@@ -924,10 +933,21 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Track:** WB
 - **Depends on / parallel with:** 4.4, 4.5, 4.6b. Independent of the other gates' order. Parallel with WA, WS.
 - **Effort:** S
-- **Test:** `test_p4_calibrated_positions_match_record`: when `p4.json` exists, `objective.P4_CALIBRATED == frozenset(pos for pos, v in record["comparison"]["p4"].items() if v["skill"] > 0)`.
+- **Test:** `test_p4_calibrated_positions_match_record`: when `combined.json` exists, with `p4 = record["comparison"]["p4"]`, `objective.P4_CALIBRATED == frozenset(pos for pos, v in p4.items() if v["starters"] is not None and v["starters"]["skill"] is not None and v["starters"]["skill"] > 0)`. A skill of None (the position was seen in one round only) never calibrates it.
 - **Implement:**
   - Append `[[gate]] name = "p4" kind = "calibration" argv = []` and run the standard gate invocation.
-  - Set `P4_CALIBRATED` to the positions with skill > 0.
+  - Set `P4_CALIBRATED` to the positions whose likely-starter skill is above 0.
+- **Note (user confirmed 2026-10-23):** gate `P4_CALIBRATED` on the likely-starter skill, `p4[pos]["starters"]["skill"]`, not on the skill over all lines. The skill over all lines mostly rewards p4 for knowing who will play, because benched and fringe players almost never return. The tie-break only ever compares two incoming players who are both expected to start, so the question it needs answered is whether p4 tells steady starters from erratic ones. The likely-starter subset takes the lines with `p_start` of 0.5 or more and judges them against a base rate worked out from those lines only, again leaving out the round being scored. On real rounds 3–6 the two measures disagree:
+
+  | Position | Skill, all lines | Skill, p_start ≥ 0.5 | Skill, players who actually started |
+  |---|---|---|---|
+  | GKP | 0.160 | 0.034 | 0.045 |
+  | DEF | 0.087 | 0.013 | −0.035 |
+  | MID | 0.100 | 0.012 | −0.024 |
+  | FWD | 0.157 | 0.024 | 0.014 |
+
+  Every position passes on all lines, but among likely starters the gain is small. The last column cannot be used before a deadline, since it needs to know who started.
+- **Note:** read p4 from `combined.json`, not from `p4.json`. The `p4` entry is scored against the baseline plus the passing entries listed before it in the manifest. An entry listed after it, or a revert when the passing entries are combined, leaves `p4.json` judging a model that does not ship. `combined.json` always carries `comparison.p4`, starter block included, for the model that ships: the combined model's lines when the combination passed, the baseline's when it ships the baseline.
   - §9 defines `p4_gw` (Task 4.1 components and exclusions with their bias directions), `returns5` (Task 4.3), the tie-break (Task 4.6, singles only, uncalibrated positions skip p4), and holds the rendered p4 block. Run `uv run python -m fpl gates --gw 8 --render`.
 - **Verify:** `uv run pytest tests/test_gate_records.py -q`, then `uv run pytest -q` (phase end).
 
@@ -962,7 +982,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `window 3, min starts 2: n <n>, slope <β> [lo, hi] (cluster), r <r> — significant|not significant`;
   - one line per position;
   - the same at window 1 and window 2, below, as sensitivity;
-  - exit 0 when window 3 is significant, 2 when not. Ledgers for rounds ≥ gw are ignored.
+  - exit 0 when window 3 is significant, 3 when not. Ledgers for rounds ≥ gw are ignored.
 - **Implement:** `register(add)`: `add("persistence", "does a player's recent EP residual predict his next one", cached=False)` with `--window` (default 3), `--min-starts` (default 2), `--retro-root` (default `data/retro`), `--format`. Load with `calibrate.load_report`. Exit 0 when significant, 3 when not (argparse uses 2 for usage errors); Task 5.3 branches on the record's `significant` field, with the exit code as a convenience.
 - **Verify:** `uv run pytest tests/test_persistence_cli.py -q`
 
@@ -977,6 +997,8 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - §10 notes that GW1–2 ledgers score LLM-computed EP and GW3+ score code EP, so the pooled residuals mix model versions; `objective`'s prior-only reading builds predictions at prior weight 1, so the form term is 0 there by construction. The numbers come from `fpl gates --render`.
   - **`significant: false`:** §10 says "no form term". Skip Tasks 5.4 and 5.5. Task 7.3 gives the row the status from `fpl gates --summary`.
   - **`significant: true`:** do Tasks 5.4 and 5.5.
+- **Note:** a persistence record needs the `GateRecord` schema extended (it has `extra="forbid"` and required comparison-style fields), and `gates._headline` / `gates._render_row` must handle a persistence comparison. `fpl persistence` exits 3 when the result is not significant, which is what today's real data gives; the recording step must not treat exit 3 as a failure.
+- **Note:** once WC is merged, `fpl/persistence.py` imports `GATE_Z` from `fpl/backtest.py` in place of its local `Z = 1.96`, so the gate and the persistence test share one critical value.
 - **Verify:** `uv run pytest tests/test_persistence_cli.py -q && grep -n "^## 10" docs/ep-model.md`
 
 ### Task 5.4 (only if 5.3 is significant): Shrunk form term
@@ -1033,9 +1055,10 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Effort:** S
 - **Test:** `test_default_config_matches_gate_records` passes after the constant is set.
 - **Implement:**
-  - Append `[[gate]] name = "finishing" kind = "model" argv = ["--sweep", "finishing_k=none,20,10,5", "--cv"]`; run the standard gate invocation.
+  - Append `[[gate]] name = "finishing" kind = "model" argv = ["--sweep", "finishing_k=none,20,10,5,2,1", "--cv"]`; run the standard gate invocation.
   - `FINISHING_K` = `combined.json` `shipped_config.finishing_k` (`None` if not shipped), as the `ModelConfig` default.
   - The paragraph explains the multiplier and points at the gates block. Render.
+- **Deviation (orchestrator call 2026-10-23):** the grid is `none,20,10,5,2,1`, not `none,20,10,5`. The review's trial sweep chose `k=5`, the grid's lowest value, in every fold, so the grid is extended downward to find where the pick stops moving.
 - **Verify:** `uv run pytest tests/test_ep.py tests/test_gate_records.py -q`, then `uv run pytest -q` (phase end).
 
 ### Phase 6 — Team-xG cross-check (a reading aid, not an EP change)
@@ -1093,6 +1116,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
   - `team_share.annotate(documents, ...)` sets `share_flag` on each document; then `write_predictions`. `build_predictions` stays pure; the backtest is untouched.
   - agents/player-analyst.md, Call 4 paragraph, add: "A `share check` warning or a `share` flag is evidence about the rates. Act on it only for a row where you set `xg90`, `xa90` or `attack_mult`. Never file a backlog row per flag."
   - docs/ep-model.md §4 (Task 7.1) says the flag is a reading aid, never an override reason on its own.
+- **Note:** `fixture_ratings._side_xg` raises a plain `ValueError` on a summary row with no `was_home`; catch it as a skip warning too, so `fpl ep` (live cycle step 3) never fails on the cross-check. The club xG map is built from `RatingRun.matches` as `{(m.fixture, "H"): m.xg_home, (m.fixture, "A"): m.xg_away}`.
 - **Verify:** `uv run pytest tests/test_ep_cli.py tests/test_team_share.py tests/test_analyst_view_golden.py tests/evals/test_player_analyst_spec_markers.py -q`, then `uv run pytest -q` (phase end).
 
 ### Phase S — Fetch policy and season store (WS)
@@ -1287,7 +1311,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
 - **Effort:** S
 - **Test:** `uv run pytest tests/test_gate_records.py tests/test_ep_model_doc.py -q` passes (the gates block equals the render, the worked example matches the code).
 - **Implement:** Phases 2, 3, 4 and 5 already updated §1, §2, §5, §9 and §10. Add:
-  - §3 output fields: `model`, `p4_gw`, `returns5`, `share_flag`, and `terms.form` and `rates.finishing_mult` if shipped.
+  - §3 output fields: `model`, `p4_gw`, `returns5`, `share_flag`, `rates.finishing_mult` (always present: the multiplier applied, 1.0 when it is off or an `xg90` override bypasses it), and `terms.form` if shipped.
   - §4 "Running it": the refusal after final.md, the `share check` summary line and `--share-detail`, the share flag as a reading aid, never an override reason on its own.
   - §5: append "A model change is judged with `fpl backtest` (§8) and recorded under data/model/gates/; a decided round is never regenerated to judge it."
   - §8 "Backtest": the command; the rounds rule; the leakage rules (raw inputs fetched before the deadline per sidecar; summary rounds < r; optional drift refusal against the decision commit; actuals from a final event-live snapshot); the coverage-replay rule; the gate (verbatim from Shared definitions); LORO and `ship_value`; records, manifest, `combined`; the fact that the baseline is the current code on recorded inputs, which differs from the ledger (the historical record) by the printed code drift. The gates block sits here.
@@ -1304,7 +1328,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
   - New data-tooling rows:
     - `backtest --rounds A-B [--analysis-root <p> --decisions-root <p> --retro-root <p>] [--set k=v] [--sweep k=v1,v2] [--cv] [--inputs-policy keep|drop_promoted|drop_no_history] [--gate-slice promoted|no_history] [--record <name> | --manifest <p> --record-all] [--force] [--max-ledger-n-gap N] [--gates-root <p>] [--no-drift-check] [--detail] [--format table|json] [--out <p>]`: re-scores past rounds under a model variant from disk; paired five-rule gate; writes gate records. Local only.
     - `gates (--render | --summary) [--gates-root <p>] [--doc <p>]`: renders the docs/ep-model.md §8 evidence block from the gate records, or prints report and status lines. Local only.
-    - `persistence [--window W] [--min-starts S] [--retro-root <p>] [--record <name>]`: residual-persistence slope with a player-clustered CI from the calibration ledgers; exit 0 significant, 2 not. Local only.
+    - `persistence [--window W] [--min-starts S] [--retro-root <p>] [--record <name>]`: residual-persistence slope with a player-clustered CI from the calibration ledgers; exit 0 significant, 3 not. Local only.
   - Amend `calibrate`: `--predictions-from commit|worktree` (default commit) scores the decision record (the predictions lock, else the commit that first added final.md) and prints one `predictions:` line; one WARNING when files changed after the decision.
   - Amend `ep`: prints a `model <digest>` line, `p4`, `ret5` and `share` columns and one `share check` line; refuses to write `players-{pos}.json` once final.md exists (`--out` what-ifs still work); `--decisions-root`, `--share-detail`.
   - Amend `plan`: also writes `data/decisions/gw{N}/predictions.lock.json` once.
@@ -1316,6 +1340,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
     - add "Progress commits `gw{N}: … (decision pending)` are allowed. The decision record is the commit that adds data/decisions/gw{N}/final.md; calibrate scores the players-*.json in it."
   - Weekly cycle step 0: "a `C<n> — CODE` correction ships as a code change with tests and an `fpl backtest` gate record (docs/ep-model.md §8)".
   - Orchestration: "Code merges land on main only between a decision commit and the next cycle's step 0."
+  - Orchestrator workflow, one line: when the squad optimizer hands back on a players-file model-version refusal, re-run the player analyst (its `fpl ep` step) for every position, then re-run the optimizer.
 - **Verify:** `grep -n "backtest\|gates (--render\|persistence \[\|predictions-from\|predictions.lock\|until final.md exists\|Code merges land" CLAUDE.md`
 
 ### Task 7.3: Backlog rows (on main, after merge 2, as a triage session)
@@ -1435,7 +1460,7 @@ New CLI commands register through module functions (`backtest.register(add)`, `g
 | 1 | WA freeze | 0.2–0.9 | `uv run pytest tests/test_gitrepo.py tests/test_decision_record.py tests/test_calibrate.py tests/test_calibrate_cli.py tests/test_ep_cli.py tests/test_plan.py tests/test_plan_cli.py tests/test_backlog_shape.py tests/evals/test_retro_cases.py tests/evals/test_retro_replay.py tests/evals/test_retro_spec_markers.py tests/evals/test_retro_checks.py -q && uv run pytest -q`; the Task 0.7 assert prints `ok`; `uv run python -m evals replay retro-analyst` scorecard unchanged against a run on main | main, merge window 1 (Mon 19–Tue 20 Oct, before the GW8 retro) |
 | 2 | WC modules | 4.1, 4.3, 4.6, 4.7, 5.1, 5.2, 6.1, 6.2 | `uv run pytest tests/test_consistency.py tests/test_persistence.py tests/test_persistence_cli.py tests/test_team_share.py tests/test_objective.py tests/test_objective_cli.py tests/evals/test_squad_optimizer_spec_markers.py tests/evals/test_squad_optimizer_checks.py tests/evals/test_squad_optimizer_replay.py -q`; `uv run python -m evals replay squad-optimizer` diffed against a pre-change run | into WB (`git merge ep-modules` in WB), as modules finish; never straight to main |
 | 3 | WS store | S.1–S.9 (S.10 only with the go-ahead) | `uv run pytest tests/test_store.py tests/test_service.py tests/test_cli.py tests/test_models.py tests/test_calibrate_cli.py tests/test_season_store.py tests/test_store_cli.py tests/test_history_cli.py tests/test_ep_cli.py tests/test_fixture_ratings.py tests/test_analyst_view_golden.py -q && uv run pytest -q`; S.7 real sync prints `reconciliation: OK`; S.8 `cmp` identical for all four positions | main, any window after S.8 parity (never during a cycle) |
-| 4 | WB form | 1.x, 2.x, 3.x, 4.2, 4.4, 4.5, 4.6b, 4.8, 5.3–5.7, 6.3, 7.1, 7.2 (+ WC) | `uv run pytest -q` (count ≥ the WB baseline plus new tests); `uv run pytest tests/test_gate_records.py tests/test_ep_model_doc.py tests/test_analyst_view_golden.py tests/evals/test_player_analyst_spec_markers.py tests/evals/test_squad_optimizer_spec_markers.py -q`; `uv run python -m evals replay player-analyst` and `uv run python -m evals replay squad-optimizer` (offline); `uv run python -m fpl gates --gw 8 --summary` lists every manifest entry; when `combined.json` `shipped_config` equals the baseline config, `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw ep --gw 8 --position MID --analysis-root /Users/gokul/Dev/Personal/fpl-system/data/analysis --out <SCRATCH>/p.json` gives the same `ep_gw` per id as main's committed `data/analysis/gw8/players-MID.json` | main, merge window 2 (after the GW8 decision commit, Fri 23 Oct, by Mon 26 Oct) |
+| 4 | WB form | 1.x, 2.x, 3.x, 4.2, 4.4, 4.5, 4.6b, 4.8, 5.3–5.7, 6.3, 7.1, 7.2 (+ WC) | `uv run pytest -q` (count ≥ the WB baseline plus new tests); `uv run pytest tests/test_gate_records.py tests/test_ep_model_doc.py tests/test_analyst_view_golden.py tests/evals/test_player_analyst_spec_markers.py tests/evals/test_squad_optimizer_spec_markers.py -q` (`tests/test_gate_records.py` holds `test_ep_model_gate_block_matches_records`, written by Task 1.8; `tests/test_ep_model_doc.py` holds `test_ep_model_worked_examples`, created by Task 2.2); `uv run python -m evals replay player-analyst` and `uv run python -m evals replay squad-optimizer` (offline); `uv run python -m fpl gates --gw 8 --summary` lists every manifest entry; when `combined.json` `shipped_config` equals the baseline config, `uv run python -m fpl --data-root /Users/gokul/Dev/Personal/fpl-system/data/raw ep --gw 8 --position MID --analysis-root /Users/gokul/Dev/Personal/fpl-system/data/analysis --out <SCRATCH>/p.json` gives the same `ep_gw` per id as main's committed `data/analysis/gw8/players-MID.json` | main, merge window 2 (after the GW8 decision commit, Fri 23 Oct, by Mon 26 Oct) |
 | 5 | Process | 7.3, 7.4 | the two CLAUDE.md shape checks; `uv run pytest -q` | main |
 
 Live evals stay disabled: every eval command above is `replay` or a pytest run.

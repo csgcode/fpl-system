@@ -208,3 +208,14 @@ def test_briefs_for_the_full_cases():
     assert "revision run after a REVISE: data/decisions/gw5/review.md" in x2
     x3 = build_prompt(Path("/ws"), live_case("X3-gw5-reopen"), names)
     assert "changed ids 423, 34, 36, 448; the affected analysis was re-run" in x3
+
+
+def test_eval_views_of_historical_files_skip_the_digest_check(monkeypatch, tmp_path):
+    from evals.squad_optimizer import live
+
+    calls = []
+    monkeypatch.setattr(live, "load_views",
+                        lambda store, analysis_root, gw, **kwargs: calls.append(kwargs) or ({}, {}))
+    live.historical_views(tmp_path, 6)
+    live.views_of({}, 6)
+    assert calls == [{"check_digest": False}, {"check_digest": False}]
