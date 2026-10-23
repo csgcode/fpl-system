@@ -682,7 +682,7 @@ def test_slice_gate_and_hypothesis_fields():
     assert gate.delta_mae == pytest.approx(-1.0)
     assert (gate.baseline_bias, gate.variant_bias) == pytest.approx((2.0, 1.0))
     assert gate.pooled_positions is False
-    assert hypothesis(result) == "supported"
+    assert hypothesis(result, policy=False) == "supported"
 
 
 def test_slice_gate_pools_positions_below_the_minimum():
@@ -708,30 +708,73 @@ def test_slice_gate_is_not_applicable_below_the_minimum_lines():
     result = compare(baseline, variant, gate_slice="promoted")
     assert (result.slice_gate.n, result.slice_gate.verdict) == (39, "n/a")
     assert result.slice_gate.reasons == ()
-    assert hypothesis(result) == "supported"
+    assert hypothesis(result, policy=False) == "supported"
 
     baseline, variant = _slice_sides([(40, "MID", False, 2.0, 1.0)])
     result = compare(baseline, variant, gate_slice="promoted")
     assert (result.slice_gate.n, result.slice_gate.verdict) == (0, "n/a")
-    assert hypothesis(result) == "not supported"
+    assert hypothesis(result, policy=False) == "not supported"
 
 
 def test_hypothesis_needs_under_rating_a_smaller_bias_and_both_gates():
     over_rated = _slice_sides([(40, "MID", True, -2.0, -1.0), (40, "MID", False, 2.0, 2.0)])
-    assert hypothesis(compare(*over_rated, gate_slice="promoted")) == "not supported"
+    assert hypothesis(compare(*over_rated, gate_slice="promoted"), policy=False) == "not supported"
 
     bias_flips = _slice_sides([(40, "MID", True, 1.0, -1.0), (40, "MID", False, 2.0, 1.0)])
-    assert hypothesis(compare(*bias_flips, gate_slice="promoted")) == "not supported"
+    assert hypothesis(compare(*bias_flips, gate_slice="promoted"), policy=False) == "not supported"
 
     overall_fails = _slice_sides([(40, "MID", True, 2.0, 1.0), (40, "MID", False, 2.0, 3.5)])
     result = compare(*overall_fails, gate_slice="promoted")
     assert not result.beats and result.slice_gate.verdict == "PASS"
-    assert hypothesis(result) == "not supported"
+    assert hypothesis(result, policy=False) == "not supported"
 
     slice_fails = _slice_sides([(40, "MID", True, 2.0, 1.995), (40, "MID", False, 2.0, 1.0)])
     result = compare(*slice_fails, gate_slice="promoted")
     assert result.beats and result.slice_gate.verdict == "FAIL"
-    assert hypothesis(result) == "not supported"
+    assert hypothesis(result, policy=False) == "not supported"
+
+
+def test_policy_hypothesis_is_judged_on_its_slice_without_harm_overall():
+    """User decision 2026-10-23: a policy is `supported` when the baseline
+    under-rates the slice, the variant shrinks its |bias|, the slice gate
+    passes and the overall ΔMAE is not worse; the overall gate need not pass."""
+    overall_unproven = _slice_sides([(40, "MID", True, 2.0, 1.0), (40, "MID", False, 2.0, 2.9)])
+    result = compare(*overall_unproven, gate_slice="promoted")
+    assert not result.beats and result.delta_mae <= 0
+    assert result.slice_gate.verdict == "PASS"
+    assert hypothesis(result, policy=True) == "supported"
+    assert hypothesis(result, policy=False) == "not supported"
+
+    no_harm = _slice_sides([(40, "MID", True, 2.0, 1.0), (40, "MID", False, 2.0, 3.0)])
+    result = compare(*no_harm, gate_slice="promoted")
+    assert result.delta_mae == 0
+    assert hypothesis(result, policy=True) == "supported"
+
+    harm = _slice_sides([(40, "MID", True, 2.0, 1.0), (40, "MID", False, 2.0, 3.5)])
+    result = compare(*harm, gate_slice="promoted")
+    assert result.delta_mae > 0 and result.slice_gate.verdict == "PASS"
+    assert hypothesis(result, policy=True) == "not supported"
+
+
+def test_policy_hypothesis_needs_a_slice_pass_and_an_under_rated_slice():
+    too_few = _slice_sides([(39, "MID", True, 2.0, 1.0), (41, "MID", False, 2.0, 2.0)])
+    result = compare(*too_few, gate_slice="promoted")
+    assert result.slice_gate.verdict == "n/a"
+    assert hypothesis(result, policy=True) == "not supported"
+    assert hypothesis(result, policy=False) == "supported"
+
+    slice_fails = _slice_sides([(40, "MID", True, 2.0, 1.995), (40, "MID", False, 2.0, 1.0)])
+    result = compare(*slice_fails, gate_slice="promoted")
+    assert result.slice_gate.verdict == "FAIL" and result.delta_mae < 0
+    assert hypothesis(result, policy=True) == "not supported"
+
+    over_rated = _slice_sides([(40, "MID", True, -2.0, -1.0), (40, "MID", False, 2.0, 2.0)])
+    result = compare(*over_rated, gate_slice="promoted")
+    assert result.slice_gate.verdict == "PASS"
+    assert hypothesis(result, policy=True) == "not supported"
+
+    bias_flips = _slice_sides([(40, "MID", True, 1.0, -1.5), (40, "MID", False, 2.0, 1.0)])
+    assert hypothesis(compare(*bias_flips, gate_slice="promoted"), policy=True) == "not supported"
 
 
 def test_compare_refuses_an_unknown_slice():

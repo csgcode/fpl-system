@@ -397,16 +397,22 @@ def compare(baseline: Sequence[BacktestLine], variant: Sequence[BacktestLine], *
     )
 
 
-def hypothesis(c: Comparison) -> str:
-    """`supported` iff the baseline under-rates the slice (bias > 0), the
-    variant shrinks the slice's |bias|, the overall gate passes and the
-    slice gate does not fail; else `not supported`."""
+def hypothesis(c: Comparison, *, policy: bool) -> str:
+    """`supported` iff the baseline under-rates the slice (bias > 0) and the
+    variant shrinks the slice's |bias|, plus, for a policy, a slice gate
+    PASS and an overall ΔMAE no worse than zero — the slice decides and the
+    overall gate need not pass; for a model, the overall gate passes and the
+    slice gate does not fail. Else `not supported`."""
     gate = c.slice_gate
     if gate is None:
         raise ValueError("no slice gate to judge a hypothesis on")
-    supported = (gate.n > 0 and gate.baseline_bias > 0
-                 and abs(gate.variant_bias) < abs(gate.baseline_bias)
-                 and c.beats and gate.verdict != "FAIL")
+    if gate.n == 0 or not (gate.baseline_bias > 0
+                           and abs(gate.variant_bias) < abs(gate.baseline_bias)):
+        return "not supported"
+    if policy:
+        supported = gate.verdict == "PASS" and c.delta_mae <= 0
+    else:
+        supported = c.beats and gate.verdict != "FAIL"
     return "supported" if supported else "not supported"
 
 
@@ -1148,7 +1154,7 @@ def _record(context: _RecordContext, name: str, kind: str, argv: Sequence[str],
     }
     if c is not None and c.slice_gate is not None:
         record["slice_verdict"] = c.slice_gate.verdict
-        record["hypothesis"] = hypothesis(c)
+        record["hypothesis"] = hypothesis(c, policy=kind == "policy")
     return record
 
 
@@ -1374,7 +1380,8 @@ def _table(rounds: list[int], drift_check: bool, report: Report,
         variant = report.variants[0]
         out.append(f"variant {variant.label}  {_aggregate_text(variant.lines)}")
     if report.comparison is not None:
-        out += _comparison_text(report.comparison, detail=detail)
+        policy = bool(report.variants) and report.variants[0].inputs_policy != "keep"
+        out += _comparison_text(report.comparison, detail=detail, policy=policy)
     return out
 
 
@@ -1413,7 +1420,7 @@ def _aggregate_text(lines: Sequence[BacktestLine]) -> str:
     return f"n {agg.n}  bias {signed(agg.bias, 3)}  MAE {agg.mae:.3f}"
 
 
-def _comparison_text(c: Comparison, *, detail: bool) -> list[str]:
+def _comparison_text(c: Comparison, *, detail: bool, policy: bool) -> list[str]:
     wins, rounds = c.round_wins
     out = [
         f"ΔMAE {signed(c.delta_mae, 4)} [CI {signed(c.ci[0], 3)}, {signed(c.ci[1], 3)}] · "
@@ -1428,11 +1435,11 @@ def _comparison_text(c: Comparison, *, detail: bool) -> list[str]:
             for name, g in c.slices.items()))
     out.append("gate: PASS" if c.beats else "gate: FAIL — " + "; ".join(c.reasons))
     if c.slice_gate is not None:
-        out += _slice_gate_text(c)
+        out += _slice_gate_text(c, policy=policy)
     return out
 
 
-def _slice_gate_text(c: Comparison) -> list[str]:
+def _slice_gate_text(c: Comparison, *, policy: bool) -> list[str]:
     g = c.slice_gate
     head = f"slice {g.name} (n {g.n}): {g.verdict}"
     if g.reasons:
@@ -1442,7 +1449,7 @@ def _slice_gate_text(c: Comparison) -> list[str]:
         head += (f" · ΔMAE {signed(g.delta_mae, 4)} · bias {signed(g.baseline_bias, 3)}→"
                  f"{signed(g.variant_bias, 3)} · wins {wins}/{rounds}"
                  + (" · positions pooled" if g.pooled_positions else ""))
-    return [head, f"hypothesis: {hypothesis(c)}"]
+    return [head, f"hypothesis: {hypothesis(c, policy=policy)}"]
 
 
 def _document(gw: int, rounds: list[int], drift_check: bool, data: Sequence[RoundData],
