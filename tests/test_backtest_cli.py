@@ -728,3 +728,24 @@ def test_a_zero_no_history_blend_k_refuses(world, capsys):
     assert _run(world, "--set", "blend_k_no_history=0") == 1
     assert "blend_k_no_history must be > 0" in capsys.readouterr().err
 
+
+@pytest.mark.parametrize("kind, expected", [("policy", "supported"), ("model", "not supported")])
+def test_record_judges_the_hypothesis_by_the_entry_kind(monkeypatch, kind, expected):
+    """Overall FAIL, slice PASS, overall ΔMAE ≤ 0: a policy record's
+    hypothesis is supported, while the model reading of the same comparison
+    is not — the record passes its kind through to the judgment."""
+    from fpl import backtest
+    from tests.test_backtest import _slice_sides
+
+    baseline, variant = _slice_sides([(40, "MID", True, 2.0, 1.0),
+                                      (40, "MID", False, 2.0, 2.9)])
+    c = backtest.compare(baseline, variant, gate_slice="promoted")
+    assert not c.beats and c.delta_mae <= 0 and c.slice_gate.verdict == "PASS"
+    report = backtest.Report(
+        baseline=backtest.Scored("baseline", {}, DEFAULT_CONFIG, tuple(baseline)),
+        variants=(backtest.Scored("p", {}, DEFAULT_CONFIG, tuple(variant), "drop_promoted"),),
+        sweep_keys=(), grid={}, picks=None, ship=None, comparison=c, warnings=())
+    monkeypatch.setattr(backtest, "_record_base", lambda *args: {})
+    record = backtest._record(None, "p", kind, (), report)
+    assert (record["verdict"], record["slice_verdict"]) == ("FAIL", "PASS")
+    assert record["hypothesis"] == expected
