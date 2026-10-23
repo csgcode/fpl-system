@@ -750,7 +750,8 @@ def load_inputs(store: SnapshotStore, gw: int, *, priors_path: Path,
         if not store.exists(r + 1, name):
             raise RatingRefusal(
                 f"no snapshot '{name}' for gw{r + 1} — round {r} cannot be rated",
-                f"the retro's 'calibrate --gw {r + 1} --round {r}' writes it — run step 0 first",
+                f"fetch it with 'event-live --gw {r + 1} --round {r}' "
+                f"(the data collector's event-live step)",
             )
         live[r] = EventLive.model_validate(store.load(r + 1, name))
     return RatingInputs(gw=gw, bootstrap=bootstrap, fixtures=fixtures, summaries=summaries,

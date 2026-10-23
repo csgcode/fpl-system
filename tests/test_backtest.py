@@ -186,21 +186,33 @@ def test_load_round_refuses_non_final_actuals(world):
         _load(raw, analysis)
 
 
+def test_load_round_records_the_final_sidecar_as_its_proof(world):
+    _, raw, analysis = world
+    assert _load(raw, analysis).final_basis == (
+        f"gw4/.meta/event-live-e3.json final sidecar, fetched {LIVE_FETCH.isoformat()}")
+
+
 def test_load_round_accepts_actuals_checked_by_an_earlier_bootstrap(world):
     _, raw, analysis = world
     _save_checking_bootstrap(raw, CHECKED)
     _save_live(raw, final=None, fetched=datetime(2026, 9, 15, 11, 0, tzinfo=timezone.utc))
-    assert _load(raw, analysis).live.by_id()[1].total_points == 7
+    data = _load(raw, analysis)
+    assert data.live.by_id()[1].total_points == 7
+    assert data.final_basis == (
+        f"gw4/bootstrap.json fetched {CHECKED.isoformat()} shows event 3 data_checked")
 
 
-def test_load_round_accepts_a_check_seen_by_an_archived_bootstrap(world):
+def test_load_round_refuses_a_check_seen_only_by_an_archived_bootstrap(world):
+    """`.archive/` is git-ignored, so a proof resting on it could not be
+    reproduced from tracked files: the one rule (store.live_final) skips it."""
     _, raw, analysis = world
     _save_checking_bootstrap(raw, CHECKED)
     _save_live(raw, final=None, fetched=datetime(2026, 9, 15, 11, 0, tzinfo=timezone.utc))
     _save_checking_bootstrap(raw, datetime(2026, 9, 18, 9, 0, tzinfo=timezone.utc))
     archived = raw / f"gw{GW + 1}" / ".archive" / f"bootstrap-{CHECKED.strftime(ARCHIVE_STAMP_FORMAT)}.json"
     assert archived.is_file()
-    assert _load(raw, analysis).live.by_id()[1].total_points == 7
+    with pytest.raises(ValueError, match="not final"):
+        _load(raw, analysis)
 
 
 def test_load_round_refuses_actuals_fetched_before_the_check(world):
@@ -209,6 +221,92 @@ def test_load_round_refuses_actuals_fetched_before_the_check(world):
     _save_checking_bootstrap(raw, CHECKED)
     with pytest.raises(ValueError, match=r"fpl event-live --gw 4 --round 3 --force"):
         _load(raw, analysis)
+
+
+def test_load_round_refuses_inputs_ids_without_history(world):
+    """An inputs id with no summary would be scored on league-mean priors,
+    silently: the round refuses instead, naming the round and the count."""
+    _, raw, analysis = world
+    inputs = analysis / f"gw{GW}" / "inputs-MID.json"
+    document = json.loads(inputs.read_text())
+    document["players"].append(
+        {"id": 2, "name": "Beta", "p_start": 0.6, "uncertainty": "MED", "notes": "rotation"})
+    inputs.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ValueError) as refused:
+        _load(raw, analysis)
+    message = str(refused.value)
+    assert "gw3: 1 inputs id(s) have no history" in message
+    assert "(2)" in message and "league-mean" in message
+    assert "--history-from store" in message
+
+
+# --- history from the season store --------------------------------------------
+
+
+def _store_world(tmp_path: Path, *, pin: int | None = None):
+    """The season store's synthetic tree (rounds 1–3 played, gw1–gw4 written),
+    scored as round 3 with element 1 (MID) and 2 (DEF) judged; `pin` adds an
+    inputs row for another MID."""
+    from tests.test_season_store import three_rounds
+
+    raw, analysis = tmp_path / "raw", tmp_path / "analysis"
+    season = three_rounds()
+    if pin is not None:
+        season.clubs[pin] = {g: 1 for g in range(1, 5)}
+        season.positions[pin] = 3
+    season.write(raw, range(1, 5))
+    clubs = ("C1", "C2", "C3")
+    _write_json(analysis / f"gw{GW}" / "fixtures.json", {
+        "schema_version": 1, "gw": GW, "base_lambda": {"home": 1.54, "away": 1.33},
+        "ratings": {c: {"att": 1.0, "defw": 1.0} for c in clubs},
+        "fixtures": [
+            {"club": c, "gw": g, "opp": "C2" if c != "C2" else "C1", "venue": "H",
+             "lambda_att": 1.5, "lambda_def": 1.0, "p_cs": 0.3}
+            for c in clubs for g in range(GW, GW + 6)
+        ],
+    })
+    rows = {"MID": [{"id": 1, "name": "P1", "p_start": 0.9, "uncertainty": "LOW",
+                     "notes": "starter"}],
+            "DEF": [{"id": 2, "name": "P2", "p_start": 0.8, "uncertainty": "MED",
+                     "notes": "starter"}]}
+    if pin is not None:
+        rows["MID"].append({"id": pin, "name": f"P{pin}", "p_start": 0.5,
+                            "uncertainty": "HIGH", "notes": "new"})
+    for position in ("GKP", "DEF", "MID", "FWD"):
+        _write_json(analysis / f"gw{GW}" / f"inputs-{position}.json",
+                    {"schema_version": 1, "gw": GW, "position": position,
+                     "players": rows.get(position, [])})
+    _write_json(analysis / "club-priors.json",
+                priors_doc({c: (1.0, 1.0, False) for c in clubs}))
+    return raw, analysis, tmp_path / "store" / "season.sqlite"
+
+
+def test_load_round_from_store_equals_raw(tmp_path):
+    from fpl.season_store import History
+
+    raw, analysis, db = _store_world(tmp_path)
+    by_source = {
+        source: _load(raw, analysis, history=History(source, raw, db))
+        for source in ("summaries", "store")
+    }
+    lines = {source: score_round(data).lines for source, data in by_source.items()}
+
+    assert by_source["store"].history_from == "store"
+    assert by_source["summaries"].history_from == "summaries"
+    assert {line.id for line in lines["store"]} == {1, 2}
+    assert lines["store"] == lines["summaries"]
+    assert db.is_file()
+
+
+def test_load_round_from_store_refuses_inputs_ids_without_history(tmp_path):
+    from fpl.season_store import History
+
+    raw, analysis, db = _store_world(tmp_path, pin=7)
+    with pytest.raises(ValueError) as refused:
+        _load(raw, analysis, history=History("store", raw, db))
+    message = str(refused.value)
+    assert "gw3: 1 inputs id(s) have no history in the season store (7)" in message
+    assert "--missing-past" in message
 
 
 def _commit_world(root: Path, message: str) -> str:

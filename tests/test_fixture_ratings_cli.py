@@ -108,7 +108,8 @@ def test_missing_event_live_refuses_naming_round_and_hint(tmp_path, capsys):
     assert run(tmp_path) == 1
     err = capsys.readouterr().err
     assert "error: no snapshot 'event-live-e1' for gw2 — round 1 cannot be rated" in err
-    assert "hint: the retro's 'calibrate --gw 2 --round 1' writes it — run step 0 first" in err
+    assert ("hint: fetch it with 'event-live --gw 2 --round 1' "
+            "(the data collector's event-live step)") in err
 
 
 def test_invalid_priors_refuse(tmp_path, capsys):

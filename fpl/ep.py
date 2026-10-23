@@ -33,16 +33,18 @@ from pydantic import (
 from fpl.calibrate import DEFCON_MINUTES_FLOOR, Uncertainty
 from fpl.consistency import RETURN_POINTS, FixtureMeans, p_at_least, returns_last5
 from fpl.models import (
+    DEFAULT_HISTORY_SOURCE,
     POSITION_ALIASES,
     Bootstrap,
     ElementSummary,
+    HistorySource,
     MatchRecord,
     PastSeason,
     Player,
     PlayerStatus,
     Position,
+    missing_past_hint,
 )
-from fpl.season_store import DEFAULT_HISTORY_SOURCE, HistorySource
 from fpl.state import MAX_GW, MIN_GW
 
 SCHEMA_VERSION = 1
@@ -67,9 +69,6 @@ BONUS_SHRINK_STARTS: dict[Position, int] = {
 # The API reports defensive_contribution 0 for every season before the stat
 # existed; those zeros are missing data, not evidence.
 DEFCON_FIRST_SEASON = "2024/25"
-# Likewise expected_goals: seasons before it existed report 0, which would read
-# as a player scoring from nothing.
-XG_FIRST_SEASON = "2022/23"
 LEAGUE_POOL_MIN = 8
 LEAGUE_POOL_MIN_MINUTES = 900
 COVERAGE_PRICE_FLOOR_TENTHS = 45
@@ -594,7 +593,7 @@ def finishing_multiplier(history_past: Sequence[PastSeason], k: float | None) ->
         return 1.0
     goals = xg = 0.0
     for row in history_past:
-        if row.season_name >= XG_FIRST_SEASON:
+        if row.xg_recorded:
             goals += row.goals_scored
             xg += row.expected_goals or 0.0
     return (goals + k) / (xg + k)
@@ -956,7 +955,7 @@ def build_predictions(
     league, league_source, league_pool = _league_mean(position, position_players, summaries)
     if league_source == "fallback":
         fetch = (f"summaries --gw {gw} --shortlist" if history_from == "summaries"
-                 else f"summaries --gw {gw} --missing-past (the next read syncs the store)")
+                 else missing_past_hint(gw))
         warnings.append(
             f"league mean for {position.name} uses the v1 fallback table — only "
             f"{league_pool} players at this position have at least "

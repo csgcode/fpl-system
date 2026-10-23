@@ -1,9 +1,10 @@
 """Backtest harness: re-scores past rounds from exactly what production read
 before each deadline.
 
-A round loads only when nothing in it could carry the outcome: every model
-input was fetched before the deadline, no element summary holds the round
-itself, the actuals are final, and the inputs on disk still match the
+A round loads only when nothing in it could carry the outcome and nothing
+is guessed: every model input was fetched before the deadline, this
+season's history holds only earlier rounds, every judged player has
+history, the actuals are final, and the inputs on disk still match the
 round's decision commit. A loaded round is then scored under a model
 variant, one line per (player, round), exactly as the calibration ledger
 scores what `fpl ep` would have written. A gated run can be written once
@@ -41,11 +42,19 @@ from fpl.ep import (
     load_inputs,
     prior_minutes,
 )
-from fpl.models import Bootstrap, ElementSummary, EventLive, PLAYING_POSITIONS, Position
-from fpl.service import load_cached_bootstrap, load_cached_summaries
+from fpl.models import (
+    PLAYING_POSITIONS,
+    Bootstrap,
+    ElementSummary,
+    EventLive,
+    HistorySource,
+    Position,
+)
+from fpl.season_store import History, add_history_arguments
+from fpl.service import load_cached_bootstrap
 from fpl.state import MAX_GW, MIN_GW
 from fpl.gates import GateRecord, ManifestEntry, signed, value_text
-from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
+from fpl.store import SnapshotStore, live_final
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
 INPUTS_POLICIES = ("keep", "drop_promoted", "drop_no_history")
@@ -80,6 +89,8 @@ class RoundData:
     inputs: dict[Position, InputsDocument]
     live: EventLive
     promoted: frozenset[str]
+    final_basis: str
+    history_from: HistorySource
     warnings: tuple[str, ...] = ()
 
 
@@ -91,10 +102,17 @@ def load_round(
     gw: int,
     decisions_root: Path | None = None,
     drift_check: bool = True,
+    history: History | None = None,
 ) -> RoundData:
     """Round `gw` as production saw it before its deadline, with its final
     actuals. Raises ValueError naming the file on any leak, missing or
-    non-final actuals, or drift from the decision commit."""
+    non-final actuals, drift from the decision commit, or an inputs id with
+    no history in `history` (default: the gw `gw` cached summaries).
+
+    From the season store, the summaries are what `fpl ep` reads: the gw
+    `gw` shortlist plus the round's inputs ids, with match rows of rounds
+    before `gw` only."""
+    history = history or History("summaries", data_root)
     store = SnapshotStore(data_root)
     bootstrap = load_cached_bootstrap(store, gw)
     deadline = bootstrap.deadline_for(gw)
@@ -103,16 +121,18 @@ def load_round(
     round_dir = analysis_root / f"gw{gw}"
     inputs = {pos: load_inputs(round_dir / f"inputs-{pos.name}.json") for pos in POSITIONS}
     fixtures = load_fixtures(round_dir / fixture_ratings.JSON_FILENAME)
-    wanted = [p.id for p in bootstrap.elements if p.element_type in PLAYING_POSITIONS]
-    wanted += [entry.id for doc in inputs.values() for entry in doc.players]
-    summaries = load_cached_summaries(store, gw, wanted)
+    judged = [entry.id for doc in inputs.values() for entry in doc.players]
+    wanted = [p.id for p in bootstrap.elements if p.element_type in PLAYING_POSITIONS] + judged
+    summaries = history.summaries(gw, wanted, pinned=judged)
+    _check_history(summaries, judged, gw, history.source)
     promoted = fixture_ratings.load_priors(analysis_root / fixture_ratings.PRIORS_FILENAME).promoted
 
-    _check_summaries_predate(summaries, gw, store)
-    names = ["bootstrap", *(["fixtures"] if store.exists(gw, "fixtures") else []),
-             *(f"players/summary-{pid}" for pid in summaries)]
+    names = ["bootstrap", *(["fixtures"] if store.exists(gw, "fixtures") else [])]
+    if history.source == "summaries":
+        _check_summaries_predate(summaries, gw, store)
+        names += [f"players/summary-{pid}" for pid in summaries]
     _check_fetched_before(store, gw, names, deadline)
-    live = _load_final_actuals(actuals_root, gw)
+    live, final_basis = _load_final_actuals(actuals_root, gw)
 
     warnings: list[str] = []
     commit = None
@@ -121,7 +141,8 @@ def load_round(
                               decisions_root or analysis_root.parent / "decisions", gw, warnings)
     return RoundData(gw=gw, commit=commit, deadline=deadline, bootstrap=bootstrap,
                      summaries=summaries, fixtures=fixtures, inputs=inputs, live=live,
-                     promoted=promoted, warnings=tuple(warnings))
+                     promoted=promoted, final_basis=final_basis,
+                     history_from=history.source, warnings=tuple(warnings))
 
 
 class BacktestLine(PlayerLine):
@@ -176,7 +197,7 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
         result = build_predictions(
             data.bootstrap, data.summaries, data.fixtures, inputs, gw=data.gw,
             allow_missing=_uncovered(data.bootstrap, position, inputs), config=config,
-            history_from="summaries",
+            history_from=data.history_from,
         )
         warnings += result.warnings
         for doc in result.to_documents():
@@ -588,8 +609,7 @@ def _policy_ids(data: RoundData, policy: str) -> frozenset[int]:
         # so the stripped players and the no_history slice are the same set.
         ids = {entry.id for doc in data.inputs.values() for entry in doc.players}
         return frozenset(pid for pid in ids
-                         if pid not in data.summaries
-                         or prior_minutes(data.summaries[pid].history_past) == 0)
+                         if prior_minutes(data.summaries[pid].history_past) == 0)
     raise ValueError(f"unknown inputs policy {policy!r}; "
                      f"expected one of {', '.join(INPUTS_POLICIES)}")
 
@@ -602,6 +622,27 @@ def _uncovered(bootstrap: Bootstrap, position: Position,
         if p.element_type == position and p.id not in judged
         and p.now_cost > ep.COVERAGE_PRICE_FLOOR_TENTHS and p.status in ep.COVERAGE_STATUSES
     )
+
+
+def _check_history(summaries: Mapping[int, ElementSummary], judged: Sequence[int], gw: int,
+                   source: HistorySource) -> None:
+    """Refuses a round where an inputs id has no history: build_predictions
+    would score him on league-mean priors and say so only in a warning."""
+    missing = sorted(set(judged) - set(summaries))
+    if not missing:
+        return
+    if source == "store":
+        where = "the season store"
+        remedy = ("fetch their past seasons in the current gameweek with "
+                  "'summaries --gw <current gw> --missing-past' (the next read syncs it "
+                  "into the store)")
+    else:
+        where = f"the gw{gw} cached summaries"
+        remedy = "read the season store instead (--history-from store)"
+    raise ValueError(
+        f"gw{gw}: {len(missing)} inputs id(s) have no history in {where} "
+        f"({', '.join(map(str, missing))}) — they would be scored on league-mean priors; "
+        f"{remedy}")
 
 
 def _check_summaries_predate(summaries: dict[int, ElementSummary], gw: int,
@@ -627,67 +668,22 @@ def _check_fetched_before(store: SnapshotStore, gw: int, names: list[str],
                              f"after the gw{gw} deadline {deadline.isoformat()}")
 
 
-def _load_final_actuals(actuals_root: Path, gw: int) -> EventLive:
+def _load_final_actuals(actuals_root: Path, gw: int) -> tuple[EventLive, str]:
+    """Round `gw`'s event-live snapshot and the basis of its proof of
+    finality, by the one rule every reader shares (store.live_final)."""
     store = SnapshotStore(actuals_root)
     name = f"event-live-e{gw}"
     path = store.path(gw + 1, name)
     if not path.is_file():
         raise ValueError(f"no actuals for round {gw}: {path} is missing")
-    if not _is_final(actuals_root, store, gw):
+    proof = live_final(actuals_root, gw + 1, gw)
+    if proof is None:
         raise ValueError(
-            f"{path} is not final: its sidecar has no `final` key and no bootstrap of "
+            f"{path} is not final: its sidecar has no `final` key and no kept bootstrap of "
             f"gw{gw + 1} or later, fetched at or before it, shows event {gw} data_checked "
             f"— refetch with fpl event-live --gw {gw + 1} --round {gw} --force"
         )
-    return EventLive.model_validate(store.load(gw + 1, name))
-
-
-def _is_final(actuals_root: Path, store: SnapshotStore, gw: int) -> bool:
-    name = f"event-live-e{gw}"
-    meta = store.dir(gw + 1) / ".meta" / f"{name}.json"
-    try:
-        if json.loads(meta.read_text(encoding="utf-8")).get("final") is True:
-            return True
-    except (OSError, ValueError, AttributeError):
-        pass
-    fetched = store.fetched_at(gw + 1, name)
-    if fetched is None:
-        return False
-    return any(
-        seen <= fetched and _shows_checked(path, gw)
-        for path, seen in _bootstraps_from(actuals_root, store, gw + 1)
-    )
-
-
-def _bootstraps_from(root: Path, store: SnapshotStore, first_gw: int):
-    """Every cached bootstrap of gw ≥ first_gw with its fetch time, archived
-    ones included: an archive entry's stamp is the fetch time it was saved with."""
-    for directory in sorted(root.glob("gw*")):
-        try:
-            n = int(directory.name[2:])
-        except ValueError:
-            continue
-        if n < first_gw:
-            continue
-        current = store.fetched_at(n, "bootstrap")
-        if current is not None and store.exists(n, "bootstrap"):
-            yield store.path(n, "bootstrap"), current
-        for archived in sorted((directory / ".archive").glob("bootstrap-*.json")):
-            try:
-                stamp = datetime.strptime(archived.stem.removeprefix("bootstrap-"),
-                                          ARCHIVE_STAMP_FORMAT).replace(tzinfo=timezone.utc)
-            except ValueError:
-                continue
-            yield archived, stamp
-
-
-def _shows_checked(path: Path, gw: int) -> bool:
-    try:
-        events = json.loads(path.read_text(encoding="utf-8")).get("events", [])
-    except (OSError, ValueError, AttributeError):
-        return False
-    return any(isinstance(e, dict) and e.get("id") == gw and e.get("data_checked") is True
-               for e in events)
+    return EventLive.model_validate(store.load(gw + 1, name)), proof.basis
 
 
 def _check_drift(data_root: Path, analysis_root: Path, decisions_root: Path, gw: int,
@@ -873,6 +869,7 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
                    help="archive existing records and record them again")
     p.add_argument("--gates-root", type=Path, default=gates.GATES_ROOT,
                    help="where gate records live")
+    add_history_arguments(p)
 
 
 def run(data_root: Path, args: argparse.Namespace) -> int:
@@ -895,9 +892,10 @@ def run(data_root: Path, args: argparse.Namespace) -> int:
             _refuse_existing(args.gates_root, args.record)
 
     drift_check = not args.no_drift_check
+    history = History.from_args(data_root, args)
     data = [load_round(data_root=data_root, analysis_root=args.analysis_root,
                        actuals_root=data_root, gw=r, decisions_root=args.decisions_root,
-                       drift_check=drift_check) for r in rounds]
+                       drift_check=drift_check, history=history) for r in rounds]
     scorer = _Scorer(data)
     checks = round_checks(scorer.lines(baseline), rounds, retro_root=args.retro_root,
                           analysis_root=args.analysis_root,
@@ -1193,7 +1191,8 @@ def _record_base(context: _RecordContext, name: str, kind: str, argv: Sequence[s
     for d in context.data:
         path = store.path(d.gw + 1, f"event-live-e{d.gw}")
         actuals[str(d.gw)] = {"path": str(path),
-                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                              "basis": d.final_basis}
     return {
         "schema_version": gates.SCHEMA_VERSION,
         "name": name,
@@ -1206,6 +1205,7 @@ def _record_base(context: _RecordContext, name: str, kind: str, argv: Sequence[s
             "decisions_root": str(args.decisions_root),
             "retro_root": str(args.retro_root),
             "drift_check": not args.no_drift_check,
+            "history_from": args.history_from,
             "actuals": actuals,
         },
         "decision_commits": {str(d.gw): d.commit for d in context.data},

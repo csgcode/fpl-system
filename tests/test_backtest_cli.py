@@ -131,10 +131,29 @@ def quiet_world(tmp_path):
 
 
 def _run(world, *extra: str, gw: str = "5", rounds: str = "3-4") -> int:
+    """The seeded world holds summaries, not the per-round event-live
+    snapshots the season store is built from, so it reads the summaries."""
     root, raw, analysis = world
     return main(["--data-root", str(raw), "backtest", "--gw", gw, "--rounds", rounds,
                  "--analysis-root", str(analysis), "--retro-root", str(root / "retro"),
-                 "--no-drift-check", *extra])
+                 "--no-drift-check", "--history-from", "summaries", *extra])
+
+
+def test_backtest_reads_the_season_store_by_default(tmp_path, capsys):
+    from tests.test_backtest import _store_world
+
+    raw, analysis, _ = _store_world(tmp_path)
+    assert main(["--data-root", str(raw), "backtest", "--gw", "4", "--rounds", "3-3",
+                 "--analysis-root", str(analysis), "--retro-root", str(tmp_path / "retro"),
+                 "--no-drift-check"]) == 0
+    db = tmp_path / "store" / "season-2026-27.sqlite"
+    assert f"season store {db} synced (no store yet)" in capsys.readouterr().err
+    assert db.is_file()
+
+
+def test_backtest_refuses_a_store_path_with_summaries(world, capsys, tmp_path):
+    assert _run(world, "--store", str(tmp_path / "s.sqlite")) == 1
+    assert "--store is read only with --history-from store" in capsys.readouterr().err
 
 
 def _files(root: Path) -> set[Path]:
@@ -355,8 +374,11 @@ def test_record_writes_once_and_force_archives(world, capsys, tmp_path):
     assert record["rounds"] == [3, 4]
     actuals = raw / "gw4" / "event-live-e3.json"
     assert record["data"]["actuals"]["3"] == {
-        "path": str(actuals), "sha256": hashlib.sha256(actuals.read_bytes()).hexdigest()}
+        "path": str(actuals), "sha256": hashlib.sha256(actuals.read_bytes()).hexdigest(),
+        "basis": f"gw4/.meta/event-live-e3.json final sidecar, fetched "
+                 f"{(_deadline(3) + timedelta(days=3)).isoformat()}"}
     assert record["data"]["analysis_root"] == str(world[2])
+    assert record["data"]["history_from"] == "summaries"
     assert record["decision_commits"] == {"3": None, "4": None}
     assert set(record["code"]) == {"head", "dirty"}
     assert record["baseline_config"] == asdict(DEFAULT_CONFIG)

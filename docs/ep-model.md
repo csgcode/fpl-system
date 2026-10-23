@@ -158,7 +158,8 @@ did not beat the shared one. The numbers are in the gate table in §8.
 Some players score more goals than their xG says, season after season. The
 code can scale a player's blended `xg90` by his finishing record:
 `(goals + k) / (xG + k)`, summed over every Premier League season since
-2022/23 (the first with xG recorded). `k` pseudo-goals on each side pull the
+2022/23, the first with xG recorded (`XG_RECORDED_FROM`, the same rule that
+sets `xg_recorded` in the season store). `k` pseudo-goals on each side pull the
 multiplier toward 1, so a short record barely moves it. An analyst's `xg90`
 override is never scaled, and `rates.finishing_mult` then shows 1.0.
 
@@ -393,8 +394,11 @@ Inputs:
   each row on the side of the club the player played for in that match. With
   `--history-from summaries`, they come from every cached player summary in
   `data/raw/gw{N}/players/` (steps 2 and 3).
-- `event-live-e{r}.json` from `data/raw/gw{r+1}/` for every round r before N.
-  The retro's `calibrate` writes it; without it the command refuses.
+- `event-live-e{r}.json` from `data/raw/gw{r+1}/` for every round r before N,
+  on either path (the season store is built from these snapshots). The data
+  collector's `event-live` step fetches the latest one. Without it the
+  command refuses and names the command that fetches it,
+  `event-live --gw r+1 --round r`.
 - `club-priors.json`: one ATT and DEFW per club, fixed at GW1, never edited.
 - `data/analysis/gw{N-1}/fixtures.json`, if present, only for the Δ columns.
 
@@ -557,6 +561,10 @@ uv run python -m fpl gates --gw 8 --render
   records judged without it.
 - `--record <name>` with `--set` or `--sweep` records a single test outside
   the manifest.
+- The match history comes from the season store beside `--data-root`
+  (`data/store/`), synced first when it is behind the raw tree; `--store`
+  names another file. Each record says which source it read, under
+  `data.history_from`.
 - `gates --summary` prints each record's result and what happened to it;
   `gates --render` rewrites the table at the end of this section.
 - Without `--record` or `--record-all` the command writes nothing, so trying a
@@ -573,29 +581,49 @@ from its calibration ledger's by more than N.
 A round r can be scored when it has analyst inputs under
 `data/analysis/gw{r}/` and a final event-live snapshot at
 `data/raw/gw{r+1}/event-live-e{r}.json`. Final means its `.meta` sidecar says
-`final: true`, or a bootstrap of a later gameweek, fetched no later than the
-snapshot, shows round r data-checked. The gates use rounds from 3 on: before
+`final: true`, or a kept bootstrap of a later gameweek, fetched no later than
+the snapshot, shows round r data-checked. An archived bootstrap under
+`.archive/` never counts: git ignores it, so a proof resting on it could not
+be checked from the committed files. This is the same rule the season store
+uses (`fpl.store.live_final`), and each gate record names the file that
+proved each round final, under `data.actuals.<round>.basis`. The gates use
+rounds from 3 on: before
 GW3 the analysts computed EP by hand, so there is no code prediction to
 compare with.
 
 Nothing from after a round's deadline may reach its prediction:
 
-- every model input (the gw r `bootstrap.json`, `fixtures.json` and player
-  summaries) must have been fetched before round r's deadline, by its sidecar;
-- every player summary may hold only matches from rounds before r;
+- every model input (the gw r `bootstrap.json` and `fixtures.json`) must
+  have been fetched before round r's deadline, by its sidecar;
+- this season's match rows come from the season store as of round r, so only
+  from rounds before r, for the players `fpl ep` reads: those shortlisted in
+  the gw r bootstrap plus the round's inputs ids. Their past seasons come from
+  whichever summary the raw tree holds, as past seasons do not change during
+  a season;
+- with `--history-from summaries` they come instead from the gw r cached
+  summaries, each fetched before the deadline and holding only rounds before
+  r. This reading works for rounds 3–6 only: from round 7 the analysts
+  judged players whose summaries were not cached that gameweek, and from GW9
+  the collector keeps a summary only for players with no past seasons on file;
 - the inputs on disk must equal those in the round's decision commit (the
   commit that first added its final.md); `--no-drift-check` skips this;
 - the actual points come only from the final event-live snapshot.
 
 A player the coverage rule (§3) requires but the analyst left out is not
 scored, as in production, and the run names him in a warning instead of
-refusing.
+refusing. A player the analyst did judge but who has no history in the
+chosen source refuses the round, naming the round and how many players: he
+would be scored on the league mean, and a backtest must not do that
+silently.
 
 The baseline is today's code run on the recorded inputs. It is not the
 calibration ledger, which scores what was predicted at the time. The
 per-round table prints the gap as `code drift`: the mean difference per
 player between the two predictions. In `baseline.json` it is about 0.05
-points for rounds 3–6 and 0 for round 7.
+points for rounds 3–6 and 0.0005 for round 7. Round 7's small gap comes from
+the season store: it gives 13 players the analysts judged a history that
+the round-7 summaries did not hold, so they are no longer scored on the
+league mean.
 
 ### The gate
 
@@ -666,14 +694,14 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | baseline | model | 3-7 | — | — | — | — | — | — | — | reference: n 2127, bias +0.183, MAE 1.643 |
 | prior-weight | model | 3-7 | blend_k=600,300,450,900,1200 | — | −0.0043 | [−0.008, −0.001] | +0.183→+0.192 | 5/5 | FAIL | effect: ΔMAE −0.0043 > −0.01 |
-| drop-promoted | policy | 3-7 | — | — | +0.0021 | [−0.001, +0.005] | +0.183→+0.174 | 1/5 | FAIL · slice promoted FAIL: n 319, ΔMAE +0.0141 [CI −0.003, +0.031], bias +0.137→+0.077 · hypothesis not supported | ci: upper +0.005 ≥ 0; effect: ΔMAE +0.0021 > −0.01; rounds: won 1 of 5, need 4 |
-| drop-no-history | policy | 3-7 | — | — | +0.0017 | [−0.001, +0.004] | +0.183→+0.173 | 1/5 | FAIL · slice no_history FAIL: n 470, ΔMAE +0.0078 [CI −0.004, +0.019], bias +0.338→+0.291 · hypothesis not supported | ci: upper +0.004 ≥ 0; effect: ΔMAE +0.0017 > −0.01; rounds: won 1 of 5, need 4 |
-| no-history-k | model | 3-7 | blend_k_no_history=none,150,300 | — | +0.0002 | [−0.002, +0.003] | +0.183→+0.183 | 2/5 | FAIL · slice no_history FAIL: n 470, ΔMAE +0.0010 [CI −0.010, +0.012], bias +0.338→+0.336 · hypothesis not supported | ci: upper +0.003 ≥ 0; effect: ΔMAE +0.0002 > −0.01; rounds: won 2 of 5, need 4 |
+| drop-promoted | policy | 3-7 | — | — | +0.0021 | [−0.001, +0.005] | +0.183→+0.174 | 1/5 | FAIL · slice promoted FAIL: n 319, ΔMAE +0.0140 [CI −0.003, +0.031], bias +0.137→+0.077 · hypothesis not supported | ci: upper +0.005 ≥ 0; effect: ΔMAE +0.0021 > −0.01; rounds: won 1 of 5, need 4 |
+| drop-no-history | policy | 3-7 | — | — | +0.0017 | [−0.001, +0.004] | +0.183→+0.173 | 1/5 | FAIL · slice no_history FAIL: n 462, ΔMAE +0.0080 [CI −0.004, +0.020], bias +0.345→+0.298 · hypothesis not supported | ci: upper +0.004 ≥ 0; effect: ΔMAE +0.0017 > −0.01; rounds: won 1 of 5, need 4 |
+| no-history-k | model | 3-7 | blend_k_no_history=none,150,300 | — | +0.0002 | [−0.002, +0.003] | +0.183→+0.183 | 2/5 | FAIL · slice no_history FAIL: n 462, ΔMAE +0.0011 [CI −0.010, +0.012], bias +0.345→+0.343 · hypothesis not supported | ci: upper +0.003 ≥ 0; effect: ΔMAE +0.0002 > −0.01; rounds: won 2 of 5, need 4 |
 | recency | model | 3-7 | half_life_matches=none,2,3,4,6; opponent_adjust=false,true | — | +0.0007 | [−0.001, +0.002] | +0.183→+0.185 | 3/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE +0.0007 > −0.01; rounds: won 3 of 5, need 4 |
 | saves-adjust | model | 3-7 | — | — | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
 | effective-minutes | model | 3-7 | — | — | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
 | finishing | model | 3-7 | finishing_k=none,20,10,5,2,1 | — | −0.0026 | [−0.008, +0.002] | +0.183→+0.192 | 4/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE −0.0026 > −0.01 |
-| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.0202), DEF +0.095 (starters −0.0001), MID +0.094 (starters −0.0027), FWD +0.156 (starters +0.0147) |
+| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.0201), DEF +0.095 (starters −0.0001), MID +0.094 (starters −0.0027), FWD +0.156 (starters +0.0147) |
 | persistence | persistence | 1-7 | — | — | — | — | — | — | not significant | window 3: n 711, slope +0.034 [−0.095, +0.162], r +0.020; window 1: n 1098, slope +0.007 [−0.046, +0.060], r +0.007; window 2: n 805, slope +0.018 [−0.083, +0.119], r +0.013 |
 | combined | combined | 3-7 | — | ships baseline (no passing entries) | — | — | — | — | — | — |
 <!-- gates:end -->
