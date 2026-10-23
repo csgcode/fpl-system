@@ -375,4 +375,8 @@ Gate records live under `data/model/gates/`. The table between the markers
 below is generated from them by `fpl gates --render`; do not edit it by hand.
 
 <!-- gates:begin -->
+| Gate | Kind | Rounds | Grid | Ship value | ΔMAE | CI | Bias | Wins | Verdict | Reasons |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| baseline | model | 3-7 | — | — | — | — | — | — | — | reference: n 2127, bias +0.183, MAE 1.643 |
+| combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->
