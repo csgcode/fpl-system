@@ -210,8 +210,9 @@ def _describe(call: ToolCall) -> str:
 def check_c3(run: CollectorRun) -> CheckResult:
     """bootstrap first; prior-season only after a summaries call has
     finished. Summary-era spec: summaries in the foreground with a long
-    timeout. Store-era spec: no shortlist refetch, and a `store sync` after
-    the last summaries call."""
+    timeout. Store-era spec: no shortlist refetch, a `store sync` after the
+    last summaries call and, past GW1, an `event-live --round N-1` call
+    (refused or not) before the first `store sync`."""
     invoked = _invoked(run)
     if not invoked:
         return CheckResult.failed("no fpl command ran")
@@ -219,7 +220,7 @@ def check_c3(run: CollectorRun) -> CheckResult:
     if invoked[0].inv.subcommand != "bootstrap":
         problems.append(f"first fpl command was `{invoked[0].label}`, not bootstrap")
     if MARK_MISSING_PAST in run.instructions:
-        return _fails(problems + _store_order_problems(invoked))
+        return _fails(problems + _store_order_problems(invoked, run.gw))
     summaries_done = False
     for item in invoked:
         if item.inv.subcommand == "summaries":
@@ -234,7 +235,7 @@ def check_c3(run: CollectorRun) -> CheckResult:
     return _fails(problems)
 
 
-def _store_order_problems(invoked: list[_Invoked]) -> list[str]:
+def _store_order_problems(invoked: list[_Invoked], gw: int) -> list[str]:
     problems = [f"`{i.label}` refetches the shortlist" for i in invoked
                 if i.inv.subcommand == "summaries" and i.inv.has("--shortlist")]
     syncs = [i.index for i in invoked if _is_store_sync(i)]
@@ -243,6 +244,12 @@ def _store_order_problems(invoked: list[_Invoked]) -> list[str]:
         problems.append("no `store sync` ran")
     elif summaries and max(syncs) < max(summaries):
         problems.append("no `store sync` after the last summaries call")
+    if syncs and gw > 1:
+        previous = str(gw - 1)
+        if not any(i.index < min(syncs) and i.inv.subcommand == "event-live"
+                   and i.inv.option("--round") == previous for i in invoked):
+            problems.append(f"no `event-live --gw {gw} --round {previous}` before the "
+                            f"first `store sync`")
     summaries_done = False
     for item in invoked:
         if item.inv.subcommand == "summaries":
@@ -337,7 +344,10 @@ def check_c6(run: CollectorRun) -> CheckResult:
         if subcommand not in lines:
             problems.append(f"`{subcommand}` ran but has no Commands run line")
 
-    syncs = [i for i in succeeded if _is_store_sync(i)]
+    # A `store sync` exit 3 (reconciliation mismatch) still printed its
+    # coverage line, which meta.md copies.
+    syncs = [i for i in invoked if _is_store_sync(i) and i.call.result is not None
+             and store_coverage_counts(i.call.result.text) is not None]
     priors = [i for i in succeeded if i.inv.subcommand == "prior-season"]
     if syncs:
         source, counts = "store sync", store_coverage_counts(syncs[-1].call.result.text)

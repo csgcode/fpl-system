@@ -70,9 +70,11 @@ the last completed GW.
 1. `uv run python -m fpl bootstrap --gw N` — must run first; every other
    command depends on its snapshot.
 2. `uv run python -m fpl event-live --gw N --round M` — skip at GW1. Exit 1
-   with "not data-checked yet" means FPL has not finalised round M: do not
-   retry and do not add `--force`; record it under Errors and continue. See
-   "Round M not data-checked" below.
+   with "not data-checked yet" means FPL has not finalised round M. That
+   error also prints "Refetch once FPL marks it checked: python -m fpl
+   bootstrap --gw N --force" — ignore that printed hint at this step: do not
+   run it, do not retry, and do not add `--force`. Record the error under
+   Errors and continue with step 3. See "Round M not data-checked" below.
 3. `uv run python -m fpl fixtures --gw N`
 4. `uv run python -m fpl summaries --gw N --missing-past` — fetches only the
    players with no summary in any gameweek (new signings; a few a week).
@@ -122,6 +124,21 @@ only these, in order, and record each in meta.md as usual:
 The readers would also sync the store themselves on their next run; step 3
 makes the Coverage line current.
 
+Then update the existing data/raw/gw{N}/meta.md in place. Change only these
+lines and keep every other line as it is:
+- Previous GW: rewrite it from the `current GW … status:` line of step 1's
+  bootstrap stdout.
+- Fetched at: rewrite it from step 1's bootstrap stdout.
+- Commands run: keep the earlier lines and append one line per command of
+  this re-run, in the same `- <subcommand and flags> → <cache note>` form.
+- Coverage: rewrite it from step 3's `coverage gwN:` line.
+- Errors: keep the earlier `event-live exit 1: …` entry and append
+  `; retried → <result>` to it, where <result> is `ok` or the new error
+  line. When step 1 stopped the re-run, append
+  `; retried → still data_checked=false`.
+
+Return to the orchestrator as usual, from the updated meta.md.
+
 Cached commands print `(fetched)`, `(cached, age Xh)`, `(F fetched, C cached)`
 or, for a final snapshot, `(cached, age Xh, final)` — record which in
 meta.md; record `store sync` as `local`. `flags` always hits the network.
@@ -160,9 +177,11 @@ auth: <PASS | FAIL — reason | skipped (no data/auth.json) | skipped (null team
 - Copy Previous GW from the `current GW … status:` line of this GW's
   bootstrap stdout, never from data/raw/gw{M}/, which was fetched before that
   round ended.
-- Coverage is the three numbers of `store sync`'s `coverage gwN:` line.
-  When `store sync` failed, write `Coverage: unavailable (store sync exit
-  <code>)`.
+- Coverage is the three numbers of `store sync`'s `coverage gwN:` line,
+  also when `store sync` exited 3. When it printed no such line (exit 1),
+  write `Coverage: unavailable (store sync exit 1)`. When it printed
+  `coverage gwN: no bootstrap in the store` (the bootstrap failed), write
+  `Coverage: unavailable (no gwN bootstrap)`.
 - In Anomalies, a count you cannot explain is written "unexplained", never
   guessed at.
 - Errors is `none` when every command exited 0. Otherwise it holds one entry

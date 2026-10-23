@@ -254,6 +254,33 @@ def test_c3_store_spec_fails_when_no_store_sync_follows_the_summaries():
     assert check_c3(store_run(without)).status is Status.FAIL
 
 
+def test_c3_store_spec_fails_without_an_event_live_for_the_last_round_before_store_sync():
+    calls = [c for c in store_calls() if "event-live" not in c.input.get("command", "")]
+    result = check_c3(store_run(calls))
+    assert result.status is Status.FAIL
+    assert "event-live --gw 6 --round 5" in result.evidence
+
+
+def test_c3_store_spec_fails_when_event_live_comes_after_store_sync_or_names_another_round():
+    calls = store_calls()
+    calls.insert(4, calls.pop(1))
+    assert check_c3(store_run(calls)).status is Status.FAIL
+    wrong = replace_call(store_calls(), 1, fpl("event-live --gw 6 --round 4", "ok"))
+    assert check_c3(store_run(wrong)).status is Status.FAIL
+
+
+def test_c3_store_spec_passes_when_the_event_live_before_store_sync_was_refused():
+    refused = fpl("event-live --gw 6 --round 5",
+                  "Exit code 1\nerror: round 5 is not data-checked yet", True)
+    calls = replace_call(store_calls(), 1, refused)
+    assert check_c3(store_run(calls)).status is Status.PASS
+
+
+def test_c3_store_spec_needs_no_event_live_at_gw1():
+    calls = [c for c in store_calls() if "event-live" not in c.input.get("command", "")]
+    assert check_c3(store_run(calls, gw=1)).status is Status.PASS
+
+
 # --- C4 forbidden --------------------------------------------------------------
 
 
@@ -374,6 +401,20 @@ def test_c6_store_spec_needs_an_event_live_line_when_it_ran():
     result = check_c6(store_run(meta=meta))
     assert result.status is Status.FAIL
     assert "event-live" in result.evidence
+
+
+def test_c6_store_spec_checks_coverage_when_store_sync_exits_3_after_printing_it():
+    mismatch = ("Exit code 3\n" + STORE_SYNC_OUT.replace("reconciliation: OK",
+                                                          "reconciliation: 1 mismatch"))
+    calls = [fpl("store sync --gw 6", mismatch, True) if "store sync" in
+             c.input.get("command", "") else c for c in store_calls()]
+    assert check_c6(store_run(calls)).status is Status.PASS
+    meta = STORE_META.replace("no_pl_history 118", "no_pl_history 117")
+    calls = [fpl("store sync --gw 6", mismatch, True) if "store sync" in
+             c.input.get("command", "") else c for c in store_calls(meta)]
+    result = check_c6(store_run(calls, meta=meta))
+    assert result.status is Status.FAIL
+    assert "store sync" in result.evidence
 
 
 def test_c6_is_na_without_meta_or_with_an_edited_meta():
