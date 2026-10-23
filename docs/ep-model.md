@@ -441,9 +441,78 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | saves-adjust | model | 3-7 | — | opponent_adjust_saves=true | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
 | effective-minutes | model | 3-7 | — | blend_on_effective_minutes=true | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
 | finishing | model | 3-7 | finishing_k=none,20,10,5,2,1 | finishing_k=1 | −0.0026 | [−0.008, +0.002] | +0.183→+0.192 | 4/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE −0.0026 > −0.01 |
+| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.020), DEF +0.095 (starters −0.000), MID +0.094 (starters −0.003), FWD +0.156 (starters +0.015) |
 | persistence | persistence | 1-7 | — | — | — | — | — | — | not significant | window 3: n 711, slope +0.034 [−0.095, +0.162], r +0.020; window 1: n 1098, slope +0.007 [−0.046, +0.060], r +0.007; window 2: n 805, slope +0.018 [−0.083, +0.119], r +0.013 |
 | combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->
+
+## 9. Consistency columns
+
+Two columns describe how steady a player is, not how many points he is
+expected to score. Neither is an EP term: `ep_gw` and `ep_total6` never use
+them. `objective` uses them only to break a near tie between two transfers.
+
+### `p4_gw` — chance of 4 or more points
+
+`p4_gw[g]` is the chance the player scores at least 4 points in GW g:
+`p_start × P(points ≥ 4 | he starts)`. Given a start, `fpl/consistency.py`
+builds the whole points distribution for each fixture from the same means the
+EP formula uses (§1), adding these independent parts:
+
+- appearance: 2 points with the chance of playing 60+ minutes, else 1;
+- clean sheet: the position's clean-sheet points, in the 60+ branch only;
+- goals: a Poisson count with the goal mean, times the position's goal points;
+- assists: a Poisson count with the assist mean, times 3;
+- DefCon: 2 points with the DefCon chance;
+- saves: one point per 3 saves, the saves a Poisson count.
+
+A double gameweek adds both fixtures; a blank gameweek gives 0. Some scoring
+is left out, and each omission pushes the chance one way:
+
+| Left out | Effect on `p4_gw` |
+|---|---|
+| bonus points | too low |
+| substitute appearances (a non-start counts as 0) | too low for rotation players |
+| goals conceded, and its link to the clean sheet | too high for GKP and DEF |
+| cards, own goals, missed penalties | too high |
+| penalty saves | slightly too low for GKP |
+
+### `returns5` — returns over the last five rounds
+
+`returns5` is `[k, n]`: of the rounds GW−5 to GW−1 in which the player had a
+match row, n counts them and k counts those where his raw points totalled 4 or
+more. A double gameweek's rows are added first; a round where he did not play
+still counts in n, because being available is part of being steady.
+
+### The tie-break in `objective`
+
+When two single transfers share the same outgoing player and both pass the
+transfer rule, and the second is within 0.5 EP6 of the best, `objective`'s
+greedy reference picks the steadier incoming player:
+
+1. the higher mean `p4_gw` over the next 3 GWs, when the gap is at least 0.03
+   and the position is calibrated (below);
+2. else the higher return rate k/n, when both players have at least 3 rounds
+   and the gap is at least 0.2;
+3. else the move ahead on EP6.
+
+It applies to single transfers only, not to wildcard packages. Its
+`tie-break move:` line names the winner, and a plan that takes the other move
+fails the reference check.
+
+### Which positions are calibrated
+
+`p4_gw` decides a tie only for a position where it beats a plain base rate
+among likely starters (`p_start` 0.5 or more), judged by Brier score with each
+round's base rate taken from the other rounds. The tie-break only ever compares
+two players expected to start, so the skill over all players, which mostly
+rewards knowing who will play, is not the test.
+
+The `p4` calibration record (data/model/gates/p4.json) and `combined.json`
+hold the scores; the `p4` row of the gate table in §8 shows them. The
+positions with a starter skill above 0 are `objective.P4_CALIBRATED`, and the
+`ep` table shows `p4` only for those positions. A test keeps the constant equal
+to `combined.json`.
 
 ## 10. Form
 

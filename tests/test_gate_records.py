@@ -34,3 +34,17 @@ def test_ep_model_gate_block_matches_records():
 def test_manifest_starts_with_the_baseline_entry():
     entries = gates.load_manifest(GATES_ROOT / gates.MANIFEST)
     assert entries[0] == gates.ManifestEntry(name="baseline", kind="model", argv=())
+
+
+def test_p4_calibrated_positions_match_record():
+    if not COMBINED.exists():
+        return
+    from fpl import objective
+    from fpl.models import Position
+
+    p4 = gates.read_record(GATES_ROOT, gates.COMBINED).comparison["p4"]
+    calibrated = frozenset(
+        Position[pos] for pos, v in p4.items()
+        if v["starters"] is not None and v["starters"]["skill"] is not None
+        and v["starters"]["skill"] > 0)
+    assert objective.P4_CALIBRATED == calibrated

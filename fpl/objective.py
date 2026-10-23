@@ -50,7 +50,9 @@ CHIP_GATE = 6.0
 HIT_COST = 4
 NEAR_TIE = 0.25
 NEAR_TIE_MOVE = 0.5
-P4_CALIBRATED: frozenset[Position] = frozenset()
+# Positions whose p4 beats a base rate among likely starters (combined.json
+# comparison.p4[pos].starters.skill > 0): only there may p4 decide a tie-break.
+P4_CALIBRATED: frozenset[Position] = frozenset({Position.GKP, Position.FWD})
 P4_TIE_GAP = 0.03
 RET5_TIE_GAP = 0.2
 RET5_MIN_ROUNDS = 3
