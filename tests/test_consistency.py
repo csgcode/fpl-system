@@ -128,3 +128,21 @@ def test_returns_last5_window_starts_at_round_one_early_in_the_season() -> None:
 
     assert returns_last5(rows, gw=3) == (1, 2)
     assert returns_last5([], gw=1) == (0, 0)
+
+
+def test_returns_last5_from_store_rows_matches_summary_rows(tmp_path) -> None:
+    """Element 1 returns in round 1 (a goal, 10 points) and blanks in round 2:
+    the season store's rows and the cached summary give the same answer."""
+    from fpl.season_store import open_ro, sync
+    from fpl.service import load_cached_summaries
+    from fpl.store import SnapshotStore
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "store.sqlite"
+    Season().write(raw)
+    sync(raw, db)
+    with open_ro(db, raw) as reader:
+        stored = reader.summaries(3, [1], coverage="all")[1].history
+    cached = load_cached_summaries(SnapshotStore(raw), 3, [1])[1].history
+
+    assert returns_last5(stored, gw=3) == returns_last5(cached, gw=3) == (1, 2)
