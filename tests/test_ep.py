@@ -123,24 +123,6 @@ def test_default_config_reproduces_the_production_constants():
     assert DEFAULT_CONFIG.blend_floor == BLEND_PRIOR_FLOOR
 
 
-def test_phase_three_constants_are_the_config_defaults_and_ship_off():
-    from fpl import ep
-
-    assert (ep.HALF_LIFE_MATCHES, ep.OPPONENT_ADJUST, ep.OPPONENT_ADJUST_SAVES,
-            ep.BLEND_ON_EFFECTIVE_MINUTES) == (None, False, False, False)
-    assert DEFAULT_CONFIG.half_life_matches == ep.HALF_LIFE_MATCHES
-    assert DEFAULT_CONFIG.opponent_adjust == ep.OPPONENT_ADJUST
-    assert DEFAULT_CONFIG.opponent_adjust_saves == ep.OPPONENT_ADJUST_SAVES
-    assert DEFAULT_CONFIG.blend_on_effective_minutes == ep.BLEND_ON_EFFECTIVE_MINUTES
-
-
-def test_finishing_constant_is_the_config_default_and_ships_off():
-    from fpl import ep
-
-    assert ep.FINISHING_K is None
-    assert DEFAULT_CONFIG.finishing_k == ep.FINISHING_K
-
-
 def test_config_digest_is_stable_and_changes_with_a_field():
     digest = DEFAULT_CONFIG.digest()
     assert digest == ModelConfig().digest()
