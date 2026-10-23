@@ -9,6 +9,7 @@ import csv
 import io
 import json
 import math
+import re
 import time
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
@@ -40,6 +41,9 @@ from fpl.store import (
 
 DEFAULT_MAX_AGE_HOURS = 24.0
 PLAYERS_SLIM_FILENAME = "players-slim.csv"
+
+
+_KEPT_SUMMARY = re.compile(r"^gw(\d+)/players/summary-(\d+)\.json$")
 
 
 def _summary_name(player_id: int) -> str:
@@ -387,6 +391,18 @@ class FplDataService:
             )
             previous_was_fetched = self._log.events[before].fetched
         return summaries
+
+    def missing_past_ids(self, gw: int) -> list[int]:
+        """The gw bootstrap's ids with no kept element summary in any
+        gameweek: the players whose history_past the season store lacks.
+        Archived copies do not count; the store never reads them."""
+        bootstrap = self._cached_bootstrap(gw)
+        root = self._store.dir(gw).parent
+        have = {
+            int(m.group(2)) for path in root.glob("gw*/players/summary-*.json")
+            if (m := _KEPT_SUMMARY.match(path.relative_to(root).as_posix()))
+        }
+        return [p.id for p in bootstrap.elements if p.id not in have]
 
     def shortlist_ids(self, gw: int) -> list[int]:
         bootstrap = self._cached_bootstrap(gw)

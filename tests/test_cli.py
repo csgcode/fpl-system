@@ -235,6 +235,35 @@ def test_summaries_shortlist_reads_cached_bootstrap(tmp_path, capsys):
     assert gateway.calls == [f"{BASE_URL}/element-summary/1/"]
 
 
+def test_summaries_missing_past_fetches_only_ids_without_history_past(tmp_path, capsys):
+    """history_past comes from any kept summary of any gameweek; an archived
+    copy does not count, since the store never reads .archive/."""
+    elements = [player_payload(id=i) for i in (1, 2, 3, 4)]
+    store = SnapshotStore(tmp_path)
+    store.save(2, "bootstrap", bootstrap_payload(elements=elements), "seed://test")
+    store.save(1, "players/summary-1", element_summary_payload(), "seed://test")
+    store.save(2, "players/summary-2", element_summary_payload(), "seed://test")
+    store.save(1, "players/summary-3", element_summary_payload(), "seed://test")
+    store.save(1, "players/summary-3", element_summary_payload(), "seed://test")
+    store.path(1, "players/summary-3").unlink()
+    assert store.archive_path(1, "players/summary-3") is not None
+    gateway = FakeGateway({f"{BASE_URL}/element-summary/{i}/": element_summary_payload()
+                           for i in (3, 4)})
+
+    assert run(["summaries", "--gw", "2", "--missing-past"], tmp_path, gateway) == 0
+
+    assert sorted(gateway.calls) == [f"{BASE_URL}/element-summary/{i}/" for i in (3, 4)]
+    assert "2 summaries under" in capsys.readouterr().out
+    assert run(["summaries", "--gw", "2", "--missing-past"], tmp_path, gateway) == 0
+    assert len(gateway.calls) == 2
+    assert "0 summaries under" in capsys.readouterr().out
+
+
+def test_summaries_missing_past_needs_the_cached_bootstrap(tmp_path, capsys):
+    assert run(["summaries", "--gw", "2", "--missing-past"], tmp_path, FakeGateway({})) == 1
+    assert "bootstrap --gw 2" in capsys.readouterr().err
+
+
 def test_entry_prints_bank_and_value(tmp_path, capsys):
     gateway = FakeGateway(
         {
@@ -713,7 +742,8 @@ def test_players_minutes_appends_this_seasons_minutes_per_round(tmp_path, capsys
         ]),
         "seed://test",
     )
-    assert run(["players", "--gw", "1", "--position", "MID", "--minutes", "--format", "csv"],
+    assert run(["players", "--gw", "1", "--position", "MID", "--minutes", "--format", "csv",
+                "--history-from", "summaries"],
                tmp_path, FakeGateway({})) == 0
     rows = list(csv.reader(io.StringIO(capsys.readouterr().out)))
     assert rows[0][-1] == "minutes_by_round"
@@ -737,7 +767,9 @@ def seed_minutes(tmp_path, gw, history):
 
 
 def players_csv(tmp_path, capsys, *argv):
-    assert run(["players", *argv], tmp_path, FakeGateway({})) == 0
+    """Summary worlds: `--minutes` reads the summaries."""
+    assert run(["players", *argv, "--history-from", "summaries"], tmp_path,
+               FakeGateway({})) == 0
     return list(csv.reader(io.StringIO(capsys.readouterr().out)))
 
 
@@ -813,7 +845,8 @@ def test_players_minutes_json_maps_round_to_minutes(tmp_path, capsys):
         match_record_payload(round=1, minutes=90, fixture=1),
         match_record_payload(round=3, minutes=5, fixture=3),
     ])
-    assert run(["players", "--gw", "4", "--position", "MID", "--minutes", "--format", "json"],
+    assert run(["players", "--gw", "4", "--position", "MID", "--minutes", "--format", "json",
+                "--history-from", "summaries"],
                tmp_path, FakeGateway({})) == 0
     records = {r["name"]: r for r in json.loads(capsys.readouterr().out)}
     assert records["Alpha"]["minutes_by_round"] == {"1": 90, "2": "-", "3": 5}
@@ -1325,7 +1358,7 @@ def test_players_without_minutes_never_opens_the_store(tmp_path, capsys):
 @pytest.mark.parametrize("command", [
     ["ep", "--position", "MID"], ["objective"], ["players", "--minutes"], ["fixtures-rate"],
 ])
-@pytest.mark.parametrize("source", [[], ["--history-from", "summaries"]])
+@pytest.mark.parametrize("source", [["--history-from", "summaries"]])
 def test_store_without_history_from_store_refuses(tmp_path, capsys, command, source):
     assert main(["--data-root", str(tmp_path / "raw"), command[0], "--gw", "3",
                  *command[1:], *source, "--store", str(tmp_path / "s.sqlite")]) == 1

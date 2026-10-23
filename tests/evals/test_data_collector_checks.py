@@ -129,6 +129,47 @@ def replace_call(calls, index, call):
     return [*calls[:index], call, *calls[index + 1:]]
 
 
+# A run under the store-era spec: no shortlist refetch, the round's final
+# event-live, then `store sync`, whose coverage line feeds meta.md.
+MISSING_PAST = "summaries --gw N --missing-past"
+STORE_SPEC = NEW_SPEC + "\n" + MISSING_PAST
+
+STORE_META = (META
+              .replace("- summaries --shortlist → (421 fetched, 13 cached)\n",
+                       "- event-live --round 5 → (fetched)\n"
+                       "- summaries --missing-past → (3 fetched, 0 cached)\n"
+                       "- store sync → local\n")
+              .replace("- prior-season → local\n", "")
+              .replace("Coverage: players 348, no_pl_history 86, missing_summaries 0",
+                       "Coverage: players 633, no_pl_history 118, missing_past 0"))
+STORE_RETURN = RETURN.replace("Coverage: players 348, no_pl_history 86, missing_summaries 0",
+                              "Coverage: players 633, no_pl_history 118, missing_past 0")
+STORE_SYNC_OUT = (
+    "store data/store/season-2026-27.sqlite: 12 files ingested\nrounds 1-5\n"
+    "player_rounds 3200\nhistory_past players 515\nunresolved sides 0\ndgw splits 0\n"
+    "reconciliation: OK\ncoverage gw6: players 633, no_pl_history 118, missing_past 0")
+
+
+def store_calls(meta=STORE_META):
+    calls = good_calls(meta)
+    return [
+        calls[0],
+        fpl("event-live --gw 6 --round 5",
+            "data/raw/gw6/event-live-e5.json (650 players) (fetched)"),
+        calls[1],
+        fpl("summaries --gw 6 --missing-past",
+            "3 summaries under data/raw/gw6/players (3 fetched, 0 cached)"),
+        fpl("store sync --gw 6", STORE_SYNC_OUT),
+        *calls[3:7],
+        *calls[8:],
+    ]
+
+
+def store_run(calls=None, *, meta=STORE_META, **kwargs):
+    return make_run(store_calls(meta) if calls is None else calls, meta=meta,
+                    final=STORE_RETURN, instructions=STORE_SPEC, **kwargs)
+
+
 # --- C2 raw writes -----------------------------------------------------------
 
 
@@ -189,6 +230,55 @@ def test_c3_passes_when_prior_season_follows_a_summaries_that_failed():
                                               "Exit code 1\nerror: x", True,
                                               timeout=600000))
     assert check_c3(make_run(calls)).status is Status.PASS
+
+
+def test_c3_store_spec_passes_for_the_documented_order_without_a_long_timeout():
+    assert check_c3(store_run()).status is Status.PASS
+
+
+def test_c3_store_spec_fails_on_a_shortlist_refetch():
+    calls = replace_call(store_calls(), 3, fpl("summaries --gw 6 --shortlist", "ok",
+                                               timeout=600000))
+    result = check_c3(store_run(calls))
+    assert result.status is Status.FAIL
+    assert "--shortlist" in result.evidence
+
+
+def test_c3_store_spec_fails_when_no_store_sync_follows_the_summaries():
+    calls = store_calls()
+    calls.insert(3, calls.pop(4))
+    result = check_c3(store_run(calls))
+    assert result.status is Status.FAIL
+    assert "store sync" in result.evidence
+    without = [c for c in store_calls() if "store sync" not in c.input.get("command", "")]
+    assert check_c3(store_run(without)).status is Status.FAIL
+
+
+def test_c3_store_spec_fails_without_an_event_live_for_the_last_round_before_store_sync():
+    calls = [c for c in store_calls() if "event-live" not in c.input.get("command", "")]
+    result = check_c3(store_run(calls))
+    assert result.status is Status.FAIL
+    assert "event-live --gw 6 --round 5" in result.evidence
+
+
+def test_c3_store_spec_fails_when_event_live_comes_after_store_sync_or_names_another_round():
+    calls = store_calls()
+    calls.insert(4, calls.pop(1))
+    assert check_c3(store_run(calls)).status is Status.FAIL
+    wrong = replace_call(store_calls(), 1, fpl("event-live --gw 6 --round 4", "ok"))
+    assert check_c3(store_run(wrong)).status is Status.FAIL
+
+
+def test_c3_store_spec_passes_when_the_event_live_before_store_sync_was_refused():
+    refused = fpl("event-live --gw 6 --round 5",
+                  "Exit code 1\nerror: round 5 is not data-checked yet", True)
+    calls = replace_call(store_calls(), 1, refused)
+    assert check_c3(store_run(calls)).status is Status.PASS
+
+
+def test_c3_store_spec_needs_no_event_live_at_gw1():
+    calls = [c for c in store_calls() if "event-live" not in c.input.get("command", "")]
+    assert check_c3(store_run(calls, gw=1)).status is Status.PASS
 
 
 # --- C4 forbidden --------------------------------------------------------------
@@ -293,6 +383,38 @@ def test_c6_fails_when_a_command_run_has_no_line_or_a_line_was_not_run():
 def test_c6_fails_on_coverage_that_differs_from_prior_season():
     meta = META.replace("no_pl_history 86", "no_pl_history 85")
     assert check_c6(make_run(meta=meta)).status is Status.FAIL
+
+
+def test_c6_store_spec_passes_when_coverage_copies_store_sync():
+    assert check_c6(store_run()).status is Status.PASS
+
+
+def test_c6_store_spec_fails_on_coverage_that_differs_from_store_sync():
+    meta = STORE_META.replace("no_pl_history 118", "no_pl_history 117")
+    result = check_c6(store_run(meta=meta))
+    assert result.status is Status.FAIL
+    assert "store sync" in result.evidence
+
+
+def test_c6_store_spec_needs_an_event_live_line_when_it_ran():
+    meta = STORE_META.replace("- event-live --round 5 → (fetched)\n", "")
+    result = check_c6(store_run(meta=meta))
+    assert result.status is Status.FAIL
+    assert "event-live" in result.evidence
+
+
+def test_c6_store_spec_checks_coverage_when_store_sync_exits_3_after_printing_it():
+    mismatch = ("Exit code 3\n" + STORE_SYNC_OUT.replace("reconciliation: OK",
+                                                          "reconciliation: 1 mismatch"))
+    calls = [fpl("store sync --gw 6", mismatch, True) if "store sync" in
+             c.input.get("command", "") else c for c in store_calls()]
+    assert check_c6(store_run(calls)).status is Status.PASS
+    meta = STORE_META.replace("no_pl_history 118", "no_pl_history 117")
+    calls = [fpl("store sync --gw 6", mismatch, True) if "store sync" in
+             c.input.get("command", "") else c for c in store_calls(meta)]
+    result = check_c6(store_run(calls, meta=meta))
+    assert result.status is Status.FAIL
+    assert "store sync" in result.evidence
 
 
 def test_c6_is_na_without_meta_or_with_an_edited_meta():
@@ -640,6 +762,25 @@ def test_c15_fails_on_a_missing_summary_unless_its_error_was_injected(ws):
     assert check_c15(make_run(workspace=ws)).status is Status.FAIL
     injected = replace(ws, error_keys=("element-summary/2",))
     assert check_c15(make_run(workspace=injected)).status is Status.PASS
+
+
+def test_c15_store_spec_passes_when_every_bootstrap_id_has_a_summary_in_some_gw(ws):
+    earlier = ws.root / "data/raw/gw5/players"
+    earlier.mkdir(parents=True)
+    (ws.root / "data/raw/gw6/players/summary-2.json").rename(earlier / "summary-2.json")
+    assert check_c15(store_run(workspace=ws)).status is Status.PASS
+
+
+def test_c15_store_spec_fails_on_an_id_with_no_summary_unless_its_error_was_injected(ws):
+    (ws.root / "data/raw/gw6/players/summary-2.json").unlink()
+    archived = ws.root / "data/raw/gw5/players/.archive"
+    archived.mkdir(parents=True)
+    (archived / "summary-2.json").write_text("{}")
+    result = check_c15(store_run(workspace=ws))
+    assert result.status is Status.FAIL
+    assert "[2]" in result.evidence
+    injected = replace(ws, error_keys=("element-summary/2",))
+    assert check_c15(store_run(workspace=injected)).status is Status.PASS
 
 
 def test_every_check_is_registered_once():

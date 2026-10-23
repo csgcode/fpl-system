@@ -28,6 +28,7 @@ _LINE_SUBCOMMANDS = (
     (re.compile(r"bootstrap\.json \("), "bootstrap"),
     (re.compile(r"fixtures\.json \("), "fixtures"),
     (re.compile(r"summaries under "), "summaries"),
+    (re.compile(r"event-live-e\d+\.json \("), "event-live"),
     (re.compile(r"^entry \d+ event \d+,"), "picks"),
     (re.compile(r"^entry \d+ history"), "entry-history"),
     (re.compile(r"^entry \d+ \("), "entry"),
@@ -42,6 +43,8 @@ _PLAYERS = re.compile(r"^players: (\d+), teams", re.M)
 _STATUS = re.compile(
     r"^current GW (\d+) status: finished=(true|false) data_checked=(true|false)", re.M)
 _PRIOR = re.compile(r"players: (\d+), no_pl_history: (\d+), missing_summaries: (\d+)")
+_STORE_COVERAGE = re.compile(
+    r"^coverage gw\d+: players (\d+), no_pl_history (\d+), missing_past (\d+)$", re.M)
 
 
 def note_from_text(text: str) -> CacheNote | None:
@@ -85,6 +88,12 @@ def bootstrap_facts(text: str) -> BootstrapFacts:
             if status else None
         ),
     )
+
+
+def store_coverage_counts(text: str) -> tuple[int, int, int] | None:
+    """The `coverage gwN:` line `fpl store sync` prints last."""
+    match = _STORE_COVERAGE.search(text)
+    return tuple(int(g) for g in match.groups()) if match else None  # type: ignore[return-value]
 
 
 def prior_season_counts(text: str) -> tuple[int, int, int] | None:

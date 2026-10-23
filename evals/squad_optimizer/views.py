@@ -160,7 +160,7 @@ def _run_ep(tree: Path, gw: int, position: str, analysis_root: Path, out: Path) 
     completed = subprocess.run(
         [sys.executable, "-m", "fpl", "ep", "--gw", str(gw), "--position", position,
          "--analysis-root", str(analysis_root), "--out", str(out), "--format", "json",
-         "--limit", "0"],
+         "--limit", "0", "--history-from", "summaries"],
         cwd=tree, capture_output=True, text=True, check=False)
     if completed.returncode != 0:
         raise SourceError(f"fpl ep {position} at {tree} failed: {completed.stderr.strip()[-400:]}")

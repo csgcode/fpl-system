@@ -56,7 +56,7 @@ def seed(root, *, twin=False):
                   for pid, p in layout.items() if p == pos]
         (gw_dir / f"inputs-{name}.json").write_text(json.dumps(
             {"schema_version": 1, "gw": GW, "position": name, "players": inputs}))
-        assert main(["--data-root", str(root / "data" / "raw"), "ep", "--gw", str(GW),
+        assert main(["--data-root", str(root / "data" / "raw"), "ep", "--gw", str(GW), "--history-from", "summaries",
                      "--position", name, "--analysis-root", str(root / "data" / "analysis"),
                      "--decisions-root", str(root / "data" / "decisions")]) == 0
     final = root / "data" / "decisions" / f"gw{GW - 1}" / "final.md"
@@ -112,7 +112,7 @@ def tied(tmp_path, monkeypatch, capsys):
 
 
 def run(*extra):
-    return main(["objective", "--gw", str(GW), *extra])
+    return main(["objective", "--gw", str(GW), "--history-from", "summaries", *extra])
 
 
 def lines_of(out: str) -> dict[str, str]:
@@ -185,7 +185,8 @@ def test_never_builds_a_gateway(repo, capsys):
     def refuse(store):
         raise AssertionError("objective must not build a data service")
 
-    assert main(["objective", "--gw", str(GW)], service_factory=refuse) == 0
+    assert main(["objective", "--gw", str(GW), "--history-from", "summaries"],
+                service_factory=refuse) == 0
 
 
 def test_singles_table_carries_p4_and_ret5_columns(tied, capsys, monkeypatch):

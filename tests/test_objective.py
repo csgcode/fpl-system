@@ -559,11 +559,11 @@ def test_load_views_prior_equals_the_ep_cli_at_prior_weight_one(tmp_path, capsys
 
     store, analysis = _seed(tmp_path)
     gw_dir = analysis / f"gw{GW}"
-    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW), "--history-from", "summaries",
                  "--position", "MID", "--analysis-root", str(analysis),
                  "--decisions-root", str(tmp_path / "decisions")]) == 0
     prior_out = tmp_path / "prior-MID.json"
-    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW), "--history-from", "summaries",
                  "--position", "MID", "--analysis-root", str(analysis),
                  "--decisions-root", str(tmp_path / "decisions"),
                  "--prior-weight", "1.0", "--out", str(prior_out)]) == 0
@@ -584,7 +584,7 @@ def test_load_views_allows_unjudged_players_the_blend_view_lacks(tmp_path):
     from fpl.__main__ import main
 
     store, analysis = _seed(tmp_path, extra_player=True)
-    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW), "--history-from", "summaries",
                  "--position", "MID", "--analysis-root", str(analysis),
                  "--decisions-root", str(tmp_path / "decisions"),
                  "--allow-missing-ids", "3"]) == 0
@@ -597,7 +597,8 @@ def _write_mid_players(tmp_path, analysis):
 
     assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
                  "--position", "MID", "--analysis-root", str(analysis),
-                 "--decisions-root", str(tmp_path / "decisions")]) == 0
+                 "--decisions-root", str(tmp_path / "decisions"),
+                 "--history-from", "summaries"]) == 0
     return analysis / f"gw{GW}" / "players-MID.json"
 
 
@@ -661,16 +662,16 @@ def test_load_views_reads_the_prior_reading_through_the_history_it_is_given(tmp_
     from fpl.season_store import History
 
     store, analysis = _seed(tmp_path)
-    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW), "--history-from", "summaries",
                  "--position", "MID", "--analysis-root", str(analysis),
                  "--decisions-root", str(tmp_path / "decisions")]) == 0
     asked: list[tuple[int, tuple[int, ...]]] = []
 
     class Recording(History):
-        def summaries(self, gw, ids):
+        def summaries(self, gw, ids, *, pinned=()):
             ids = tuple(ids)
             asked.append((gw, ids))
-            return super().summaries(gw, ids)
+            return super().summaries(gw, ids, pinned=pinned)
 
     default = load_views(store, analysis, GW)
     recorded = load_views(store, analysis, GW, Recording("summaries", tmp_path / "raw"))

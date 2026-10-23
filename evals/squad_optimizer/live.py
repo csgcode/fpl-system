@@ -249,7 +249,7 @@ def regenerate_players(files: dict[str, bytes], gw: int, allow_missing: tuple[in
             target = root / f"data/analysis/gw{gw}/players-{position}.json"
             argv = ["--data-root", str(root / "data/raw"), "ep", "--gw", str(gw),
                     "--position", position, "--analysis-root", str(root / "data/analysis"),
-                    "--out", str(target)]
+                    "--out", str(target), "--history-from", "summaries"]
             if allow_missing:
                 argv += ["--allow-missing-ids", ",".join(map(str, allow_missing))]
             with contextlib.redirect_stdout(io.StringIO()), \

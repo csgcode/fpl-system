@@ -720,7 +720,10 @@ def _details(run: RatingRun) -> list[str]:
 
 
 def load_inputs(store: SnapshotStore, gw: int, *, priors_path: Path,
-                analysis_root: Path, history: History | None = None) -> RatingInputs:
+                analysis_root: Path, history: History | None = None,
+                pinned: Iterable[int] = ()) -> RatingInputs:
+    """From the store, the summaries are the shortlist plus `pinned`; they
+    only order the stored rows and give the summaries count."""
     priors = load_priors(priors_path)
     bootstrap = load_cached_bootstrap(store, gw)
     try:
@@ -735,7 +738,7 @@ def load_inputs(store: SnapshotStore, gw: int, *, priors_path: Path,
     previous = load_fixtures(previous_path) if gw > 1 and previous_path.is_file() else None
     if history is not None and history.source == "store":
         with history.open() as reader:
-            summaries = reader.summaries(gw, ids, coverage="production")
+            summaries = reader.summaries(gw, ids, coverage="shortlist", pinned=pinned)
             matches = reader.matches(gw)
         return RatingInputs(gw=gw, bootstrap=bootstrap, fixtures=fixtures,
                             summaries=summaries, live={}, priors=priors, previous=previous,

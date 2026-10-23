@@ -216,13 +216,24 @@ def test_conflicting_options_exit_1(raw, db, capsys, args):
     assert "error:" in capsys.readouterr().err
 
 
-def test_refuses_a_store_behind_the_raw(raw, db, capsys):
+def test_syncs_a_store_behind_the_raw_and_says_so(raw, db, capsys):
+    synced(raw, db, midfield_world(), range(1, 4))
+    midfield_world().write(raw, range(4, 5))
+
+    assert run(raw, db, "--format", "csv", "--fields", "id,round") == 0
+
+    captured = capsys.readouterr()
+    assert f"season store {db} synced (gw4/" in captured.err
+    assert "3" in {r["round"] for r in csv.DictReader(io.StringIO(captured.out))}
+
+
+def test_refuses_when_the_sync_fails_naming_the_file(raw, db, capsys):
     synced(raw, db, midfield_world())
     (raw / "gw4" / "players" / "summary-1.json").write_text("{}", encoding="utf-8")
 
     assert run(raw, db, "--format", "csv") == 1
 
-    assert "store sync" in capsys.readouterr().err
+    assert "gw4/players/summary-1.json" in capsys.readouterr().err
 
 
 def test_history_writes_nothing(raw, db):

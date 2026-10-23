@@ -24,7 +24,13 @@ from pathlib import Path
 from typing import Any
 
 from fpl.models import PastSeason, Position
-from fpl.season_store import DEFAULT_STORE_PATH, PlayerMatch, PlayerState, open_ro
+from fpl.season_store import (
+    STORE_FILENAME,
+    PlayerMatch,
+    PlayerState,
+    default_store_path,
+    open_synced,
+)
 
 STATS: dict[str, str] = {
     "minutes": "minutes",
@@ -80,15 +86,15 @@ def register(
     p.add_argument("--format", choices=("table", "csv", "json"), default="table")
     p.add_argument("--fields", help="comma-separated columns to print, in order "
                    "(csv/json); default: all")
-    p.add_argument("--store", type=Path, default=DEFAULT_STORE_PATH,
-                   help=f"store file (default: {DEFAULT_STORE_PATH})")
+    p.add_argument("--store", type=Path, default=None,
+                   help=f"store file (default: store/{STORE_FILENAME} beside --data-root)")
 
 
 def run(raw_root: Path, args: argparse.Namespace) -> int:
     _check_options(args)
     valid = GROUP_FIELDS if args.group_by else PAST_FIELDS if args.past else MATCH_FIELDS
     fields = _fields(args.fields, args.format, valid)
-    with open_ro(args.store, raw_root) as reader:
+    with open_synced(args.store or default_store_path(raw_root), raw_root) as reader:
         bootstrap = reader.player_state(args.gw)
         unknown = sorted(set(args.ids or ()) - bootstrap.keys())
         if unknown:
