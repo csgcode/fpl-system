@@ -176,6 +176,7 @@ def score_round(data: RoundData, config: ModelConfig = DEFAULT_CONFIG, *,
         result = build_predictions(
             data.bootstrap, data.summaries, data.fixtures, inputs, gw=data.gw,
             allow_missing=_uncovered(data.bootstrap, position, inputs), config=config,
+            history_from="summaries",
         )
         warnings += result.warnings
         for doc in result.to_documents():

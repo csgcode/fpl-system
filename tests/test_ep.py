@@ -502,8 +502,18 @@ def test_prior_comes_from_history_past_shrunk_toward_league_mean():
     [warning] = [w for w in result.warnings if "fallback" in w]
     assert warning == (
         "league mean for MID uses the v1 fallback table — only 0 players at this "
-        "position have at least 900 minutes of past-season history (need 8); with "
-        "--history-from summaries, fetch more with summaries --shortlist")
+        "position have at least 900 minutes of past-season history (need 8); "
+        f"fetch more with summaries --gw {GW} --missing-past "
+        "(the next read syncs the store)")
+
+
+def test_league_fallback_warning_from_summaries_names_the_shortlist_fetch():
+    result = build_predictions(
+        make_bootstrap([player()]), {1: summary()}, fixtures_doc(),
+        inputs_doc("MID", [judged()]), gw=GW, history_from="summaries",
+    )
+    [warning] = [w for w in result.warnings if "fallback" in w]
+    assert warning.endswith(f"(need 8); fetch more with summaries --gw {GW} --shortlist")
 
 
 def test_current_season_rows_blend_in_by_minutes():

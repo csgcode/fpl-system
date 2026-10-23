@@ -42,6 +42,7 @@ from fpl.models import (
     PlayerStatus,
     Position,
 )
+from fpl.season_store import DEFAULT_HISTORY_SOURCE, HistorySource
 from fpl.state import MAX_GW, MIN_GW
 
 SCHEMA_VERSION = 1
@@ -911,6 +912,7 @@ def build_predictions(
     gw: int,
     allow_missing: frozenset[int] = frozenset(),
     config: ModelConfig = DEFAULT_CONFIG,
+    history_from: HistorySource = DEFAULT_HISTORY_SOURCE,
 ) -> EpResult:
     if inputs.gw != gw:
         raise ValueError(f"inputs document is for gw{inputs.gw}, not gw{gw}")
@@ -953,12 +955,13 @@ def build_predictions(
     not_scored = _check_coverage(position, position_players, inputs, allow_missing, warnings)
     league, league_source, league_pool = _league_mean(position, position_players, summaries)
     if league_source == "fallback":
+        fetch = (f"summaries --gw {gw} --shortlist" if history_from == "summaries"
+                 else f"summaries --gw {gw} --missing-past (the next read syncs the store)")
         warnings.append(
             f"league mean for {position.name} uses the v1 fallback table — only "
             f"{league_pool} players at this position have at least "
             f"{LEAGUE_POOL_MIN_MINUTES} minutes of past-season history "
-            f"(need {LEAGUE_POOL_MIN}); with "
-            f"--history-from summaries, fetch more with summaries --shortlist"
+            f"(need {LEAGUE_POOL_MIN}); fetch more with {fetch}"
         )
     base_mean = fixtures.base_mean()
     missing_summaries: list[int] = []

@@ -693,8 +693,9 @@ def prior_documents(store: SnapshotStore, analysis_root: Path, gw: int,
         wanted = [p.id for p in members] + sorted(judged)
         summaries = (history.summaries(gw, wanted, pinned=judged) if history is not None
                      else load_cached_summaries(store, gw, wanted))
+        source = history.source if history is not None else "summaries"
         result = build_predictions(bootstrap, summaries, fixtures, inputs, gw=gw,
-                                   allow_missing=unjudged)
+                                   allow_missing=unjudged, history_from=source)
         documents += result.to_documents()
     return documents
 

@@ -8,10 +8,15 @@ table, so a term can never be implemented differently for DEF than for MID.
 ```
 inputs-{pos}.json  (analyst judgment)  ─┐
 fixtures.json      (fixture analyst)   ─┼─►  fpl ep  ─►  players-{pos}.json
-cached bootstrap + element summaries   ─┘              (schema calibrate reads)
+cached bootstrap + season store        ─┘              (schema calibrate reads)
 ```
 
-Local-only: cached snapshots, no network, no credentials. Output is derived —
+Each player's match history comes from the season store by default: a local
+SQLite file built from data/raw (§4). `--history-from summaries` reads gw N's
+cached element summaries instead.
+
+Local-only: cached snapshots and the season store, no network, no
+credentials. Output is derived —
 regenerating it from the same inputs is safe until the gameweek is decided
 (§4).
 
@@ -111,9 +116,13 @@ the league mean rather than from 90.
    <!-- example: prior_weight minutes=180 -->
    a player with 180 current minutes gets `w_prior = 600 / 780 = 0.77`.
    The floor is untested until players pass about 700 current minutes.
-4. **League mean** — pooled from cached summaries of the position with ≥ 900
-   prior minutes (≥ 8 players); otherwise the v1 fallback table below, with a
-   warning. `bonus_per_start` is the exception: see Bonus below.
+4. **League mean** — pooled from the past seasons of the position's players
+   whose history `ep` reads, counting those with ≥ 900 prior minutes (≥ 8
+   players needed). From the season store those players are the ones
+   shortlisted in the gw N bootstrap plus the inputs ids; with
+   `--history-from summaries` they are the players with a cached summary in
+   gw N. Otherwise the v1 fallback table below, with a warning that names the
+   command to fetch more summaries. `bonus_per_start` is the exception: see Bonus below.
 
 | fallback per-90 | GKP | DEF | MID | FWD |
 |---|---|---|---|---|
@@ -197,8 +206,8 @@ bonus_per_start = (prior_bonus + current_bonus + k × league_bonus)
   recorded starts), so the bonus such a row earned still has a denominator.
 - `league_bonus` is this season's total bonus divided by total starts over
   every bootstrap player of the position. It reads the bootstrap, not the
-  cached summaries, so it covers the whole position, not just the players
-  whose summaries happen to be cached. Before anyone has started (total
+  players' match histories, so it covers the whole position, not just the
+  players whose history `ep` reads. Before anyone has started (total
   starts 0) it is the fallback table value.
 - `prior_weight` (computed, overridden, or forced by `--prior-weight`) does
   not touch bonus; an analyst who wants a different bonus rate overrides
@@ -320,8 +329,16 @@ Defaults: `data/analysis/gw3/inputs-MID.json` and `fixtures.json` in, `players-M
 out; `--inputs`, `--fixtures`, `--out` override, `--format json` prints the
 document. The output starts with a `model <digest>` line. The table shows the
 top rows with their term breakdown and the `p4`, `ret5` and `share` columns,
-the coverage line, and the ids that lack a cached element summary together
-with the `summaries --ids` command that fetches them.
+the coverage line, and the ids with no history `ep` can read, together with
+the command that fetches it.
+
+Each player's history comes from the season store by default (`--store`
+names another file). A store that is behind data/raw is synced first. For an
+id with no history, the printed command is `summaries --gw N --missing-past`,
+which fetches every player who has no summary in any gameweek; the next read
+syncs the new summaries into the store. With `--history-from summaries`, `ep`
+reads gw N's cached summaries instead, and the printed command is
+`summaries --gw N --ids <ids>`.
 
 Once `data/decisions/gw{N}/final.md` exists (`--decisions-root` moves it), the
 gameweek is decided and its players files are the decision record: `ep`
@@ -372,7 +389,10 @@ network and no credentials.
 Inputs:
 - `data/raw/gw{N}/bootstrap.json` (club short names, each player's club) and
   `fixtures.json`.
-- Every cached player summary in `data/raw/gw{N}/players/`.
+- This season's match rows. By default they come from the season store,
+  each row on the side of the club the player played for in that match. With
+  `--history-from summaries`, they come from every cached player summary in
+  `data/raw/gw{N}/players/` (steps 2 and 3).
 - `event-live-e{r}.json` from `data/raw/gw{r+1}/` for every round r before N.
   The retro's `calibrate` writes it; without it the command refuses.
 - `club-priors.json`: one ATT and DEFW per club, fixed at GW1, never edited.

@@ -1121,7 +1121,7 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     summaries = history.summaries(gw, wanted, pinned=judged)
     result = build_predictions(
         bootstrap, summaries, fixtures, inputs, gw=gw,
-        allow_missing=frozenset(args.allow_missing_ids),
+        allow_missing=frozenset(args.allow_missing_ids), history_from=history.source,
     )
     documents = result.to_documents()
     club_xg, skipped = _club_xg(store, gw, args.analysis_root, history)
@@ -1203,10 +1203,12 @@ def run_ep_check(
         )
     judged = [entry.id for entry in inputs.players]
     wanted = [p.id for p in bootstrap.elements if p.element_type == position] + judged
+    history = History.from_args(args.data_root, args)
     result = build_predictions(
-        bootstrap, History.from_args(args.data_root, args).summaries(gw, wanted, pinned=judged),
+        bootstrap, history.summaries(gw, wanted, pinned=judged),
         load_fixtures(fixtures_path),
         inputs, gw=gw, allow_missing=frozenset(args.allow_missing_ids),
+        history_from=history.source,
     )
     print(
         f"{inputs_path} OK: {len(result.rows)} players scored, "
