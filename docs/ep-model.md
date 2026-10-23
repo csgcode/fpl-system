@@ -619,7 +619,10 @@ The baseline is today's code run on the recorded inputs. It is not the
 calibration ledger, which scores what was predicted at the time. The
 per-round table prints the gap as `code drift`: the mean difference per
 player between the two predictions. In `baseline.json` it is about 0.05
-points for rounds 3–6 and 0 for round 7.
+points for rounds 3–6 and 0.0005 for round 7. Round 7's small gap comes from
+the season store: it gives 13 players the analysts judged a history that
+the round-7 summaries did not hold, so they are no longer scored on the
+league mean.
 
 ### The gate
 
@@ -690,14 +693,14 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | baseline | model | 3-7 | — | — | — | — | — | — | — | reference: n 2127, bias +0.183, MAE 1.643 |
 | prior-weight | model | 3-7 | blend_k=600,300,450,900,1200 | — | −0.0043 | [−0.008, −0.001] | +0.183→+0.192 | 5/5 | FAIL | effect: ΔMAE −0.0043 > −0.01 |
-| drop-promoted | policy | 3-7 | — | — | +0.0021 | [−0.001, +0.005] | +0.183→+0.174 | 1/5 | FAIL · slice promoted FAIL: n 319, ΔMAE +0.0141 [CI −0.003, +0.031], bias +0.137→+0.077 · hypothesis not supported | ci: upper +0.005 ≥ 0; effect: ΔMAE +0.0021 > −0.01; rounds: won 1 of 5, need 4 |
-| drop-no-history | policy | 3-7 | — | — | +0.0017 | [−0.001, +0.004] | +0.183→+0.173 | 1/5 | FAIL · slice no_history FAIL: n 470, ΔMAE +0.0078 [CI −0.004, +0.019], bias +0.338→+0.291 · hypothesis not supported | ci: upper +0.004 ≥ 0; effect: ΔMAE +0.0017 > −0.01; rounds: won 1 of 5, need 4 |
-| no-history-k | model | 3-7 | blend_k_no_history=none,150,300 | — | +0.0002 | [−0.002, +0.003] | +0.183→+0.183 | 2/5 | FAIL · slice no_history FAIL: n 470, ΔMAE +0.0010 [CI −0.010, +0.012], bias +0.338→+0.336 · hypothesis not supported | ci: upper +0.003 ≥ 0; effect: ΔMAE +0.0002 > −0.01; rounds: won 2 of 5, need 4 |
+| drop-promoted | policy | 3-7 | — | — | +0.0021 | [−0.001, +0.005] | +0.183→+0.174 | 1/5 | FAIL · slice promoted FAIL: n 319, ΔMAE +0.0140 [CI −0.003, +0.031], bias +0.137→+0.077 · hypothesis not supported | ci: upper +0.005 ≥ 0; effect: ΔMAE +0.0021 > −0.01; rounds: won 1 of 5, need 4 |
+| drop-no-history | policy | 3-7 | — | — | +0.0017 | [−0.001, +0.004] | +0.183→+0.173 | 1/5 | FAIL · slice no_history FAIL: n 462, ΔMAE +0.0080 [CI −0.004, +0.020], bias +0.345→+0.298 · hypothesis not supported | ci: upper +0.004 ≥ 0; effect: ΔMAE +0.0017 > −0.01; rounds: won 1 of 5, need 4 |
+| no-history-k | model | 3-7 | blend_k_no_history=none,150,300 | — | +0.0002 | [−0.002, +0.003] | +0.183→+0.183 | 2/5 | FAIL · slice no_history FAIL: n 462, ΔMAE +0.0011 [CI −0.010, +0.012], bias +0.345→+0.343 · hypothesis not supported | ci: upper +0.003 ≥ 0; effect: ΔMAE +0.0002 > −0.01; rounds: won 2 of 5, need 4 |
 | recency | model | 3-7 | half_life_matches=none,2,3,4,6; opponent_adjust=false,true | — | +0.0007 | [−0.001, +0.002] | +0.183→+0.185 | 3/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE +0.0007 > −0.01; rounds: won 3 of 5, need 4 |
 | saves-adjust | model | 3-7 | — | — | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
 | effective-minutes | model | 3-7 | — | — | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
 | finishing | model | 3-7 | finishing_k=none,20,10,5,2,1 | — | −0.0026 | [−0.008, +0.002] | +0.183→+0.192 | 4/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE −0.0026 > −0.01 |
-| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.0202), DEF +0.095 (starters −0.0001), MID +0.094 (starters −0.0027), FWD +0.156 (starters +0.0147) |
+| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.0201), DEF +0.095 (starters −0.0001), MID +0.094 (starters −0.0027), FWD +0.156 (starters +0.0147) |
 | persistence | persistence | 1-7 | — | — | — | — | — | — | not significant | window 3: n 711, slope +0.034 [−0.095, +0.162], r +0.020; window 1: n 1098, slope +0.007 [−0.046, +0.060], r +0.007; window 2: n 805, slope +0.018 [−0.083, +0.119], r +0.013 |
 | combined | combined | 3-7 | — | ships baseline (no passing entries) | — | — | — | — | — | — |
 <!-- gates:end -->

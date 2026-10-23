@@ -1,5 +1,5 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "name": "no-history-k",
  "kind": "model",
  "argv": [
@@ -22,26 +22,32 @@
   "decisions_root": "/Users/gokul/Dev/Personal/fpl-system/data/decisions",
   "retro_root": "/Users/gokul/Dev/Personal/fpl-system/data/retro",
   "drift_check": true,
+  "history_from": "store",
   "actuals": {
    "3": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw4/event-live-e3.json",
-    "sha256": "5acd953aaeca4c7241f7214e976f519dfc8411e99b56718dcf19b1394d23b500"
+    "sha256": "5acd953aaeca4c7241f7214e976f519dfc8411e99b56718dcf19b1394d23b500",
+    "basis": "gw4/.meta/event-live-e3.json final sidecar, fetched 2026-10-16T22:06:43.074337+00:00"
    },
    "4": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw5/event-live-e4.json",
-    "sha256": "470f742cef31ae90631f01bd8ac1950e9feecea96595950a17c874628cbe5e06"
+    "sha256": "470f742cef31ae90631f01bd8ac1950e9feecea96595950a17c874628cbe5e06",
+    "basis": "gw5/.meta/event-live-e4.json final sidecar, fetched 2026-10-16T21:47:14.448223+00:00"
    },
    "5": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw6/event-live-e5.json",
-    "sha256": "f94cda1dcb0b3b080285f7f4b965b962ace30c497e7ce11142bf0b917545a989"
+    "sha256": "f94cda1dcb0b3b080285f7f4b965b962ace30c497e7ce11142bf0b917545a989",
+    "basis": "gw6/.meta/event-live-e5.json final sidecar, fetched 2026-10-16T22:06:43.484268+00:00"
    },
    "6": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw7/event-live-e6.json",
-    "sha256": "9627ce83d12334eb54f76f83d36d0d07b4ae0036e4eb5339ea11c10fcf269ef7"
+    "sha256": "9627ce83d12334eb54f76f83d36d0d07b4ae0036e4eb5339ea11c10fcf269ef7",
+    "basis": "gw7/.meta/event-live-e6.json final sidecar, fetched 2026-10-16T22:06:43.953341+00:00"
    },
    "7": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw8/event-live-e7.json",
-    "sha256": "1df5fb931980477dffa158365962b15fe942ba1122f3b9580cb78e36b44a72de"
+    "sha256": "1df5fb931980477dffa158365962b15fe942ba1122f3b9580cb78e36b44a72de",
+    "basis": "gw8/.meta/event-live-e7.json final sidecar, fetched 2026-10-23T15:27:53.207513+00:00"
    }
   }
  },
@@ -53,7 +59,7 @@
   "7": "bacd40409de5da26fc33596bb46528033096cca3"
  },
  "code": {
-  "head": "1cb9dcfdbe581764343ed8150cdee403e84ee322",
+  "head": "32c1060f46def70a4f96afd1c2a06e66bd497c24",
   "dirty": false
  },
  "baseline_config": {
@@ -105,18 +111,18 @@
    "bias": 0.183,
    "mae": 1.643
   },
-  "delta_mae": 0.0002242595204513397,
-  "se": 0.0011860635519347347,
+  "delta_mae": 0.00024353549600376098,
+  "se": 0.0011839666314132009,
   "ci": [
-   -0.0021004250413407402,
-   0.0025489440822434196
+   -0.0020770391015661124,
+   0.0025641100935736346
   ],
   "round_deltas": {
    "3": 0.003359154929577466,
    "4": 0.0,
    "5": -0.0032795180722891577,
    "6": 0.005159144893111636,
-   "7": -0.004020501138952162
+   "7": -0.003927107061503416
   },
   "round_wins": [
    2,
@@ -135,7 +141,7 @@
      "bias": 0.162,
      "mae": 1.34
     },
-    "delta_mae": -0.0008287292817679524
+    "delta_mae": -0.0008287292817679493
    },
    "DEF": {
     "n": 721,
@@ -149,7 +155,7 @@
      "bias": 0.166,
      "mae": 1.889
     },
-    "delta_mae": 7.35090152565833e-05
+    "delta_mae": 0.00013037447988903752
    },
    "MID": {
     "n": 994,
@@ -193,21 +199,21 @@
      "bias": 0.15,
      "mae": 1.453
     },
-    "delta_mae": -0.0033761755485893436
+    "delta_mae": -0.0032915360501567415
    },
    "no_history": {
-    "n": 470,
+    "n": 462,
     "baseline": {
-     "n": 470,
-     "bias": 0.338,
-     "mae": 1.385
+     "n": 462,
+     "bias": 0.345,
+     "mae": 1.405
     },
     "variant": {
-     "n": 470,
-     "bias": 0.336,
-     "mae": 1.386
+     "n": 462,
+     "bias": 0.343,
+     "mae": 1.406
     },
-    "delta_mae": 0.0010148936170212757
+    "delta_mae": 0.0011212121212121203
    }
   },
   "beats": false,
@@ -218,45 +224,45 @@
   ],
   "slice_gate": {
    "name": "no_history",
-   "n": 470,
+   "n": 462,
    "verdict": "FAIL",
    "reasons": [
     "ci: upper +0.012 ≥ 0",
-    "effect: ΔMAE +0.0010 > −0.01",
+    "effect: ΔMAE +0.0011 > −0.01",
     "rounds: won 2 of 5, need 4"
    ],
    "pooled_positions": false,
-   "delta_mae": 0.0010148936170212757,
+   "delta_mae": 0.0011212121212121203,
    "ci": [
-    -0.00954017995373722,
-    0.011569967187779771
+    -0.009600921071625702,
+    0.011843345314049942
    ],
    "round_wins": [
     2,
     5
    ],
-   "baseline_bias": 0.3380744680851064,
-   "variant_bias": 0.33590212765957445
+   "baseline_bias": 0.34516233766233767,
+   "variant_bias": 0.34291125541125544
   },
   "p4": {
    "GKP": {
     "n": 181,
-    "p4_brier": 0.11809423756906079,
+    "p4_brier": 0.11810030939226521,
     "base_rate_brier": 0.14050335440649522,
-    "skill": 0.15949168567607164,
+    "skill": 0.15944847088429626,
     "reliability": [
      {
       "lower": 0.0,
       "upper": 0.2,
       "n": 83,
-      "mean_p4": 0.024867469879518073,
+      "mean_p4": 0.02485542168674699,
       "observed": 0.012048192771084338
      },
      {
       "lower": 0.2,
       "upper": 0.4,
       "n": 92,
-      "mean_p4": 0.29395652173913045,
+      "mean_p4": 0.2939782608695652,
       "observed": 0.29347826086956524
      },
      {
@@ -284,9 +290,9 @@
     "base_rate": "leave-one-round-out",
     "starters": {
      "n": 100,
-     "p4_brier": 0.21297924000000001,
+     "p4_brier": 0.21299046,
      "base_rate_brier": 0.2173125,
-     "skill": 0.019940224331320033,
+     "skill": 0.019888593615185468,
      "reliability": [
       {
        "lower": 0.0,
@@ -299,7 +305,7 @@
        "lower": 0.2,
        "upper": 0.4,
        "n": 92,
-       "mean_p4": 0.29395652173913045,
+       "mean_p4": 0.2939782608695652,
        "observed": 0.29347826086956524
       },
       {
@@ -330,36 +336,36 @@
    },
    "DEF": {
     "n": 721,
-    "p4_brier": 0.16670622052704576,
+    "p4_brier": 0.16670412898751732,
     "base_rate_brier": 0.1836908252506234,
-    "skill": 0.09246299971925254,
+    "skill": 0.0924743859141024,
     "reliability": [
      {
       "lower": 0.0,
       "upper": 0.2,
       "n": 279,
-      "mean_p4": 0.09728673835125448,
+      "mean_p4": 0.09722580645161291,
       "observed": 0.08602150537634409
      },
      {
       "lower": 0.2,
       "upper": 0.4,
       "n": 220,
-      "mean_p4": 0.3073954545454545,
+      "mean_p4": 0.3073727272727273,
       "observed": 0.2636363636363636
      },
      {
       "lower": 0.4,
       "upper": 0.6,
       "n": 172,
-      "mean_p4": 0.49555232558139534,
+      "mean_p4": 0.4955406976744186,
       "observed": 0.4069767441860465
      },
      {
       "lower": 0.6,
       "upper": 0.8,
       "n": 50,
-      "mean_p4": 0.6494800000000001,
+      "mean_p4": 0.64944,
       "observed": 0.44
      },
      {
@@ -373,9 +379,9 @@
     "base_rate": "leave-one-round-out",
     "starters": {
      "n": 418,
-     "p4_brier": 0.2321098827751196,
+     "p4_brier": 0.23210556937799043,
      "base_rate_brier": 0.23186940637240963,
-     "skill": -0.0010371200171346295,
+     "skill": -0.0010185173166030737,
      "reliability": [
       {
        "lower": 0.0,
@@ -388,21 +394,21 @@
        "lower": 0.2,
        "upper": 0.4,
        "n": 187,
-       "mean_p4": 0.31724598930481285,
+       "mean_p4": 0.3172192513368984,
        "observed": 0.29411764705882354
       },
       {
        "lower": 0.4,
        "upper": 0.6,
        "n": 172,
-       "mean_p4": 0.49555232558139534,
+       "mean_p4": 0.4955406976744186,
        "observed": 0.4069767441860465
       },
       {
        "lower": 0.6,
        "upper": 0.8,
        "n": 50,
-       "mean_p4": 0.6494800000000001,
+       "mean_p4": 0.64944,
        "observed": 0.44
       },
       {
@@ -603,7 +609,7 @@
   "effect: ΔMAE +0.0002 > −0.01",
   "rounds: won 2 of 5, need 4"
  ],
- "recorded_at": "2026-10-23T16:04:24+00:00",
+ "recorded_at": "2026-10-23T17:39:13+00:00",
  "baseline": {
   "label": "baseline",
   "overrides": {},
@@ -647,7 +653,7 @@
    },
    "7": {
     "n": 439,
-    "bias": 0.202,
+    "bias": 0.203,
     "mae": 1.561
    }
   },
@@ -703,7 +709,7 @@
    "n": 439,
    "ledger_n": 439,
    "delta_n": 0,
-   "code_drift": 0.0
+   "code_drift": 0.0005216400911161836
   }
  },
  "slice_verdict": "FAIL",

@@ -1,0 +1,172 @@
+{
+ "schema_version": 1,
+ "name": "baseline",
+ "kind": "model",
+ "argv": [],
+ "rounds": [
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "data": {
+  "data_root": "/Users/gokul/Dev/Personal/fpl-system/data/raw",
+  "analysis_root": "/Users/gokul/Dev/Personal/fpl-system/data/analysis",
+  "decisions_root": "/Users/gokul/Dev/Personal/fpl-system/data/decisions",
+  "retro_root": "/Users/gokul/Dev/Personal/fpl-system/data/retro",
+  "drift_check": true,
+  "actuals": {
+   "3": {
+    "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw4/event-live-e3.json",
+    "sha256": "5acd953aaeca4c7241f7214e976f519dfc8411e99b56718dcf19b1394d23b500"
+   },
+   "4": {
+    "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw5/event-live-e4.json",
+    "sha256": "470f742cef31ae90631f01bd8ac1950e9feecea96595950a17c874628cbe5e06"
+   },
+   "5": {
+    "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw6/event-live-e5.json",
+    "sha256": "f94cda1dcb0b3b080285f7f4b965b962ace30c497e7ce11142bf0b917545a989"
+   },
+   "6": {
+    "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw7/event-live-e6.json",
+    "sha256": "9627ce83d12334eb54f76f83d36d0d07b4ae0036e4eb5339ea11c10fcf269ef7"
+   },
+   "7": {
+    "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw8/event-live-e7.json",
+    "sha256": "1df5fb931980477dffa158365962b15fe942ba1122f3b9580cb78e36b44a72de"
+   }
+  }
+ },
+ "decision_commits": {
+  "3": "82ad6da9c0a10d62b9ddae9ba65e229cdd5a7558",
+  "4": "db2ab513c8bf54bf094cdd1e1bdb851868daa7aa",
+  "5": "571f5b0760ede7575749848cefb82f4f65a7ff42",
+  "6": "b28927fddb3a3da7fa2e77f8b793701ad312fd68",
+  "7": "bacd40409de5da26fc33596bb46528033096cca3"
+ },
+ "code": {
+  "head": "dcc7482b696bbe8054792d40d474b589265df296",
+  "dirty": false
+ },
+ "baseline_config": {
+  "blend_k": 600.0,
+  "blend_floor": 0.2,
+  "half_life_matches": null,
+  "opponent_adjust": false,
+  "opponent_adjust_saves": false,
+  "blend_on_effective_minutes": false,
+  "blend_k_no_history": null,
+  "finishing_k": null
+ },
+ "grid": null,
+ "picks": null,
+ "ship_value": null,
+ "comparison": null,
+ "verdict": null,
+ "reasons": [],
+ "recorded_at": "2026-10-23T15:59:00+00:00",
+ "baseline": {
+  "label": "baseline",
+  "overrides": {},
+  "inputs_policy": "keep",
+  "config": {
+   "blend_k": 600.0,
+   "blend_floor": 0.2,
+   "half_life_matches": null,
+   "opponent_adjust": false,
+   "opponent_adjust_saves": false,
+   "blend_on_effective_minutes": false,
+   "blend_k_no_history": null,
+   "finishing_k": null
+  },
+  "digest": "64ad9c9c",
+  "aggregate": {
+   "n": 2127,
+   "bias": 0.183,
+   "mae": 1.643
+  },
+  "per_round": {
+   "3": {
+    "n": 426,
+    "bias": 0.034,
+    "mae": 1.552
+   },
+   "4": {
+    "n": 426,
+    "bias": 0.092,
+    "mae": 1.791
+   },
+   "5": {
+    "n": 415,
+    "bias": 0.341,
+    "mae": 1.678
+   },
+   "6": {
+    "n": 421,
+    "bias": 0.253,
+    "mae": 1.636
+   },
+   "7": {
+    "n": 439,
+    "bias": 0.202,
+    "mae": 1.561
+   }
+  },
+  "by_position": {
+   "GKP": {
+    "n": 181,
+    "bias": 0.164,
+    "mae": 1.341
+   },
+   "DEF": {
+    "n": 721,
+    "bias": 0.172,
+    "mae": 1.889
+   },
+   "MID": {
+    "n": 994,
+    "bias": 0.156,
+    "mae": 1.507
+   },
+   "FWD": {
+    "n": 231,
+    "bias": 0.352,
+    "mae": 1.691
+   }
+  }
+ },
+ "round_checks": {
+  "3": {
+   "n": 426,
+   "ledger_n": 426,
+   "delta_n": 0,
+   "code_drift": 0.04715962441314555
+  },
+  "4": {
+   "n": 426,
+   "ledger_n": 426,
+   "delta_n": 0,
+   "code_drift": 0.05062441314553991
+  },
+  "5": {
+   "n": 415,
+   "ledger_n": 415,
+   "delta_n": 0,
+   "code_drift": 0.050908433734939765
+  },
+  "6": {
+   "n": 421,
+   "ledger_n": 421,
+   "delta_n": 0,
+   "code_drift": 0.048418052256532056
+  },
+  "7": {
+   "n": 439,
+   "ledger_n": 439,
+   "delta_n": 0,
+   "code_drift": 0.0
+  }
+ }
+}

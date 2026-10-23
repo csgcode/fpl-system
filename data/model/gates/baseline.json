@@ -1,5 +1,5 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "name": "baseline",
  "kind": "model",
  "argv": [],
@@ -16,26 +16,32 @@
   "decisions_root": "/Users/gokul/Dev/Personal/fpl-system/data/decisions",
   "retro_root": "/Users/gokul/Dev/Personal/fpl-system/data/retro",
   "drift_check": true,
+  "history_from": "store",
   "actuals": {
    "3": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw4/event-live-e3.json",
-    "sha256": "5acd953aaeca4c7241f7214e976f519dfc8411e99b56718dcf19b1394d23b500"
+    "sha256": "5acd953aaeca4c7241f7214e976f519dfc8411e99b56718dcf19b1394d23b500",
+    "basis": "gw4/.meta/event-live-e3.json final sidecar, fetched 2026-10-16T22:06:43.074337+00:00"
    },
    "4": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw5/event-live-e4.json",
-    "sha256": "470f742cef31ae90631f01bd8ac1950e9feecea96595950a17c874628cbe5e06"
+    "sha256": "470f742cef31ae90631f01bd8ac1950e9feecea96595950a17c874628cbe5e06",
+    "basis": "gw5/.meta/event-live-e4.json final sidecar, fetched 2026-10-16T21:47:14.448223+00:00"
    },
    "5": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw6/event-live-e5.json",
-    "sha256": "f94cda1dcb0b3b080285f7f4b965b962ace30c497e7ce11142bf0b917545a989"
+    "sha256": "f94cda1dcb0b3b080285f7f4b965b962ace30c497e7ce11142bf0b917545a989",
+    "basis": "gw6/.meta/event-live-e5.json final sidecar, fetched 2026-10-16T22:06:43.484268+00:00"
    },
    "6": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw7/event-live-e6.json",
-    "sha256": "9627ce83d12334eb54f76f83d36d0d07b4ae0036e4eb5339ea11c10fcf269ef7"
+    "sha256": "9627ce83d12334eb54f76f83d36d0d07b4ae0036e4eb5339ea11c10fcf269ef7",
+    "basis": "gw7/.meta/event-live-e6.json final sidecar, fetched 2026-10-16T22:06:43.953341+00:00"
    },
    "7": {
     "path": "/Users/gokul/Dev/Personal/fpl-system/data/raw/gw8/event-live-e7.json",
-    "sha256": "1df5fb931980477dffa158365962b15fe942ba1122f3b9580cb78e36b44a72de"
+    "sha256": "1df5fb931980477dffa158365962b15fe942ba1122f3b9580cb78e36b44a72de",
+    "basis": "gw8/.meta/event-live-e7.json final sidecar, fetched 2026-10-23T15:27:53.207513+00:00"
    }
   }
  },
@@ -47,7 +53,7 @@
   "7": "bacd40409de5da26fc33596bb46528033096cca3"
  },
  "code": {
-  "head": "dcc7482b696bbe8054792d40d474b589265df296",
+  "head": "32c1060f46def70a4f96afd1c2a06e66bd497c24",
   "dirty": false
  },
  "baseline_config": {
@@ -66,7 +72,7 @@
  "comparison": null,
  "verdict": null,
  "reasons": [],
- "recorded_at": "2026-10-23T15:59:00+00:00",
+ "recorded_at": "2026-10-23T17:39:01+00:00",
  "baseline": {
   "label": "baseline",
   "overrides": {},
@@ -110,7 +116,7 @@
    },
    "7": {
     "n": 439,
-    "bias": 0.202,
+    "bias": 0.203,
     "mae": 1.561
    }
   },
@@ -166,7 +172,7 @@
    "n": 439,
    "ledger_n": 439,
    "delta_n": 0,
-   "code_drift": 0.0
+   "code_drift": 0.0005216400911161836
   }
  }
 }
