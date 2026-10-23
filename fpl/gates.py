@@ -346,10 +346,12 @@ def _starters_suffix(v: Mapping[str, Any], text: Callable[[Mapping[str, Any]], s
 
 
 def _p4_skills(record: GateRecord) -> str:
+    """Starter skill to 4 places: it decides P4_CALIBRATED by its sign, and
+    a value such as −0.0001 must not print as −0.000."""
     p4 = (record.comparison or {}).get("p4") or {}
     return "p4 skill " + (", ".join(
         f"{pos} {_optional_signed(v['skill'])}"
-        + _starters_suffix(v, lambda s: _optional_signed(s["skill"]))
+        + _starters_suffix(v, lambda s: _optional_signed(s["skill"], 4))
         for pos, v in p4.items()) or "none recorded")
 
 
@@ -357,8 +359,8 @@ def _optional(value: float | None) -> str:
     return "-" if value is None else f"{value:.3f}"
 
 
-def _optional_signed(value: float | None) -> str:
-    return "-" if value is None else signed(value, 3)
+def _optional_signed(value: float | None, digits: int = 3) -> str:
+    return "-" if value is None else signed(value, digits)
 
 
 def _significance(record: GateRecord) -> str:

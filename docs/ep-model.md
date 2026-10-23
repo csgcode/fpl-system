@@ -636,7 +636,7 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | saves-adjust | model | 3-7 | — | — | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
 | effective-minutes | model | 3-7 | — | — | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
 | finishing | model | 3-7 | finishing_k=none,20,10,5,2,1 | — | −0.0026 | [−0.008, +0.002] | +0.183→+0.192 | 4/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE −0.0026 > −0.01 |
-| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.020), DEF +0.095 (starters −0.000), MID +0.094 (starters −0.003), FWD +0.156 (starters +0.015) |
+| p4 | calibration | 3-7 | — | — | — | — | — | — | — | p4 skill GKP +0.160 (starters +0.0202), DEF +0.095 (starters −0.0001), MID +0.094 (starters −0.0027), FWD +0.156 (starters +0.0147) |
 | persistence | persistence | 1-7 | — | — | — | — | — | — | not significant | window 3: n 711, slope +0.034 [−0.095, +0.162], r +0.020; window 1: n 1098, slope +0.007 [−0.046, +0.060], r +0.007; window 2: n 805, slope +0.018 [−0.083, +0.119], r +0.013 |
 | combined | combined | 3-7 | — | ships baseline (no passing entries) | — | — | — | — | — | — |
 <!-- gates:end -->

@@ -191,7 +191,7 @@ def test_calibration_record_summarises_and_renders_p4_skill(tmp_path, capsys):
     assert lines[1].strip() == "calibration"
     [row] = gates.render(gates.load_records(root)).splitlines()[2:]
     assert row.startswith("| p4 | calibration |")
-    assert "p4 skill MID +0.100 (starters +0.012), DEF −0.250" in row
+    assert "p4 skill MID +0.100 (starters +0.0120), DEF −0.250" in row
 
 
 def test_calibration_record_with_no_likely_starters_says_none(tmp_path, capsys):
@@ -352,6 +352,13 @@ def test_write_record_archives_a_combined_record_only_when_its_content_changes(t
     gates.write_record(root, changed, force=True, archive_unchanged=False)
     [archived] = (root / gates.ARCHIVE_DIR).glob("combined.*.json")
     assert json.loads(archived.read_text())["code"] == {"head": "abc", "dirty": False}
+
+
+def test_render_shows_a_tiny_negative_starter_skill_with_its_sign():
+    record = json.loads(json.dumps(P4_CALIBRATION))
+    record["comparison"]["p4"]["MID"]["starters"]["skill"] = -0.0001
+    [row] = gates.render([gates.GateRecord.model_validate(record)]).splitlines()[2:]
+    assert "MID +0.100 (starters −0.0001)" in row
 
 
 @pytest.mark.parametrize("kind", ["model", "policy", "calibration", "combined"])
