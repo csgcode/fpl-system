@@ -501,8 +501,8 @@ def test_prior_comes_from_history_past_shrunk_toward_league_mean():
     assert row.rates.prior_weight == 1.0
     [warning] = [w for w in result.warnings if "fallback" in w]
     assert warning == (
-        "league mean for MID uses the v1 fallback table — only 0 players in the loaded "
-        "history have history_past with ≥ 900 prior minutes (need 8); with "
+        "league mean for MID uses the v1 fallback table — only 0 players at this "
+        "position have at least 900 minutes of past-season history (need 8); with "
         "--history-from summaries, fetch more with summaries --shortlist")
 
 

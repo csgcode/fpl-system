@@ -955,8 +955,9 @@ def build_predictions(
     if league_source == "fallback":
         warnings.append(
             f"league mean for {position.name} uses the v1 fallback table — only "
-            f"{league_pool} players in the loaded history have history_past with "
-            f"≥ {LEAGUE_POOL_MIN_MINUTES} prior minutes (need {LEAGUE_POOL_MIN}); with "
+            f"{league_pool} players at this position have at least "
+            f"{LEAGUE_POOL_MIN_MINUTES} minutes of past-season history "
+            f"(need {LEAGUE_POOL_MIN}); with "
             f"--history-from summaries, fetch more with summaries --shortlist"
         )
     base_mean = fixtures.base_mean()
