@@ -61,6 +61,9 @@ BONUS_SHRINK_STARTS: dict[Position, int] = {
 # The API reports defensive_contribution 0 for every season before the stat
 # existed; those zeros are missing data, not evidence.
 DEFCON_FIRST_SEASON = "2024/25"
+# Likewise expected_goals: seasons before it existed report 0, which would read
+# as a player scoring from nothing.
+XG_FIRST_SEASON = "2022/23"
 LEAGUE_POOL_MIN = 8
 LEAGUE_POOL_MIN_MINUTES = 900
 COVERAGE_PRICE_FLOOR_TENTHS = 45
@@ -578,6 +581,19 @@ def _prior_totals(history_past: Sequence[PastSeason]) -> _Totals:
     return totals
 
 
+def finishing_multiplier(history_past: Sequence[PastSeason], k: float | None) -> float:
+    """Goals over xG across every season since xG was recorded, shrunk toward
+    1 by `k` pseudo-goals on each side; `k=None` disables it."""
+    if k is None:
+        return 1.0
+    goals = xg = 0.0
+    for row in history_past:
+        if row.season_name >= XG_FIRST_SEASON:
+            goals += row.goals_scored
+            xg += row.expected_goals or 0.0
+    return (goals + k) / (xg + k)
+
+
 def prior_minutes(history_past: Sequence[PastSeason]) -> int:
     """Minutes in the PL seasons the prior pools; zero means the prior is
     the position league mean (`prior_source == "league_mean"`)."""
@@ -647,6 +663,7 @@ class EffectiveRates(Rates):
     attack_mult: float
     prior_minutes: int
     current_minutes: int
+    finishing_mult: float
 
 
 class Terms(_Frozen):
@@ -728,6 +745,7 @@ class ModelConfig:
     opponent_adjust_saves: bool = False
     blend_on_effective_minutes: bool = False
     blend_k_no_history: float | None = None
+    finishing_k: float | None = None
 
     def __post_init__(self) -> None:
         # An int and the equal float compare equal but repr differently, so
@@ -748,6 +766,9 @@ class ModelConfig:
             raise ValueError(
                 f"blend_k_no_history must be > 0 or None, got {self.blend_k_no_history}"
             )
+        # finishing_multiplier divides by xG + k, and xG can be 0.
+        if self.finishing_k is not None and not self.finishing_k > 0:
+            raise ValueError(f"finishing_k must be > 0 or None, got {self.finishing_k}")
 
     def digest(self) -> str:
         return hashlib.sha256(repr(sorted(asdict(self).items())).encode()).hexdigest()[:8]
@@ -1126,7 +1147,10 @@ def _effective_rates(
     w = overrides.prior_weight if overrides.prior_weight is not None else prior_weight(
         blend_minutes, k=k, floor=config.blend_floor
     )
-    blended = _blend(prior, current, w).model_copy(update={
+    finishing = finishing_multiplier(summary.history_past if summary else (), config.finishing_k)
+    blended = _blend(prior, current, w)
+    blended = blended.model_copy(update={
+        "xg90": blended.xg90 * finishing,
         "bonus_per_start": bonus_rate(
             prior_bonus=prior_totals.bonus,
             prior_starts=prior_totals.start_equivalents,
@@ -1152,6 +1176,7 @@ def _effective_rates(
         attack_mult=overrides.attack_mult if overrides.attack_mult is not None else 1.0,
         prior_minutes=prior_minutes,
         current_minutes=current_totals.minutes,
+        finishing_mult=finishing,
     )
 
 

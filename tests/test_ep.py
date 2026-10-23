@@ -34,6 +34,7 @@ from fpl.ep import (
     defcon_hit_probability,
     defcon_minutes_factor,
     expected_floor_div,
+    finishing_multiplier,
     force_prior_weight,
     inspect_fixtures,
     interpolate,
@@ -48,6 +49,7 @@ from fpl.ep import (
     rates_from_seasons,
     saves_factor,
     shrink_rate,
+    XG_FIRST_SEASON,
 )
 from fpl.models import Bootstrap, ElementSummary, MatchRecord, PastSeason, Player, Position
 from tests.factories import (
@@ -132,7 +134,7 @@ def test_config_from_int_has_the_same_digest_as_the_equal_float_config():
     config = ModelConfig(blend_k=600)
     assert isinstance(config.blend_k, float)
     assert config == DEFAULT_CONFIG
-    assert config.digest() == DEFAULT_CONFIG.digest() == "5f5a4d42"
+    assert config.digest() == DEFAULT_CONFIG.digest() == "64ad9c9c"
 
 
 def test_match_weights_halve_every_half_life():
@@ -608,6 +610,67 @@ def test_a_recorded_zero_from_a_defcon_season_stays_zero():
     assert rates.dc90 == pytest.approx(shrink_rate(0.0, 2700, LEAGUE_FALLBACK[Position.MID].dc90))
 
 
+# ------------------------------------------------------------- finishing
+
+
+def finishing_seasons() -> list[dict]:
+    return [past_season_payload(season_name="2023/24", goals_scored=7, expected_goals="5.0"),
+            past_season_payload(season_name="2024/25", goals_scored=5, expected_goals="3.0")]
+
+
+def as_seasons(payloads: list[dict]) -> list[PastSeason]:
+    return [PastSeason.model_validate(p) for p in payloads]
+
+
+def finishing_rates(*, overrides=None, **fields) -> EffectiveRates:
+    bootstrap = make_bootstrap([player()])
+    extra = {"overrides": overrides, "reason": "t"} if overrides else {}
+    result = build_predictions(
+        bootstrap, {1: summary(history_past=finishing_seasons())}, fixtures_doc(),
+        inputs_doc("MID", [judged(**extra)]), gw=GW, config=replace(DEFAULT_CONFIG, **fields),
+    )
+    return result.rows[0].rates
+
+
+def test_finishing_multiplier_is_heavily_shrunk():
+    assert finishing_multiplier(as_seasons(finishing_seasons()), 10) == pytest.approx(22 / 18)
+
+
+def test_seasons_before_xg_existed_are_ignored():
+    assert XG_FIRST_SEASON == "2022/23"
+    old = past_season_payload(season_name="2021/22", goals_scored=9, expected_goals="0.0")
+    assert finishing_multiplier(as_seasons([*finishing_seasons(), old]), 10) == pytest.approx(22 / 18)
+    assert finishing_multiplier(as_seasons([old]), 10) == 1.0
+
+
+def test_multiplier_scales_xg90_but_not_an_override():
+    off, on = finishing_rates(), finishing_rates(finishing_k=10)
+    assert on.finishing_mult == pytest.approx(22 / 18)
+    assert on.xg90 == pytest.approx(off.xg90 * 22 / 18)
+    assert on.xa90 == off.xa90
+
+    overridden = finishing_rates(overrides={"xg90": 0.5}, finishing_k=10)
+    assert overridden.xg90 == 0.5
+
+
+def test_none_disables():
+    assert DEFAULT_CONFIG.finishing_k is None
+    assert finishing_multiplier(as_seasons(finishing_seasons()), None) == 1.0
+    assert finishing_rates().finishing_mult == 1.0
+
+
+@pytest.mark.parametrize("value", [0, 0.0, -10.0])
+def test_config_refuses_a_finishing_k_that_is_not_positive(value):
+    with pytest.raises(ValueError, match="finishing_k"):
+        ModelConfig(finishing_k=value)
+
+
+def test_config_finishing_k_from_int_has_the_float_digest():
+    config = ModelConfig(finishing_k=10)
+    assert isinstance(config.finishing_k, float)
+    assert config.digest() == ModelConfig(finishing_k=10.0).digest() != DEFAULT_CONFIG.digest()
+
+
 def test_league_dc90_ignores_minutes_from_before_defcon_existed():
     pool_ids = list(range(10, 10 + LEAGUE_POOL_MIN))
     pool = {
@@ -1056,7 +1119,11 @@ def rich_documents(position_code: int, position_name: str, config=DEFAULT_CONFIG
         bootstrap, {1: summary(history_past=past, history=rich_history())},
         fixtures_doc(ratings=RATED), inputs_doc(position_name, [judged()]), gw=GW, config=config,
     )
-    return [{k: v for k, v in doc.items() if k not in ("model", "p4_gw", "returns5")} for doc in result.to_documents()]
+    documents = [{k: v for k, v in doc.items() if k not in ("model", "p4_gw", "returns5")}
+                 for doc in result.to_documents()]
+    for doc in documents:
+        assert doc["rates"].pop("finishing_mult") == 1.0
+    return documents
 
 
 # Built by the code before the weighted, adjusted current totals existed.
@@ -1220,7 +1287,7 @@ def test_config_refuses_a_blend_k_that_is_not_positive(field, value):
 
 
 def test_config_validation_leaves_the_production_digest():
-    assert DEFAULT_CONFIG.digest() == "5f5a4d42"
+    assert DEFAULT_CONFIG.digest() == "64ad9c9c"
 
 
 def test_config_half_life_from_int_has_the_float_digest():
