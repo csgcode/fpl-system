@@ -579,8 +579,9 @@ def build_parser() -> argparse.ArgumentParser:
     players.add_argument("--format", choices=("table", "csv", "json"), default="table")
     players.add_argument(
         "--minutes", action="store_true",
-        help="append minutes per completed round (1..N-1) from cached element summaries: "
-             "one entry per round, '-' for no fixture row, double gameweeks summed",
+        help="append minutes per completed round (1..N-1) from the season store "
+             "(gw N's cached summaries with --history-from summaries): one entry per "
+             "round, '-' for no fixture row, double gameweeks summed",
     )
     players.add_argument(
         "--minutes-last", type=_positive_int, metavar="K",
