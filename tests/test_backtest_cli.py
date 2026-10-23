@@ -427,7 +427,7 @@ def test_record_all_runs_in_order_with_earlier_passes_as_baseline(quiet_world, c
     assert _run(quiet_world, *run_all) == 0
     assert "x: record exists" in capsys.readouterr().out
     assert {name: (gates_root / f"{name}.json").read_bytes() for name in kept} == kept
-    assert len(list((gates_root / "archive").glob("combined.*.json"))) == 1
+    assert list((gates_root / "archive").glob("combined.*.json")) == []
 
 
 def test_record_all_force_reruns_from_the_recorded_baseline(quiet_world, capsys, tmp_path):
@@ -445,6 +445,7 @@ def test_record_all_force_reruns_from_the_recorded_baseline(quiet_world, capsys,
     assert records["baseline"]["baseline_config"]["blend_floor"] == 0.25
     assert records["x"]["baseline_config"]["blend_floor"] == 0.25
     assert len(list((gates_root / "archive").glob("x.*.json"))) == 1
+    assert len(list((gates_root / "archive").glob("combined.*.json"))) == 1
 
 
 def test_record_all_refuses_a_baseline_record_missing_a_config_field(quiet_world, capsys,
@@ -726,3 +727,4 @@ def test_json_comparison_carries_p4(world, capsys):
 def test_a_zero_no_history_blend_k_refuses(world, capsys):
     assert _run(world, "--set", "blend_k_no_history=0") == 1
     assert "blend_k_no_history must be > 0" in capsys.readouterr().err
+

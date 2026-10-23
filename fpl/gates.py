@@ -136,22 +136,30 @@ def _load(path: Path) -> GateRecord:
 
 
 def write_record(root: Path, record: Mapping[str, Any], *, force: bool,
+                 archive_unchanged: bool = True,
                  now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)) -> Path:
     """Writes the record once. With `force`, an existing record moves to
-    archive/<name>.<UTC stamp>.json first."""
+    archive/<name>.<UTC stamp>.json first — unless `archive_unchanged` is
+    False and the two differ only in `code` and `recorded_at`, when the old
+    one is simply replaced."""
     parsed = GateRecord.model_validate(record)
     path = record_path(root, parsed.name)
     if path.exists():
         if not force:
             raise ValueError(f"{path} exists — gate records are written once; "
                              "pass --force to archive it and record again")
-        archive = root / ARCHIVE_DIR
-        archive.mkdir(parents=True, exist_ok=True)
-        path.rename(archive / f"{parsed.name}.{now().strftime(ARCHIVE_STAMP_FORMAT)}.json")
+        if archive_unchanged or _content(_load(path)) != _content(parsed):
+            archive = root / ARCHIVE_DIR
+            archive.mkdir(parents=True, exist_ok=True)
+            path.rename(archive / f"{parsed.name}.{now().strftime(ARCHIVE_STAMP_FORMAT)}.json")
     root.mkdir(parents=True, exist_ok=True)
     document = parsed.model_dump(mode="json", exclude_unset=True)
     path.write_text(json.dumps(document, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     return path
+
+
+def _content(record: GateRecord) -> dict[str, Any]:
+    return record.model_dump(mode="json", exclude={"code", "recorded_at"})
 
 
 def load_manifest(path: Path) -> list[ManifestEntry]:

@@ -335,3 +335,19 @@ def test_render_combined_with_no_passing_entries_ships_the_baseline():
                        shipped_config=asdict(DEFAULT_CONFIG), reverted=[])
     assert _ship_cell(combined) == "ships baseline (no passing entries)"
 
+
+def test_write_record_archives_a_combined_record_only_when_its_content_changes(tmp_path):
+    root = tmp_path / "gates"
+    combined = _record("combined", kind="combined", ship={},
+                       shipped_config=asdict(DEFAULT_CONFIG), reverted=[])
+    gates.write_record(root, combined, force=True, archive_unchanged=False)
+    rerun = {**combined, "code": {"head": "abc", "dirty": False},
+             "recorded_at": "2026-10-22T09:00:00+00:00"}
+    gates.write_record(root, rerun, force=True, archive_unchanged=False)
+    assert not (root / gates.ARCHIVE_DIR).exists()
+    assert gates.read_record(root, "combined").code == {"head": "abc", "dirty": False}
+
+    changed = {**rerun, "reverted": ["k450"]}
+    gates.write_record(root, changed, force=True, archive_unchanged=False)
+    [archived] = (root / gates.ARCHIVE_DIR).glob("combined.*.json")
+    assert json.loads(archived.read_text())["code"] == {"head": "abc", "dirty": False}

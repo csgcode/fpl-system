@@ -1115,7 +1115,7 @@ def _record_all(scorer: _Scorer, entries: Sequence[ManifestEntry], base: ModelCo
     base_lines = scorer.lines(base)
     result = combine(base, passes, lambda config: compare(base_lines, scorer.lines(config)))
     document = _combined_record(context, Scored("baseline", {}, base, base_lines), result)
-    gates.write_record(root, document, force=True)
+    gates.write_record(root, document, force=True, archive_unchanged=False)
     for line in gates.summary_lines([GateRecord.model_validate(document)]):
         print(line)
     _print_warnings(scorer.warnings)
