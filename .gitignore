@@ -15,3 +15,6 @@ curl-request
 
 # live eval runs: transcripts, scorecards, workspace diffs
 evals/out/
+
+# season store: derived from data/raw, rebuilt by `fpl store sync`
+data/store/

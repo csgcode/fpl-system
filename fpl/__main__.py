@@ -70,7 +70,8 @@ from fpl.fixture_ratings import write_outputs as write_rating_outputs
 from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
-from fpl import objective_report
+from fpl import history_view, objective_report, season_store
+from fpl.season_store import History
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
@@ -115,8 +116,8 @@ from fpl.service import (
     DEFAULT_MAX_AGE_HOURS,
     FetchEvent,
     FplDataService,
+    PostDeadlineError,
     load_cached_bootstrap,
-    load_cached_summaries,
 )
 from fpl.state import (
     MAX_GW,
@@ -179,8 +180,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         type=Path,
-        default=Path("data/raw"),
-        help="snapshot root (default: data/raw)",
+        default=season_store.DEFAULT_RAW_ROOT,
+        help=f"snapshot root (default: {season_store.DEFAULT_RAW_ROOT})",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -206,8 +207,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="save even if the payload's next gameweek is not --gw",
     )
-    add("fixtures", "fetch full fixture list")
+    fixtures = add("fixtures", "fetch full fixture list")
     summaries = add("summaries", "fetch element-summary per player")
+    for deadline_guarded in (bootstrap, fixtures, summaries):
+        deadline_guarded.add_argument(
+            "--allow-post-deadline",
+            action="store_true",
+            help="fetch into --gw even though its deadline has passed",
+        )
     group = summaries.add_mutually_exclusive_group(required=True)
     group.add_argument("--ids", type=_id_list, help="comma-separated player ids")
     group.add_argument(
@@ -225,7 +232,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--event", type=_gameweek, required=True, help="gameweek the picks belong to"
     )
     actuals = add(
-        "actuals", "force-refresh summaries and report one round's returns",
+        "actuals", "report one round's returns from its final event-live snapshot",
         cached=False,
     )
     actuals.add_argument(
@@ -233,6 +240,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     actuals.add_argument(
         "--ids", type=_id_list, required=True, help="comma-separated player ids"
+    )
+    event_live = add(
+        "event-live", "fetch one data-checked round's live stats (final once fetched)"
+    )
+    event_live.add_argument(
+        "--round", type=_gameweek, required=True,
+        help="data-checked gameweek to fetch, before --gw",
     )
     add("slim-csv", "write players-slim.csv from cached bootstrap", cached=False)
     add(
@@ -448,12 +462,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Local-only: the objective is a pure function of the EP files, the cached
     # bootstrap and the previous final.md (docs/ep-model.md §7).
-    objective_report.add_arguments(add(
+    objective = add(
         "objective",
         "score the squad and a transfer plan on the spec objective, blend and prior-only "
         "(exit 1: --moves fails the transfer rule)",
         cached=False,
-    ))
+    )
+    objective_report.add_arguments(objective)
+    season_store.add_history_arguments(objective)
 
     calibrate = add("calibrate", "join EP predictions vs a completed round's actuals")
     calibrate.add_argument(
@@ -516,6 +532,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="what-if: force every row's prior weight to W in [0, 1], superseding "
              "per-row overrides; requires --out",
     )
+    season_store.add_history_arguments(ep)
 
     # Local-only: club ratings and fixture rows are a pure function of the
     # cached snapshots plus club-priors.json (docs/ep-model.md §6).
@@ -532,8 +549,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="root that receives gw{N}/fixtures.json and fixtures-tables.md",
     )
     fixtures_rate.add_argument("--format", choices=("table", "json"), default="table")
+    season_store.add_history_arguments(fixtures_rate)
 
     players = add("players", "filtered view over the cached bootstrap", cached=False)
+    season_store.add_history_arguments(players)
     players.add_argument(
         "--position", type=_position_set, default=frozenset(),
         help="comma-separated: GKP (or GK),DEF,MID,FWD",
@@ -580,6 +599,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     corrections.add_argument("--agent", help="agent code, e.g. A3 or CODE")
     corrections.add_argument("--retro-root", type=Path, default=RETRO_ROOT)
+    season_store.register(add)
+    history_view.register(add, positions=_position_set, ids=_id_list, count=_positive_int)
     return parser
 
 
@@ -732,6 +753,7 @@ def main(
     args = build_parser().parse_args(argv)
     store = SnapshotStore(args.data_root)
     try:
+        season_store.check_history_arguments(args)
         if args.command == "auth-import":
             return run_auth_import(args)
         if args.command == "auth-refresh":
@@ -744,6 +766,10 @@ def main(
             return objective_report.run(args.data_root, args)
         if args.command == "corrections":
             return run_corrections(args)
+        if args.command == "store":
+            return season_store.run(args.data_root, args)
+        if args.command == "history":
+            return history_view.run(args.data_root, args)
         if args.command == "fixtures-rate":
             return run_fixtures_rate(store, args)
         if args.command in WRITE_COMMANDS:
@@ -780,6 +806,11 @@ def main(
             f"first: {exc.errors()[0].get('loc')} {exc.errors()[0].get('msg')}"
         )
         return EXIT_ERROR
+    except PostDeadlineError as exc:
+        _stderr(f"error: {exc}")
+        if hasattr(args, "allow_post_deadline"):
+            _stderr(f"hint: pass --allow-post-deadline to fetch into gw{exc.gw} anyway")
+        return EXIT_ERROR
     except ValueError as exc:
         _stderr(f"error: {exc}")
         return EXIT_ERROR
@@ -798,6 +829,7 @@ def run_command(
             max_age_hours=args.max_age,
             force=args.force,
             require_next_gw=not args.allow_gw_mismatch,
+            allow_post_deadline=args.allow_post_deadline,
         )
         print(f"{store.path(gw, 'bootstrap')} {_cache_note(service)}")
         print(f"fetched at {store.fetched_at(gw, 'bootstrap')}")
@@ -807,13 +839,22 @@ def run_command(
               f"next deadline: {bootstrap.next_deadline()}")
         print(_current_status_line(bootstrap))
     elif args.command == "fixtures":
-        fixtures = service.fixtures(gw, max_age_hours=args.max_age, force=args.force)
+        fixtures = service.fixtures(
+            gw,
+            max_age_hours=args.max_age,
+            force=args.force,
+            allow_post_deadline=args.allow_post_deadline,
+        )
         print(f"{store.path(gw, 'fixtures')} ({len(fixtures)} fixtures) "
               f"{_cache_note(service)}")
     elif args.command == "summaries":
         ids = service.shortlist_ids(gw) if args.shortlist else args.ids
         summaries = service.player_summaries(
-            gw, player_ids=ids, max_age_hours=args.max_age, force=args.force
+            gw,
+            player_ids=ids,
+            max_age_hours=args.max_age,
+            force=args.force,
+            allow_post_deadline=args.allow_post_deadline,
         )
         print(f"{len(summaries)} summaries under {store.dir(gw) / 'players'} "
               f"{_cache_note(service)}")
@@ -854,6 +895,8 @@ def run_command(
             print(f"{_blank(pick.position):>3}  {pick.element:>7}  "
                   f"{_blank(pick.multiplier):>4}  {role}")
     elif args.command == "actuals":
+        if args.round >= gw:
+            raise ValueError(f"--round {args.round} must be before --gw {gw}")
         lines = service.actuals(gw, player_ids=args.ids, match_round=args.round)
         print(f"round {args.round} actuals ({len(lines)} players)")
         print(f"{'id':>4}  {'min':>4}  {'pts':>4}  {'gls':>4}  {'ast':>4}  "
@@ -864,6 +907,14 @@ def run_command(
                   f"{line.bps:>5}  {line.expected_goals:>5.2f}  "
                   f"{line.expected_assists:>5.2f}  {line.defensive_contribution:>3.0f}  "
                   f"{'' if line.matched else 'no match'}")
+    elif args.command == "event-live":
+        if args.round >= gw:
+            raise ValueError(f"--round {args.round} must be before --gw {gw}")
+        live = service.event_live(
+            gw, event=args.round, max_age_hours=args.max_age, force=args.force
+        )
+        print(f"{store.path(gw, f'event-live-e{args.round}')} "
+              f"({len(live.elements)} players) {_cache_note(service)}")
     elif args.command == "slim-csv":
         print(f"wrote {service.export_players_csv(gw)}")
     elif args.command == "prior-season":
@@ -882,7 +933,7 @@ def run_command(
     elif args.command == "plan":
         return run_plan(store, gw, args)
     elif args.command == "calibrate":
-        return run_calibrate(service, store, gw, args)
+        return run_calibrate(service, gw, args)
     elif args.command == "ep":
         return run_ep(store, gw, args)
     elif args.command == "players":
@@ -897,7 +948,8 @@ def run_command(
         )
         fields = _player_fields(args.fields, args.format)
         rows = PlayerRepository(store).query(gw, player_filter, args.sort, args.limit)
-        minutes = (_minutes_by_round(store, gw, rows, args.minutes_last)
+        minutes = (_minutes_by_round(History.from_args(args.data_root, args), gw, rows,
+                                     args.minutes_last)
                    if args.minutes else None)
         print_players(rows, args.format, minutes, fields)
     return EXIT_OK
@@ -958,19 +1010,8 @@ def _record_name(source: str) -> str:
     return f"{'predictions lock' if kind == 'lock' else 'decision commit'} {ident}"
 
 
-def run_calibrate(
-    service: FplDataService, store: SnapshotStore, gw: int, args: argparse.Namespace
-) -> int:
-    bootstrap = load_cached_bootstrap(store, gw)
-    event = next((e for e in bootstrap.events if e.id == args.round), None)
-    if event is None:
-        raise ValueError(f"cached bootstrap has no event {args.round}")
-    if not event.data_checked:
-        raise ValueError(
-            f"round {args.round} is not data-checked yet — bonus points are not "
-            f"final. Refetch once FPL marks it checked: "
-            f"python -m fpl bootstrap --gw {gw} --force"
-        )
+def run_calibrate(service: FplDataService, gw: int, args: argparse.Namespace) -> int:
+    service.data_checked_basis(gw, args.round)
     if args.predictions_from == "commit":
         record = record_predictions(args.analysis_root, args.decisions_root, args.round)
     else:
@@ -1046,7 +1087,7 @@ def run_ep(store: SnapshotStore, gw: int, args: argparse.Namespace) -> int:
     bootstrap = load_cached_bootstrap(store, gw)
     wanted = [p.id for p in bootstrap.elements if p.element_type == position]
     wanted += [entry.id for entry in inputs.players]
-    summaries = load_cached_summaries(store, gw, wanted)
+    summaries = History.from_args(args.data_root, args).summaries(gw, wanted)
     result = build_predictions(
         bootstrap, summaries, fixtures, inputs, gw=gw,
         allow_missing=frozenset(args.allow_missing_ids),
@@ -1092,7 +1133,8 @@ def run_ep_check(
     wanted = [p.id for p in bootstrap.elements if p.element_type == position]
     wanted += [entry.id for entry in inputs.players]
     result = build_predictions(
-        bootstrap, load_cached_summaries(store, gw, wanted), load_fixtures(fixtures_path),
+        bootstrap, History.from_args(args.data_root, args).summaries(gw, wanted),
+        load_fixtures(fixtures_path),
         inputs, gw=gw, allow_missing=frozenset(args.allow_missing_ids),
     )
     print(
@@ -1137,20 +1179,20 @@ class MinutesView:
 
 
 def _minutes_by_round(
-    store: SnapshotStore, gw: int, rows: list[PlayerRow], last: int | None = None
+    history: History, gw: int, rows: list[PlayerRow], last: int | None = None
 ) -> MinutesView:
     """Rounds 1..gw-1 (the last `last` of them when given)."""
     first = 1 if last is None else max(1, gw - last)
     rounds = tuple(range(first, gw))
-    summaries = load_cached_summaries(store, gw, [row.player.id for row in rows])
+    matches = history.matches_by_player(gw, [row.player.id for row in rows])
     result: dict[int, dict[int, int | str] | str] = {}
     for row in rows:
-        summary = summaries.get(row.player.id)
-        if summary is None:
+        records = matches.get(row.player.id)
+        if records is None:
             result[row.player.id] = NO_SUMMARY
             continue
         played: dict[int, int] = {}
-        for match in summary.history:
+        for match in records:
             if match.round is not None:
                 played[match.round] = played.get(match.round, 0) + match.minutes
         result[row.player.id] = {r: played.get(r, NO_FIXTURE) for r in rounds}
@@ -1521,7 +1563,8 @@ def run_fixtures_rate(store: SnapshotStore, args: argparse.Namespace) -> int:
     priors_path = args.priors or args.analysis_root / PRIORS_FILENAME
     try:
         run = rate_fixtures(load_rating_inputs(
-            store, args.gw, priors_path=priors_path, analysis_root=args.analysis_root))
+            store, args.gw, priors_path=priors_path, analysis_root=args.analysis_root,
+            history=History.from_args(args.data_root, args)))
     except RatingRefusal as exc:
         _stderr(f"error: {exc}")
         if exc.hint:
@@ -2188,9 +2231,10 @@ def _format_fetch_log(events: Sequence[FetchEvent]) -> str:
         event = events[0]
         if event.fetched:
             return "(fetched)"
+        suffix = ", final" if event.final else ""
         if event.age_hours is None:
-            return "(cached, age unknown)"
-        return f"(cached, age {event.age_hours:.1f}h)"
+            return f"(cached, age unknown{suffix})"
+        return f"(cached, age {event.age_hours:.1f}h{suffix})"
     fetched = sum(1 for event in events if event.fetched)
     return f"({fetched} fetched, {len(events) - fetched} cached)"
 

@@ -67,12 +67,13 @@ prior-season reads the summaries cache and reports empty coverage otherwise.
 | entry-{id}.json | `uv run python -m fpl entry --gw N --team-id X` | cached — bank + team value only, not the squad |
 | picks-{id}-e{M}.json | `uv run python -m fpl picks --gw N --team-id X --event M` with M = N−1, the last completed GW | cached — our actual picks, captain, active chip; a future event 404s |
 | entry-history-{id}.json | `uv run python -m fpl entry-history --gw N --team-id X` | cached — per-GW points, rank, bank, value |
-| per-player actual points | `uv run python -m fpl actuals --gw N --round M --ids ...` | always refreshes — A6 calls this, not you |
+| per-player actual points | `uv run python -m fpl actuals --gw N --round M --ids ...` | local only — reads the round's final event-live snapshot; A6 calls this, not you |
 | players-slim.csv | `uv run python -m fpl slim-csv --gw N` | local only |
 | prior-season.json | `uv run python -m fpl prior-season --gw N` | local only |
 
-Cached commands print `(fetched)` or `(cached, age Xh)` — record which in
-meta.md. `flags` and `actuals` always hit the network.
+Cached commands print `(fetched)`, `(cached, age Xh)` or, for a final
+snapshot, `(cached, age Xh, final)` — record which in meta.md. `flags`
+always hits the network.
 
 `team_id` comes from data/entry.json. When non-null, run `entry`, `picks`, and
 `entry-history`; when null, skip all three and note the skip in meta.md.
@@ -97,7 +98,7 @@ Deadline: {next deadline from bootstrap stdout}
 Fetched at: {fetched at from bootstrap stdout}
 Previous GW: {M} finished={true|false} data_checked={true|false}
 Commands run:
-- <subcommand and flags> → <cache note exactly as printed: (fetched) | (cached, age Xh) | (F fetched, C cached) | local>
+- <subcommand and flags> → <cache note exactly as printed: (fetched) | (cached, age Xh) | (cached, age Xh, final) | (F fetched, C cached) | local>
 Coverage: players X, no_pl_history Y, missing_summaries Z
 Anomalies: <top-level-key diff vs data/raw/gw{M}/bootstrap.json, or "no prior snapshot">
 Errors: none

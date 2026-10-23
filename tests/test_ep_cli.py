@@ -324,3 +324,73 @@ def test_ep_writes_before_final_md_exists(tmp_path):
 
     assert run(data_root, analysis_root) == 0
     assert (analysis_root / f"gw{GW}" / "players-MID.json").is_file()
+
+
+# --- --history-from store ------------------------------------------------------
+
+
+def store_world(tmp_path):
+    """A synced season (rounds 1–2, gw3 open) with gw3 inputs and fixtures for
+    its three clubs; element 1 is the MID judged."""
+    from fpl.season_store import sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "store" / "s.sqlite"
+    Season().write(raw)
+    sync(raw, db)
+    analysis_root = tmp_path / "analysis"
+    (analysis_root / f"gw{GW}").mkdir(parents=True)
+    clubs = ("C1", "C2", "C3")
+    document = {
+        "schema_version": 1, "gw": GW, "base_lambda": {"home": 1.54, "away": 1.33},
+        "ratings": {c: {"att": 1.0, "defw": 1.0} for c in clubs},
+        "fixtures": [
+            {"club": c, "gw": g, "opp": "C2" if c != "C2" else "C1", "venue": "H",
+             "lambda_att": 1.5, "lambda_def": 1.0, "p_cs": 0.3}
+            for c in clubs for g in range(GW, GW + 6)
+        ],
+    }
+    (analysis_root / f"gw{GW}" / "fixtures.json").write_text(json.dumps(document))
+    write_inputs(analysis_root, inputs_document(
+        [{"id": 1, "name": "P1", "p_start": 0.9, "uncertainty": "LOW", "notes": "starter"}]))
+    return raw, db, analysis_root
+
+
+def test_ep_from_store_equals_ep_from_summaries(tmp_path):
+    raw, db, analysis_root = store_world(tmp_path)
+    outputs = {}
+    for source in ("store", "summaries"):
+        out = tmp_path / f"{source}.json"
+        store = ["--store", str(db)] if source == "store" else []
+        assert run(raw, analysis_root, "--history-from", source, *store,
+                   "--out", str(out)) == 0
+        outputs[source] = out.read_bytes()
+
+    assert outputs["store"] == outputs["summaries"]
+    (row,) = json.loads(outputs["store"])
+    assert row["id"] == 1 and row["rates"]["prior_weight"] < 1
+
+
+def test_ep_check_reads_the_store_too(tmp_path, capsys):
+    raw, db, analysis_root = store_world(tmp_path)
+    assert run(raw, analysis_root, "--check", "--history-from", "store", "--store",
+               str(db)) == 0
+    assert "1 players scored, 0 without cached summary" in capsys.readouterr().out
+
+
+def test_ep_from_a_store_behind_the_raw_refuses_naming_the_sync(tmp_path, capsys):
+    raw, db, analysis_root = store_world(tmp_path)
+    SnapshotStore(raw).save(GW, "players/summary-9", element_summary_payload(), "seed://test")
+
+    assert run(raw, analysis_root, "--history-from", "store", "--store", str(db),
+               "--out", str(tmp_path / "x.json")) == 1
+    err = capsys.readouterr().err
+    assert "summary-9.json not ingested" in err and f"store sync --gw {GW}" in err
+    assert not (tmp_path / "x.json").exists()
+
+
+def test_ep_reads_summaries_by_default_and_never_opens_the_store(tmp_path, monkeypatch):
+    raw, _, analysis_root = store_world(tmp_path)
+    monkeypatch.chdir(tmp_path)  # the default store path, relative, names nothing here
+    out = tmp_path / "default.json"
+    assert run(raw, analysis_root, "--out", str(out)) == 0

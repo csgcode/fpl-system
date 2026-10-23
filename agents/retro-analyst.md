@@ -10,8 +10,8 @@ written corrections that future agents MUST read. The arithmetic is code
 makes the system scientific instead of vibes-with-extra-steps.
 
 ## Naming convention
-The retro for completed GW M runs during the GW N = M+1 cycle. Every fetch
-uses `--gw N` (the current snapshot directory); the output file is
+The retro for completed GW M runs during the GW N = M+1 cycle. Every `fpl`
+command uses `--gw N` (the current snapshot directory); the output file is
 data/retro/gwM.md. `<id>` is `team_id` from data/entry.json; the orchestrator
 passes it. If it is null, drop the `picks` and `entry-history` lines from
 Call 1 and say so in Findings.
@@ -36,6 +36,10 @@ Call 1 — one message holding two tool uses, sent together:
 Call 2 — ONE Bash invocation:
 
     uv run python -m fpl actuals --gw N --round M --ids <ids>
+
+`actuals` makes no network call. It reads the final event-live snapshot of
+round M that Call 1's `calibrate` saved under data/raw/gwN/ (or that an
+earlier `fpl event-live` saved there).
 
 plus one `sed -n '<a>,<b>p' fpl/ep.py` per function or constant named in the
 Premise of a CODE (fpl/ep.py) correction you issue or keep active. `<a>` is the

@@ -15,6 +15,7 @@ import requests
 
 from fpl.__main__ import (
     MAX_GW,
+    MINUTES_COLUMN,
     _id_list,
     _position_set,
     _status_set,
@@ -308,61 +309,62 @@ def test_picks_without_chip_prints_none(tmp_path, capsys):
 # --- actuals -------------------------------------------------------------
 
 
-def test_actuals_sums_double_gameweek_and_marks_absences(tmp_path, capsys):
-    gateway = FakeGateway(
-        {
-            f"{BASE_URL}/element-summary/1/": element_summary_payload(
-                history=[
-                    match_record_payload(fixture=1, round=5, minutes=90,
-                                         total_points=8, goals_scored=1, assists=1,
-                                         bonus=2, bps=30),
-                    match_record_payload(fixture=2, round=5, minutes=62,
-                                         total_points=5, goals_scored=0, assists=1,
-                                         bonus=1, bps=22),
-                    match_record_payload(fixture=3, round=6, minutes=90,
-                                         total_points=2, goals_scored=0, assists=0,
-                                         bonus=0, bps=11),
-                ]
-            ),
-            f"{BASE_URL}/element-summary/2/": element_summary_payload(
-                history=[match_record_payload(fixture=4, round=6)]
-            ),
-        }
+def seed_final_live(tmp_path, gw, event, elements):
+    from tests.factories import event_live_payload
+
+    SnapshotStore(tmp_path).save(
+        gw, f"event-live-e{event}", event_live_payload(elements), "seed://test",
+        final=True, basis="seed",
     )
 
+
+def test_actuals_prints_the_round_from_the_final_snapshot(tmp_path, capsys):
+    from tests.factories import live_element
+
+    played = live_element(1, "0.88", {41: 90, 52: 62})
+    played["stats"].update(total_points=13, goals_scored=1, assists=2, bonus=3,
+                           bps=52, expected_assists="0.20", defensive_contribution=6)
+    seed_final_live(tmp_path, 6, 5, [played])
+    gateway = FakeGateway({})
+
     assert run(
-        ["actuals", "--gw", "1", "--round", "5", "--ids", "1,2"], tmp_path, gateway
+        ["actuals", "--gw", "6", "--round", "5", "--ids", "1,2"], tmp_path, gateway
     ) == 0
     out = capsys.readouterr().out
+    assert out.splitlines()[0] == "round 5 actuals (2 players)"
     rows = [line.split() for line in out.splitlines()[2:]]
     assert rows[0] == ["1", "152", "13", "1", "2", "3", "52", "0.88", "0.20", "6"]
     assert rows[1] == ["2", "0", "0", "0", "0", "0", "0", "0.00", "0.00", "0", "no", "match"]
+    assert gateway.calls == []
 
 
-def test_actuals_always_refetches(tmp_path):
-    gateway = FakeGateway(
-        {
-            f"{BASE_URL}/element-summary/1/": element_summary_payload(
-                history=[match_record_payload(round=5)]
-            )
-        }
-    )
-    run(["actuals", "--gw", "1", "--round", "5", "--ids", "1"], tmp_path, gateway)
-    run(["actuals", "--gw", "1", "--round", "5", "--ids", "1"], tmp_path, gateway)
-    assert len(gateway.calls) == 2
+def test_actuals_without_a_final_snapshot_names_event_live(tmp_path, capsys):
+    gateway = FakeGateway({})
+    assert run(
+        ["actuals", "--gw", "6", "--round", "5", "--ids", "1"], tmp_path, gateway
+    ) == 1
+    err = capsys.readouterr().err
+    assert "fpl event-live --gw 6 --round 5\n" in err
+    assert gateway.calls == []
+
+
+def test_actuals_round_must_be_before_gw(tmp_path, capsys):
+    from tests.factories import live_element_payload
+
+    seed_final_live(tmp_path, 6, 5, [live_element_payload(element_id=1)])
+    assert run(
+        ["actuals", "--gw", "5", "--round", "5", "--ids", "1"], tmp_path, FakeGateway({})
+    ) == 1
+    assert "--round 5 must be before --gw 5" in capsys.readouterr().err
 
 
 def test_actuals_dedupes_repeated_ids(tmp_path, capsys):
-    gateway = FakeGateway(
-        {
-            f"{BASE_URL}/element-summary/1/": element_summary_payload(
-                history=[match_record_payload(round=5)]
-            )
-        }
-    )
-    run(["actuals", "--gw", "1", "--round", "5", "--ids", "1,1,1"], tmp_path, gateway)
+    from tests.factories import live_element_payload
+
+    seed_final_live(tmp_path, 6, 5, [live_element_payload(element_id=1)])
+    run(["actuals", "--gw", "6", "--round", "5", "--ids", "1,1,1"], tmp_path,
+        FakeGateway({}))
     assert "1 players" in capsys.readouterr().out
-    assert len(gateway.calls) == 1
 
 
 # --- players view --------------------------------------------------------
@@ -1061,3 +1063,271 @@ def test_plan_from_proposal_diffs_against_previous_final_not_previous_proposal(
     )
     assert run_plan_cli(["plan", "--gw", "2", "--from-final", str(proposal)], tmp_path) == 0
     assert "transfers: 1 (picks-diff)" in capsys.readouterr().out.splitlines()
+
+
+def test_cache_note_spells_final():
+    from evals.harness.fpl_output import CacheNote, note_from_text
+    from fpl.__main__ import _format_fetch_log
+    from fpl.service import FetchEvent
+
+    note = _format_fetch_log(
+        [FetchEvent("event-live-e7", fetched=False, age_hours=100.0, final=True)]
+    )
+
+    assert note == "(cached, age 100.0h, final)"
+    assert note_from_text(note) == CacheNote("cached")
+
+
+def test_cache_note_of_a_final_snapshot_with_unknown_age():
+    from fpl.__main__ import _format_fetch_log
+    from fpl.service import FetchEvent
+
+    assert _format_fetch_log(
+        [FetchEvent("event-live-e7", fetched=False, final=True)]
+    ) == "(cached, age unknown, final)"
+
+
+# --- event-live ------------------------------------------------------------
+
+EVENT_LIVE_E7_URL = f"{BASE_URL}/event/7/live/"
+
+
+def event_live_setup(tmp_path, *, checked=True):
+    from tests.factories import event_live_payload, live_element_payload
+    from tests.test_service import seed_checked_bootstrap
+    from tests.test_store import FakeClock
+
+    clock = FakeClock()
+    store = SnapshotStore(tmp_path, now=clock)
+    seed_checked_bootstrap(
+        store, 8, checked=(7,) if checked else (), unchecked=() if checked else (7,)
+    )
+    bootstrap_time = clock.now
+    clock.advance(hours=2)
+    gateway = FakeGateway(
+        {EVENT_LIVE_E7_URL: event_live_payload([live_element_payload(element_id=7)])}
+    )
+
+    def run_at_clock(argv):
+        def factory(_: SnapshotStore) -> FplDataService:
+            return FplDataService(
+                FplApi(gateway), SnapshotStore(tmp_path, now=clock), now=clock,
+                throttle_s=0.0, sleep=lambda _: None,
+            )
+
+        return main(["--data-root", str(tmp_path), *argv], service_factory=factory)
+
+    return run_at_clock, gateway, store, clock, bootstrap_time
+
+
+def test_event_live_refuses_before_data_checked(tmp_path, capsys):
+    run_at_clock, gateway, store, _, _ = event_live_setup(tmp_path, checked=False)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 1
+
+    err = capsys.readouterr().err
+    assert "data-checked" in err
+    assert "bootstrap --gw 8 --force" in err
+    assert gateway.calls == []
+    assert not store.exists(8, "event-live-e7")
+
+
+def test_event_live_saves_final_with_basis(tmp_path, capsys):
+    run_at_clock, gateway, store, _, bootstrap_time = event_live_setup(tmp_path)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 0
+
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+    assert (tmp_path / "gw8" / "event-live-e7.json").is_file()
+    meta = store.meta(8, "event-live-e7")
+    assert meta["final"] is True
+    assert bootstrap_time.isoformat() in meta["basis"]
+    out = capsys.readouterr().out
+    assert out.splitlines()[0] == (
+        f"{tmp_path / 'gw8' / 'event-live-e7.json'} (1 players) (fetched)"
+    )
+
+
+def test_event_live_second_run_is_a_final_cache_hit_at_any_age(tmp_path, capsys):
+    run_at_clock, gateway, _, clock, _ = event_live_setup(tmp_path)
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 0
+    capsys.readouterr()
+    clock.advance(hours=72)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "7"]) == 0
+
+    assert gateway.calls == [EVENT_LIVE_E7_URL]
+    assert capsys.readouterr().out.splitlines()[0].endswith(
+        "(cached, age 72.0h, final)"
+    )
+
+
+def test_event_live_round_must_be_before_gw(tmp_path, capsys):
+    run_at_clock, gateway, _, _, _ = event_live_setup(tmp_path)
+
+    assert run_at_clock(["event-live", "--gw", "8", "--round", "8"]) == 1
+
+    assert "--round 8 must be before --gw 8" in capsys.readouterr().err
+    assert gateway.calls == []
+
+
+# --- post-deadline write guard ---------------------------------------------
+
+def post_deadline_setup(tmp_path, *, gw=6, fresh_deadline=None):
+    from tests.test_service import (
+        PASSED_DEADLINE, deadline_bootstrap_payload, seed_deadline_bootstrap,
+    )
+    from tests.test_store import FakeClock
+
+    clock = FakeClock()
+    store = SnapshotStore(tmp_path, now=clock)
+    seed_deadline_bootstrap(store, gw, {gw: PASSED_DEADLINE})
+    gateway = FakeGateway({
+        f"{BASE_URL}/element-summary/1/": element_summary_payload(),
+        BOOTSTRAP_URL: deadline_bootstrap_payload(gw, fresh_deadline or PASSED_DEADLINE),
+        FIXTURES_URL: [fixture_payload()],
+    })
+
+    def run_at_clock(argv):
+        def factory(_: SnapshotStore) -> FplDataService:
+            return FplDataService(
+                FplApi(gateway), SnapshotStore(tmp_path, now=clock), now=clock,
+                throttle_s=0.0, sleep=lambda _: None,
+            )
+
+        return main(["--data-root", str(tmp_path), *argv], service_factory=factory)
+
+    return run_at_clock, gateway, store
+
+
+@pytest.mark.parametrize("argv", [
+    ["summaries", "--gw", "6", "--ids", "1", "--force"],
+    ["fixtures", "--gw", "6"],
+])
+def test_fetch_into_a_past_gw_refuses_after_its_deadline(tmp_path, capsys, argv):
+    run_at_clock, gateway, _ = post_deadline_setup(tmp_path)
+
+    assert run_at_clock(argv) == 1
+
+    err = capsys.readouterr().err
+    assert "gw6 deadline" in err
+    assert "--allow-post-deadline" in err
+    assert gateway.calls == []
+
+
+def test_allow_post_deadline_fetches_into_a_past_gw(tmp_path, capsys):
+    run_at_clock, gateway, store = post_deadline_setup(tmp_path)
+
+    assert run_at_clock(
+        ["summaries", "--gw", "6", "--ids", "1", "--force", "--allow-post-deadline"]
+    ) == 0
+
+    assert gateway.calls == [f"{BASE_URL}/element-summary/1/"]
+    assert store.exists(6, "players/summary-1")
+
+
+def test_bootstrap_refresh_refuses_when_the_fresh_deadline_has_passed(tmp_path, capsys):
+    run_at_clock, gateway, store = post_deadline_setup(tmp_path)
+    before = store.path(6, "bootstrap").read_bytes()
+
+    assert run_at_clock(["bootstrap", "--gw", "6", "--force"]) == 1
+
+    err = capsys.readouterr().err
+    assert "gw6 deadline" in err
+    assert "--allow-post-deadline" in err
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert store.path(6, "bootstrap").read_bytes() == before
+
+
+def test_bootstrap_refresh_saves_a_postponed_deadline(tmp_path, capsys):
+    from tests.test_service import OPEN_DEADLINE
+
+    run_at_clock, gateway, store = post_deadline_setup(
+        tmp_path, gw=8, fresh_deadline=OPEN_DEADLINE
+    )
+
+    assert run_at_clock(["bootstrap", "--gw", "8", "--force"]) == 0
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
+
+
+def test_flags_refreshes_a_postponed_deadline(tmp_path, capsys):
+    from tests.test_service import OPEN_DEADLINE
+
+    run_at_clock, gateway, store = post_deadline_setup(
+        tmp_path, gw=8, fresh_deadline=OPEN_DEADLINE
+    )
+
+    assert run_at_clock(["flags", "--gw", "8", "--ids", "1"]) == 0
+
+    assert gateway.calls == [BOOTSTRAP_URL]
+    assert store.load(8, "bootstrap")["events"][0]["deadline_time"] == OPEN_DEADLINE
+
+
+def test_flags_refusal_after_the_deadline_offers_no_override(tmp_path, capsys):
+    run_at_clock, gateway, _ = post_deadline_setup(tmp_path)
+
+    assert run_at_clock(["flags", "--gw", "6", "--ids", "1"]) == 1
+
+    err = capsys.readouterr().err
+    assert "gw6 deadline" in err
+    assert "--allow-post-deadline" not in err
+    assert gateway.calls == [BOOTSTRAP_URL]
+
+
+def test_players_minutes_from_store_fills_summary_less_players(tmp_path, capsys):
+    from fpl.season_store import sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    Season(summary_ids={1}).write(raw)
+    sync(raw, db)
+    by_source = {}
+    for source in ("summaries", "store"):
+        store = ["--store", str(db)] if source == "store" else []
+        assert main(["--data-root", str(raw), "players", "--gw", "3", "--minutes",
+                     "--format", "csv", "--history-from", source, *store]) == 0
+        rows = list(csv.reader(io.StringIO(capsys.readouterr().out)))
+        assert rows[0][-1] == "minutes_r1-r2"
+        by_source[source] = {row[0]: row[-1] for row in rows[1:]}
+
+    assert by_source["summaries"] == {"1": "90,90", "2": "no summary", "3": "no summary"}
+    assert by_source["store"] == {"1": "90,90", "2": "90,75", "3": "0,0"}
+
+
+def test_players_minutes_from_store_pads_a_player_with_no_match_rows(tmp_path, capsys):
+    from fpl.season_store import sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "s.sqlite"
+    season = Season()
+    season.clubs[8] = {1: 1, 2: 1, 3: 1}
+    season.write(raw)
+    sync(raw, db)
+
+    assert main(["--data-root", str(raw), "players", "--gw", "3", "--minutes", "--format",
+                 "json", "--history-from", "store", "--store", str(db)]) == 0
+    by_id = {row["id"]: row for row in json.loads(capsys.readouterr().out)}
+    assert by_id[8][MINUTES_COLUMN] == {"1": "-", "2": "-"}
+
+
+def test_players_without_minutes_never_opens_the_store(tmp_path, capsys):
+    from tests.test_season_store import Season
+
+    raw = tmp_path / "raw"
+    Season().write(raw)
+
+    assert main(["--data-root", str(raw), "players", "--gw", "3", "--format", "csv",
+                 "--history-from", "store", "--store", str(tmp_path / "absent.sqlite")]) == 0
+
+
+@pytest.mark.parametrize("command", [
+    ["ep", "--position", "MID"], ["objective"], ["players", "--minutes"], ["fixtures-rate"],
+])
+@pytest.mark.parametrize("source", [[], ["--history-from", "summaries"]])
+def test_store_without_history_from_store_refuses(tmp_path, capsys, command, source):
+    assert main(["--data-root", str(tmp_path / "raw"), command[0], "--gw", "3",
+                 *command[1:], *source, "--store", str(tmp_path / "s.sqlite")]) == 1
+    err = capsys.readouterr().err
+    assert "--store" in err and "--history-from store" in err

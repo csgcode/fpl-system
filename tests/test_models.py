@@ -347,6 +347,27 @@ def test_live_element_parses_explain_and_string_xg():
     assert parsed.explain[0].stat("bonus") == 0
 
 
+def test_live_stats_parse_the_new_fields():
+    from fpl.models import LiveStats
+    from tests.factories import live_stats_payload
+
+    stats = LiveStats.model_validate(live_stats_payload(
+        expected_assists="0.31", yellow_cards=1, expected_goals_conceded="1.45",
+        red_cards=0,
+    ))
+    assert stats.expected_assists == 0.31
+    assert stats.yellow_cards == 1
+    assert stats.expected_goals_conceded == 1.45
+    assert stats.red_cards == 0
+
+    sparse = live_stats_payload()
+    for key in ("expected_assists", "yellow_cards", "expected_goals_conceded", "red_cards"):
+        del sparse[key]
+    parsed = LiveStats.model_validate(sparse)
+    assert (parsed.expected_assists, parsed.yellow_cards) == (None, None)
+    assert (parsed.expected_goals_conceded, parsed.red_cards) == (None, None)
+
+
 def test_event_live_without_explain_still_parses():
     from fpl.models import EventLive
     from tests.factories import live_stats_payload
@@ -356,3 +377,38 @@ def test_event_live_without_explain_still_parses():
     live = EventLive.model_validate({"elements": [{"id": 3, "stats": stats}]})
     assert live.elements[0].explain == ()
     assert live.elements[0].stats.expected_goals is None
+
+
+def test_fixture_parses_scores_and_bps_sides():
+    from fpl.models import Fixture
+    from tests.factories import fixture_bps_stat, fixture_payload
+
+    fixture = Fixture.model_validate(fixture_payload(
+        team_h_score=2, team_a_score=1,
+        stats=[{"identifier": "goals_scored", "h": [], "a": []},
+               fixture_bps_stat({7: 30}, {8: 12})],
+    ))
+    assert (fixture.team_h_score, fixture.team_a_score) == (2, 1)
+    assert fixture.bps_side(7) == "h"
+    assert fixture.bps_side(8) == "a"
+    assert fixture.bps_side(9) is None
+
+
+def test_fixture_without_scores_or_stats_still_parses():
+    from fpl.models import Fixture
+    from tests.factories import fixture_payload
+
+    fixture = Fixture.model_validate(fixture_payload())
+    assert (fixture.team_h_score, fixture.stats) == (None, ())
+    assert fixture.bps_side(1) is None
+
+
+def test_player_parses_code_and_count_totals():
+    player = Player.model_validate(player_payload(
+        code=154561, goals_scored=3, assists=2, bps=140, yellow_cards=1,
+    ))
+    assert player.code == 154561
+    assert (player.goals_scored, player.assists, player.bps) == (3, 2, 140)
+    sparse = player_payload()
+    del sparse["code"]
+    assert Player.model_validate(sparse).code is None

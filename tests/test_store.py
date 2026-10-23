@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -205,3 +206,150 @@ def test_save_text_meta_does_not_collide_with_json_snapshot(store, tmp_path):
     store.save_text(2, "prior-season.csv", "x\n", "url")
     assert (tmp_path / "gw2" / ".meta" / "prior-season.json").is_file()
     assert (tmp_path / "gw2" / ".meta" / "prior-season.csv").is_file()
+
+
+def test_save_records_final_and_basis_in_the_sidecar(store, clock):
+    store.save(8, "event-live-e7", {}, "url", final=True, basis="x")
+
+    meta = store.meta(8, "event-live-e7")
+    assert meta["final"] is True
+    assert meta["basis"] == "x"
+    assert store.fetched_at(8, "event-live-e7") == clock.now
+
+
+def test_save_records_a_reason_when_given(store):
+    store.save(8, "event-live-e7", {}, "url", reason="refetch requested")
+    assert store.meta(8, "event-live-e7")["reason"] == "refetch requested"
+
+
+def test_old_sidecar_without_final_reads_as_not_final(store, tmp_path):
+    store.save(2, "bootstrap", {}, "url")
+    (tmp_path / "gw2" / ".meta" / "bootstrap.json").write_text(
+        '{"fetched_at": "2026-08-21T06:00:00+00:00", "source_url": "url"}'
+    )
+
+    meta = store.meta(2, "bootstrap")
+    assert meta["final"] is False
+    assert meta["source_url"] == "url"
+    assert store.is_final(2, "bootstrap") is False
+
+
+@pytest.mark.parametrize("meta_text", ["{corrupt", "[]", '{"final": "yes"}'])
+def test_unusable_sidecar_is_never_final(store, tmp_path, meta_text):
+    store.save(2, "bootstrap", {}, "url")
+    (tmp_path / "gw2" / ".meta" / "bootstrap.json").write_text(meta_text)
+    assert store.is_final(2, "bootstrap") is False
+
+
+def test_meta_of_a_missing_snapshot_is_not_final(store):
+    assert store.meta(2, "bootstrap") == {"final": False}
+    assert store.is_final(2, "bootstrap") is False
+
+
+def test_non_final_save_keeps_the_sidecar_shape(store, tmp_path):
+    store.save(2, "bootstrap", {}, "url")
+    meta = json.loads((tmp_path / "gw2" / ".meta" / "bootstrap.json").read_text())
+    assert set(meta) == {"fetched_at", "source_url"}
+
+
+def _bootstrap_showing(checked: tuple[int, ...]) -> dict:
+    return {"events": [{"id": r, "data_checked": True} for r in checked]}
+
+
+def _save_at(root, when, gw, name, payload, **kwargs):
+    SnapshotStore(root, now=lambda: when).save(gw, name, payload, "url", **kwargs)
+
+
+T0 = datetime(2026, 9, 1, 12, 0, tzinfo=timezone.utc)
+
+
+def test_a_final_sidecar_proves_an_event_live_final(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0, 8, "event-live-e7", {}, final=True, basis="x")
+
+    proof = live_final(tmp_path, 8, 7)
+
+    assert proof is not None
+    assert proof.path == tmp_path / "gw8" / ".meta" / "event-live-e7.json"
+    assert proof.fetched_at == T0
+    assert proof.basis == f"gw8/.meta/event-live-e7.json final sidecar, fetched {T0.isoformat()}"
+
+
+@pytest.mark.parametrize("bootstrap_gw", [8, 9])
+@pytest.mark.parametrize("lead", [timedelta(hours=2), timedelta(0)])
+def test_a_kept_later_bootstrap_fetched_at_or_before_proves_it(tmp_path, bootstrap_gw, lead):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - lead, bootstrap_gw, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    proof = live_final(tmp_path, 8, 7)
+
+    assert proof is not None
+    assert proof.path == tmp_path / f"gw{bootstrap_gw}" / "bootstrap.json"
+    assert proof.fetched_at == T0 - lead
+    assert proof.basis == (f"gw{bootstrap_gw}/bootstrap.json fetched "
+                           f"{(T0 - lead).isoformat()} shows event 7 data_checked")
+    assert SnapshotStore(tmp_path).is_final(8, "event-live-e7") is True
+
+
+def test_a_bootstrap_fetched_after_the_snapshot_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+    _save_at(tmp_path, T0 + timedelta(seconds=1), 8, "bootstrap", _bootstrap_showing((7,)))
+
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_a_bootstrap_not_showing_the_round_checked_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((6,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_a_bootstrap_of_the_round_or_earlier_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 7, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_an_archived_bootstrap_proves_nothing(tmp_path):
+    """Archives are git-ignored: a proof must be reproducible from tracked files."""
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=2), 8, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0 + timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((7,)))
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert list((tmp_path / "gw8" / ".archive").glob("bootstrap-*.json"))
+    assert live_final(tmp_path, 8, 7) is None
+    assert SnapshotStore(tmp_path).is_final(8, "event-live-e7") is False
+
+
+def test_no_snapshot_or_no_fetch_time_is_not_final(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((7,)))
+    assert live_final(tmp_path, 8, 7) is None
+
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+    (tmp_path / "gw8" / ".meta" / "event-live-e7.json").write_text("{corrupt")
+    assert live_final(tmp_path, 8, 7) is None
+
+
+def test_an_unreadable_bootstrap_proves_nothing(tmp_path):
+    from fpl.store import live_final
+
+    _save_at(tmp_path, T0 - timedelta(hours=1), 8, "bootstrap", _bootstrap_showing((7,)))
+    (tmp_path / "gw8" / "bootstrap.json").write_text("{corrupt")
+    _save_at(tmp_path, T0, 8, "event-live-e7", {})
+
+    assert live_final(tmp_path, 8, 7) is None

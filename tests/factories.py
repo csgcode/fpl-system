@@ -9,6 +9,7 @@ from typing import Any
 def player_payload(**overrides: Any) -> dict[str, Any]:
     payload = {
         "id": 1,
+        "code": 900001,
         "web_name": "Alpha",
         "first_name": "Test",
         "second_name": "Alpha",
@@ -65,7 +66,7 @@ def event_payload(**overrides: Any) -> dict[str, Any]:
     payload = {
         "id": 1,
         "name": "Gameweek 1",
-        "deadline_time": "2026-08-14T17:30:00Z",
+        "deadline_time": "2099-08-14T17:30:00Z",
         "finished": False,
         "is_current": False,
         "is_next": True,
@@ -115,6 +116,15 @@ def fixture_payload(**overrides: Any) -> dict[str, Any]:
     }
     payload.update(overrides)
     return payload
+
+
+def fixture_bps_stat(home: dict[int, int], away: dict[int, int]) -> dict[str, Any]:
+    """A fixture `stats` entry for bps: element → value per side."""
+    return {
+        "identifier": "bps",
+        "h": [{"value": v, "element": e} for e, v in home.items()],
+        "a": [{"value": v, "element": e} for e, v in away.items()],
+    }
 
 
 def past_season_payload(**overrides: Any) -> dict[str, Any]:

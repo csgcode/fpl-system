@@ -70,6 +70,7 @@ class Chip(_FrozenModel):
 
 class Player(_FrozenModel):
     id: int
+    code: int | None = None
     web_name: str
     first_name: str
     second_name: str
@@ -97,6 +98,14 @@ class Player(_FrozenModel):
     clearances_blocks_interceptions: int = Field(ge=0)
     recoveries: int = Field(ge=0)
     tackles: int = Field(ge=0)
+    goals_scored: int | None = Field(default=None, ge=0)
+    assists: int | None = Field(default=None, ge=0)
+    bps: int | None = None
+    yellow_cards: int | None = Field(default=None, ge=0)
+    red_cards: int | None = Field(default=None, ge=0)
+    own_goals: int | None = Field(default=None, ge=0)
+    penalties_saved: int | None = Field(default=None, ge=0)
+    penalties_missed: int | None = Field(default=None, ge=0)
     cost_change_start: int
     cost_change_event: int
     penalties_order: int | None = None
@@ -147,6 +156,17 @@ class Bootstrap(_FrozenModel):
         return {p.id: p for p in self.elements}
 
 
+class FixtureStatEntry(_FrozenModel):
+    element: int
+    value: int
+
+
+class FixtureStat(_FrozenModel):
+    identifier: str
+    h: tuple[FixtureStatEntry, ...] = ()
+    a: tuple[FixtureStatEntry, ...] = ()
+
+
 class Fixture(_FrozenModel):
     id: int
     event: int | None
@@ -156,6 +176,20 @@ class Fixture(_FrozenModel):
     team_a_difficulty: int = Field(ge=1, le=5)
     kickoff_time: datetime | None = None
     finished: bool
+    team_h_score: int | None = Field(default=None, ge=0)
+    team_a_score: int | None = Field(default=None, ge=0)
+    stats: tuple[FixtureStat, ...] = ()
+
+    def bps_side(self, element: int) -> str | None:
+        """'h' or 'a' when the element is on the fixture's bps list, else None
+        (a player with 0 bps may be left off it)."""
+        bps = next((s for s in self.stats if s.identifier == "bps"), None)
+        if bps is None:
+            return None
+        for side, entries in (("h", bps.h), ("a", bps.a)):
+            if any(e.element == element for e in entries):
+                return side
+        return None
 
 
 class MatchRecord(_FrozenModel):
@@ -223,6 +257,13 @@ class LiveStats(_FrozenModel):
     starts: int = Field(ge=0)
     defensive_contribution: float | None = None
     expected_goals: float | None = None
+    expected_assists: float | None = None
+    expected_goals_conceded: float | None = None
+    yellow_cards: int | None = None
+    red_cards: int | None = None
+    own_goals: int | None = None
+    penalties_saved: int | None = None
+    penalties_missed: int | None = None
 
     @property
     def started(self) -> bool:
@@ -232,6 +273,7 @@ class LiveStats(_FrozenModel):
 class LiveExplainStat(_FrozenModel):
     identifier: str
     value: float
+    points: int = 0
 
 
 class LiveExplain(_FrozenModel):
@@ -248,6 +290,7 @@ class LiveElement(_FrozenModel):
     id: int
     stats: LiveStats
     explain: tuple[LiveExplain, ...] = ()
+    modified: bool = False
 
 
 class EventLive(_FrozenModel):

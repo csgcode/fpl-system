@@ -372,3 +372,26 @@ def test_load_views_allows_unjudged_players_the_blend_view_lacks(tmp_path):
                  "--allow-missing-ids", "3"]) == 0
     blend, prior = load_views(store, analysis, GW)
     assert 3 not in blend and 3 not in prior and 1 in prior
+
+
+def test_load_views_reads_the_prior_reading_through_the_history_it_is_given(tmp_path):
+    from fpl.__main__ import main
+    from fpl.season_store import History
+
+    store, analysis = _seed(tmp_path)
+    assert main(["--data-root", str(tmp_path / "raw"), "ep", "--gw", str(GW),
+                 "--position", "MID", "--analysis-root", str(analysis),
+                 "--decisions-root", str(tmp_path / "decisions")]) == 0
+    asked: list[tuple[int, tuple[int, ...]]] = []
+
+    class Recording(History):
+        def summaries(self, gw, ids):
+            ids = tuple(ids)
+            asked.append((gw, ids))
+            return super().summaries(gw, ids)
+
+    default = load_views(store, analysis, GW)
+    recorded = load_views(store, analysis, GW, Recording("summaries", tmp_path / "raw"))
+
+    assert recorded == default
+    assert [gw for gw, _ in asked] == [GW] * 4 and any(1 in ids for _, ids in asked)

@@ -24,8 +24,8 @@ DISALLOWED = ("WebFetch", "WebSearch", "Bash(curl *)", "Bash(wget *)",
               "Bash(git commit *)", "Bash(git push *)")
 NETWORK_SUBCOMMANDS = frozenset({
     "bootstrap", "fixtures", "summaries", "entry", "picks", "entry-history",
-    "actuals", "flags", "calibrate", "auth-check", "my-team", "set-lineup",
-    "make-transfers",
+    "actuals", "flags", "calibrate", "event-live", "auth-check", "my-team",
+    "set-lineup", "make-transfers",
 })
 AGENT_TIMEOUT_S = 900
 STDERR_FILE = "stderr.txt"
