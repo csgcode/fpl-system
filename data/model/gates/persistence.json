@@ -57,17 +57,9 @@
    }
   }
  },
- "decision_commits": {
-  "1": null,
-  "2": null,
-  "3": null,
-  "4": null,
-  "5": null,
-  "6": "b28927fddb3a",
-  "7": "bacd40409de5"
- },
+ "decision_commits": null,
  "code": {
-  "head": "9c5afef97e99080cfad49c42b4547bda65e2fb3b",
+  "head": "2badd74abb34780ba294adb5c48ecbcbd2684942",
   "dirty": false
  },
  "baseline_config": null,
@@ -359,6 +351,15 @@
  "reasons": [
   "ci: clustered lower −0.095 ≤ 0"
  ],
- "recorded_at": "2026-10-23T16:18:46+00:00",
- "significant": false
+ "recorded_at": "2026-10-23T16:34:00+00:00",
+ "significant": false,
+ "predictions_commits": {
+  "1": null,
+  "2": null,
+  "3": null,
+  "4": null,
+  "5": null,
+  "6": "b28927fddb3a",
+  "7": "bacd40409de5"
+ }
 }
