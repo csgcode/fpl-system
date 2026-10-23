@@ -83,6 +83,11 @@ the league mean rather than from 90.
 3. **Blend** — `w_prior = max(0.2, 600 / (600 + current_minutes))`:
    0 min → 1.00, 90 → 0.87, 180 → 0.77, 450 → 0.57, 900 → 0.40, floor 0.20.
    `rate = w_prior × prior + (1 − w_prior) × current`.
+   K = 600 is the value the `prior-weight` gate kept: the backtest's sweep did
+   not beat it by enough to ship (§8). Worked example:
+   <!-- example: prior_weight minutes=180 -->
+   a player with 180 current minutes gets `w_prior = 600 / 780 = 0.77`.
+   The floor is untested until players pass about 700 current minutes.
 4. **League mean** — pooled from cached summaries of the position with ≥ 900
    prior minutes (≥ 8 players); otherwise the v1 fallback table below, with a
    warning. `bonus_per_start` is the exception: see Bonus below.
@@ -378,5 +383,6 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | Gate | Kind | Rounds | Grid | Ship value | ΔMAE | CI | Bias | Wins | Verdict | Reasons |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | baseline | model | 3-7 | — | — | — | — | — | — | — | reference: n 2127, bias +0.183, MAE 1.643 |
+| prior-weight | model | 3-7 | blend_k=600,300,450,900,1200 | blend_k=300 | −0.0043 | [−0.008, −0.001] | +0.183→+0.192 | 5/5 | FAIL | effect: ΔMAE −0.0043 > −0.01 |
 | combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->
