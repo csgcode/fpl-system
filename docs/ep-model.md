@@ -441,5 +441,26 @@ below is generated from them by `fpl gates --render`; do not edit it by hand.
 | saves-adjust | model | 3-7 | — | opponent_adjust_saves=true | +0.0001 | [−0.000, +0.000] | +0.183→+0.183 | 1/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0001 > −0.01; rounds: won 1 of 5, need 4 |
 | effective-minutes | model | 3-7 | — | blend_on_effective_minutes=true | +0.0000 | [+0.000, +0.000] | +0.183→+0.183 | 0/5 | FAIL | ci: upper +0.000 ≥ 0; effect: ΔMAE +0.0000 > −0.01; rounds: won 0 of 5, need 4 |
 | finishing | model | 3-7 | finishing_k=none,20,10,5,2,1 | finishing_k=1 | −0.0026 | [−0.008, +0.002] | +0.183→+0.192 | 4/5 | FAIL | ci: upper +0.002 ≥ 0; effect: ΔMAE −0.0026 > −0.01 |
+| persistence | persistence | 1-7 | — | — | — | — | — | — | not significant | window 3: n 711, slope +0.034 [−0.095, +0.162], r +0.020; window 1: n 1098, slope +0.007 [−0.046, +0.060], r +0.007; window 2: n 805, slope +0.018 [−0.083, +0.119], r +0.013 |
 | combined | combined | 3-7 | — | — | — | — | — | — | — | — |
 <!-- gates:end -->
+
+## 10. Form
+
+There is no form term. A form term would add a share of a player's recent
+prediction errors to his next prediction, and it is worth adding only if those
+errors carry over from one round to the next. `fpl persistence` measures that
+on the calibration ledgers: for each player who started a round, it compares
+his error in that round with his mean error over the rounds before it that he
+started. The record is data/model/gates/persistence.json and its numbers are
+in the gate table in §8: the slope is close to 0 and its interval includes 0
+for every window tried (1, 2 and 3 rounds), so recent errors do not predict
+the next one.
+
+Two cautions when reading the measurement:
+
+- The GW1–2 ledgers score EP that the LLM analyst computed by hand, and the
+  GW3 onward ledgers score EP that the code computed. The pooled errors mix
+  the two.
+- `objective`'s prior-only reading builds predictions at prior weight 1, so
+  a form term would be 0 there by construction.
