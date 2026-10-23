@@ -82,15 +82,20 @@ the league mean rather than from 90.
    `prior_source = league_mean`.
 2. **Current** — element-summary `history` rows with minutes > 0, this season.
    Every played match counts equally and no match is adjusted for its
-   opponent. The `recency`, `saves-adjust` and `effective-minutes` gates
-   (§8) tested the alternatives and none beat this:
+   opponent. The `recency` and `saves-adjust` gates (§8) tested the
+   alternatives and neither beat this:
    - `recency` tried weighting recent matches more (a half-life of 2, 3, 4
      or 6 matches) and dividing each match's xG and xA by how hard its
      opponent was to score against. The half-life counts played matches, not
      rounds, so an injured player's older matches keep their weight.
    - `saves-adjust` tried the same opponent adjustment for a goalkeeper's
-     saves; `effective-minutes` tried setting the blend weight from the
-     recency-weighted minutes rather than the raw ones.
+     saves.
+   - `effective-minutes` was meant to set the blend weight from the
+     recency-weighted minutes rather than the raw ones. It could not be
+     tested: with no half-life shipped, every match weighs 1, so the weighted
+     minutes equal the raw minutes and the variant predicts exactly what the
+     baseline does (ΔMAE 0 on every line). Its FAIL says nothing about the
+     idea; it needs a fresh run if a half-life ever ships.
    - The opponent ratings used to adjust a past match are round N's, from
      `fixtures.json`. By GW7 they already include that match at a weight of
      about 1/10: the match influences its own adjustment a little, but no
@@ -476,7 +481,7 @@ The code for each tested change is kept, switched off. Each is a
 | weighting recent matches more | `HALF_LIFE_MATCHES` (None) | `recency` |
 | adjusting xG and xA for the opponent | `OPPONENT_ADJUST` (False) | `recency` |
 | adjusting saves for the opponent | `OPPONENT_ADJUST_SAVES` (False) | `saves-adjust` |
-| blend weight from recency-weighted minutes | `BLEND_ON_EFFECTIVE_MINUTES` (False) | `effective-minutes` |
+| blend weight from recency-weighted minutes (not testable yet: §2) | `BLEND_ON_EFFECTIVE_MINUTES` (False) | `effective-minutes` |
 | finishing multiplier | `FINISHING_K` (None) | `finishing` |
 
 The policy gates asked whether the analysts should stop discounting players
@@ -519,6 +524,10 @@ uv run python -m fpl gates --gw 8 --render
   then writes `combined.json` again. `--force` archives the existing records
   and runs every entry again. `combined.json` is archived only when its
   content changes.
+- An entry runs on top of the earlier passing entries, but an existing record
+  is skipped. So when an entry starts to pass (for example `recency`), re-run
+  with `--force`, or the later entries (such as `effective-minutes`) keep
+  records judged without it.
 - `--record <name>` with `--set` or `--sweep` records a single test outside
   the manifest.
 - `gates --summary` prints each record's result and what happened to it;
