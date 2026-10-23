@@ -85,6 +85,7 @@ def default_store_path(raw_root: Path) -> Path:
 DEFAULT_STORE_PATH = default_store_path(DEFAULT_RAW_ROOT)
 SCAN_CACHE_SUFFIX = ".scan.json"
 LOCK_SUFFIX = ".lock"
+MAX_AUTO_SYNCS = 2
 XG_RECORDED_FROM = "2022/23"
 DC_RECORDED_FROM = "2024/25"
 
@@ -225,6 +226,8 @@ class DgwSplit:
 @dataclass(frozen=True)
 class SyncReport:
     files_ingested: int
+    files_total: int
+    rebuilt: bool
     rounds: tuple[int, ...]
     player_rounds: int
     history_past_players: int
@@ -296,12 +299,13 @@ def _sync(raw_root: Path, db_path: Path, *, force: bool) -> SyncReport:
     current = {f.path: f.key for f in files}
     known = None if force else _known_manifest(db_path)
     ingested = sum(1 for path, key in current.items() if (known or {}).get(path) != key)
-    if known is None or known != current:
+    rebuilt = known is None or known != current
+    if rebuilt:
         _write(db_path, _build(files))
     _write_scan_cache(db_path, files)
     con = _connect(db_path)
     try:
-        return _report(con, ingested)
+        return _report(con, ingested, len(files), rebuilt)
     finally:
         con.close()
 
@@ -776,6 +780,14 @@ def _write(db_path: Path, tables: _Tables) -> None:
     except BaseException:
         building.unlink(missing_ok=True)
         raise
+    _remove_orphans(db_path)
+
+
+def _remove_orphans(db_path: Path) -> None:
+    """Temporary files of the store or its scan cache that a killed sync left
+    behind. Only a sync, under the sync lock, writes them, so none is live."""
+    for orphan in db_path.parent.glob(f".{db_path.name}.*.tmp"):
+        orphan.unlink(missing_ok=True)
 
 
 def _fill(db_path: Path, tables: _Tables) -> None:
@@ -810,7 +822,7 @@ def _insert(con: sqlite3.Connection, table: str, rows: Iterable[tuple]) -> None:
         con.executemany(f"INSERT INTO {table} VALUES ({marks})", rows)
 
 
-def _report(con: sqlite3.Connection, ingested: int) -> SyncReport:
+def _report(con: sqlite3.Connection, ingested: int, total: int, rebuilt: bool) -> SyncReport:
     rounds = tuple(r for (r,) in con.execute(
         "SELECT DISTINCT round FROM player_rounds ORDER BY round"))
     unresolved = tuple(UnresolvedSide(*r) for r in con.execute(
@@ -825,6 +837,8 @@ def _report(con: sqlite3.Connection, ingested: int) -> SyncReport:
     mismatches, skipped = _reconcile(con, rounds)
     return SyncReport(
         files_ingested=ingested,
+        files_total=total,
+        rebuilt=rebuilt,
         rounds=rounds,
         player_rounds=con.execute("SELECT COUNT(*) FROM player_rounds").fetchone()[0],
         history_past_players=con.execute(
@@ -1000,21 +1014,41 @@ def open_synced(
 ) -> SeasonReader:
     """`open_ro`, syncing the store first when it is stale. The staleness is
     re-checked under the sync lock, so a reader that waited on another's sync
-    reads that result instead of syncing again. A failed sync refuses and
-    leaves the store as it was."""
+    reads that result instead of syncing again. A raw file written between a
+    sync and the open triggers one more sync; a tree still changing after
+    MAX_AUTO_SYNCS refuses. A failed sync refuses and leaves the store as it
+    was."""
     try:
         return open_ro(db_path, raw_root)
     except StoreStaleError:
         pass
+    reason: str | None = None
+    report: SyncReport | None = None
     with sync_lock(db_path):
-        try:
-            return open_ro(db_path, raw_root)
-        except StoreStaleError as stale:
-            reason = stale.reason
-        report = _sync(raw_root, db_path, force=False)
-    (notify or _stderr_line)(
-        f"season store {db_path} synced ({reason}): {report.files_ingested} files ingested")
-    return open_ro(db_path, raw_root)
+        for attempt in range(MAX_AUTO_SYNCS + 1):
+            try:
+                reader = open_ro(db_path, raw_root)
+                break
+            except StoreStaleError as stale:
+                if attempt == MAX_AUTO_SYNCS:
+                    raise StoreStaleError(
+                        f"{stale} — {raw_root} changed during {MAX_AUTO_SYNCS} syncs; "
+                        f"run the command again once nothing is writing to it",
+                        stale.reason) from None
+                reason = reason or stale.reason
+                report = _sync(raw_root, db_path, force=False)
+    if report is not None:
+        (notify or _stderr_line)(f"season store {db_path} synced ({reason}): {_built(report)}")
+    return reader
+
+
+def _built(report: SyncReport) -> str:
+    """Every sync that finds a change rebuilds the whole store from the raw
+    tree; the count says how many raw files differed from the last build."""
+    if report.rebuilt:
+        return (f"rebuilt from {report.files_total} raw files "
+                f"({report.files_ingested} new or changed)")
+    return f"up to date, {report.files_total} raw files, none new or changed"
 
 
 def _stderr_line(line: str) -> None:
@@ -1384,7 +1418,7 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
             cached=False)
     p.add_argument(
         "action", choices=ACTIONS,
-        help="sync: ingest what changed; rebuild: from scratch; verify: in sync, "
+        help="sync: rebuild when a raw file is new or changed; rebuild: always; verify: in sync, "
              "reconciled and equal to a fresh build (writes nothing); status: the "
              "manifest summary (writes nothing). Every action covers the whole raw tree; "
              f"exit {EXIT_MISMATCH}: a reconciliation mismatch",
@@ -1400,7 +1434,7 @@ def run(raw_root: Path, args: argparse.Namespace) -> int:
     if args.action == "verify":
         return _verify(raw_root, args.store)
     report = (rebuild if args.action == "rebuild" else sync)(raw_root, args.store)
-    print(f"store {args.store}: {report.files_ingested} files ingested")
+    print(f"store {args.store}: {_built(report)}")
     exit_code = _print_report(report)
     print(_coverage_line(args.store, args.gw))
     return exit_code
@@ -1453,7 +1487,7 @@ def _verify(raw_root: Path, db_path: Path) -> int:
     files = _scan(raw_root)
     con, _ = _open_checked(db_path, raw_root, files)
     try:
-        exit_code = _print_report(_report(con, 0))
+        exit_code = _print_report(_report(con, 0, len(files), False))
         stored = list(con.iterdump())
     finally:
         con.close()

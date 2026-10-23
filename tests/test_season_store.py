@@ -22,6 +22,7 @@ from fpl.season_store import (
     DEFAULT_STORE_PATH,
     SCHEMA_VERSION,
     StoreReadError,
+    StoreStaleError,
     StoreSyncError,
     StoredMatch,
     _build,
@@ -1118,7 +1119,7 @@ def test_open_synced_builds_a_missing_store_and_says_so(raw, db):
 
     assert len(said) == 1
     assert said[0].startswith(f"season store {db} synced (no store yet):")
-    assert "files ingested" in said[0]
+    assert "rebuilt from" in said[0]
 
 
 def test_open_synced_syncs_a_store_behind_the_raw_once(raw, db):
@@ -1135,7 +1136,79 @@ def test_open_synced_syncs_a_store_behind_the_raw_once(raw, db):
 
     assert len(said) == 1
     assert "gw3/players/summary-9.json not ingested" in said[0]
-    assert "1 files ingested" in said[0]
+    assert "(1 new or changed)" in said[0]
+
+
+def _rewriting_sync(monkeypatch, raw, times):
+    """`_sync` that saves a new gw3 summary-9 just after each of its first
+    `times` runs: the raw tree changes between the sync and the open."""
+    real = season_store._sync
+    runs: list[int] = []
+
+    def syncing(raw_root, db_path, *, force):
+        report = real(raw_root, db_path, force=force)
+        runs.append(1)
+        if len(runs) <= times:
+            save_raw(raw, fetch_time(3) + timedelta(hours=len(runs)), 3, "players/summary-9", {
+                "fixtures": [], "history": [],
+                "history_past": [past_season_payload(minutes=100 * len(runs))]})
+        return report
+
+    monkeypatch.setattr(season_store, "_sync", syncing)
+    return runs
+
+
+def test_open_synced_syncs_again_when_the_raw_tree_changes_after_its_sync(raw, db, monkeypatch):
+    Season().write(raw)
+    runs = _rewriting_sync(monkeypatch, raw, times=1)
+    said: list[str] = []
+
+    with season_store.open_synced(db, raw, notify=said.append) as store:
+        assert [p.minutes for p in store.past([9])[9]] == [100]
+
+    assert len(runs) == 2
+    assert len(said) == 1
+
+
+def test_open_synced_gives_up_after_two_syncs_while_the_raw_tree_keeps_changing(
+        raw, db, monkeypatch):
+    Season().write(raw)
+    runs = _rewriting_sync(monkeypatch, raw, times=99)
+
+    with pytest.raises(StoreStaleError, match="changed during 2 syncs"):
+        season_store.open_synced(db, raw, notify=lambda line: None)
+
+    assert len(runs) == 2
+
+
+def test_a_sync_notice_says_the_store_was_rebuilt_not_patched(raw, db):
+    Season().write(raw)
+    sync(raw, db)
+    total = len(rows(db, "SELECT path FROM manifest"))
+    save_raw(raw, fetch_time(3) + timedelta(hours=3), 3, "players/summary-9", {
+        "fixtures": [], "history": [], "history_past": [past_season_payload()]})
+    said: list[str] = []
+
+    with season_store.open_synced(db, raw, notify=said.append):
+        pass
+
+    assert said[0].endswith(f"rebuilt from {total + 1} raw files (1 new or changed)")
+
+
+def test_a_successful_build_removes_an_orphaned_temporary_store(raw, db):
+    Season().write(raw)
+    db.parent.mkdir(parents=True, exist_ok=True)
+    orphans = [db.with_name(f".{db.name}.abc123.tmp"),
+               db.with_name(f".{db.name}.scan.json.def456.tmp")]
+    for orphan in orphans:
+        orphan.write_bytes(b"left by a killed sync")
+    unrelated = db.with_name(".other.sqlite.x.tmp")
+    unrelated.write_bytes(b"")
+
+    sync(raw, db)
+
+    assert not any(o.exists() for o in orphans)
+    assert unrelated.exists()
 
 
 def test_open_synced_is_silent_when_the_store_is_in_sync(raw, db):

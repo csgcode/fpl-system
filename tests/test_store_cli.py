@@ -85,7 +85,7 @@ def test_sync_coverage_names_a_gw_without_a_bootstrap(raw, db, capsys):
     assert "coverage gw5: no bootstrap in the store" in capsys.readouterr().out.splitlines()
 
 
-def test_sync_reports_files_ingested_then_none_on_a_second_run(raw, db, capsys):
+def test_sync_reports_a_rebuild_then_up_to_date_on_a_second_run(raw, db, capsys):
     Season().write(raw)
     run(raw, db, "sync")
     first = capsys.readouterr().out
@@ -93,8 +93,9 @@ def test_sync_reports_files_ingested_then_none_on_a_second_run(raw, db, capsys):
 
     assert run(raw, db, "sync") == 0
 
-    assert f"{files} files ingested" in first
-    assert "0 files ingested" in capsys.readouterr().out
+    assert f"store {db}: rebuilt from {files} raw files ({files} new or changed)" in first
+    assert (f"store {db}: up to date, {files} raw files, none new or changed"
+            in capsys.readouterr().out)
 
 
 def test_a_seeded_mismatch_prints_it_and_exits_3(raw, db, capsys):
@@ -242,7 +243,7 @@ def test_rebuild_rewrites_a_store_that_sync_leaves_alone(raw, db, capsys):
 
     assert run(raw, db, "rebuild") == 0
 
-    assert f"{files} files ingested" in capsys.readouterr().out
+    assert f"rebuilt from {files} raw files" in capsys.readouterr().out
     assert run(raw, db, "verify") == 0
 
 
