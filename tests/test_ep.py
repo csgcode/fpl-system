@@ -517,7 +517,11 @@ def test_prior_comes_from_history_past_shrunk_toward_league_mean():
     assert row.rates.xg90 == pytest.approx((observed_xg90 + league) / 2, abs=1e-3)
     assert row.rates.prior_source == "history_past"
     assert row.rates.prior_weight == 1.0
-    assert any("fallback" in w for w in result.warnings)
+    [warning] = [w for w in result.warnings if "fallback" in w]
+    assert warning == (
+        "league mean for MID uses the v1 fallback table — only 0 players in the loaded "
+        "history have history_past with ≥ 900 prior minutes (need 8); with "
+        "--history-from summaries, fetch more with summaries --shortlist")
 
 
 def test_current_season_rows_blend_in_by_minutes():
