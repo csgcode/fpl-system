@@ -602,8 +602,9 @@ Nothing from after a round's deadline may reach its prediction:
   a season;
 - with `--history-from summaries` they come instead from the gw r cached
   summaries, each fetched before the deadline and holding only rounds before
-  r. From GW9 the collector keeps a summary only for players with no past
-  seasons on file, so this reading suits rounds before 9 only;
+  r. This reading works for rounds 3–6 only: from round 7 the analysts
+  judged players whose summaries were not cached that gameweek, and from GW9
+  the collector keeps a summary only for players with no past seasons on file;
 - the inputs on disk must equal those in the round's decision commit (the
   commit that first added its final.md); `--no-drift-check` skips this;
 - the actual points come only from the final event-live snapshot.
