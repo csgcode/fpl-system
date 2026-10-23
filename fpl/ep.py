@@ -52,6 +52,10 @@ PRIOR_POOL_TARGET_MINUTES = 900
 PRIOR_MAX_SEASONS = 2
 BLEND_EQUIV_MINUTES = 600.0
 BLEND_PRIOR_FLOOR = 0.2
+HALF_LIFE_MATCHES: float | None = None
+OPPONENT_ADJUST = False
+OPPONENT_ADJUST_SAVES = False
+BLEND_ON_EFFECTIVE_MINUTES = False
 # Starts-equivalent pseudo-counts: bonus per start is noisy match to match and
 # barely differs between players, so a player's own record needs dozens of
 # starts before it outweighs the position mean.
@@ -740,10 +744,10 @@ class ModelConfig:
 
     blend_k: float = BLEND_EQUIV_MINUTES
     blend_floor: float = BLEND_PRIOR_FLOOR
-    half_life_matches: float | None = None
-    opponent_adjust: bool = False
-    opponent_adjust_saves: bool = False
-    blend_on_effective_minutes: bool = False
+    half_life_matches: float | None = HALF_LIFE_MATCHES
+    opponent_adjust: bool = OPPONENT_ADJUST
+    opponent_adjust_saves: bool = OPPONENT_ADJUST_SAVES
+    blend_on_effective_minutes: bool = BLEND_ON_EFFECTIVE_MINUTES
     blend_k_no_history: float | None = None
     finishing_k: float | None = None
 

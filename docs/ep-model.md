@@ -80,6 +80,23 @@ the league mean rather than from 90.
    `M` = prior minutes, `K = 450`. No PL history → `M = 0` → league mean,
    `prior_source = league_mean`.
 2. **Current** — element-summary `history` rows with minutes > 0, this season.
+   Every played match counts equally and no match is adjusted for its
+   opponent. The `recency`, `saves-adjust` and `effective-minutes` gates
+   (§8) tested the alternatives and none beat this:
+   - `recency` tried weighting recent matches more (a half-life of 2, 3, 4
+     or 6 matches) and dividing each match's xG and xA by how hard its
+     opponent was to score against. The half-life counts played matches, not
+     rounds, so an injured player's older matches keep their weight.
+   - `saves-adjust` tried the same opponent adjustment for a goalkeeper's
+     saves; `effective-minutes` tried setting the blend weight from the
+     recency-weighted minutes rather than the raw ones.
+   - The opponent ratings used to adjust a past match are round N's, from
+     `fixtures.json`. By GW7 they already include that match at a weight of
+     about 1/10: the match influences its own adjustment a little, but no
+     later result leaks in.
+   - For rounds 3–6 those ratings were written by the LLM fixture analyst,
+     before `fpl fixtures-rate` existed, so the gate judged the adjustment on
+     ratings that production no longer produces.
 3. **Blend** — `w_prior = max(0.2, 600 / (600 + current_minutes))`:
    0 min → 1.00, 90 → 0.87, 180 → 0.77, 450 → 0.57, 900 → 0.40, floor 0.20.
    `rate = w_prior × prior + (1 − w_prior) × current`.
