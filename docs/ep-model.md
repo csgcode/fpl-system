@@ -577,8 +577,13 @@ from its calibration ledger's by more than N.
 A round r can be scored when it has analyst inputs under
 `data/analysis/gw{r}/` and a final event-live snapshot at
 `data/raw/gw{r+1}/event-live-e{r}.json`. Final means its `.meta` sidecar says
-`final: true`, or a bootstrap of a later gameweek, fetched no later than the
-snapshot, shows round r data-checked. The gates use rounds from 3 on: before
+`final: true`, or a kept bootstrap of a later gameweek, fetched no later than
+the snapshot, shows round r data-checked. An archived bootstrap under
+`.archive/` never counts: git ignores it, so a proof resting on it could not
+be checked from the committed files. This is the same rule the season store
+uses (`fpl.store.live_final`), and each gate record names the file that
+proved each round final, under `data.actuals.<round>.basis`. The gates use
+rounds from 3 on: before
 GW3 the analysts computed EP by hand, so there is no code prediction to
 compare with.
 

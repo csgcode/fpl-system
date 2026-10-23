@@ -45,7 +45,7 @@ from fpl.models import Bootstrap, ElementSummary, EventLive, PLAYING_POSITIONS, 
 from fpl.service import load_cached_bootstrap, load_cached_summaries
 from fpl.state import MAX_GW, MIN_GW
 from fpl.gates import GateRecord, ManifestEntry, signed, value_text
-from fpl.store import ARCHIVE_STAMP_FORMAT, SnapshotStore
+from fpl.store import SnapshotStore, live_final
 
 POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
 INPUTS_POLICIES = ("keep", "drop_promoted", "drop_no_history")
@@ -80,6 +80,7 @@ class RoundData:
     inputs: dict[Position, InputsDocument]
     live: EventLive
     promoted: frozenset[str]
+    final_basis: str
     warnings: tuple[str, ...] = ()
 
 
@@ -112,7 +113,7 @@ def load_round(
     names = ["bootstrap", *(["fixtures"] if store.exists(gw, "fixtures") else []),
              *(f"players/summary-{pid}" for pid in summaries)]
     _check_fetched_before(store, gw, names, deadline)
-    live = _load_final_actuals(actuals_root, gw)
+    live, final_basis = _load_final_actuals(actuals_root, gw)
 
     warnings: list[str] = []
     commit = None
@@ -121,7 +122,7 @@ def load_round(
                               decisions_root or analysis_root.parent / "decisions", gw, warnings)
     return RoundData(gw=gw, commit=commit, deadline=deadline, bootstrap=bootstrap,
                      summaries=summaries, fixtures=fixtures, inputs=inputs, live=live,
-                     promoted=promoted, warnings=tuple(warnings))
+                     promoted=promoted, final_basis=final_basis, warnings=tuple(warnings))
 
 
 class BacktestLine(PlayerLine):
@@ -627,67 +628,22 @@ def _check_fetched_before(store: SnapshotStore, gw: int, names: list[str],
                              f"after the gw{gw} deadline {deadline.isoformat()}")
 
 
-def _load_final_actuals(actuals_root: Path, gw: int) -> EventLive:
+def _load_final_actuals(actuals_root: Path, gw: int) -> tuple[EventLive, str]:
+    """Round `gw`'s event-live snapshot and the basis of its proof of
+    finality, by the one rule every reader shares (store.live_final)."""
     store = SnapshotStore(actuals_root)
     name = f"event-live-e{gw}"
     path = store.path(gw + 1, name)
     if not path.is_file():
         raise ValueError(f"no actuals for round {gw}: {path} is missing")
-    if not _is_final(actuals_root, store, gw):
+    proof = live_final(actuals_root, gw + 1, gw)
+    if proof is None:
         raise ValueError(
-            f"{path} is not final: its sidecar has no `final` key and no bootstrap of "
+            f"{path} is not final: its sidecar has no `final` key and no kept bootstrap of "
             f"gw{gw + 1} or later, fetched at or before it, shows event {gw} data_checked "
             f"— refetch with fpl event-live --gw {gw + 1} --round {gw} --force"
         )
-    return EventLive.model_validate(store.load(gw + 1, name))
-
-
-def _is_final(actuals_root: Path, store: SnapshotStore, gw: int) -> bool:
-    name = f"event-live-e{gw}"
-    meta = store.dir(gw + 1) / ".meta" / f"{name}.json"
-    try:
-        if json.loads(meta.read_text(encoding="utf-8")).get("final") is True:
-            return True
-    except (OSError, ValueError, AttributeError):
-        pass
-    fetched = store.fetched_at(gw + 1, name)
-    if fetched is None:
-        return False
-    return any(
-        seen <= fetched and _shows_checked(path, gw)
-        for path, seen in _bootstraps_from(actuals_root, store, gw + 1)
-    )
-
-
-def _bootstraps_from(root: Path, store: SnapshotStore, first_gw: int):
-    """Every cached bootstrap of gw ≥ first_gw with its fetch time, archived
-    ones included: an archive entry's stamp is the fetch time it was saved with."""
-    for directory in sorted(root.glob("gw*")):
-        try:
-            n = int(directory.name[2:])
-        except ValueError:
-            continue
-        if n < first_gw:
-            continue
-        current = store.fetched_at(n, "bootstrap")
-        if current is not None and store.exists(n, "bootstrap"):
-            yield store.path(n, "bootstrap"), current
-        for archived in sorted((directory / ".archive").glob("bootstrap-*.json")):
-            try:
-                stamp = datetime.strptime(archived.stem.removeprefix("bootstrap-"),
-                                          ARCHIVE_STAMP_FORMAT).replace(tzinfo=timezone.utc)
-            except ValueError:
-                continue
-            yield archived, stamp
-
-
-def _shows_checked(path: Path, gw: int) -> bool:
-    try:
-        events = json.loads(path.read_text(encoding="utf-8")).get("events", [])
-    except (OSError, ValueError, AttributeError):
-        return False
-    return any(isinstance(e, dict) and e.get("id") == gw and e.get("data_checked") is True
-               for e in events)
+    return EventLive.model_validate(store.load(gw + 1, name)), proof.basis
 
 
 def _check_drift(data_root: Path, analysis_root: Path, decisions_root: Path, gw: int,
@@ -1193,7 +1149,8 @@ def _record_base(context: _RecordContext, name: str, kind: str, argv: Sequence[s
     for d in context.data:
         path = store.path(d.gw + 1, f"event-live-e{d.gw}")
         actuals[str(d.gw)] = {"path": str(path),
-                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                              "basis": d.final_basis}
     return {
         "schema_version": gates.SCHEMA_VERSION,
         "name": name,

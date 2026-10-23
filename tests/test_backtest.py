@@ -186,21 +186,33 @@ def test_load_round_refuses_non_final_actuals(world):
         _load(raw, analysis)
 
 
+def test_load_round_records_the_final_sidecar_as_its_proof(world):
+    _, raw, analysis = world
+    assert _load(raw, analysis).final_basis == (
+        f"gw4/.meta/event-live-e3.json final sidecar, fetched {LIVE_FETCH.isoformat()}")
+
+
 def test_load_round_accepts_actuals_checked_by_an_earlier_bootstrap(world):
     _, raw, analysis = world
     _save_checking_bootstrap(raw, CHECKED)
     _save_live(raw, final=None, fetched=datetime(2026, 9, 15, 11, 0, tzinfo=timezone.utc))
-    assert _load(raw, analysis).live.by_id()[1].total_points == 7
+    data = _load(raw, analysis)
+    assert data.live.by_id()[1].total_points == 7
+    assert data.final_basis == (
+        f"gw4/bootstrap.json fetched {CHECKED.isoformat()} shows event 3 data_checked")
 
 
-def test_load_round_accepts_a_check_seen_by_an_archived_bootstrap(world):
+def test_load_round_refuses_a_check_seen_only_by_an_archived_bootstrap(world):
+    """`.archive/` is git-ignored, so a proof resting on it could not be
+    reproduced from tracked files: the one rule (store.live_final) skips it."""
     _, raw, analysis = world
     _save_checking_bootstrap(raw, CHECKED)
     _save_live(raw, final=None, fetched=datetime(2026, 9, 15, 11, 0, tzinfo=timezone.utc))
     _save_checking_bootstrap(raw, datetime(2026, 9, 18, 9, 0, tzinfo=timezone.utc))
     archived = raw / f"gw{GW + 1}" / ".archive" / f"bootstrap-{CHECKED.strftime(ARCHIVE_STAMP_FORMAT)}.json"
     assert archived.is_file()
-    assert _load(raw, analysis).live.by_id()[1].total_points == 7
+    with pytest.raises(ValueError, match="not final"):
+        _load(raw, analysis)
 
 
 def test_load_round_refuses_actuals_fetched_before_the_check(world):

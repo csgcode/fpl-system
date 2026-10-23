@@ -355,7 +355,9 @@ def test_record_writes_once_and_force_archives(world, capsys, tmp_path):
     assert record["rounds"] == [3, 4]
     actuals = raw / "gw4" / "event-live-e3.json"
     assert record["data"]["actuals"]["3"] == {
-        "path": str(actuals), "sha256": hashlib.sha256(actuals.read_bytes()).hexdigest()}
+        "path": str(actuals), "sha256": hashlib.sha256(actuals.read_bytes()).hexdigest(),
+        "basis": f"gw4/.meta/event-live-e3.json final sidecar, fetched "
+                 f"{(_deadline(3) + timedelta(days=3)).isoformat()}"}
     assert record["data"]["analysis_root"] == str(world[2])
     assert record["decision_commits"] == {"3": None, "4": None}
     assert set(record["code"]) == {"head", "dirty"}
