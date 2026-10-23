@@ -154,8 +154,9 @@ multiplier toward 1, so a short record barely moves it. An analyst's `xg90`
 override is never scaled, and `rates.finishing_mult` then shows 1.0.
 
 The multiplier is off (`FINISHING_K = None`, multiplier 1.0). The `finishing`
-gate (data/model/gates/finishing.json) tried k = 20, 10, 5, 2 and 1. Every
-fold picked the smallest k, but the gain was too small and too uncertain to
+gate (data/model/gates/finishing.json) tried k = 20, 10, 5, 2 and 1. A fold
+is one round held out and scored with the k that did best on the other
+rounds (§8). Every fold picked the smallest k, but the gain was too small and too uncertain to
 ship. The numbers are in the gate table in §8.
 
 ### DefCon rate (dc90)
@@ -489,8 +490,9 @@ at promoted clubs (`drop-promoted`) and players with no PL history
 (`drop-no-history`). Neither result supported a change, so the analyst
 instructions stay as they are (§2).
 
-`fpl persistence` found that a player's recent prediction errors do not carry
-over to his next round, so no form term was built (§10).
+`fpl persistence` found no evidence that a player's recent prediction errors
+carry over to his next round, so no form term was built (§10). The test
+could not rule out a small carry-over either: the interval includes 0.
 
 The one change the work made: `p4_gw` breaks near ties in `objective` only
 for the positions where it beats a plain base rate among likely starters,
@@ -523,7 +525,12 @@ uv run python -m fpl gates --gw 8 --render
 - `--record-all` runs each manifest entry that has no record yet, in order,
   then writes `combined.json` again. `--force` archives the existing records
   and runs every entry again. `combined.json` is archived only when its
-  content changes.
+  content changes; the code version, the recording time and the file paths
+  of the inputs do not count as changes.
+- `persistence --record persistence` refuses when the record exists. To
+  record it again, add `--force`, which archives the old one. The command
+  exits 3 when the result is not significant, which is the expected outcome
+  today; the record is still written.
 - An entry runs on top of the earlier passing entries, but an existing record
   is skipped. So when an entry starts to pass (for example `recency`), re-run
   with `--force`, or the later entries (such as `effective-minutes`) keep
@@ -623,7 +630,8 @@ test on a slice, the overall gate must pass and the slice gate must not fail.
 ### The manifest and `combined.json`
 
 Each manifest entry runs against the `baseline` record's config plus the ship
-values of earlier passing model entries, so a run after constants have
+values of earlier passing model entries, unless the last combined record
+reverted them, so a run after constants have
 changed reproduces the same records. `combined.json` then tests every passing
 ship value together against the baseline. If that fails, the last pass is
 dropped and the rest tested again, until it passes or none is left; dropped
@@ -728,8 +736,9 @@ on the calibration ledgers: for each player who started a round, it compares
 his error in that round with his mean error over the rounds before it that he
 started. The record is data/model/gates/persistence.json and its numbers are
 in the gate table in §8: the slope is close to 0 and its interval includes 0
-for every window tried (1, 2 and 3 rounds), so recent errors do not predict
-the next one.
+for every window tried (1, 2 and 3 rounds). So the ledgers give no evidence
+that recent errors predict the next one, though the interval is too wide to
+rule out a small effect.
 
 Two cautions when reading the measurement:
 

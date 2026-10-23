@@ -55,6 +55,8 @@ PROSE_FACTS = [
      "removing the discounts did not make those players' predictions better"),
     ("finishing", "verdict", "FAIL", "The multiplier is off (`FINISHING_K = None`"),
     ("persistence", "significant", False, "There is no form term."),
+    ("persistence", "significant", False,
+     "found no evidence that a player's recent prediction errors carry over"),
 ]
 
 
