@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum, IntEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -25,6 +26,22 @@ class Position(IntEnum):
 PLAYING_POSITIONS = frozenset({Position.GKP, Position.DEF, Position.MID, Position.FWD})
 
 POSITION_ALIASES = {"GK": Position.GKP}
+
+# Where a gw N run reads this season's per-match history: the season store
+# (fpl/season_store.py) or the cached element summaries of gw N.
+HistorySource = Literal["summaries", "store"]
+HISTORY_SOURCES: tuple[HistorySource, ...] = ("summaries", "store")
+DEFAULT_HISTORY_SOURCE: HistorySource = "store"
+
+# The API reports expected_goals 0 for every season before it recorded the
+# stat; those zeros are missing data, not evidence.
+XG_RECORDED_FROM = "2022/23"
+
+
+def missing_past_hint(gw: int) -> str:
+    """The fetch that gives every player without past seasons on file a
+    summary, for readers of the season store."""
+    return f"summaries --gw {gw} --missing-past (the next read syncs it into the store)"
 
 
 class PlayerStatus(str, Enum):
@@ -235,6 +252,10 @@ class PastSeason(_FrozenModel):
     expected_goals_conceded: float | None = None
     defensive_contribution: float | None = None
     yellow_cards: int | None = None
+
+    @property
+    def xg_recorded(self) -> bool:
+        return self.season_name >= XG_RECORDED_FROM
 
 
 class ElementSummary(_FrozenModel):

@@ -49,9 +49,16 @@ from fpl.ep import (
     rates_from_seasons,
     saves_factor,
     shrink_rate,
-    XG_FIRST_SEASON,
 )
-from fpl.models import Bootstrap, ElementSummary, MatchRecord, PastSeason, Player, Position
+from fpl.models import (
+    XG_RECORDED_FROM,
+    Bootstrap,
+    ElementSummary,
+    MatchRecord,
+    PastSeason,
+    Player,
+    Position,
+)
 from tests.factories import (
     bootstrap_payload,
     element_summary_payload,
@@ -504,7 +511,7 @@ def test_prior_comes_from_history_past_shrunk_toward_league_mean():
         "league mean for MID uses the v1 fallback table — only 0 players at this "
         "position have at least 900 minutes of past-season history (need 8); "
         f"fetch more with summaries --gw {GW} --missing-past "
-        "(the next read syncs the store)")
+        "(the next read syncs it into the store)")
 
 
 def test_league_fallback_warning_from_summaries_names_the_shortlist_fetch():
@@ -651,10 +658,49 @@ def test_finishing_multiplier_is_heavily_shrunk():
 
 
 def test_seasons_before_xg_existed_are_ignored():
-    assert XG_FIRST_SEASON == "2022/23"
+    assert XG_RECORDED_FROM == "2022/23"
+    assert [s.xg_recorded for s in as_seasons(
+        [past_season_payload(season_name=n) for n in ("2021/22", "2022/23", "2025/26")])
+    ] == [False, True, True]
     old = past_season_payload(season_name="2021/22", goals_scored=9, expected_goals="0.0")
     assert finishing_multiplier(as_seasons([*finishing_seasons(), old]), 10) == pytest.approx(22 / 18)
     assert finishing_multiplier(as_seasons([old]), 10) == 1.0
+
+
+def test_finishing_uses_xg_recorded(tmp_path):
+    """The store marks each past season xg_recorded or not; a season it marks
+    0 adds nothing, so the store and the multiplier share one rule."""
+    import sqlite3
+
+    from fpl.season_store import open_ro, sync
+    from tests.test_season_store import Season
+
+    raw, db = tmp_path / "raw", tmp_path / "store.sqlite"
+    season = Season()
+    seasons = [*finishing_seasons(),
+               past_season_payload(season_name="2021/22", goals_scored=9, expected_goals="0.0")]
+    season.history_past[(2, 1)] = [{**p, "element_code": 900001} for p in seasons]
+    season.write(raw)
+    sync(raw, db)
+    con = sqlite3.connect(db)
+    recorded = dict(con.execute(
+        "SELECT season_name, xg_recorded FROM history_past WHERE element = 1"))
+    con.close()
+    with open_ro(db, raw) as reader:
+        past = reader.past([1])[1]
+
+    assert recorded == {"2021/22": 0, "2023/24": 1, "2024/25": 1}
+    assert finishing_multiplier(past, 10) == pytest.approx(22 / 18)
+
+
+def test_ep_does_not_import_the_season_store():
+    import subprocess
+    import sys
+
+    probe = "import sys, fpl.ep; print('fpl.season_store' in sys.modules)"
+    out = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True,
+                         check=True).stdout
+    assert out.strip() == "False"
 
 
 def test_multiplier_scales_xg90_but_not_an_override():

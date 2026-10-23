@@ -57,16 +57,20 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 
 from fpl.models import (
+    DEFAULT_HISTORY_SOURCE,
+    HISTORY_SOURCES,
     Bootstrap,
     ElementSummary,
     EventLive,
     Fixture,
+    HistorySource,
     LiveElement,
     MatchRecord,
     PastSeason,
     PlayerStatus,
     Position,
     is_shortlisted,
+    missing_past_hint,
 )
 from fpl.service import load_cached_summaries
 from fpl.store import SeenBootstrap, SnapshotStore, prove_live_final
@@ -86,7 +90,6 @@ DEFAULT_STORE_PATH = default_store_path(DEFAULT_RAW_ROOT)
 SCAN_CACHE_SUFFIX = ".scan.json"
 LOCK_SUFFIX = ".lock"
 MAX_AUTO_SYNCS = 2
-XG_RECORDED_FROM = "2022/23"
 DC_RECORDED_FROM = "2024/25"
 
 INT_STATS = (
@@ -563,7 +566,7 @@ def _build(files: Sequence[_RawFile]) -> _Tables:
             history_past.append((
                 element, past.season_name, past.element_code,
                 *(getattr(past, name) for name in PAST_FIELDS[1:]),
-                int(past.season_name >= XG_RECORDED_FROM),
+                int(past.xg_recorded),
                 int(past.season_name >= DC_RECORDED_FROM),
                 first.path,
             ))
@@ -1321,11 +1324,6 @@ class SeasonReader:
 
 # --- the history source of ep, objective, players and fixtures-rate ----------
 
-HistorySource = Literal["summaries", "store"]
-HISTORY_SOURCES: tuple[HistorySource, ...] = ("summaries", "store")
-DEFAULT_HISTORY_SOURCE: HistorySource = "store"
-
-
 def add_history_arguments(parser: argparse.ArgumentParser) -> None:
     """`--history-from` and `--store`, shared by every command that reads
     this season's per-match history."""
@@ -1380,8 +1378,7 @@ class History:
         """The command that gives `ids` a summary this source reads."""
         if self.source == "summaries":
             return f"{_fpl(self.raw_root)} summaries --gw {gw} --ids {','.join(map(str, ids))}"
-        return (f"{_fpl(self.raw_root)} summaries --gw {gw} --missing-past "
-                f"(the next read syncs it into the store)")
+        return f"{_fpl(self.raw_root)} {missing_past_hint(gw)}"
 
     def matches_by_player(
         self, gw: int, ids: Iterable[int]
