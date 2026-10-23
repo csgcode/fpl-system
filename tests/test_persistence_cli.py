@@ -128,3 +128,58 @@ def test_refuses_without_ledgers(tmp_path, capsys):
 def test_refuses_a_bad_min_starts(strong, capsys):
     assert run("--gw", "7", "--retro-root", str(strong), "--min-starts", "4") == 1
     assert "min_starts" in capsys.readouterr().err
+
+
+def _record(gates_root: Path):
+    from fpl import gates
+
+    return gates.read_record(gates_root, "persistence")
+
+
+def test_persistence_record_holds_three_windows(strong, tmp_path, capsys):
+    gates_root = tmp_path / "gates"
+    assert run("--gw", "7", "--retro-root", str(strong), "--record", "persistence",
+               "--gates-root", str(gates_root)) == 0
+    record = _record(gates_root)
+
+    assert record.kind == "persistence"
+    assert record.significant is True
+    assert record.comparison["significant"] is True
+    assert sorted(w["window"] for w in record.comparison["windows"]) == [1, 2, 3]
+    assert record.comparison["windows"][0]["window"] == 3
+    assert record.rounds == (1, 2, 3, 4, 5, 6)
+    assert record.argv == ("--window", "3", "--min-starts", "2")
+    assert record.verdict is None and record.reasons == ()
+    assert record.baseline_config is None
+    assert sorted(record.data["ledgers"], key=int) == [str(r) for r in range(1, 7)]
+    assert set(record.data["ledgers"]["1"]) == {"path", "sha256", "predictions_source"}
+    assert f"wrote {gates_root / 'persistence.json'}" in capsys.readouterr().out
+
+
+def test_record_is_written_when_not_significant_and_exit_stays_three(tmp_path):
+    root = write_ledgers(tmp_path / "retro", n_players=10)
+    gates_root = tmp_path / "gates"
+
+    assert run("--gw", "7", "--retro-root", str(root), "--record", "persistence",
+               "--gates-root", str(gates_root)) == 3
+    record = _record(gates_root)
+    assert record.significant is False
+    assert record.reasons and record.reasons[0].startswith(("ci: ", "n: "))
+
+
+def test_record_is_written_once(strong, tmp_path, capsys):
+    gates_root = tmp_path / "gates"
+    argv = ("--gw", "7", "--retro-root", str(strong), "--record", "persistence",
+            "--gates-root", str(gates_root))
+    assert run(*argv) == 0
+    assert run(*argv) == 1
+    assert "exists — gate records are written once" in capsys.readouterr().err
+    assert run(*argv, "--force") == 0
+    assert len(list((gates_root / "archive").glob("persistence.*.json"))) == 1
+
+
+def test_persistence_shares_the_gate_critical_value():
+    from fpl import backtest, persistence
+
+    assert persistence.GATE_Z is backtest.GATE_Z
+    assert not hasattr(persistence, "Z")

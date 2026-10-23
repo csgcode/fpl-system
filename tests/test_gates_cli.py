@@ -232,3 +232,51 @@ def test_render_shows_slice_verdict_and_hypothesis():
         "PASS · slice PASS · hypothesis supported")
     cells = [cell.strip() for cell in plain_row.split("|")[1:-1]]
     assert cells[gates.RENDER_HEADER.index("Verdict")] == "PASS"
+
+
+def _window(window: int, n: int, slope: float, ci: tuple[float, float], r: float) -> dict:
+    return {"window": window, "min_starts": min(2, window), "target_rounds": [4, 5, 6, 7],
+            "n": n, "slope": slope, "intercept": 0.1, "se_ols": 0.05, "se_cluster": 0.06,
+            "ci_ols": list(ci), "ci_cluster": list(ci), "r": r, "significant": False,
+            "by_position": {}}
+
+
+PERSISTENCE = _record(
+    "persistence", kind="persistence", baseline_config=None,
+    comparison={"significant": False, "windows": [
+        _window(3, 711, 0.034, (-0.095, 0.162), 0.020),
+        _window(1, 1098, 0.007, (-0.046, 0.060), 0.007),
+        _window(2, 805, 0.018, (-0.083, 0.119), 0.013)]},
+    reasons=["ci: clustered lower −0.095 ≤ 0"], significant=False)
+
+
+def test_persistence_record_summarises_and_renders_its_windows(tmp_path, capsys):
+    root = tmp_path / "gates"
+    root.mkdir()
+    (root / "persistence.json").write_text(json.dumps(PERSISTENCE), encoding="utf-8")
+    assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines == [
+        "persistence: not significant — window 3, min starts 2: n 711, "
+        "slope +0.034 [CI −0.095, +0.162] (cluster), r +0.020",
+        "  no form term: clustered lower −0.095 ≤ 0 (ci)",
+    ]
+    [row] = gates.render(gates.load_records(root)).splitlines()[2:]
+    assert row == (
+        "| persistence | persistence | 3-7 | — | — | — | — | — | — | not significant | "
+        "window 3: n 711, slope +0.034 [−0.095, +0.162], r +0.020; "
+        "window 1: n 1098, slope +0.007 [−0.046, +0.060], r +0.007; "
+        "window 2: n 805, slope +0.018 [−0.083, +0.119], r +0.013 |")
+
+
+def test_significant_persistence_record_sends_the_form_term_to_its_gate(tmp_path, capsys):
+    record = json.loads(json.dumps(PERSISTENCE))
+    record["significant"] = record["comparison"]["significant"] = True
+    record["reasons"] = []
+    root = tmp_path / "gates"
+    root.mkdir()
+    (root / "persistence.json").write_text(json.dumps(record), encoding="utf-8")
+    assert main(["gates", "--gw", "8", "--summary", "--gates-root", str(root)]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0].startswith("persistence: significant — window 3")
+    assert lines[1] == "  significant: the form term goes to its gate"

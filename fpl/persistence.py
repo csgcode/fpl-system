@@ -14,18 +14,21 @@ clustered interval decides `significant`.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
 import sys
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from fpl import gates
+from fpl.backtest import GATE_Z, code_state
 from fpl.calibrate import CalibrationReport, PlayerLine, load_report
 
-Z = 1.96
 MIN_PAIRS = 100
 RETRO_ROOT = Path("data/retro")
 EXIT_ERROR = 1
@@ -155,8 +158,8 @@ def _fit(pairs: Sequence[Pair]) -> Fit:
         intercept=intercept,
         se_ols=se_ols,
         se_cluster=se_cluster,
-        ci_ols=(slope - Z * se_ols, slope + Z * se_ols),
-        ci_cluster=(slope - Z * se_cluster, slope + Z * se_cluster),
+        ci_ols=(slope - GATE_Z * se_ols, slope + GATE_Z * se_ols),
+        ci_cluster=(slope - GATE_Z * se_cluster, slope + GATE_Z * se_cluster),
         r=r,
     )
 
@@ -175,16 +178,28 @@ def register(add: Callable[..., argparse.ArgumentParser]) -> None:
     parser.add_argument("--retro-root", type=Path, default=RETRO_ROOT,
                         help="where gw{M}-calibration.json ledgers live; only M < --gw is read")
     parser.add_argument("--format", choices=("table", "json"), default="table")
+    parser.add_argument("--record", metavar="NAME", type=gates.check_name,
+                        help="also write the result as gate record NAME (written once); "
+                             f"the exit code is still {EXIT_NOT_SIGNIFICANT} when not significant")
+    parser.add_argument("--gates-root", type=Path, default=gates.GATES_ROOT,
+                        help="where --record writes")
+    parser.add_argument("--force", action="store_true",
+                        help="with --record: archive an existing record and write it again")
 
 
 def run(args: argparse.Namespace) -> int:
     try:
+        paths = ledger_paths(args.retro_root, args.gw)
         reports = load_ledgers(args.retro_root, args.gw)
         results = [persistence(reports, window=args.window, min_starts=args.min_starts)]
         results += [
             persistence(reports, window=w, min_starts=min(args.min_starts, w))
             for w in range(1, args.window)
         ]
+        written = None
+        if args.record:
+            written = gates.write_record(
+                args.gates_root, record_document(args, paths, reports, results), force=args.force)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_ERROR
@@ -205,10 +220,74 @@ def run(args: argparse.Namespace) -> int:
         print("sensitivity:")
         for result in results[1:]:
             _print_result(result)
+    if written is not None:
+        print(f"wrote {written}")
     return 0 if results[0].significant else EXIT_NOT_SIGNIFICANT
 
 
-def load_ledgers(retro_root: Path, gw: int) -> list[CalibrationReport]:
+def record_document(args: argparse.Namespace, paths: Sequence[Path],
+                    reports: Sequence[CalibrationReport],
+                    results: Sequence[PersistenceResult]) -> dict[str, Any]:
+    """A `persistence` gate record: every window's fit, the ledgers it read
+    and why the main window is not significant. It judges no model config."""
+    main = results[0]
+    ledgers = {
+        str(report.round): {
+            "path": str(path),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "predictions_source": report.predictions_source,
+        }
+        for path, report in zip(paths, reports, strict=True)
+    }
+    return {
+        "schema_version": gates.SCHEMA_VERSION,
+        "name": args.record,
+        "kind": "persistence",
+        "argv": ["--window", str(args.window), "--min-starts", str(args.min_starts)],
+        "rounds": [report.round for report in reports],
+        "data": {"retro_root": str(args.retro_root), "ledgers": ledgers},
+        "decision_commits": {
+            str(report.round): _commit(report.predictions_source) for report in reports
+        },
+        "code": code_state(),
+        "baseline_config": None,
+        "grid": None,
+        "picks": None,
+        "ship_value": None,
+        "comparison": {
+            "significant": main.significant,
+            "windows": [to_document(result) for result in results],
+        },
+        "verdict": None,
+        "reasons": _not_significant_reasons(main),
+        "significant": main.significant,
+        "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
+def _commit(predictions_source: str) -> str | None:
+    kind, _, ref = predictions_source.partition(" ")
+    return ref or None if kind == "commit" else None
+
+
+def _not_significant_reasons(result: PersistenceResult) -> list[str]:
+    if result.significant:
+        return []
+    reasons = []
+    if result.n < MIN_PAIRS:
+        reasons.append(f"n: {result.n} pairs < {MIN_PAIRS}")
+    if result.ci_cluster is None:
+        reasons.append("ci: slope undefined")
+    elif result.ci_cluster[0] <= 0:
+        reasons.append(f"ci: clustered lower {_signed(result.ci_cluster[0])} ≤ 0")
+    return reasons
+
+
+def _signed(value: float) -> str:
+    return f"{value:+.3f}".replace("-", "−")
+
+
+def ledger_paths(retro_root: Path, gw: int) -> list[Path]:
     """Every gw{M}-calibration.json under `retro_root` with M < gw, in round order."""
     found = sorted(
         (int(match.group(1)), path)
@@ -217,8 +296,13 @@ def load_ledgers(retro_root: Path, gw: int) -> list[CalibrationReport]:
     )
     if not found:
         raise ValueError(f"no calibration ledgers before GW{gw} under {retro_root}")
+    return [path for _, path in found]
+
+
+def load_ledgers(retro_root: Path, gw: int) -> list[CalibrationReport]:
+    """Every gw{M}-calibration.json under `retro_root` with M < gw, in round order."""
     reports = []
-    for _, path in found:
+    for path in ledger_paths(retro_root, gw):
         try:
             reports.append(load_report(path))
         except OSError as exc:

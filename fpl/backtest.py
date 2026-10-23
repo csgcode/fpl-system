@@ -1018,12 +1018,13 @@ def _recorded_baseline(root: Path) -> ModelConfig:
     record = gates.read_record(root, gates.BASELINE)
     if record is None:
         return DEFAULT_CONFIG
-    missing = [f.name for f in fields(ModelConfig) if f.name not in record.baseline_config]
+    recorded = record.baseline_config or {}
+    missing = [f.name for f in fields(ModelConfig) if f.name not in recorded]
     if missing:
         raise ValueError(f"{gates.record_path(root, gates.BASELINE)}: baseline_config lacks "
                          f"{', '.join(missing)} — the production default would fill it and "
                          "the records would not reproduce; re-record the baseline")
-    return _overlay(ModelConfig(), record.baseline_config)
+    return _overlay(ModelConfig(), recorded)
 
 
 def _entry_parser() -> argparse.ArgumentParser:
@@ -1201,7 +1202,7 @@ def _record_base(context: _RecordContext, name: str, kind: str, argv: Sequence[s
             "actuals": actuals,
         },
         "decision_commits": {str(d.gw): d.commit for d in context.data},
-        "code": _code_state(),
+        "code": code_state(),
         "baseline_config": asdict(baseline.config),
         "baseline": _scored_document(baseline),
         "round_checks": _checks_document(context.checks),
@@ -1209,7 +1210,7 @@ def _record_base(context: _RecordContext, name: str, kind: str, argv: Sequence[s
     }
 
 
-def _code_state() -> dict[str, Any]:
+def code_state() -> dict[str, Any]:
     package = Path(__file__).resolve().parent
     try:
         head = _git(package, "rev-parse", "HEAD").strip()

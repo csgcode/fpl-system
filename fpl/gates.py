@@ -61,7 +61,7 @@ class GateRecord(BaseModel):
     data: dict[str, Any]
     decision_commits: dict[str, str | None]
     code: dict[str, Any]
-    baseline_config: dict[str, Any]
+    baseline_config: dict[str, Any] | None
     grid: dict[str, list[Any]] | None
     picks: dict[str, dict[str, Any]] | None
     ship_value: dict[str, Any] | None
@@ -75,6 +75,7 @@ class GateRecord(BaseModel):
     hypothesis: str | None = None
     shipped_config: dict[str, Any] | None = None
     reverted: tuple[str, ...] | None = None
+    significant: bool | None = None
 
 
 class ManifestEntry(BaseModel):
@@ -205,6 +206,11 @@ def _headline(record: GateRecord) -> str:
     c = _gate_comparison(record)
     if record.kind == "calibration":
         return f"{record.name}: calibration — {_p4_text(record)}"
+    if record.kind == "persistence":
+        window = _persistence_windows(record)[0]
+        return (f"{record.name}: {_significance(record)} — window {window['window']}, "
+                f"min starts {window['min_starts']}: "
+                f"{_window_text(window, ci_label='CI ', ci_suffix=' (cluster)')}")
     if c is None:
         if record.kind == "combined":
             return f"{record.name}: no passing entries — ships the baseline config"
@@ -228,6 +234,10 @@ def _status(record: GateRecord, reverted: set[str]) -> str:
         return f"shipped_config {shipped}; reverted {', '.join(record.reverted or ()) or 'none'}"
     if record.kind == "calibration":
         return "calibration"
+    if record.kind == "persistence":
+        if record.significant:
+            return "significant: the form term goes to its gate"
+        return "no form term: " + "; ".join(_reason_text(reason) for reason in record.reasons)
     if record.verdict is None:
         return "reference"
     if record.verdict == "FAIL":
@@ -297,6 +307,26 @@ def _optional_signed(value: float | None) -> str:
     return "-" if value is None else signed(value, 3)
 
 
+def _significance(record: GateRecord) -> str:
+    return "significant" if record.significant else "not significant"
+
+
+def _persistence_windows(record: GateRecord) -> list[dict[str, Any]]:
+    """The recorded windows, the main window first."""
+    return list((record.comparison or {}).get("windows") or [])
+
+
+def _window_text(window: Mapping[str, Any], *, ci_label: str = "", ci_suffix: str = "") -> str:
+    if window["slope"] is None or window["ci_cluster"] is None:
+        slope = "slope n/a"
+    else:
+        lo, hi = window["ci_cluster"]
+        slope = (f"slope {signed(window['slope'], 3)} "
+                 f"[{ci_label}{signed(lo, 3)}, {signed(hi, 3)}]{ci_suffix}")
+    r = "n/a" if window["r"] is None else signed(window["r"], 3)
+    return f"n {window['n']}, {slope}, r {r}"
+
+
 def _plain(value: float, digits: int) -> str:
     return f"{value:.{digits}f}".replace("-", "−")
 
@@ -327,6 +357,11 @@ def _render_row(record: GateRecord) -> tuple[str, ...]:
     if record.kind == "calibration":
         return (record.name, record.kind, span, grid, ship, "—", "—", "—", "—",
                 record.verdict or "—", _p4_skills(record))
+    if record.kind == "persistence":
+        windows = "; ".join(f"window {w['window']}: {_window_text(w)}"
+                            for w in _persistence_windows(record))
+        return (record.name, record.kind, span, grid, ship, "—", "—", "—", "—",
+                _significance(record), windows or "—")
     if c is None:
         if record.kind != "combined":
             reasons.append(f"reference: {_aggregate_text(record)}")
