@@ -937,7 +937,7 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Implement:**
   - Append `[[gate]] name = "p4" kind = "calibration" argv = []` and run the standard gate invocation.
   - Set `P4_CALIBRATED` to the positions whose likely-starter skill is above 0.
-- **Note (user to confirm):** gate `P4_CALIBRATED` on the likely-starter skill, `p4[pos]["starters"]["skill"]`, not on the skill over all lines. The skill over all lines mostly rewards p4 for knowing who will play, because benched and fringe players almost never return. The tie-break only ever compares two incoming players who are both expected to start, so the question it needs answered is whether p4 tells steady starters from erratic ones. The likely-starter subset takes the lines with `p_start` of 0.5 or more and judges them against a base rate worked out from those lines only, again leaving out the round being scored. On real rounds 3–6 the two measures disagree:
+- **Note (user confirmed 2026-10-23):** gate `P4_CALIBRATED` on the likely-starter skill, `p4[pos]["starters"]["skill"]`, not on the skill over all lines. The skill over all lines mostly rewards p4 for knowing who will play, because benched and fringe players almost never return. The tie-break only ever compares two incoming players who are both expected to start, so the question it needs answered is whether p4 tells steady starters from erratic ones. The likely-starter subset takes the lines with `p_start` of 0.5 or more and judges them against a base rate worked out from those lines only, again leaving out the round being scored. On real rounds 3–6 the two measures disagree:
 
   | Position | Skill, all lines | Skill, p_start ≥ 0.5 | Skill, players who actually started |
   |---|---|---|---|
@@ -1055,9 +1055,10 @@ This is a CODE change shipped outside the GW cycle (docs/ep-model.md §5). The t
 - **Effort:** S
 - **Test:** `test_default_config_matches_gate_records` passes after the constant is set.
 - **Implement:**
-  - Append `[[gate]] name = "finishing" kind = "model" argv = ["--sweep", "finishing_k=none,20,10,5", "--cv"]`; run the standard gate invocation.
+  - Append `[[gate]] name = "finishing" kind = "model" argv = ["--sweep", "finishing_k=none,20,10,5,2,1", "--cv"]`; run the standard gate invocation.
   - `FINISHING_K` = `combined.json` `shipped_config.finishing_k` (`None` if not shipped), as the `ModelConfig` default.
   - The paragraph explains the multiplier and points at the gates block. Render.
+- **Deviation (orchestrator call 2026-10-23):** the grid is `none,20,10,5,2,1`, not `none,20,10,5`. The review's trial sweep chose `k=5`, the grid's lowest value, in every fold, so the grid is extended downward to find where the pick stops moving.
 - **Verify:** `uv run pytest tests/test_ep.py tests/test_gate_records.py -q`, then `uv run pytest -q` (phase end).
 
 ### Phase 6 — Team-xG cross-check (a reading aid, not an EP change)
@@ -1310,7 +1311,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
 - **Effort:** S
 - **Test:** `uv run pytest tests/test_gate_records.py tests/test_ep_model_doc.py -q` passes (the gates block equals the render, the worked example matches the code).
 - **Implement:** Phases 2, 3, 4 and 5 already updated §1, §2, §5, §9 and §10. Add:
-  - §3 output fields: `model`, `p4_gw`, `returns5`, `share_flag`, and `terms.form` and `rates.finishing_mult` if shipped.
+  - §3 output fields: `model`, `p4_gw`, `returns5`, `share_flag`, `rates.finishing_mult` (always present: the multiplier applied, 1.0 when it is off or an `xg90` override bypasses it), and `terms.form` if shipped.
   - §4 "Running it": the refusal after final.md, the `share check` summary line and `--share-detail`, the share flag as a reading aid, never an override reason on its own.
   - §5: append "A model change is judged with `fpl backtest` (§8) and recorded under data/model/gates/; a decided round is never regenerated to judge it."
   - §8 "Backtest": the command; the rounds rule; the leakage rules (raw inputs fetched before the deadline per sidecar; summary rounds < r; optional drift refusal against the decision commit; actuals from a final event-live snapshot); the coverage-replay rule; the gate (verbatim from Shared definitions); LORO and `ship_value`; records, manifest, `combined`; the fact that the baseline is the current code on recorded inputs, which differs from the ledger (the historical record) by the printed code drift. The gates block sits here.
@@ -1339,6 +1340,7 @@ Archived bootstraps are not ingested (they are git-ignored and absent in worktre
     - add "Progress commits `gw{N}: … (decision pending)` are allowed. The decision record is the commit that adds data/decisions/gw{N}/final.md; calibrate scores the players-*.json in it."
   - Weekly cycle step 0: "a `C<n> — CODE` correction ships as a code change with tests and an `fpl backtest` gate record (docs/ep-model.md §8)".
   - Orchestration: "Code merges land on main only between a decision commit and the next cycle's step 0."
+  - Orchestrator workflow, one line: when the squad optimizer hands back on a players-file model-version refusal, re-run the player analyst (its `fpl ep` step) for every position, then re-run the optimizer.
 - **Verify:** `grep -n "backtest\|gates (--render\|persistence \[\|predictions-from\|predictions.lock\|until final.md exists\|Code merges land" CLAUDE.md`
 
 ### Task 7.3: Backlog rows (on main, after merge 2, as a triage session)
