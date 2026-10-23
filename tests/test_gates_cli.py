@@ -280,3 +280,58 @@ def test_significant_persistence_record_sends_the_form_term_to_its_gate(tmp_path
     lines = capsys.readouterr().out.splitlines()
     assert lines[0].startswith("persistence: significant — window 3")
     assert lines[1] == "  significant: the form term goes to its gate"
+
+
+SLICE_GATE = {"name": "promoted", "n": 319, "verdict": "FAIL",
+              "reasons": ["effect: ΔMAE +0.0141 > −0.01"], "pooled_positions": True,
+              "delta_mae": 0.0141, "ci": [-0.0029, 0.031], "round_wins": [1, 5],
+              "baseline_bias": 0.1366, "variant_bias": 0.0768}
+SLICE_TEXT = "slice promoted FAIL: n 319, ΔMAE +0.0141 [CI −0.003, +0.031], bias +0.137→+0.077"
+
+
+def _sliced_policy() -> dict:
+    record = _policy("FAIL")
+    record["comparison"]["slice_gate"] = SLICE_GATE
+    record["slice_verdict"] = "FAIL"
+    record["hypothesis"] = "not supported"
+    return record
+
+
+def test_summary_shows_slice_delta_ci_and_bias():
+    [_, status] = gates.summary_lines([gates.GateRecord.model_validate(_sliced_policy())])
+    assert status.strip() == ("rejected: ΔMAE +0.0043 > −0.01 (effect) · "
+                              f"{SLICE_TEXT} · hypothesis not supported")
+
+
+def test_render_shows_slice_delta_ci_and_bias():
+    [row] = gates.render([gates.GateRecord.model_validate(_sliced_policy())]).splitlines()[2:]
+    cells = [cell.strip() for cell in row.split("|")[1:-1]]
+    assert cells[gates.RENDER_HEADER.index("Verdict")] == (
+        f"FAIL · {SLICE_TEXT} · hypothesis not supported")
+
+
+def test_an_empty_slice_shows_its_verdict_without_statistics():
+    record = _sliced_policy()
+    record["comparison"]["slice_gate"] = {
+        **SLICE_GATE, "n": 0, "verdict": "n/a", "reasons": [], "delta_mae": None, "ci": None,
+        "round_wins": None, "baseline_bias": None, "variant_bias": None}
+    record["slice_verdict"] = "n/a"
+    [_, status] = gates.summary_lines([gates.GateRecord.model_validate(record)])
+    assert "· slice promoted n/a: n 0 ·" in status
+
+
+def _ship_cell(record: dict) -> str:
+    [row] = gates.render([gates.GateRecord.model_validate(record)]).splitlines()[2:]
+    return [cell.strip() for cell in row.split("|")[1:-1]][gates.RENDER_HEADER.index("Ship value")]
+
+
+def test_render_ship_value_is_blank_for_a_failed_gate():
+    assert _ship_cell(PASSING) == "blend_k=450"
+    assert _ship_cell(FAILING) == "—"
+
+
+def test_render_combined_with_no_passing_entries_ships_the_baseline():
+    combined = _record("combined", kind="combined", ship={},
+                       shipped_config=asdict(DEFAULT_CONFIG), reverted=[])
+    assert _ship_cell(combined) == "ships baseline (no passing entries)"
+

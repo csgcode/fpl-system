@@ -196,10 +196,35 @@ def summary_lines(records: Sequence[GateRecord]) -> list[str]:
 def _slice_suffix(record: GateRecord) -> str:
     suffix = ""
     if record.slice_verdict is not None:
-        suffix += f" · slice {record.slice_verdict}"
+        suffix += f" · {_slice_text(record)}"
     if record.hypothesis is not None:
         suffix += f" · hypothesis {record.hypothesis}"
     return suffix
+
+
+def _slice_text(record: GateRecord) -> str:
+    """The slice gate's verdict with its n, ΔMAE, CI and bias, baseline to
+    variant; the verdict alone when the record holds no slice statistics."""
+    g = (record.comparison or {}).get("slice_gate")
+    if not g:
+        return f"slice {record.slice_verdict}"
+    text = f"slice {g['name']} {g['verdict']}: n {g['n']}"
+    if g["delta_mae"] is None:
+        return text
+    lo, hi = g["ci"]
+    return (f"{text}, ΔMAE {signed(g['delta_mae'], 4)} [CI {signed(lo, 3)}, {signed(hi, 3)}], "
+            f"bias {signed(g['baseline_bias'], 3)}→{signed(g['variant_bias'], 3)}")
+
+
+def _ship_cell(record: GateRecord) -> str:
+    """A FAIL entry's sweep pick is not shipped, so only a PASS shows one."""
+    ship = overrides_text(record.ship_value or {})
+    if record.kind == "combined" and not ship:
+        return ("ships baseline (no passing entries)" if not record.reverted
+                else "ships baseline (passing entries reverted)")
+    if record.verdict == "FAIL":
+        return "—"
+    return ship or "—"
 
 
 def _headline(record: GateRecord) -> str:
@@ -350,7 +375,7 @@ def _render_row(record: GateRecord) -> tuple[str, ...]:
     span = str(rounds[0]) if len(rounds) == 1 else f"{rounds[0]}-{rounds[-1]}"
     grid = "; ".join(f"{key}=" + ",".join(value_text(v) for v in values)
                      for key, values in (record.grid or {}).items()) or "—"
-    ship = overrides_text(record.ship_value or {}) or "—"
+    ship = _ship_cell(record)
     reasons = list(record.reasons)
     if record.kind == "combined" and record.reverted:
         reasons.append("reverted: " + ", ".join(record.reverted))
