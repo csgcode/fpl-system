@@ -2,3 +2,8 @@
 name = "baseline"
 kind = "model"
 argv = []
+
+[[gate]]
+name = "prior-weight"
+kind = "model"
+argv = ["--sweep", "blend_k=600,300,450,900,1200", "--cv"]
