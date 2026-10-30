@@ -1,0 +1,425 @@
+{
+ "schema_version": 1,
+ "gw": 9,
+ "position": "FWD",
+ "players": [
+  {
+   "id": 411,
+   "name": "Haaland",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "8/8 starts, 79/90/90 r6-r8 unbroken (C21 0.93+ tier); MCI's only senior FWD; pens #1."
+  },
+  {
+   "id": 379,
+   "name": "Isak",
+   "p_start": 0.88,
+   "uncertainty": "MED",
+   "notes": "7/8 starts; 0' r6 then 78/76 r7-r8, streak not unbroken across three rounds so under 0.93. Ekitike out (i, unknown return date)."
+  },
+  {
+   "id": 106,
+   "name": "Thiago",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "8/8 starts, all 90s; pens #1; Wilson 12' r8 cameo."
+  },
+  {
+   "id": 165,
+   "name": "João Pedro",
+   "p_start": 0.0,
+   "uncertainty": "MED",
+   "notes": "Status i, thigh, unknown return date; 0' r8. GW9 0 by rule; later values a guess.",
+   "p_start_gw": [
+    0.0,
+    0.25,
+    0.45,
+    0.6,
+    0.7,
+    0.75
+   ]
+  },
+  {
+   "id": 136,
+   "name": "Welbeck",
+   "p_start": 0.4,
+   "uncertainty": "HIGH",
+   "notes": "Joao Pedro out (i, unknown return). 70' start r5 when JP missed, but only 2' r8 when JP missed again - CHE may start a non-FWD. Fades as JP returns (guess).",
+   "p_start_gw": [
+    0.4,
+    0.3,
+    0.2,
+    0.15,
+    0.1,
+    0.1
+   ]
+  },
+  {
+   "id": 170,
+   "name": "Emegha",
+   "p_start": 0.03,
+   "uncertainty": "HIGH",
+   "notes": "0' all season even with Joao Pedro out."
+  },
+  {
+   "id": 26,
+   "name": "Havertz",
+   "p_start": 0.6,
+   "uncertainty": "LOW",
+   "notes": "7/8 starts but 22' sub r8 with Gyokeres starting (67'); streak broken. Hooked ~65' in r6-r7. Shirt now shared."
+  },
+  {
+   "id": 25,
+   "name": "Gyökeres",
+   "p_start": 0.45,
+   "uncertainty": "HIGH",
+   "notes": "First start r8 (67') after cameos 17/27/24; C21 lifts him out of the rotation band. pens #2."
+  },
+  {
+   "id": 401,
+   "name": "Marmoush",
+   "p_start": 0.82,
+   "uncertainty": "MED",
+   "notes": "Flag cleared (a/100). Started r7 (86') and r8 (64'); 6/8 starts. pens #2. r6 24' cameo breaks the 0.93 streak."
+  },
+  {
+   "id": 526,
+   "name": "Solanke",
+   "p_start": 0.6,
+   "uncertainty": "MED",
+   "notes": "25' r8 behind Marmoush after 90/90 r6-r7; 4 starts. pens #1. TOT pair or rotate."
+  },
+  {
+   "id": 166,
+   "name": "N.Jackson",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "90/90/81 r6-r8 unbroken streak; 7/8 starts. Abraham 0' four rounds. pens #2."
+  },
+  {
+   "id": 56,
+   "name": "Abraham",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0' in r6-r8 - clear AVL #2."
+  },
+  {
+   "id": 582,
+   "name": "Madjo",
+   "p_start": 0.03,
+   "uncertainty": "HIGH",
+   "notes": "8' cameo r8, only minutes of the season."
+  },
+  {
+   "id": 464,
+   "name": "Wissa",
+   "p_start": 0.85,
+   "uncertainty": "LOW",
+   "notes": "7/8 starts; 13' sub r8 with Osula starting. Osula now d/50 and Fernandez-Pardo d/75, so the shirt returns to him. pens #1."
+  },
+  {
+   "id": 634,
+   "name": "Fernandez-Pardo",
+   "p_start": 0.35,
+   "uncertainty": "HIGH",
+   "notes": "d/75 illness, 0' r8. Started r4-r7 alongside Wissa; Osula took the r8 slot. Under the 75% cap; ramps as illness clears.",
+   "p_start_gw": [
+    0.35,
+    0.5,
+    0.55,
+    0.55,
+    0.55,
+    0.55
+   ],
+   "overrides": {
+    "attack_mult": 0.6
+   },
+   "reason": "No PL history - the position league-mean default for a regular starter flatters a new signing at a weak-attack club (NEW att 0.85). Cut further at GW9: the team-xG share check flagged the row at the GW8 multiplier."
+  },
+  {
+   "id": 465,
+   "name": "Osula",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "d/50 ankle after a 76' start r8 (second start of the season). C21 keeps him above the rotation band when fit.",
+   "p_start_gw": [
+    0.3,
+    0.35,
+    0.35,
+    0.35,
+    0.35,
+    0.35
+   ]
+  },
+  {
+   "id": 569,
+   "name": "Gonzalo",
+   "p_start": 0.93,
+   "uncertainty": "LOW",
+   "notes": "8/8 starts, 86/84/73 r6-r8 unbroken; pens #1."
+  },
+  {
+   "id": 271,
+   "name": "Muniz",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "68' all season in cameos; 16' r8."
+  },
+  {
+   "id": 79,
+   "name": "Evanilson",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "8/8 starts, 90/78/86 r6-r8 unbroken."
+  },
+  {
+   "id": 81,
+   "name": "Rodríguez",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "39' all season behind a nailed Evanilson."
+  },
+  {
+   "id": 608,
+   "name": "Jebbison",
+   "p_start": 0.03,
+   "uncertainty": "HIGH",
+   "notes": "31' all season, third at BOU."
+  },
+  {
+   "id": 223,
+   "name": "Mateta",
+   "p_start": 0.8,
+   "uncertainty": "MED",
+   "notes": "Flag cleared; 29' sub r7 then 61' r8 start with Strand Larsen out. pens #1 and CRY first choice - ramp as fitness builds.",
+   "p_start_gw": [
+    0.8,
+    0.85,
+    0.88,
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "id": 222,
+   "name": "Strand Larsen",
+   "p_start": 0.3,
+   "uncertainty": "MED",
+   "notes": "d/75 ankle, 0' r8; under the cap and Mateta has the shirt back. Did not start either of the last two rounds' r8.",
+   "p_start_gw": [
+    0.3,
+    0.3,
+    0.25,
+    0.25,
+    0.25,
+    0.25
+   ]
+  },
+  {
+   "id": 224,
+   "name": "Nketiah",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "29/28 cameos r7-r8; third at CRY, a step up while Strand Larsen is flagged."
+  },
+  {
+   "id": 346,
+   "name": "Calvert-Lewin",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "8/8 starts, 90/90/84 r6-r8 unbroken; pens #1."
+  },
+  {
+   "id": 347,
+   "name": "Nmecha",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "96' all season in cameos behind Calvert-Lewin; pens #2."
+  },
+  {
+   "id": 138,
+   "name": "Kostoulas",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "59/70/90 r6-r8 unbroken; 7/8 starts. Ferguson and Tzimas out (i, unknown return); David 0' five rounds."
+  },
+  {
+   "id": 594,
+   "name": "David",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0' in r4-r8; Kostoulas has the shirt. pens #2."
+  },
+  {
+   "id": 125,
+   "name": "Georginio",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "2/19/15 cameos since the GW1 start."
+  },
+  {
+   "id": 249,
+   "name": "Barry",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "8/8 starts, 85/90/90 r6-r8 unbroken; pens #1; xG 5.08 second in the position."
+  },
+  {
+   "id": 167,
+   "name": "Delap",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "71/90/90 r6-r8 unbroken; Igor Jesus out (i, unknown return). pens #3."
+  },
+  {
+   "id": 490,
+   "name": "Wood",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "18/5/1 cameos; NFO #2 with Igor Jesus out. pens #2."
+  },
+  {
+   "id": 493,
+   "name": "Kalimuendo",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "7/17/0 cameos."
+  },
+  {
+   "id": 316,
+   "name": "Emersonn",
+   "p_start": 0.93,
+   "uncertainty": "HIGH",
+   "notes": "8/8 starts, 70/77/59 r6-r8. HIGH is the promoted-club band, not a minutes doubt; the hook is the ceiling.",
+   "overrides": {
+    "minutes_per_start": 67,
+    "attack_mult": 0.85
+   },
+   "reason": "Hooked most starts (65/62/80/70/77/59 r3-r8) so the 90' default overstates him. attack_mult 0.85: promoted club, no PL history before this season, so the league-mean prior flatters him."
+  },
+  {
+   "id": 640,
+   "name": "Flemming",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "Cameos only (12/30 the last two); Emersonn's hook is his route in. Real PL prior from history_past. pens #2."
+  },
+  {
+   "id": 320,
+   "name": "Akpom",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "19/12/4 cameos - a fade.",
+   "overrides": {
+    "attack_mult": 0.85
+   },
+   "reason": "Promoted club; prior is Championship-weighted and the league-mean fallback overstates PL finishing."
+  },
+  {
+   "id": 295,
+   "name": "McBurnie",
+   "p_start": 0.94,
+   "uncertainty": "HIGH",
+   "notes": "8/8 starts, 90/90/85 r6-r8; pens #1; Ansah injured. HIGH is the promoted-club band (HUL att 0.76), not a minutes doubt."
+  },
+  {
+   "id": 637,
+   "name": "Vaz",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "Flag cleared (a/100); 22/4 cameos. Emergency option only.",
+   "overrides": {
+    "attack_mult": 0.7
+   },
+   "reason": "Promoted club, no PL history; league-mean starter default is the wrong prior for a 50-minute sample."
+  },
+  {
+   "id": 194,
+   "name": "Thomas-Asante",
+   "p_start": 0.85,
+   "uncertainty": "HIGH",
+   "notes": "90/77/66 r6-r8 unbroken; 5 starts. Held under 0.93 as COV rotate the second slot. pens #5.",
+   "overrides": {
+    "attack_mult": 0.7
+   },
+   "reason": "Promoted club with no meaningful PL scoring history; the league-mean default for a regular starter overstates his rate. Cut further at GW9: the team-xG share check flagged the row at the GW8 multiplier."
+  },
+  {
+   "id": 599,
+   "name": "Cherif",
+   "p_start": 0.6,
+   "uncertainty": "HIGH",
+   "notes": "Started r6-r8 (77/59/66) alongside Thomas-Asante. Awoniyi the threat.",
+   "overrides": {
+    "attack_mult": 0.6
+   },
+   "reason": "Promoted club, no PL history; league-mean default for a regular starter is the wrong prior for a 232-minute sample. Cut further at GW9: the team-xG share check flagged the row at the GW8 multiplier."
+  },
+  {
+   "id": 492,
+   "name": "Awoniyi",
+   "p_start": 0.3,
+   "uncertainty": "HIGH",
+   "notes": "30/23 subs r7-r8; started neither. pens #6. Third in the COV queue."
+  },
+  {
+   "id": 195,
+   "name": "Simms",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "0' r7-r8; fourth+ at COV."
+  },
+  {
+   "id": 552,
+   "name": "Brobbey",
+   "p_start": 0.85,
+   "uncertainty": "MED",
+   "notes": "Flag cleared (a/100); 64' start r8 on return after 0' r6-r7. Started r3-r5 when fit; 6 starts."
+  },
+  {
+   "id": 553,
+   "name": "Isidor",
+   "p_start": 0.15,
+   "uncertainty": "MED",
+   "notes": "d/50 knock, 0' r7-r8 - started neither, so C21 does not lift him. Brobbey back in the shirt.",
+   "p_start_gw": [
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ]
+  },
+  {
+   "id": 440,
+   "name": "Zirkzee",
+   "p_start": 0.1,
+   "uncertainty": "HIGH",
+   "notes": "31/0/18 cameos r6-r8; Sesko out (i, unknown return) but MUN start no nominal FWD."
+  },
+  {
+   "id": 439,
+   "name": "Šeško",
+   "p_start": 0.0,
+   "uncertainty": "HIGH",
+   "notes": "Status i, shin, unknown return date. 0 starts even when fit. Later values a guess.",
+   "p_start_gw": [
+    0.0,
+    0.05,
+    0.1,
+    0.15,
+    0.15,
+    0.15
+   ]
+  },
+  {
+   "id": 108,
+   "name": "Wilson",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "30' all season behind a nailed Thiago."
+  }
+ ]
+}
