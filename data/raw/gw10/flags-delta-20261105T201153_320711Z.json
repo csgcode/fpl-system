@@ -1,0 +1,97 @@
+{
+ "gw": 10,
+ "refreshed_at": "2026-11-05T20:11:53.320711+00:00",
+ "baseline": {
+  "source": "data/raw/gw10/.archive/bootstrap-20261105T194504_242767Z.json",
+  "fetched_at": "2026-11-05T19:45:04.242767+00:00",
+  "age_hours": 0.4469660955555555,
+  "stale": false
+ },
+ "gate_ids": [
+  385,
+  496,
+  4,
+  8,
+  60,
+  112,
+  332,
+  427,
+  542,
+  68,
+  453,
+  127,
+  411,
+  379,
+  249
+ ],
+ "gate_changed": false,
+ "gate": [],
+ "pool": [
+  {
+   "id": 222,
+   "web_name": "Strand Larsen",
+   "position": "FWD",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Ankle injury - 75% chance of playing",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "id": 543,
+   "web_name": "Diarra",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "i"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 0
+    },
+    {
+     "field": "news",
+     "before": "Muscular injury - 75% chance of playing",
+     "after": "Muscular injury - Unknown return date"
+    }
+   ]
+  },
+  {
+   "id": 644,
+   "web_name": "Timber",
+   "position": "MID",
+   "changes": [
+    {
+     "field": "status",
+     "before": "d",
+     "after": "a"
+    },
+    {
+     "field": "chance_of_playing_next_round",
+     "before": 75,
+     "after": 100
+    },
+    {
+     "field": "news",
+     "before": "Hamstring injury - 75% chance of playing",
+     "after": ""
+    }
+   ]
+  }
+ ]
+}
