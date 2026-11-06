@@ -7,6 +7,7 @@ on the committed GW6 data."""
 
 from __future__ import annotations
 
+import csv
 import re
 import shutil
 import subprocess
@@ -18,7 +19,7 @@ REPO = Path(__file__).resolve().parent.parent
 SPEC = (REPO / "agents" / "player-analyst.md").read_text(encoding="utf-8")
 LIMIT = 20_000
 CALL_1 = ("uv run python -m fpl players --gw N --position POS --status a,d,i,s,n --minutes "
-          "--minutes-last 6 --fields id,name,team,price,status,chance_of_playing,news,minutes,"
+          "--minutes-last 6 --kickoffs --fields id,name,team,price,status,chance_of_playing,news,minutes,"
           "starts,xG,xA,penalties_order,direct_freekicks_order,"
           "corners_and_indirect_freekicks_order --format csv")
 CALL_2_FIRST = "uv run python -m fpl corrections --gw N --agent A3"
@@ -101,6 +102,8 @@ def test_call_1_from_the_store_fills_no_summary_rows_and_fits_inline(pos, season
     assert from_store[0] == from_summaries[0]
     assert len(from_store) == len(from_summaries)
     changed = [(a, b) for a, b in zip(from_summaries, from_store, strict=True) if a != b]
-    assert changed and all(a.endswith(",no summary") for a, _ in changed)
+    minutes_cell = -3  # the kickoffs and back_gw columns follow the minutes column
+    assert changed and all(next(csv.reader([a]))[minutes_cell] == "no summary"
+                           for a, _ in changed)
     assert not any("no summary" in line for line in from_store)
     assert len("\n".join(from_store)) < LIMIT

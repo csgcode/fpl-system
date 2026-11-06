@@ -38,6 +38,7 @@ from tests.factories import (
     match_record_payload,
     pick_payload,
     player_payload,
+    team_payload,
 )
 from tests.test_service import FakeGateway
 
@@ -1364,3 +1365,112 @@ def test_store_without_history_from_store_refuses(tmp_path, capsys, command, sou
                  *command[1:], *source, "--store", str(tmp_path / "s.sqlite")]) == 1
     err = capsys.readouterr().err
     assert "--store" in err and "--history-from store" in err
+
+
+# --- players --kickoffs --------------------------------------------------
+
+
+def seed_kickoffs(tmp_path, gw=37):
+    store = SnapshotStore(tmp_path)
+    store.save(
+        gw, "bootstrap",
+        bootstrap_payload(
+            elements=[
+                player_payload(id=1, web_name="Alpha", team=1, news="",
+                               status="a"),
+                player_payload(id=2, web_name="Beta", team=1, status="i",
+                               news="Hamstring injury - Expected back 14 May",
+                               news_added="2027-04-30T10:00:00Z"),
+                player_payload(id=3, web_name="Gamma", team=2, status="s",
+                               news="Suspended until 1 Jun",
+                               news_added="2027-05-01T10:00:00Z"),
+                player_payload(id=4, web_name="Delta", team=2, status="i",
+                               news="Suspended until further notice"),
+                player_payload(id=5, web_name="Eps", team=1, status="i",
+                               news="Knee injury - Expected back 12 May",
+                               news_added="2027-04-30T10:00:00Z"),
+                player_payload(id=6, web_name="Zeta", team=1, status="i",
+                               news="Knee injury - Expected back 2 May",
+                               news_added="2027-04-20T10:00:00Z"),
+            ],
+            teams=[team_payload(id=1, short_name="ONE"), team_payload(id=2, short_name="TWO")],
+            events=[event_payload(id=gw, deadline_time="2027-05-08T10:00:00Z")],
+        ),
+        "seed://test",
+    )
+    store.save(gw, "fixtures", [
+        fixture_payload(id=1, event=37, team_h=1, team_a=2,
+                        kickoff_time="2027-05-09T14:00:00Z"),
+        fixture_payload(id=2, event=37, team_h=2, team_a=1,
+                        kickoff_time="2027-05-13T19:00:00Z"),
+        fixture_payload(id=3, event=38, team_h=1, team_a=2,
+                        kickoff_time="2027-05-23T15:00:00Z"),
+    ], "seed://test")
+
+
+def kickoff_rows(tmp_path, capsys, *argv):
+    assert run(["players", "--gw", "37", "--kickoffs", "--sort", "id", *argv],
+               tmp_path, FakeGateway({})) == 0
+    return capsys.readouterr().out
+
+
+def test_players_kickoffs_appends_window_kickoffs_and_back_gw(tmp_path, capsys):
+    seed_kickoffs(tmp_path)
+    rows = list(csv.reader(io.StringIO(kickoff_rows(
+        tmp_path, capsys, "--format", "csv", "--fields", "id,name"))))
+    assert rows[0] == ["id", "name", "kickoffs_gw37-gw38", "back_gw"]
+    by_name = {row[1]: row[2:] for row in rows[1:]}
+    assert by_name["Alpha"] == ["", ""]
+    assert by_name["Beta"] == ["2027-05-09+2027-05-13,2027-05-23", "38"]
+    assert by_name["Gamma"] == ["2027-05-09+2027-05-13,2027-05-23", ">38"]
+    assert by_name["Delta"] == ["2027-05-09+2027-05-13,2027-05-23", "?"]
+    assert by_name["Eps"] == ["2027-05-09+2027-05-13,2027-05-23", "37*"]
+    assert by_name["Zeta"] == ["2027-05-09+2027-05-13,2027-05-23", "stale"]
+
+
+def test_players_kickoffs_marks_a_blank_gameweek(tmp_path, capsys):
+    seed_kickoffs(tmp_path)
+    store = SnapshotStore(tmp_path)
+    store.save(37, "fixtures", [
+        fixture_payload(id=3, event=38, team_h=1, team_a=2,
+                        kickoff_time="2027-05-23T15:00:00Z"),
+    ], "seed://test")
+    rows = list(csv.reader(io.StringIO(kickoff_rows(
+        tmp_path, capsys, "--format", "csv", "--fields", "name"))))
+    assert {row[0]: row[1:] for row in rows[1:]}["Beta"] == ["-,2027-05-23", "38"]
+
+
+def test_players_kickoffs_json_keys_the_window(tmp_path, capsys):
+    seed_kickoffs(tmp_path)
+    records = {r["name"]: r for r in json.loads(kickoff_rows(
+        tmp_path, capsys, "--format", "json", "--fields", "name"))}
+    assert records["Alpha"]["kickoffs"] is None
+    assert records["Alpha"]["back_gw"] is None
+    assert records["Beta"]["kickoffs"] == {"37": ["2027-05-09", "2027-05-13"],
+                                           "38": ["2027-05-23"]}
+    assert records["Beta"]["back_gw"] == "38"
+    assert records["Gamma"]["back_gw"] == ">38"
+    assert records["Delta"]["back_gw"] == "?"
+    assert records["Eps"]["back_gw"] == "37*"
+
+
+def test_players_kickoffs_follow_the_minutes_column(tmp_path, capsys):
+    seed_kickoffs(tmp_path)
+    rows = list(csv.reader(io.StringIO(kickoff_rows(
+        tmp_path, capsys, "--format", "csv", "--fields", "name", "--minutes",
+        "--minutes-last", "1", "--history-from", "summaries"))))
+    assert rows[0] == ["name", "minutes_r36", "kickoffs_gw37-gw38", "back_gw"]
+
+
+def test_players_kickoffs_table_shows_back_gw(tmp_path, capsys):
+    seed_kickoffs(tmp_path)
+    out = kickoff_rows(tmp_path, capsys)
+    assert "back_gw" in out.splitlines()[0]
+    assert ">38" in next(line for line in out.splitlines() if "Gamma" in line)
+
+
+def test_players_kickoffs_without_a_fixtures_snapshot_names_the_fetch(tmp_path, capsys):
+    seed_kickoffs(tmp_path)
+    (tmp_path / "gw37" / "fixtures.json").unlink()
+    assert run(["players", "--gw", "37", "--kickoffs"], tmp_path, FakeGateway({})) == 1
+    assert "fixtures --gw 37" in capsys.readouterr().err

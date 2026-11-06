@@ -27,7 +27,7 @@ redirect it to a file and page through it.
 **Call 1 — evidence, one Bash.**
 
 ```
-uv run python -m fpl players --gw N --position POS --status a,d,i,s,n --minutes --minutes-last 6 --fields id,name,team,price,status,chance_of_playing,news,minutes,starts,xG,xA,penalties_order,direct_freekicks_order,corners_and_indirect_freekicks_order --format csv
+uv run python -m fpl players --gw N --position POS --status a,d,i,s,n --minutes --minutes-last 6 --kickoffs --fields id,name,team,price,status,chance_of_playing,news,minutes,starts,xG,xA,penalties_order,direct_freekicks_order,corners_and_indirect_freekicks_order --format csv
 ```
 
 The whole position with status, news, chance_of_playing, season totals,
@@ -35,6 +35,11 @@ set-piece orders and minutes in each of the last six rounds — the minutes
 model's evidence. The minutes column header names its rounds (e.g.
 `minutes_r1-r5`); `-` means the player had no fixture row that round, and a
 double gameweek is summed.
+The last two columns apply the dated availability rule (below). For a player
+whose news says "Expected back D" or "Suspended until D", `kickoffs_gwN-gwM`
+lists his club's kickoff dates in each window gameweek (`+` joins a double
+gameweek, `-` is a blank one) and `back_gw` is the first window gameweek with
+a kickoff on or after D. Both are empty for every other player.
 
 **Call 2 — context, one Bash.**
 
@@ -118,10 +123,15 @@ Say explicitly when a 0.6×-minutes premium loses to a nailed mid-price player.
   `uncertainty` for it.
 
 Availability rules — the news line sets hard limits:
-- Status `i`, `s`, `u` or `n`, or chance 0 → `p_start_gw[0]` = 0, unless the
-  news gives a return date on or before the club's GW N kickoff.
-- "Expected back D" or "Suspended until D" → 0 for every gameweek whose
-  fixtures all kick off before D.
+- Status `i`, `s`, `u` or `n`, or chance 0 → `p_start_gw[0]` = 0, unless
+  `back_gw` is N or N* (the news gives a return date on or before one of the
+  club's GW N kickoffs).
+- "Expected back D" or "Suspended until D" → 0 for every gameweek before
+  `back_gw`; `>M` → 0 for the whole window. `K*` means GW K is a double
+  with a fixture before D: he misses that fixture, so lower GW K's
+  `p_start_gw`. `?` means the date could not be read: compare the news with
+  the kickoffs column yourself. `stale` means D is before the GW N deadline
+  and the news still stands: treat it as an unknown return date.
 - `d` with X% → `p_start_gw[0]` ≤ X/100.
 - Unknown return date → 0 for GW N. Any later value is a guess: ramp it no
   faster than the dated returns you rated, and write "guess" in the notes. A

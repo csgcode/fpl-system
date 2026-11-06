@@ -20,7 +20,7 @@ import os
 import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import requests
@@ -54,6 +54,7 @@ from fpl.decision_record import (
 )
 from fpl.corrections import agent_corrections, build_digest
 from fpl.ep import (
+    HORIZON,
     EpResult,
     build_predictions,
     force_prior_weight,
@@ -82,9 +83,11 @@ from fpl import (
     team_share,
 )
 from fpl.season_store import History
+from fpl.kickoffs import STALE, back_gw, club_kickoffs, return_date
 from fpl.models import (
     POSITION_ALIASES,
     Bootstrap,
+    Fixture,
     MyTeam,
     Player,
     PlayerStatus,
@@ -612,6 +615,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--fields",
         help="comma-separated columns to print, in order (csv/json); default: all",
     )
+    players.add_argument(
+        "--kickoffs", action="store_true",
+        help="append, from gw N's cached fixtures, the club's kickoff dates in GWs "
+             "N..N+5 (filled only when the news has an 'Expected back' or 'Suspended "
+             "until' date) and back_gw: the first of those GWs with a kickoff on or "
+             "after that date; '12*' = a double GW with a fixture before it, '>M' = "
+             "none in the window, '?' = the date cannot be read, 'stale' = the "
+             "date is before the GW N deadline",
+    )
 
     corrections = add(
         "corrections",
@@ -987,7 +999,8 @@ def run_command(
         minutes = (_minutes_by_round(History.from_args(args.data_root, args), gw, rows,
                                      args.minutes_last)
                    if args.minutes else None)
-        print_players(rows, args.format, minutes, fields)
+        kickoffs = _kickoffs_view(store, gw, rows) if args.kickoffs else None
+        print_players(rows, args.format, minutes, fields, kickoffs)
     return EXIT_OK
 
 
@@ -1276,6 +1289,68 @@ def _minutes_by_round(
                 played[match.round] = played.get(match.round, 0) + match.minutes
         result[row.player.id] = {r: played.get(r, NO_FIXTURE) for r in rounds}
     return MinutesView(rounds, result)
+
+
+BACK_GW_COLUMN = "back_gw"
+NO_KICKOFF = "-"
+
+
+@dataclass(frozen=True)
+class KickoffView:
+    """Per player with a dated return phrase in the news: the club's kickoff
+    dates in each window GW and back_gw. Other players map to None."""
+
+    window: range
+    by_player: dict[int, tuple[dict[int, tuple[date, ...]], str] | None]
+
+    @property
+    def label(self) -> str:
+        return f"kickoffs_gw{self.window[0]}-gw{self.window[-1]}"
+
+    def joined(self, player_id: int) -> str:
+        entry = self.by_player[player_id]
+        if entry is None:
+            return ""
+        return ",".join("+".join(d.isoformat() for d in entry[0][gw]) or NO_KICKOFF
+                        for gw in self.window)
+
+    def keyed(self, player_id: int) -> dict[str, list[str]] | None:
+        entry = self.by_player[player_id]
+        if entry is None:
+            return None
+        return {str(gw): [d.isoformat() for d in entry[0][gw]] for gw in self.window}
+
+    def back(self, player_id: int) -> str | None:
+        entry = self.by_player[player_id]
+        return None if entry is None else entry[1]
+
+
+def _kickoffs_view(store: SnapshotStore, gw: int, rows: list[PlayerRow]) -> KickoffView:
+    window = range(gw, min(gw + HORIZON, MAX_GW + 1))
+    try:
+        raw = store.load(gw, "fixtures")
+    except SnapshotMissingError as exc:
+        raise exc.with_hint(f"fixtures --gw {gw}") from None
+    clubs = club_kickoffs((Fixture.model_validate(f) for f in raw), window)
+    deadline = Bootstrap.model_validate(store.load(gw, "bootstrap")).deadline_for(gw)
+    result: dict[int, tuple[dict[int, tuple[date, ...]], str] | None] = {}
+    for row in rows:
+        p = row.player
+        added = p.news_added or deadline
+        back = return_date(p.news, added.date()) if added else None
+        if back is None:
+            result[p.id] = None
+            continue
+        club = clubs.get(p.team, {})
+        dates = {w: club.get(w, ()) for w in window}
+        if isinstance(back, str):
+            verdict = back
+        elif deadline is not None and back < deadline.date():
+            verdict = STALE
+        else:
+            verdict = back_gw(club, window, back)
+        result[p.id] = (dates, verdict)
+    return KickoffView(window, result)
 
 
 def _player_fields(raw: str | None, fmt: str) -> tuple[str, ...]:
@@ -2329,6 +2404,7 @@ MINUTES_COLUMN = "minutes_by_round"
 def print_players(
     rows: list[PlayerRow], fmt: str, minutes: MinutesView | None = None,
     fields: tuple[str, ...] = PLAYERS_SLIM_COLUMNS,
+    kickoffs: KickoffView | None = None,
 ) -> None:
     if fmt == "json":
         records = []
@@ -2337,6 +2413,9 @@ def print_players(
             record = {name: full[name] for name in fields}
             if minutes is not None:
                 record[MINUTES_COLUMN] = minutes.keyed(row.player.id)
+            if kickoffs is not None:
+                record["kickoffs"] = kickoffs.keyed(row.player.id)
+                record[BACK_GW_COLUMN] = kickoffs.back(row.player.id)
             records.append(record)
         print(json.dumps(records, indent=1))
     elif fmt == "csv":
@@ -2344,21 +2423,29 @@ def print_players(
         header = list(fields)
         if minutes is not None:
             header.append(minutes.label)
+        if kickoffs is not None:
+            header += [kickoffs.label, BACK_GW_COLUMN]
         writer.writerow(header)
         for row in rows:
             full = slim_record(row)
             values = [full[name] for name in fields]
             if minutes is not None:
                 values.append(minutes.joined(row.player.id))
+            if kickoffs is not None:
+                values += [kickoffs.joined(row.player.id), kickoffs.back(row.player.id) or ""]
             writer.writerow(values)
     else:
         tail = f"  {minutes.label}" if minutes is not None else ""
+        if kickoffs is not None:
+            tail += f"  {BACK_GW_COLUMN}  {kickoffs.label}"
         print(f"{'id':>4}  {'name':<20} {'team':<4} {'pos':<3} {'price':>5} "
               f"{'st':<2} {'own%':>5} {'form':>5} {'pts':>4} {'pen':>3}{tail}")
         for row in rows:
             p = row.player
             pen = p.penalties_order if p.penalties_order is not None else ""
             extra = f"  {minutes.joined(p.id)}" if minutes is not None else ""
+            if kickoffs is not None:
+                extra += f"  {kickoffs.back(p.id) or '':<7}  {kickoffs.joined(p.id)}"
             print(f"{p.id:>4}  {p.web_name:<20.20} {row.team_short_name:<4} "
                   f"{p.element_type.name:<3} {p.price_m:>5.1f} {p.status.value:<2} "
                   f"{p.selected_by_percent:>5.1f} {p.form:>5.1f} {p.total_points:>4} {pen:>3}{extra}")
