@@ -26,16 +26,30 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-PRICING_DATE = "2026-06-24"
+# Source: https://platform.claude.com/docs/en/about-claude/pricing
+PRICING_DATE = "2026-11-06"
+Rates = tuple[float, float, float, float, float]
 # USD per 1M tokens: input, output, cache write 5m TTL, cache write 1h TTL, cache read.
-PRICES: dict[str, tuple[float, float, float, float, float]] = {
+# Keys are exact model ids; a transcript id matches a key exactly or with a
+# -YYYYMMDD snapshot suffix, so an unlisted model refuses instead of silently
+# taking an older sibling's price.
+PRICES: dict[str, Rates] = {
     "claude-fable-5-1": (10.0, 50.0, 12.5, 20.0, 0.25),
     "claude-fable-5": (10.0, 50.0, 12.5, 20.0, 1.0),
+    "claude-opus-5-5": (4.0, 20.0, 5.0, 8.0, 0.2),
     "claude-opus-5": (5.0, 25.0, 6.25, 10.0, 0.5),
+    "claude-sonnet-5-5": (2.0, 10.0, 2.5, 4.0, 0.1),
     "claude-sonnet-5": (2.0, 10.0, 2.5, 4.0, 0.2),
+    "claude-haiku-5-5": (0.1, 0.5, 0.125, 0.2, 0.01),
     "claude-haiku-4-5": (1.0, 5.0, 1.25, 2.0, 0.1),
 }
-_PRICE_KEYS = sorted(PRICES, key=len, reverse=True)
+# A call whose prompt (input + cache read + cache write) exceeds the token
+# count pays these rates on every token type instead.
+LONG_PROMPT_PRICES: dict[str, tuple[int, Rates]] = {
+    "claude-haiku-5-5": (100_000, (0.5, 2.5, 0.625, 1.0, 0.05)),
+}
+_SNAPSHOT_SUFFIX = re.compile(r"-\d{8}$")
+_RATE_FIELDS = ("input", "output", "cache_write_5m", "cache_write_1h", "cache_read")
 
 TRANSCRIPTS_ROOT_ENV = "FPL_TRANSCRIPTS_ROOT"
 MAIN_THREAD = "main"
@@ -172,10 +186,14 @@ class Call:
         return stage_for(self.agent)
 
 
-def rates_for(model: str) -> tuple[float, float, float, float, float]:
-    for key in _PRICE_KEYS:
-        if model.startswith(key):
-            return PRICES[key]
+def rates_for(model: str, *, prompt_tokens: int) -> Rates:
+    key = _SNAPSHOT_SUFFIX.sub("", model)
+    if key in LONG_PROMPT_PRICES:
+        over, long_rates = LONG_PROMPT_PRICES[key]
+        if prompt_tokens > over:
+            return long_rates
+    if key in PRICES:
+        return PRICES[key]
     raise UnpricedModelError(
         f"no list price for model {model!r}; add it to fpl.usage.PRICES "
         f"(known: {', '.join(sorted(PRICES))})"
@@ -183,7 +201,7 @@ def rates_for(model: str) -> tuple[float, float, float, float, float]:
 
 
 def cost_of(call: Call) -> Cost:
-    inp, out, w5, w1, rd = rates_for(call.model)
+    inp, out, w5, w1, rd = rates_for(call.model, prompt_tokens=call.context_tokens)
     return Cost(
         input=call.input_tokens * inp / 1e6,
         cache_write=(call.cache_write_5m * w5 + call.cache_write_1h * w1) / 1e6,
@@ -687,7 +705,11 @@ def render_markdown(report: Report) -> str:
     for key in sorted(PRICES):
         inp, out, w5, w1, rd = PRICES[key]
         lines.append(f"| {key} | {inp} | {out} | {w5} | {w1} | {rd} |")
+    for key in sorted(LONG_PROMPT_PRICES):
+        over, (inp, out, w5, w1, rd) = LONG_PROMPT_PRICES[key]
+        lines.append(f"| {key} (prompt > {over:,} tokens) | {inp} | {out} | {w5} | {w1} | {rd} |")
     lines += ["",
+              "- A call's prompt is its input + cache read + cache write tokens; a call over a model's long-prompt threshold pays that row's rates on every token.",
               "- Costs are API list-price equivalents; a subscription is not billed at these rates.",
               "- One row per API call (message id). Claude Code writes one transcript line per content block; output tokens are the max across a call's lines.",
               "- Subagent calls belong to the window in which the orchestrator spawned them.",
@@ -713,7 +735,9 @@ def report_dict(report: Report) -> dict:
         "agents": [{**{k: v for k, v in asdict(a).items() if k != "totals"}, **asdict(a.totals)} for a in report.agents],
         "prompts": [{"timestamp": fmt_ts(p.timestamp), "kind": p.kind, "text": _preview(p.text)} for p in report.prompts],
         "pricing": {"as_of": PRICING_DATE, "usd_per_mtok": {
-            k: dict(zip(("input", "output", "cache_write_5m", "cache_write_1h", "cache_read"), v)) for k, v in PRICES.items()
+            k: dict(zip(_RATE_FIELDS, v)) for k, v in PRICES.items()
+        }, "long_prompt": {
+            k: {"over_tokens": over, "usd_per_mtok": dict(zip(_RATE_FIELDS, v))} for k, (over, v) in LONG_PROMPT_PRICES.items()
         }},
     }
 

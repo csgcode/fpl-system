@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from fpl.usage import (
+    LONG_PROMPT_PRICES,
     MAIN_THREAD,
     PRICES,
     SessionNotFoundError,
@@ -241,8 +242,15 @@ def test_subagent_attributed_by_spawn_not_by_its_own_timestamps(root: Path) -> N
         # Fable 5: cache read at the usual 0.1x
         ("claude-fable-5", usage(cr=1_000_000), 1.0),
         ("claude-opus-5", usage(inp=2_000_000, cw5=1_000_000), 10 + 6.25),
-        # dated Haiku id resolves by prefix
+        # dated Haiku id resolves by date suffix
         ("claude-haiku-4-5-20251001", usage(out=1_000_000, cw1=1_000_000), 5 + 2),
+        ("claude-opus-5-5", usage(inp=1_000_000, out=1_000_000, cw5=1_000_000, cw1=1_000_000, cr=1_000_000), 4 + 20 + 5 + 8 + 0.2),
+        ("claude-opus-5-5-20261001", usage(cr=1_000_000), 0.2),
+        # Sonnet 5.5 cache read is 0.05x, not Sonnet 5's 0.1x
+        ("claude-sonnet-5-5", usage(inp=1_000_000, out=1_000_000, cw5=1_000_000, cw1=1_000_000, cr=1_000_000), 2 + 10 + 2.5 + 4 + 0.1),
+        ("claude-sonnet-5", usage(cr=1_000_000), 0.2),
+        # Haiku 5.5 short-prompt card: prompt of exactly 100,000 tokens
+        ("claude-haiku-5-5", usage(inp=40_000, cw5=30_000, cr=30_000, out=1_000_000), (40_000 * 0.1 + 30_000 * 0.125 + 30_000 * 0.01) / 1e6 + 0.5),
     ],
 )
 def test_cost_per_model(root: Path, model: str, use: dict, expected: float) -> None:
@@ -266,8 +274,32 @@ def test_unknown_model_refuses_naming_it(root: Path) -> None:
         cost_of(call)
 
 
+@pytest.mark.parametrize("model", ["claude-haiku-5-5", "claude-haiku-5-5-20261001"])
+def test_haiku_5_5_prompt_over_100k_pays_long_rates_on_every_token(root: Path, model: str) -> None:
+    # prompt = input + cache read + cache write = 100,001
+    use = usage(inp=1, cw5=40_000, cw1=10_000, cr=50_000, out=1_000_000)
+    write_jsonl(root / "s.jsonl", [assistant_line("2026-01-01T00:00:00Z", "x", model, use)])
+    [call] = load_session(root, "s").main_calls
+    cost = cost_of(call)
+    assert cost.input == pytest.approx(1 * 0.5 / 1e6)
+    assert cost.cache_write == pytest.approx((40_000 * 0.625 + 10_000 * 1.0) / 1e6)
+    assert cost.cache_read == pytest.approx(50_000 * 0.05 / 1e6)
+    assert cost.output == pytest.approx(2.5)
+    assert cost.uncached_equivalent == pytest.approx((100_001 * 0.5) / 1e6 + 2.5)
+
+
+@pytest.mark.parametrize("model", ["claude-opus-5-7", "claude-sonnet-5-5-preview", "claude-haiku-5", "claude-opus-5-5-2026"])
+def test_unlisted_model_never_inherits_a_neighbours_price(root: Path, model: str) -> None:
+    write_jsonl(root / "s.jsonl", [assistant_line("2026-01-01T00:00:00Z", "x", model, usage(out=1))])
+    [call] = load_session(root, "s").main_calls
+    with pytest.raises(UnpricedModelError, match=model):
+        cost_of(call)
+
+
 def test_price_table_has_every_rate() -> None:
     assert all(len(rates) == 5 for rates in PRICES.values())
+    assert all(len(rates) == 5 for _, rates in LONG_PROMPT_PRICES.values())
+    assert set(LONG_PROMPT_PRICES) <= set(PRICES)
 
 
 # ----------------------------------------------------------------- stages
@@ -363,6 +395,11 @@ def test_write_report_files_and_section_order(root: Path, tmp_path: Path) -> Non
     assert data["window"]["gw"] == 3 and data["window"]["session_id"] == SID
     assert data["totals"]["calls"] == report.totals.calls
     assert "generated_at" not in data
+    assert data["pricing"]["long_prompt"] == {"claude-haiku-5-5": {
+        "over_tokens": 100_000,
+        "usd_per_mtok": {"input": 0.5, "output": 2.5, "cache_write_5m": 0.625, "cache_write_1h": 1.0, "cache_read": 0.05},
+    }}
+    assert "| claude-haiku-5-5 (prompt > 100,000 tokens) | 0.5 | 2.5 | 0.625 | 1.0 | 0.05 |" in md
 
 
 def test_write_report_is_deterministic(root: Path, tmp_path: Path) -> None:
