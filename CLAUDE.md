@@ -305,7 +305,8 @@ All FPL API access goes through the deterministic CLI
 | `my-team --team-id <id>` | authenticated read: squad, SELL prices, chips, transfer state | always (auth) |
 | `set-lineup --team-id <id> --from-plan <plan.json> [--apply]` | XI/captain/vice/bench/chip POST; dry-run without `--apply`; verifies after write | write (auth) |
 | `make-transfers --team-id <id> --from-plan <plan.json> [--apply --approve <transfer id>]` | transfer POST; dry-run without `--apply`; `--apply` needs the user-approved transfer id | write (auth) |
-| `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). The only command with no `--gw` | local only |
+| `auth-import --curl-file <path> [--out data/auth.json]` | converts a browser "Copy as cURL" capture into the credentials file (mode 0600). No `--gw` | local only |
+| `backlog list [--status open\|closed\|all] [--kind K] \| status <rows> '<status>' --expect <text>… \| check [--file <p>]` | docs/backlog.md by row number: lists rows, changes the Status cell of open rows (all or none, each `--expect` guarding its row number), validates every status against the vocabulary at the top of docs/backlog.md. No `--gw`. Triage sessions only — `status` replaces the whole file | local only |
 | `usage --list \| --session <id> --inspect \| --session <id> --start <ts> --end <ts> [--out <p>]` | token usage and list-price cost of one Claude Code session window, read from the transcripts under ~/.claude/projects (override: `--transcripts-root`, else the `FPL_TRANSCRIPTS_ROOT` env var). `--list` indexes sessions by the GW tags of their cycle spawns — a GW{N} retro or usage-ledger spawn counts toward the next cycle, not GW{N} — by default only those active after the latest ledger for an earlier GW (`--since`/`--all` override); `--inspect` prints the prompt/spawn/commit timeline and the window to use verbatim (end = first human prompt after both the last cycle agent finished and the last `gw{N}:` commit); the extract writes data/cost/gw{N}/{usage.md,usage.json,calls.csv}. One row per API call, subagents attributed to the window that spawned them | local only |
 | `store sync\|verify\|status\|rebuild [--store <p>]` | the local season store, a SQLite file built from data/raw (default: store/season-2026-27.sqlite beside `--data-root`, i.e. data/store/ for data/raw). `sync` rebuilds the store from the whole raw tree when any raw file is new or changed (`rebuilt from T raw files (K new or changed)`; otherwise `up to date, …`) and ends with `coverage gwN: players X, no_pl_history Y, missing_past Z` (the gw N bootstrap's players with a kept summary, those of them with no past PL season, and those with none); `rebuild` starts again from nothing; one sync at a time (a lock file beside the store). The readers (`ep`, `objective`, `players --minutes`, `fixtures-rate`, `history`) sync a store that is behind themselves, so `sync` is needed only by the collector; `verify` checks the store matches data/raw and equals a fresh build, and exits 1 when it does not (run `store rebuild`); `status` summarises what it holds. `verify` and `status` write nothing. Exit 3 when a player's season totals in the bootstrap differ from the sum of his stored rounds | local only |
 | `history [--position POS] [--ids <ids>] [--last K] [--per match\|round] [--past [--season YYYY/YY]] [--min-minutes M] [--group-by team] [--format table\|csv\|json] [--fields <cols>] [--store <p>]` | views over the season store (no analysis or raw file written), for the players in the gw N bootstrap: one row per match of the completed rounds before GW N (`--last K` keeps the last K rounds; `--per round` adds a double gameweek's matches together), or with `--past` one row per past season. `--min-minutes` drops shorter rows; `--group-by team` then adds them up to one row per club (a match counts for the club he played for, a past season for his current club; matches whose side the store could not work out count under `?`). An `--ids` value not in the gw N bootstrap refuses with exit 1, naming it. `--fields` works as in `players`; an unknown field lists the valid ones. Syncs a store that is behind data/raw first, as `ep` does | local only |
@@ -357,8 +358,8 @@ Transfer ids resolve in this order, recorded in `transfer_source`:
 3. When both readings exist and disagree, `plan` refuses and shows both.
 
 Mechanics:
-- Every command takes `--gw N`, validated 1–38 — except `auth-import`, whose
-  output is not gameweek-scoped. The global `--data-root` must come BEFORE the
+- Every command takes `--gw N`, validated 1–38 — except `auth-import`,
+  `auth-refresh` and `backlog`, which are not gameweek-scoped. The global `--data-root` must come BEFORE the
   subcommand. Run from the repo root.
 - Cached commands refetch only when the snapshot is older than `--max-age`
   (default 24h) or `--force` is given, and print `(fetched)` or
@@ -456,6 +457,8 @@ legend in agents/retro-analyst.md restates the agent codes.
   newline — re-read the responsible agent's return for the row it meant to
   write, then commit. The orchestrator never rewrites rows.
 - Triage is its own session, driven by the prompt kept at the top of the file.
+  It changes Status cells only, through `fpl backlog status`, and runs
+  `fpl backlog check` before committing.
 
 ## Phase 2 backlog (do not build yet, design around it)
 - MILP optimizer (PuLP) replacing heuristic squad selection

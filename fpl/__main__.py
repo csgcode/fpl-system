@@ -71,6 +71,7 @@ from fpl.fake_server import FakeFplServer, fake_server_dir
 from fpl.final_check import Finding, check_final, check_proposal
 from fpl.freshness import BASELINE_MAX_AGE_HOURS, FlagChange
 from fpl import (
+    backlog,
     backtest,
     gates,
     history_view,
@@ -353,8 +354,8 @@ def build_parser() -> argparse.ArgumentParser:
              "printed it; the POST is refused when it does not match",
     )
 
-    # Local-only, and the one command with no --gw: it rebuilds credentials,
-    # which are not gameweek-scoped.
+    # Local-only, no --gw: it rebuilds credentials, which are not
+    # gameweek-scoped.
     auth_import = sub.add_parser(
         "auth-import",
         help="convert a browser 'Copy as cURL' capture into a credentials file",
@@ -391,6 +392,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--client-id",
         help="override the client id derived from the bearer token's claims",
     )
+
+    # Triage-only, no --gw: the backlog is not gameweek-scoped.
+    backlog.add_parser(sub)
 
     # Local-only: reduces Claude Code's own session transcripts to token
     # usage and list-price cost. Never the network, never credentials.
@@ -777,6 +781,8 @@ def main(
     store = SnapshotStore(args.data_root)
     try:
         season_store.check_history_arguments(args)
+        if args.command == "backlog":
+            return backlog.run(args)
         if args.command == "auth-import":
             return run_auth_import(args)
         if args.command == "auth-refresh":
