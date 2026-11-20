@@ -1,0 +1,305 @@
+{
+ "schema_version": 1,
+ "gw": 11,
+ "position": "GKP",
+ "players": [
+  {
+   "id": 1,
+   "name": "Raya",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "10/10 starts, 90' r5-r10; Arrizabalaga and Meslier 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 226,
+   "name": "Pickford",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Travers and King 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 350,
+   "name": "A.Becker",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Mamardashvili 0 mins but a genuine heir - small knock tax over 6 GWs. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 384,
+   "name": "Donnarumma",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Rulli and Bettinelli are cup keepers. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 82,
+   "name": "Kelleher",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Valdimarsson 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 385,
+   "name": "Trafford",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Cairns and Zetterer 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 467,
+   "name": "Sels",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; John and Benda 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 412,
+   "name": "Lammens",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Darlow and Heaton fit but 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 529,
+   "name": "Roefs",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Ellborg 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 250,
+   "name": "Leno",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Lecomte 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 496,
+   "name": "Kinsky",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Austin the only cover. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 109,
+   "name": "Verbruggen",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Steele 0 mins. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 597,
+   "name": "Suzuki",
+   "p_start": 0.95,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Bizot a/100 but 0 mins since GW1. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 57,
+   "name": "Petrović",
+   "p_start": 0.94,
+   "uncertainty": "LOW",
+   "notes": "90' r5-r10; Di Gregorio (4.5, 0 mins) a real deputy. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 572,
+   "name": "Tzolakis",
+   "p_start": 0.95,
+   "uncertainty": "MED",
+   "notes": "90' r5-r10, 10/10 starts; Butland a/100 but 0 mins all season. saves90 override dropped: 900 min of this season's saves now in the blend. MED for promoted-club rate variance. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 110,
+   "name": "Rushworth",
+   "p_start": 0.95,
+   "uncertainty": "MED",
+   "notes": "90' r5-r10; Wilson and Bentley behind. saves90 override dropped: 900 min of this season's saves now in the blend. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 567,
+   "name": "Horníček",
+   "p_start": 0.93,
+   "uncertainty": "MED",
+   "notes": "90' r5-r10, 10/10 starts; Pope fit at 4.8 with 0 mins is the clearest displacement risk - held at the C21 floor. saves90 override dropped: 900 min of this season's saves now in the blend. C21: unbroken start streak across rounds 8-10"
+  },
+  {
+   "id": 300,
+   "name": "Walton",
+   "p_start": 0.95,
+   "uncertainty": "HIGH",
+   "notes": "90' r5-r10 - six straight starts since taking the IPS shirt from Scherpen, no flag. C21: unbroken start streak across rounds 8-10. HIGH: 6-start PL sample"
+  },
+  {
+   "id": 564,
+   "name": "Scherpen",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins since r4 - dropped six rounds running with no flag; started neither of the last two rounds so no C21 raise. saves90 override dropped (backup, 360 min sample)"
+  },
+  {
+   "id": 28,
+   "name": "Martinez",
+   "p_start": 0.5,
+   "p_start_gw": [
+    0.5,
+    0.65,
+    0.72,
+    0.75,
+    0.75,
+    0.75
+   ],
+   "uncertainty": "LOW",
+   "notes": "d 75% head injury (was i/0 last GW); missed r8-r10, Penders 90' all three. GW11 capped by the 75% flag and split with Penders' three-start run; first-choice before the injury so climbs back to 0.75 by GW14 - ramp a guess"
+  },
+  {
+   "id": 560,
+   "name": "Penders",
+   "p_start": 0.48,
+   "p_start_gw": [
+    0.48,
+    0.33,
+    0.26,
+    0.23,
+    0.23,
+    0.23
+   ],
+   "uncertainty": "HIGH",
+   "notes": "90' r8, r9, r10 with Martinez out - an unbroken three-round streak, but Martinez returns at d 75% so held well below the C21 0.93 reservation; hands back as Martinez recovers - ramp a guess. HIGH: 3-start PL sample"
+  },
+  {
+   "id": 198,
+   "name": "Henderson",
+   "p_start": 0.82,
+   "p_start_gw": [
+    0.82,
+    0.83,
+    0.84,
+    0.85,
+    0.85,
+    0.85
+   ],
+   "uncertainty": "HIGH",
+   "notes": "Regained the shirt: 90' r9 and r10 after Benitez started r5-r8; a/100. Two straight starts, below the C21 0.93 reservation (needs three); edging up as the switch beds in"
+  },
+  {
+   "id": 199,
+   "name": "Benitez",
+   "p_start": 0.15,
+   "p_start_gw": [
+    0.15,
+    0.15,
+    0.14,
+    0.13,
+    0.13,
+    0.13
+   ],
+   "uncertainty": "HIGH",
+   "notes": "Dropped for r9 and r10 after starts r5-r8, Henderson fit. Started neither of the two most recent rounds, so no C21 raise from the rotation band"
+  },
+  {
+   "id": 442,
+   "name": "Pope",
+   "p_start": 0.08,
+   "uncertainty": "HIGH",
+   "notes": "0 mins in 10 rounds and fit - the threat to Hornicek rather than a start today"
+  },
+  {
+   "id": 615,
+   "name": "Di Gregorio",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; competition for Petrovic, not yet trusted"
+  },
+  {
+   "id": 351,
+   "name": "Mamardashvili",
+   "p_start": 0.06,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; Alisson's understudy"
+  },
+  {
+   "id": 325,
+   "name": "Darlow",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "a/100, 0 mins; Lammens' deputy"
+  },
+  {
+   "id": 29,
+   "name": "M.Bizot",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins since GW1; Suzuki six-round run"
+  },
+  {
+   "id": 2,
+   "name": "Arrizabalaga",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; Raya's deputy"
+  },
+  {
+   "id": 3,
+   "name": "Meslier",
+   "p_start": 0.02,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; ARS third choice"
+  },
+  {
+   "id": 587,
+   "name": "Rulli",
+   "p_start": 0.05,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; MCI cup keeper"
+  },
+  {
+   "id": 274,
+   "name": "Butland",
+   "p_start": 0.03,
+   "uncertainty": "HIGH",
+   "notes": "a/100; 0 mins all season behind Tzolakis' 10-start run"
+  },
+  {
+   "id": 227,
+   "name": "Travers",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "0 mins behind Pickford"
+  },
+  {
+   "id": 83,
+   "name": "Valdimarsson",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "0 mins behind Kelleher"
+  },
+  {
+   "id": 111,
+   "name": "Steele",
+   "p_start": 0.04,
+   "uncertainty": "HIGH",
+   "notes": "0 mins behind Verbruggen"
+  },
+  {
+   "id": 497,
+   "name": "Dubravka",
+   "p_start": 0.03,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; 4.0 bench fodder"
+  },
+  {
+   "id": 58,
+   "name": "Forster",
+   "p_start": 0.02,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; BOU third choice"
+  },
+  {
+   "id": 228,
+   "name": "King",
+   "p_start": 0.02,
+   "uncertainty": "HIGH",
+   "notes": "0 mins; EVE third choice"
+  }
+ ]
+}
