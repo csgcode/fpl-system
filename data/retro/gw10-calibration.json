@@ -8591,6 +8591,26 @@
   "minutes_brier": 0.1148,
   "minutes_n": 4741
  },
+ "heavy_selling": {
+  "heavy_ids": [
+   12,
+   101,
+   165,
+   200
+  ],
+  "heavy": {
+   "n": 4,
+   "expected_starts": 0.6,
+   "actual_starts": 1,
+   "error": 0.001
+  },
+  "rest": {
+   "n": 168,
+   "expected_starts": 123.08,
+   "actual_starts": 130,
+   "error": 0.295
+  }
+ },
  "warnings": [],
  "predictions_source": "lock 1ea5e50e86f0",
  "drifted": []

@@ -21,7 +21,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from fpl.models import EventLive, LiveStats, Position
+from fpl.models import Bootstrap, EventLive, LiveStats, Position
 from fpl.state import PlannedPicks
 
 PREDICTION_POSITIONS = (Position.GKP, Position.DEF, Position.MID, Position.FWD)
@@ -151,6 +151,36 @@ class MinutesCalibration(BaseModel):
     actual_starts: int
 
 
+HEAVY_SELLING_MIN_OWNERSHIP_PCT = 1.0
+HEAVY_SELLING_NET_SHARE = -0.10
+
+
+class StartsSlice(BaseModel):
+    """Starts and points error for one group of players. `error` is the mean
+    of actual − predicted, None for an empty group."""
+
+    model_config = ConfigDict(frozen=True)
+
+    n: int
+    expected_starts: float
+    actual_starts: int
+    error: float | None
+
+
+class HeavySellingCheck(BaseModel):
+    """Monitoring only: players owned by at least 1% of managers whose net
+    transfers before the round's deadline were at or below −10% of their
+    owners, against every other player owned by at least 1%. The groups come
+    from the gw{M} bootstrap, the snapshot the decision was made on. Nothing
+    reads this to change a prediction."""
+
+    model_config = ConfigDict(frozen=True)
+
+    heavy_ids: tuple[int, ...]
+    heavy: StartsSlice
+    rest: StartsSlice
+
+
 class CumulativeStats(BaseModel):
     """Pooled per-player rows across every calibrated round so far — the
     6-GW calibration horizon reads from here, not from any single retro."""
@@ -179,6 +209,7 @@ class CalibrationReport(BaseModel):
     defcon: tuple[DefconLine, ...] = ()
     squad: SquadSection | None = None
     cumulative: CumulativeStats | None = None
+    heavy_selling: HeavySellingCheck | None = None
     warnings: tuple[str, ...] = ()
     predictions_source: str = "worktree"
     drifted: tuple[str, ...] = ()
@@ -193,6 +224,7 @@ def build_report(
     prior_reports: Sequence[CalibrationReport] = (),
     predictions_source: str = "worktree",
     drifted: Sequence[str] = (),
+    decision_bootstrap: Bootstrap | None = None,
 ) -> CalibrationReport:
     stats_by_id = live.by_id()
     players = []
@@ -228,6 +260,9 @@ def build_report(
     if picks is not None:
         prediction_by_id = {p.id: p for p in predictions}
         squad = _squad_section(picks, prediction_by_id, stats_by_id, warnings)
+    heavy_selling = None
+    if decision_bootstrap is not None:
+        heavy_selling = _heavy_selling(players, decision_bootstrap, warnings)
     return CalibrationReport(
         round=match_round,
         cumulative=_cumulative(match_round, players, prior_reports),
@@ -240,9 +275,60 @@ def build_report(
         minutes=_minutes_calibration(players),
         defcon=_defcon_sample(predictions, stats_by_id),
         squad=squad,
+        heavy_selling=heavy_selling,
         warnings=tuple(warnings),
         predictions_source=predictions_source,
         drifted=tuple(drifted),
+    )
+
+
+def _heavy_selling(
+    players: Sequence[PlayerLine], bootstrap: Bootstrap, warnings: list[str]
+) -> HeavySellingCheck | None:
+    total_players = bootstrap.total_players
+    if total_players is None:
+        warnings.append(
+            "decision bootstrap has no total_players — heavy-selling line skipped"
+        )
+        return None
+    owned = {
+        player.id: player
+        for player in bootstrap.elements
+        if player.selected_by_percent >= HEAVY_SELLING_MIN_OWNERSHIP_PCT
+    }
+    if any(
+        player.transfers_in_event is None or player.transfers_out_event is None
+        for player in owned.values()
+    ):
+        warnings.append(
+            "decision bootstrap lacks event transfer counts — heavy-selling "
+            "line skipped"
+        )
+        return None
+    heavy_ids = set()
+    for player in owned.values():
+        owners = player.selected_by_percent / 100 * total_players
+        net = player.transfers_in_event - player.transfers_out_event
+        if owners > 0 and net / owners <= HEAVY_SELLING_NET_SHARE:
+            heavy_ids.add(player.id)
+    heavy = [line for line in players if line.id in heavy_ids]
+    rest = [line for line in players if line.id in owned and line.id not in heavy_ids]
+    return HeavySellingCheck(
+        heavy_ids=tuple(sorted(line.id for line in heavy)),
+        heavy=_starts_slice(heavy),
+        rest=_starts_slice(rest),
+    )
+
+
+def _starts_slice(players: Sequence[PlayerLine]) -> StartsSlice:
+    return StartsSlice(
+        n=len(players),
+        expected_starts=round(sum(line.p_start for line in players), 2),
+        actual_starts=sum(1 for line in players if line.started),
+        error=(
+            round(sum(line.error for line in players) / len(players), 3)
+            if players else None
+        ),
     )
 
 

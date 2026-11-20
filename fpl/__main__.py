@@ -39,7 +39,9 @@ from fpl.auth import (
 from fpl.calibrate import (
     Aggregate,
     CalibrationReport,
+    HeavySellingCheck,
     PlayerLine,
+    StartsSlice,
     build_report,
     load_predictions,
     load_report,
@@ -981,7 +983,7 @@ def run_command(
     elif args.command == "plan":
         return run_plan(store, gw, args)
     elif args.command == "calibrate":
-        return run_calibrate(service, gw, args)
+        return run_calibrate(service, store, gw, args)
     elif args.command == "ep":
         return run_ep(store, gw, args)
     elif args.command == "players":
@@ -1059,7 +1061,9 @@ def _record_name(source: str) -> str:
     return f"{'predictions lock' if kind == 'lock' else 'decision commit'} {ident}"
 
 
-def run_calibrate(service: FplDataService, gw: int, args: argparse.Namespace) -> int:
+def run_calibrate(
+    service: FplDataService, store: SnapshotStore, gw: int, args: argparse.Namespace
+) -> int:
     service.data_checked_basis(gw, args.round)
     if args.predictions_from == "commit":
         record = record_predictions(args.analysis_root, args.decisions_root, args.round)
@@ -1081,6 +1085,7 @@ def run_calibrate(service: FplDataService, gw: int, args: argparse.Namespace) ->
         prior_reports=_prior_reports(args.retro_root, args.round),
         predictions_source=record.source,
         drifted=record.drifted,
+        decision_bootstrap=_decision_bootstrap(store, args.round),
     )
     document = report.model_dump_json(indent=1)
     # The ledger is derived — a pure function of the analysis files, final.md
@@ -1414,6 +1419,15 @@ def _calibration_picks(final_path: Path, match_round: int) -> PlannedPicks | Non
     return state.picks
 
 
+def _decision_bootstrap(store: SnapshotStore, match_round: int) -> Bootstrap | None:
+    """The gw{M} bootstrap: the last snapshot before round M's deadline, the
+    one the decision was made on."""
+    if not store.exists(match_round, "bootstrap"):
+        _stderr(f"note: no gw{match_round} bootstrap cached — heavy-selling line skipped")
+        return None
+    return load_cached_bootstrap(store, match_round)
+
+
 def _prior_reports(retro_root: Path, match_round: int) -> tuple[CalibrationReport, ...]:
     if not retro_root.is_dir():
         return ()
@@ -1454,6 +1468,7 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
         f"{minutes.expected_starts:.1f}, actual {minutes.actual_starts}, "
         f"gap {minutes.expected_starts - minutes.actual_starts:+.1f}"
     )
+    print(_heavy_selling_line(report.heavy_selling))
     if report.defcon:
         hits = sum(1 for line in report.defcon if line.hit)
         print(f"defcon: {hits}/{len(report.defcon)} hits (players with 60'+)")
@@ -1478,6 +1493,21 @@ def print_calibration(report: CalibrationReport, cache_note: str) -> None:
     )
     _print_misses("under-predicted (err > +3)", under)
     _print_misses("over-predicted (err < -3)", over)
+
+
+def _heavy_selling_line(check: HeavySellingCheck | None) -> str:
+    if check is None:
+        return "heavy selling: unavailable"
+
+    def part(group: StartsSlice) -> str:
+        if group.n == 0:
+            return "n 0"
+        return (
+            f"n {group.n}, starts exp {group.expected_starts:.1f} v act "
+            f"{group.actual_starts}, err {group.error:+.2f}"
+        )
+
+    return f"heavy selling: {part(check.heavy)} | rest ≥1% owned: {part(check.rest)}"
 
 
 def _print_squad(report: CalibrationReport) -> None:

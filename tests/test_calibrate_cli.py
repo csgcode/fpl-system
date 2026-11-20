@@ -17,6 +17,7 @@ from tests.factories import (
     event_live_payload,
     event_payload,
     live_element_payload,
+    player_payload,
 )
 from tests.test_calibrate import POSITION_FILES, prediction_row
 from tests.gitrepo import commit_files, init_repo
@@ -241,6 +242,61 @@ def test_minutes_line_prints_gap(tmp_path, capsys):
     minutes = next(line for line in lines if line.startswith("minutes:"))
     # 15 players at p_start 0.9 → 13.5 expected; all 15 started
     assert minutes.endswith("expected starts 13.5, actual 15, gap -1.5")
+
+
+def seed_decision_bootstrap(data_root, *, gw=1):
+    """Round gw's pre-deadline snapshot: 1,000,000 managers, players 1–15
+    owned by 10% each; 1 and 2 sold by a net 20% of their owners."""
+    elements = [
+        player_payload(
+            id=i, selected_by_percent="10.0", transfers_in_event=0,
+            transfers_out_event=20_000 if i in (1, 2) else 0,
+        )
+        for i in range(1, 16)
+    ]
+    SnapshotStore(data_root).save(
+        gw, "bootstrap",
+        {**bootstrap_payload(elements=elements), "total_players": 1_000_000},
+        "seed://test",
+    )
+
+
+def test_heavy_selling_line_follows_the_minutes_line(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path)
+    seed_decision_bootstrap(data_root)
+    assert run(argv, data_root, gateway) == 0
+    lines = capsys.readouterr().out.splitlines()
+    minutes = next(i for i, line in enumerate(lines) if line.startswith("minutes:"))
+    # points are i % 5 against 3.5 predicted, every player started
+    assert lines[minutes + 1] == (
+        "heavy selling: n 2, starts exp 1.8 v act 2, err -2.00 | "
+        "rest ≥1% owned: n 13, starts exp 11.7 v act 13, err -1.42"
+    )
+    document = json.loads((tmp_path / "retro" / "gw1-calibration.json").read_text())
+    assert document["heavy_selling"]["heavy_ids"] == [1, 2]
+
+
+def test_heavy_selling_line_with_no_transfers_prints_an_empty_group(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path)
+    elements = [player_payload(id=i, selected_by_percent="10.0", transfers_in_event=0,
+                               transfers_out_event=0) for i in range(1, 16)]
+    SnapshotStore(data_root).save(
+        1, "bootstrap",
+        {**bootstrap_payload(elements=elements), "total_players": 1_000_000},
+        "seed://test",
+    )
+    assert run(argv, data_root, gateway) == 0
+    line = next(line for line in capsys.readouterr().out.splitlines()
+                if line.startswith("heavy selling:"))
+    assert line.startswith("heavy selling: n 0 | rest ≥1% owned: n 15, ")
+
+
+def test_heavy_selling_unavailable_without_the_rounds_bootstrap(tmp_path, capsys):
+    data_root, gateway, argv = setup_round(tmp_path)
+    assert run(argv, data_root, gateway) == 0
+    captured = capsys.readouterr()
+    assert "heavy selling: unavailable" in captured.out.splitlines()
+    assert "no gw1 bootstrap" in captured.err
 
 
 def test_squad_rows_carry_err_start_and_p_start(tmp_path, capsys):

@@ -99,6 +99,9 @@ finalized actuals — per-player errors, bias/MAE by position, uncertainty tier
 and price band, minutes Brier, DefCon hit sample, the squad rows, captain
 hindsight, bench points stranded, and cumulative stats pooled across all prior
 rounds. Its stdout carries everything this retro needs. Never open the JSON.
+The `heavy selling:` line is monitoring for the user only: paste it with the
+aggregate block, but never base an attribution or a correction on transfer
+counts.
 
 The uncertainty tag changed meaning from GW7: before, minutes risk bound to
 `p_start`; from GW7, rate risk only. Tier aggregates that pool rounds from

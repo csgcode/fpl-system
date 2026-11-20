@@ -449,3 +449,153 @@ def test_aggregate_and_brier_are_public():
         "MID": Aggregate(n=1, bias=1.0, mae=1.0),
         "DEF": Aggregate(n=1, bias=-3.0, mae=3.0),
     }
+
+
+# --- heavy selling (monitoring only) ---------------------------------------
+
+TOTAL_PLAYERS = 1_000_000
+
+
+def decision_bootstrap(*elements, total_players=TOTAL_PLAYERS):
+    from fpl.models import Bootstrap
+    from tests.factories import bootstrap_payload
+
+    return Bootstrap.model_validate(
+        {**bootstrap_payload(elements=list(elements)), "total_players": total_players}
+    )
+
+
+def owned(id, *, pct=10.0, net_share=0.0):
+    """A player owned by `pct`% of TOTAL_PLAYERS whose net transfers this
+    event are `net_share` of his owners."""
+    from tests.factories import player_payload
+
+    owners = pct / 100 * TOTAL_PLAYERS
+    net = round(net_share * owners)
+    return player_payload(
+        id=id, selected_by_percent=str(pct),
+        transfers_in_event=max(net, 0), transfers_out_event=max(-net, 0),
+    )
+
+
+def heavy_selling_report(bootstrap, *rows):
+    """rows: (id, p_start, predicted, actual, started)."""
+    from fpl.calibrate import build_report
+    from tests.factories import live_element_payload
+
+    return build_report(
+        predictions(*[
+            prediction_row(id=i, position=3, p_start=p, ep_gw=[pred] * 6)
+            for i, p, pred, _, _ in rows
+        ]),
+        live_of(*[
+            live_element_payload(
+                element_id=i, total_points=act, starts=int(started),
+                minutes=90 if started else 0,
+            )
+            for i, _, _, act, started in rows
+        ]),
+        match_round=1,
+        decision_bootstrap=bootstrap,
+    )
+
+
+def test_heavy_selling_splits_heavily_sold_from_the_rest_of_the_owned():
+    bootstrap = decision_bootstrap(
+        owned(1, net_share=-0.13),
+        owned(2, net_share=-0.25),
+        owned(3, net_share=-0.02),
+        owned(4, net_share=+0.30),
+    )
+    check = heavy_selling_report(
+        bootstrap,
+        (1, 0.8, 4.0, 1, False),
+        (2, 0.6, 3.0, 2, True),
+        (3, 0.9, 5.0, 6, True),
+        (4, 0.7, 2.0, 2, False),
+    ).heavy_selling
+    assert check.heavy_ids == (1, 2)
+    assert (check.heavy.n, check.heavy.actual_starts) == (2, 1)
+    assert check.heavy.expected_starts == pytest.approx(1.4)
+    assert check.heavy.error == pytest.approx(-2.0)  # (-3 + -1) / 2
+    assert (check.rest.n, check.rest.actual_starts) == (2, 1)
+    assert check.rest.expected_starts == pytest.approx(1.6)
+    assert check.rest.error == pytest.approx(0.5)  # (+1 + 0) / 2
+
+
+def test_heavy_selling_boundary_at_exactly_minus_ten_percent_counts():
+    check = heavy_selling_report(
+        decision_bootstrap(owned(1, net_share=-0.10), owned(2, net_share=-0.099)),
+        (1, 0.8, 4.0, 4, True),
+        (2, 0.8, 4.0, 4, True),
+    ).heavy_selling
+    assert check.heavy_ids == (1,)
+    assert check.rest.n == 1
+
+
+def test_heavy_selling_leaves_out_players_owned_below_one_percent():
+    check = heavy_selling_report(
+        decision_bootstrap(owned(1, pct=0.9, net_share=-0.40), owned(2, pct=1.0)),
+        (1, 0.8, 4.0, 4, True),
+        (2, 0.8, 4.0, 4, True),
+    ).heavy_selling
+    assert check.heavy.n == 0
+    assert check.rest.n == 1
+
+
+def test_heavy_selling_ignores_predictions_missing_from_the_bootstrap():
+    check = heavy_selling_report(
+        decision_bootstrap(owned(1, net_share=-0.13)),
+        (1, 0.8, 4.0, 4, True),
+        (2, 0.8, 4.0, 4, True),
+    ).heavy_selling
+    assert (check.heavy.n, check.rest.n) == (1, 0)
+
+
+def test_heavy_selling_is_empty_when_no_transfers_have_been_made():
+    check = heavy_selling_report(
+        decision_bootstrap(owned(1), owned(2)),
+        (1, 0.8, 4.0, 4, True),
+        (2, 0.8, 4.0, 4, True),
+    ).heavy_selling
+    assert check.heavy_ids == ()
+    assert check.heavy.n == 0
+    assert check.heavy.expected_starts == 0
+    assert check.heavy.error is None
+    assert check.rest.n == 2
+
+
+def test_heavy_selling_skipped_without_a_decision_bootstrap():
+    report = heavy_selling_report(None, (1, 0.8, 4.0, 4, True))
+    assert report.heavy_selling is None
+    assert report.warnings == ()
+
+
+def test_heavy_selling_skipped_with_a_warning_without_total_players():
+    report = heavy_selling_report(
+        decision_bootstrap(owned(1, net_share=-0.13), total_players=None),
+        (1, 0.8, 4.0, 4, True),
+    )
+    assert report.heavy_selling is None
+    assert any("total_players" in warning for warning in report.warnings)
+
+
+def test_heavy_selling_skipped_with_a_warning_without_transfer_counts():
+    from tests.factories import player_payload
+
+    report = heavy_selling_report(
+        decision_bootstrap(player_payload(id=1, selected_by_percent="10.0")),
+        (1, 0.8, 4.0, 4, True),
+    )
+    assert report.heavy_selling is None
+    assert any("transfer counts" in warning for warning in report.warnings)
+
+
+def test_old_ledger_without_heavy_selling_still_loads(tmp_path):
+    from fpl.calibrate import load_report
+
+    document = json.loads(small_report(1, points=6).model_dump_json())
+    document.pop("heavy_selling", None)
+    path = tmp_path / "gw1-calibration.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    assert load_report(path).heavy_selling is None

@@ -419,3 +419,37 @@ def test_player_parses_code_and_count_totals():
     sparse = player_payload()
     del sparse["code"]
     assert Player.model_validate(sparse).code is None
+
+
+def test_player_parses_event_transfer_counts():
+    player = Player.model_validate(
+        player_payload(transfers_in_event=20000, transfers_out_event=150000)
+    )
+    assert player.transfers_in_event == 20000
+    assert player.transfers_out_event == 150000
+
+
+def test_player_without_event_transfer_counts_still_parses():
+    player = Player.model_validate(player_payload())
+    assert player.transfers_in_event is None
+    assert player.transfers_out_event is None
+
+
+@pytest.mark.parametrize("field", ["transfers_in_event", "transfers_out_event"])
+def test_player_rejects_negative_event_transfer_count(field):
+    with pytest.raises(ValidationError):
+        Player.model_validate(player_payload(**{field: -1}))
+
+
+def test_bootstrap_parses_total_players():
+    payload = {**bootstrap_payload(), "total_players": 10_000_000}
+    assert Bootstrap.model_validate(payload).total_players == 10_000_000
+
+
+def test_bootstrap_without_total_players_still_parses():
+    assert Bootstrap.model_validate(bootstrap_payload()).total_players is None
+
+
+def test_bootstrap_rejects_negative_total_players():
+    with pytest.raises(ValidationError):
+        Bootstrap.model_validate({**bootstrap_payload(), "total_players": -1})

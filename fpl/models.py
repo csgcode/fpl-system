@@ -125,6 +125,8 @@ class Player(_FrozenModel):
     penalties_missed: int | None = Field(default=None, ge=0)
     cost_change_start: int
     cost_change_event: int
+    transfers_in_event: int | None = Field(default=None, ge=0)
+    transfers_out_event: int | None = Field(default=None, ge=0)
     penalties_order: int | None = None
     direct_freekicks_order: int | None = None
     corners_and_indirect_freekicks_order: int | None = None
@@ -139,6 +141,7 @@ class Bootstrap(_FrozenModel):
     teams: tuple[Team, ...]
     elements: tuple[Player, ...]
     chips: tuple[Chip, ...]
+    total_players: int | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def _elements_reference_known_teams(self) -> Bootstrap:
