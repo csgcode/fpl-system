@@ -1,0 +1,2765 @@
+<title>FPL System Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; the ontology chart breaks out wider in its own scroll box with a box inspector under it (inputs → inside → outputs), then cycle, concepts, guardrails, status. */
+:root {
+  --bg: #f3f6f2;
+  --panel: #ffffff;
+  --sunk: #f7f9f6;
+  --fg: #142019;
+  --muted: #56645b;
+  --line: #d5ddd6;
+  --accent: #1d6a43;
+  --edge: #6b7a70;
+  --loop: #b06a12;
+  --k-source: #e6ecf6;  --k-source-b: #5b74a6;
+  --k-data: #e2f1ee;    --k-data-b: #2f8a7a;
+  --k-analysis: #ecebf8; --k-analysis-b: #6058b8;
+  --k-decision: #e3f2e8; --k-decision-b: #1d6a43;
+  --k-learn: #fbf0df;   --k-learn-b: #b06a12;
+  --k-human: #f8e7ef;   --k-human-b: #a5426f;
+  --t-haiku: #4f6f8f;
+  --t-opus: #5a4fb0;
+  --t-fable: #a05f0c;
+  --t-code: #56645b;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1612; --panel: #16201a; --sunk: #121b16; --fg: #e3ebe5; --muted: #9aa99f; --line: #2b3830;
+    --accent: #5cc48c; --edge: #8b9a90; --loop: #e3a14a;
+    --k-source: #1b2433; --k-source-b: #8aa3d6;
+    --k-data: #14292a; --k-data-b: #5fc2b0;
+    --k-analysis: #201f35; --k-analysis-b: #9d95ea;
+    --k-decision: #15291d; --k-decision-b: #5cc48c;
+    --k-learn: #2e2314; --k-learn-b: #e3a14a;
+    --k-human: #2f1a25; --k-human-b: #e07fa9;
+    --t-haiku: #8fb0d0; --t-opus: #a69cf0; --t-fable: #e9a956; --t-code: #9aa99f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1612; --panel: #16201a; --sunk: #121b16; --fg: #e3ebe5; --muted: #9aa99f; --line: #2b3830;
+  --accent: #5cc48c; --edge: #8b9a90; --loop: #e3a14a;
+  --k-source: #1b2433; --k-source-b: #8aa3d6;
+  --k-data: #14292a; --k-data-b: #5fc2b0;
+  --k-analysis: #201f35; --k-analysis-b: #9d95ea;
+  --k-decision: #15291d; --k-decision-b: #5cc48c;
+  --k-learn: #2e2314; --k-learn-b: #e3a14a;
+  --k-human: #2f1a25; --k-human-b: #e07fa9;
+  --t-haiku: #8fb0d0; --t-opus: #a69cf0; --t-fable: #e9a956; --t-code: #9aa99f;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 48px; }
+.wrap > * { min-width: 0; }
+.col { max-width: 760px; }
+header { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(40px, 7vw, 64px); line-height: .95; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 30px; line-height: 1; margin: 0 0 6px; letter-spacing: .01em; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 700; font-size: 34px; line-height: 1; margin: 0; letter-spacing: .01em; }
+h4 { font-family: var(--f-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+p { margin: 0; }
+.lede { font-size: 17px; max-width: 65ch; }
+.muted { color: var(--muted); }
+section { display: grid; gap: 14px; }
+section > * { min-width: 0; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.chip { font-family: var(--f-mono); font-size: 12px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); white-space: nowrap; }
+code { font-family: var(--f-mono); font-size: .86em; overflow-wrap: anywhere; }
+
+.chart { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 980px; height: auto; }
+.n rect { stroke-width: 1.4; transition: stroke-width .15s, opacity .2s; }
+.n { cursor: pointer; outline: none; transition: opacity .2s; }
+.n:hover rect { stroke-width: 2.6; }
+.n:focus-visible rect { stroke-width: 3; stroke-dasharray: 4 3; }
+.n.sel rect { stroke-width: 3.2; }
+.n .go { font: 600 15px var(--f-mono); fill: var(--muted); }
+.n:hover .go, .n.sel .go { fill: var(--fg); }
+.k-source rect { fill: var(--k-source); stroke: var(--k-source-b); }
+.k-data rect { fill: var(--k-data); stroke: var(--k-data-b); }
+.k-analysis rect { fill: var(--k-analysis); stroke: var(--k-analysis-b); }
+.k-decision rect { fill: var(--k-decision); stroke: var(--k-decision-b); }
+.k-learn rect { fill: var(--k-learn); stroke: var(--k-learn-b); }
+.k-human rect { fill: var(--k-human); stroke: var(--k-human-b); }
+.n .t { font: 600 13.5px var(--f-body); fill: var(--fg); }
+.n .s { font: 400 11.5px var(--f-body); fill: var(--muted); }
+.n .a { font: 500 10.5px var(--f-mono); }
+.tier-haiku { fill: var(--t-haiku); } .tier-opus { fill: var(--t-opus); } .tier-fable { fill: var(--t-fable); } .tier-code { fill: var(--t-code); }
+.e { fill: none; stroke: var(--edge); stroke-width: 1.5; transition: opacity .2s, stroke-width .2s; }
+.e.loop { stroke: var(--loop); stroke-dasharray: 5 4; }
+.e.human { stroke: var(--k-human-b); stroke-dasharray: 2 4; stroke-linecap: round; }
+.ah { fill: var(--edge); } .ah-loop { fill: var(--loop); } .ah-human { fill: var(--k-human-b); }
+.elab { font: 500 11px var(--f-body); fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; transition: opacity .2s; }
+.elab.loop { fill: var(--loop); } .elab.human { fill: var(--k-human-b); }
+.band { font: 600 10.5px var(--f-mono); letter-spacing: .08em; fill: var(--muted); }
+svg.focus .n:not(.near) { opacity: .32; }
+svg.focus .e:not(.on), svg.focus .elab { opacity: .18; }
+svg.focus .e.on { stroke-width: 2.6; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 13px; padding: 14px 16px 16px; border-top: 1px solid var(--line); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; border: 1.4px solid; display: inline-block; flex: none; }
+.ln { width: 26px; height: 0; border-top: 2px solid var(--edge); display: inline-block; }
+.ln.loop { border-top: 2px dashed var(--loop); } .ln.human { border-top: 2px dotted var(--k-human-b); }
+.tier { font-family: var(--f-mono); font-size: 12px; font-weight: 500; }
+
+/* inspector */
+.insp { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; scroll-margin-top: 16px; }
+.insp-pick { padding: 18px 20px 20px; display: grid; gap: 14px; }
+.pick-rows { display: grid; gap: 10px; }
+.pick-row { display: grid; grid-template-columns: 170px 1fr; gap: 10px; align-items: start; }
+.pick-row > * { min-width: 0; }
+.pick-row .lab { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); padding-top: 6px; }
+.pick-row .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.nb { font: 500 13px var(--f-body); color: var(--fg); background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px 4px 8px; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.nb:hover { border-color: var(--edge); }
+.nb:focus-visible, .x:focus-visible, .navb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nb .sw { width: 11px; height: 11px; }
+@media (max-width: 620px) { .pick-row { grid-template-columns: 1fr; gap: 4px; } .pick-row .lab { padding-top: 0; } }
+
+.insp-body { display: grid; gap: 22px; padding: 0 0 20px; }
+.ihead { display: grid; gap: 10px; padding: 18px 20px 16px; border-bottom: 1px solid var(--line); border-top: 6px solid var(--kb, var(--line)); border-radius: 10px 10px 0 0; background: var(--kf, var(--panel)); }
+.ihead-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+.crumb { font-family: var(--f-mono); font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.crumb button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.x { font: 500 12.5px var(--f-mono); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.imeta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.summary { font-size: 16px; max-width: 75ch; }
+.ipad { padding: 0 20px; display: grid; gap: 22px; }
+.ipad > * { min-width: 0; }
+
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.flow > div { display: grid; gap: 10px; min-width: 0; }
+@media (max-width: 900px) { .flow { grid-template-columns: 1fr; } }
+.io { display: grid; gap: 8px; }
+.ioc { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; background: var(--sunk); display: grid; gap: 4px; min-width: 0; }
+.ioc .nm { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.ioc p { font-size: 13.5px; color: var(--muted); }
+.ioc .nb { justify-self: start; font-size: 12px; padding: 2px 8px 2px 6px; }
+.ext { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+
+ol.stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: st; }
+ol.stages li { counter-increment: st; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; position: relative; padding-bottom: 14px; }
+ol.stages li:last-child { padding-bottom: 0; }
+ol.stages li::before { content: counter(st); font: 600 13px var(--f-mono); width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--kb, var(--accent)); background: var(--kf, var(--panel)); display: grid; place-items: center; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
+ol.stages li:not(:last-child)::after { content: ""; position: absolute; left: 14px; top: 28px; bottom: 0; border-left: 1.5px solid var(--line); }
+.stc { display: grid; gap: 3px; min-width: 0; padding-top: 3px; }
+.stc .nm { font-weight: 600; }
+.stc p { font-size: 14px; }
+.stc .where { font-family: var(--f-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
+.two > div { display: grid; gap: 10px; align-content: start; min-width: 0; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+ul.mono { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+ul.mono li { font-family: var(--f-mono); font-size: 12.5px; background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; overflow-wrap: anywhere; }
+pre.ex { margin: 0; font: 12.5px/1.6 var(--f-mono); background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre; }
+.ftbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.ftbl table { font-size: 13.5px; }
+.ftbl td:first-child { font-weight: 600; white-space: nowrap; }
+.statusline { display: flex; gap: 10px; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; font-size: 14px; }
+.statusline h4 { flex: none; }
+.navrow { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.navb { font: 500 13px var(--f-body); color: var(--fg); background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.navb:hover { border-color: var(--edge); }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--f-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.ord { font-family: var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; width: 2.5em; }
+td code, li code, p code { font-family: var(--f-mono); font-size: 12.5px; }
+.opt { font-family: var(--f-mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 6px; }
+
+dl.gloss { display: grid; grid-template-columns: minmax(130px, 200px) 1fr; gap: 0; margin: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; }
+dl.gloss dt, dl.gloss dd { padding: 10px 14px; border-bottom: 1px solid var(--line); margin: 0; min-width: 0; }
+dl.gloss dt { font-weight: 600; }
+dl.gloss > :nth-last-child(-n+2) { border-bottom: 0; }
+@media (max-width: 560px) {
+  dl.gloss { grid-template-columns: 1fr; }
+  dl.gloss dt { border-bottom: 0; padding-bottom: 0; }
+  dl.gloss > dt:nth-last-child(2) { border-bottom: 0; }
+}
+ul.rules { margin: 0; padding-left: 20px; display: grid; gap: 7px; max-width: 70ch; }
+
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.stat .k { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font-family: var(--f-display); font-weight: 700; font-size: 26px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stat p { font-size: 13.5px; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="col">
+    <div class="eyebrow">Fantasy Premier League · season 2026/27</div>
+    <h1>FPL System Map</h1>
+    <p class="lede">A team of agents picks the squad each gameweek. Code does every calculation, agents supply judgement, and you approve every transfer. Every prediction is saved before the deadline and scored afterwards. Those scores turn into rules for next week.</p>
+    <div class="facts">
+      <span class="chip">10 agents</span>
+      <span class="chip">1 deterministic CLI</span>
+      <span class="chip">6-gameweek horizon</span>
+      <span class="chip">model 64ad9c9c</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="col">
+      <h2>Ontology</h2>
+      <p class="muted">What the system knows about and how each thing produces the next. Solid arrows run once per gameweek, left to right then back along the lower row. Dashed amber arrows are the learning loop. Each box names who makes it and on which model. <strong style="color:var(--fg)">Click any box to open it</strong>: you see what comes in, each step inside, what goes out, its rules and real files, and you can step to the boxes it connects to.</p>
+    </div>
+    <div class="chart">
+      <svg id="map" viewBox="0 0 1150 610" xmlns="http://www.w3.org/2000/svg" aria-label="Ontology chart of the FPL system. Each box is a button that opens its details below the chart.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="ahl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-loop" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="ahh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-human" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+
+        <text class="band" x="20" y="20">LEARN</text>
+        <text class="band" x="20" y="160">COLLECT AND ANALYSE →</text>
+        <text class="band" x="20" y="310">← DECIDE</text>
+        <text class="band" x="20" y="460">ACT</text>
+
+        <!-- edges: main flow -->
+        <path class="e" data-from="api" data-to="raw" d="M210,202 L248,202" marker-end="url(#ah)"/>
+        <path class="e" data-from="raw" data-to="store" d="M440,202 L478,202" marker-end="url(#ah)"/>
+        <path class="e" data-from="store" data-to="fixtures" d="M670,202 L708,202" marker-end="url(#ah)"/>
+        <path class="e" data-from="fixtures" data-to="inputs" d="M900,202 L938,202" marker-end="url(#ah)"/>
+        <path class="e" data-from="inputs" data-to="ep" d="M1060,234 L1060,318" marker-end="url(#ah)"/>
+        <path class="e" data-from="store" data-to="ep" d="M575,234 L575,280 L1010,280 L1010,318" marker-end="url(#ah)"/>
+        <path class="e" data-from="fixtures" data-to="ep" d="M805,234 L805,280"/>
+        <path class="e" data-from="ep" data-to="proposal" d="M940,352 L902,352" marker-end="url(#ah)"/>
+        <path class="e" data-from="proposal" data-to="review" d="M710,352 L672,352" marker-end="url(#ah)"/>
+        <path class="e" data-from="review" data-to="final" d="M480,352 L442,352" marker-end="url(#ah)"/>
+        <path class="e" data-from="final" data-to="plan" d="M250,352 L212,352" marker-end="url(#ah)"/>
+        <path class="e" data-from="plan" data-to="team" d="M115,384 L115,468" marker-end="url(#ah)"/>
+        <path class="e" data-from="final" data-to="lock" d="M345,384 L345,468" marker-end="url(#ah)"/>
+
+        <!-- edges: learning loop -->
+        <path class="e loop" data-from="raw" data-to="ledger" d="M345,170 L345,48 L478,48" marker-end="url(#ahl)"/>
+        <path class="e loop" data-from="lock" data-to="ledger" d="M440,502 L460,502 L460,76 L478,76" marker-end="url(#ahl)"/>
+        <path class="e loop" data-from="ledger" data-to="retro" d="M670,62 L708,62" marker-end="url(#ahl)"/>
+        <path class="e loop" data-from="retro" data-to="fixtures" d="M805,94 L805,168" marker-end="url(#ahl)"/>
+        <path class="e loop" data-from="retro" data-to="inputs" d="M900,62 L1035,62 L1035,168" marker-end="url(#ahl)"/>
+
+        <!-- edges: you -->
+        <path class="e human" data-from="you" data-to="suggestions" d="M900,502 L938,502" marker-end="url(#ahh)"/>
+        <path class="e human" data-from="suggestions" data-to="proposal" d="M985,470 L985,420 L805,420 L805,386" marker-end="url(#ahh)"/>
+        <path class="e human" data-from="you" data-to="team" d="M805,534 L805,570 L150,570 L150,536" marker-end="url(#ahh)"/>
+
+        <!-- edge labels -->
+        <text class="elab" x="600" y="300">history + ratings, compiled by fpl ep</text>
+        <text class="elab" x="122" y="432">POST</text>
+        <text class="elab" x="352" y="432">frozen</text>
+        <text class="elab loop" x="352" y="118">actual points</text>
+        <text class="elab loop" x="812" y="138">corrections</text>
+        <text class="elab loop" x="1042" y="120">corrections</text>
+        <text class="elab human" x="830" y="414">steers</text>
+        <text class="elab human" x="470" y="590">approves each transfer in your own words</text>
+
+        <!-- row 0: learn -->
+        <g class="n k-learn" data-id="ledger"><rect x="480" y="30" width="190" height="64" rx="7"/>
+          <text class="t" x="492" y="52">Calibration ledger</text>
+          <text class="s" x="492" y="69">predicted v actual points</text>
+          <text class="a tier-code" x="492" y="85">fpl calibrate · code</text></g>
+        <g class="n k-learn" data-id="retro"><rect x="710" y="30" width="190" height="64" rx="7"/>
+          <text class="t" x="722" y="52">Retro corrections</text>
+          <text class="s" x="722" y="69">rules per agent, C1…C21</text>
+          <text class="a tier-opus" x="722" y="85">retro analyst · opus</text></g>
+
+        <!-- row 1: collect + analyse -->
+        <g class="n k-source" data-id="api"><rect x="20" y="170" width="190" height="64" rx="7"/>
+          <text class="t" x="32" y="192">FPL public API</text>
+          <text class="s" x="32" y="209">players, fixtures, results</text>
+          <text class="a tier-code" x="32" y="225">fantasy.premierleague.com</text></g>
+        <g class="n k-data" data-id="raw"><rect x="250" y="170" width="190" height="64" rx="7"/>
+          <text class="t" x="262" y="192">Raw snapshots</text>
+          <text class="s" x="262" y="209">data/raw/gwN · append-only</text>
+          <text class="a tier-haiku" x="262" y="225">data collector · haiku</text></g>
+        <g class="n k-data" data-id="store"><rect x="480" y="170" width="190" height="64" rx="7"/>
+          <text class="t" x="492" y="192">Season store</text>
+          <text class="s" x="492" y="209">SQLite, rebuilt from raw</text>
+          <text class="a tier-code" x="492" y="225">fpl store · code</text></g>
+        <g class="n k-analysis" data-id="fixtures"><rect x="710" y="170" width="190" height="64" rx="7"/>
+          <text class="t" x="722" y="192">Fixture ratings</text>
+          <text class="s" x="722" y="209">attack λ · clean-sheet odds</text>
+          <text class="a tier-opus" x="722" y="225">fixture analyst · opus</text></g>
+        <g class="n k-analysis" data-id="inputs"><rect x="940" y="170" width="190" height="64" rx="7"/>
+          <text class="t" x="952" y="192">Analyst inputs</text>
+          <text class="s" x="952" y="209">p_start, rate overrides</text>
+          <text class="a tier-opus" x="952" y="225">player analyst ×4 · opus</text></g>
+
+        <!-- row 2: decide -->
+        <g class="n k-analysis" data-id="ep"><rect x="940" y="320" width="190" height="64" rx="7"/>
+          <text class="t" x="952" y="342">EP predictions</text>
+          <text class="s" x="952" y="359">points per player, 6 GWs</text>
+          <text class="a tier-code" x="952" y="375">fpl ep · code</text></g>
+        <g class="n k-decision" data-id="proposal"><rect x="710" y="320" width="190" height="64" rx="7"/>
+          <text class="t" x="722" y="342">Squad proposal</text>
+          <text class="s" x="722" y="359">transfers, captain, bench</text>
+          <text class="a tier-fable" x="722" y="375">squad optimizer · fable</text></g>
+        <g class="n k-decision" data-id="review"><rect x="480" y="320" width="190" height="64" rx="7"/>
+          <text class="t" x="492" y="342">Red-team review</text>
+          <text class="s" x="492" y="359">APPROVE, or one REVISE</text>
+          <text class="a tier-fable" x="492" y="375">red-team reviewer · fable</text></g>
+        <g class="n k-decision" data-id="final"><rect x="250" y="320" width="190" height="64" rx="7"/>
+          <text class="t" x="262" y="342">final.md STATE</text>
+          <text class="s" x="262" y="359">the decision record</text>
+          <text class="a tier-opus" x="262" y="375">finalizer · opus</text></g>
+        <g class="n k-decision" data-id="plan"><rect x="20" y="320" width="190" height="64" rx="7"/>
+          <text class="t" x="32" y="342">plan.json</text>
+          <text class="s" x="32" y="359">exact payload to send</text>
+          <text class="a tier-haiku" x="32" y="375">plan builder · haiku</text></g>
+
+        <!-- row 3: act -->
+        <g class="n k-source" data-id="team"><rect x="20" y="470" width="190" height="64" rx="7"/>
+          <text class="t" x="32" y="492">Your FPL team</text>
+          <text class="s" x="32" y="509">transfers, lineup, chips</text>
+          <text class="a tier-haiku" x="32" y="525">team executor · haiku</text></g>
+        <g class="n k-learn" data-id="lock"><rect x="250" y="470" width="190" height="64" rx="7"/>
+          <text class="t" x="262" y="492">Predictions lock</text>
+          <text class="s" x="262" y="509">frozen before the deadline</text>
+          <text class="a tier-code" x="262" y="525">fpl plan · code</text></g>
+        <g class="n k-human" data-id="you"><rect x="710" y="470" width="190" height="64" rx="7"/>
+          <text class="t" x="722" y="492">You</text>
+          <text class="s" x="722" y="509">suggestions, approvals</text>
+          <text class="a tier-code" x="722" y="525">the only approver</text></g>
+        <g class="n k-human" data-id="suggestions"><rect x="940" y="470" width="190" height="64" rx="7"/>
+          <text class="t" x="952" y="492">Suggestions</text>
+          <text class="s" x="952" y="509">non-binding steers, S1…S10</text>
+          <text class="a tier-code" x="952" y="525">read by the optimizer</text></g>
+      </svg>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--k-source);border-color:var(--k-source-b)"></i>FPL</span>
+        <span><i class="sw" style="background:var(--k-data);border-color:var(--k-data-b)"></i>Data</span>
+        <span><i class="sw" style="background:var(--k-analysis);border-color:var(--k-analysis-b)"></i>Analysis</span>
+        <span><i class="sw" style="background:var(--k-decision);border-color:var(--k-decision-b)"></i>Decision</span>
+        <span><i class="sw" style="background:var(--k-learn);border-color:var(--k-learn-b)"></i>Learning</span>
+        <span><i class="sw" style="background:var(--k-human);border-color:var(--k-human-b)"></i>You</span>
+        <span><i class="ln"></i>weekly flow</span>
+        <span><i class="ln loop"></i>learning loop</span>
+        <span><i class="ln human"></i>your input</span>
+        <span><span class="tier" style="color:var(--t-fable)">fable</span> decisions</span>
+        <span><span class="tier" style="color:var(--t-opus)">opus</span> analysis</span>
+        <span><span class="tier" style="color:var(--t-haiku)">haiku</span> mechanical</span>
+        <span><span class="tier" style="color:var(--t-code)">code</span> deterministic CLI</span>
+      </div>
+    </div>
+
+    <div class="insp" id="insp" aria-live="polite">
+      <div class="insp-pick" id="pick">
+        <div class="col">
+          <h4>Open a box</h4>
+          <p class="muted" style="margin-top:6px">Pick a box on the chart, or from this list. Rows follow the chart.</p>
+        </div>
+        <div class="pick-rows" id="pickrows"></div>
+      </div>
+      <div class="insp-body" id="body" hidden></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>The weekly cycle</h2>
+      <p class="muted">The main session only coordinates: every step runs as its own agent, and it makes one git commit per gameweek. Rows are in run order. The retro waits for the collector's fresh snapshot, and the fixture analyst waits for the retro's corrections.</p>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>#</th><th>Step</th><th>Agent · model</th><th>Produces</th></tr></thead>
+        <tbody>
+          <tr><td class="ord">1</td><td>Collect data, check login</td><td>data collector · <span class="tier" style="color:var(--t-haiku)">haiku</span></td><td>Snapshots in <code>data/raw/gwN</code>, synced season store, auth PASS or FAIL</td></tr>
+          <tr><td class="ord">2</td><td>Score last gameweek</td><td>retro analyst · <span class="tier" style="color:var(--t-opus)">opus</span></td><td>Calibration ledger and <code>data/retro/gw{N-1}.md</code> with corrections</td></tr>
+          <tr><td class="ord">3</td><td>Rate fixtures</td><td>fixture analyst · <span class="tier" style="color:var(--t-opus)">opus</span></td><td><code>fixtures.json</code>: attack and clean-sheet odds for 6 GWs</td></tr>
+          <tr><td class="ord">4</td><td>Rate players, once per position</td><td>player analyst · <span class="tier" style="color:var(--t-opus)">opus</span></td><td>Inputs, then <code>fpl ep</code> computes <code>players-{pos}.json</code></td></tr>
+          <tr><td class="ord">5</td><td>Propose the move</td><td>squad optimizer · <span class="tier" style="color:var(--t-fable)">fable</span></td><td>Transfers, captain, bench order and the suggestions ledger, all scored by <code>fpl objective</code></td></tr>
+          <tr><td class="ord">6</td><td>Challenge it</td><td>red-team reviewer · <span class="tier" style="color:var(--t-fable)">fable</span></td><td>APPROVE, or REVISE with one re-run of step 5</td></tr>
+          <tr><td class="ord">7</td><td>Freeze the decision</td><td>finalizer · <span class="tier" style="color:var(--t-opus)">opus</span></td><td>Injury and news re-check, then <code>final.md</code> ending in the STATE block</td></tr>
+          <tr><td class="ord">8</td><td>Compile the payload</td><td>plan builder · <span class="tier" style="color:var(--t-haiku)">haiku</span></td><td><code>plan.json</code> plus the predictions lock</td></tr>
+          <tr><td class="ord">9</td><td>Apply to FPL<span class="opt">optional</span></td><td>team executor · <span class="tier" style="color:var(--t-haiku)">haiku</span></td><td>Dry run and transfer id, your approval, transfers, then lineup</td></tr>
+          <tr><td class="ord">10</td><td>Record cost<span class="opt">optional</span></td><td>usage collector · <span class="tier" style="color:var(--t-haiku)">haiku</span></td><td>Token usage and cost for the cycle that just ended</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>Core concepts</h2>
+    </div>
+    <dl class="gloss">
+      <dt>EP6</dt><dd>Expected points summed over the next six gameweeks. Every transfer, captain and bench choice is scored in it.</dd>
+      <dt>p_start</dt><dd>The chance a player starts in each gameweek. Analysts set it, and it is the main place judgement enters the model.</dd>
+      <dt>Blend and prior-only</dt><dd>Two readings of EP: this season's data blended with priors, and priors alone. A move must hold up on both.</dd>
+      <dt>Transfer gate</dt><dd>A free transfer needs +2.0 EP6 on the blend and no loss on prior-only. A −4 hit needs +6.0. Otherwise the transfer is banked, up to 5.</dd>
+      <dt>STATE block</dt><dd>The YAML at the end of <code>final.md</code>. It is parsed strictly and is the only thing that can drive a send to FPL.</dd>
+      <dt>Freshness gate</dt><dd><code>fpl flags</code> re-checks injury and news for the squad and every buy just before the decision is written. Any change forces a REOPEN.</dd>
+      <dt>Predictions lock</dt><dd>The EP files frozen before the deadline, so the retro scores what was actually decided.</dd>
+      <dt>Corrections</dt><dd>Rules the retro writes for one agent (C1, C2…), active until a later retro retires them. Code fixes go to the backlog instead.</dd>
+      <dt>Backtest gate</dt><dd>A model change ships switched off. It is switched on only if re-scoring past rounds passes all five rules. None has passed so far.</dd>
+      <dt>Suggestions ledger</dt><dd>Each of your steers gets a status every cycle: followed, rejected, deferred, standing, expired or withdrawn.</dd>
+      <dt>Backlog</dt><dd>One triage list for findings outside any agent's remit. Agents only append to it during a cycle.</dd>
+    </dl>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>Guardrails</h2>
+    </div>
+    <ul class="rules">
+      <li>Squad rules are enforced in code: £100m budget, 2 GK, 5 DEF, 5 MID, 3 FWD, at most 3 per club, a legal starting XI.</li>
+      <li>Code does the arithmetic and the parsing, and agents supply judgement. No model's reading of prose ever drives a send to FPL.</li>
+      <li>Transfers go out only after you approve them in your own words, tied to the transfer id from the dry run. The lineup follows on its own.</li>
+      <li>Every prediction is written down before the deadline. Raw and decision files are never overwritten.</li>
+      <li>All FPL access goes through the <code>fpl</code> CLI, which caches every response and says how old it is. Login values are never printed.</li>
+      <li>Analysts judge players on underlying data (starts, minutes, xG, xA, defensive actions, news), not on transfers, ownership or price moves.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2>Where it stands</h2>
+      <p class="muted">As of 20 November 2026, after the GW11 decision.</p>
+    </div>
+    <div class="status">
+      <div class="stat"><span class="k">GW10 result</span><span class="v">82 pts</span><p>Predicted 59. Rank moved from 1,114,461 to 589,601.</p></div>
+      <div class="stat"><span class="k">GW11 move</span><span class="v">Calafiori → De Cuyper</span><p>Free transfer, applied. Haaland captain, Gabriel vice.</p></div>
+      <div class="stat"><span class="k">Bank and transfers</span><span class="v">£0.5m · 3 FT</span><p>Team value £99.6m, counted at selling prices.</p></div>
+      <div class="stat"><span class="k">Chips left</span><span class="v">BB · FH</span><p>Pencilled in: Free Hit GW16, Bench Boost GW19. Set 1 expires at the GW19 deadline.</p></div>
+      <div class="stat"><span class="k">New this week</span><span class="v">S10 · monitor</span><p>A money tie-break against heavily sold players from GW12, and a heavy-selling line in calibrate.</p></div>
+    </div>
+  </section>
+
+  <footer class="col">Source: the repository's CLAUDE.md, agent specs, code and the GW10–11 decision records. Box details live in the JSON block near the end of this file.</footer>
+</div>
+
+<script type="application/json" id="nodes">{
+ "api": {
+  "summary": "The Fantasy Premier League website's own JSON API at fantasy.premierleague.com/api. Most of it is public and needs no login: player data, fixtures, live match stats and any team's picks. A small, undocumented part needs your logged-in session and is the only way the system can read sell prices or change your team.",
+  "inputs": [
+   {
+    "name": "Public GET requests",
+    "from": "raw",
+    "detail": "The data collector's CLI commands fetch bootstrap, fixtures, event-live, element summaries and entry data with no credentials."
+   },
+   {
+    "name": "Authenticated reads and POSTs",
+    "from": "team",
+    "detail": "auth-check, my-team, set-lineup and make-transfers send the headers and cookies stored in data/auth.json."
+   },
+   {
+    "name": "Browser session",
+    "from": "you",
+    "detail": "The credentials come from a Copy-as-cURL capture of your own logged-in browser session."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Build the URL",
+    "detail": "Every public endpoint hangs off one base URL, https://fantasy.premierleague.com/api, with one method per endpoint.",
+    "where": "fpl/api.py: FplApi"
+   },
+   {
+    "name": "Send a public GET",
+    "detail": "A requests session with a 10-second timeout and the User-Agent fpl-system/1.0, because the API rejects some default library user agents. GETs retry up to 3 times on 429 and 5xx with a 0.5 backoff.",
+    "where": "fpl/http.py: RequestsGateway.get_json"
+   },
+   {
+    "name": "Check the reply shape",
+    "detail": "A reply that is not a JSON object or array is refused. Typed models then validate the payload before anything is saved.",
+    "where": "fpl/http.py: get_json; fpl/models.py"
+   },
+   {
+    "name": "Send an authenticated request",
+    "detail": "The write gateway adds the captured headers and cookies plus a site Referer. Only GETs retry; POSTs never do, because a retried POST could apply a transfer twice.",
+    "where": "fpl/write.py: AuthenticatedRequestsGateway"
+   },
+   {
+    "name": "Refresh once on 401/403",
+    "detail": "A refused request triggers one token refresh and one replay. The new refresh token is saved before the replay, because each refresh retires the old one.",
+    "where": "fpl/write.py: RefreshingGateway; fpl/refresh.py"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Public JSON payloads",
+    "to": "raw",
+    "detail": "Saved as timestamped snapshots under data/raw/gw{N}/."
+   },
+   {
+    "name": "my-team read",
+    "to": "team",
+    "detail": "Squad, per-player selling prices, chips and transfer state; never cached into data/raw/."
+   },
+   {
+    "name": "Lineup and transfer POSTs",
+    "to": "team",
+    "detail": "Change your real FPL team; each --apply is re-read and verified afterwards."
+   }
+  ],
+  "rules": [
+   "Public endpoints: /bootstrap-static/, /fixtures/, /event/{M}/live/, /element-summary/{id}/, /entry/{id}/, /entry/{id}/history/, /entry/{id}/event/{M}/picks/.",
+   "Authenticated endpoints: GET and POST /my-team/{team_id}/ (read squad, save lineup) and POST /transfers/.",
+   "Hand-fetching URLs is forbidden; all FPL API access goes through the fpl CLI.",
+   "Retries are pinned to GET; a POST is sent once.",
+   "A 401 or 403 is refreshed and replayed exactly once; a second refusal surfaces instead of looping.",
+   "The token refresh endpoint is read from the bearer's iss claim and is allow-listed to premierleague.com and pingone.eu (ALLOWED_ENDPOINT_DOMAINS in fpl/refresh.py).",
+   "The authenticated API is unofficial and its auth shape has changed twice (2024, 2026/27); nothing hardcodes header or cookie names.",
+   "Credential values are never printed, logged or saved by the tooling; reports show key names and lengths only.",
+   "Authenticated responses are never cached into data/raw/."
+  ],
+  "files": [
+   "fpl/api.py",
+   "fpl/http.py",
+   "fpl/write.py",
+   "fpl/refresh.py",
+   "fpl/auth.py",
+   "docs/api-write.md"
+  ],
+  "commands": [
+   "uv run python -m fpl bootstrap --gw 11",
+   "uv run python -m fpl event-live --gw 11 --round 10",
+   "uv run python -m fpl auth-check --gw 11",
+   "uv run python -m fpl auth-refresh --dry-run"
+  ],
+  "example": {
+   "title": "GW11: what the API returned",
+   "lines": [
+    "bootstrap --gw 11 → (fetched); the deadline it reports is 2026-11-21 11:00:00+00:00",
+    "Anomalies: top-level key diff vs data/raw/gw10/bootstrap.json: added `contests`, removed none",
+    "event-live --gw 11 --round 10 → (fetched), once round 10 showed data_checked=true",
+    "POST /transfers/ payload: Calafiori (8) out, De Cuyper (115) in, purchase_price 55, selling_price 59, chip null"
+   ]
+  },
+  "status": "As of GW11 the public endpoints served every fetch without error, the bootstrap gained one new top-level key (`contests`), and the authenticated session passed auth-check after one failed check at 11:00 UTC on 2026-11-20."
+ },
+ "raw": {
+  "summary": "Every gameweek the data collector (agent A1, Haiku model) snapshots the FPL API into data/raw/gw{N}/. These files are the system's record of what was known before each deadline. Nothing is ever destroyed: a refreshed file moves the old copy into .archive/.",
+  "inputs": [
+   {
+    "name": "Public API payloads",
+    "from": "api",
+    "detail": "bootstrap-static, fixtures, event live for round N−1, element summaries and our entry, picks and history."
+   },
+   {
+    "name": "team_id",
+    "from": "you",
+    "detail": "Read from data/entry.json; when it is null, entry, picks and entry-history are skipped."
+   },
+   {
+    "name": "Analyst fetch requests",
+    "from": "inputs",
+    "detail": "The player analyst may ask for summaries of named ids; that second pass is the only allowed re-fetch of element summaries."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Fetch bootstrap first",
+    "detail": "bootstrap must run first; every other command depends on it. It refuses when --gw differs from the API's next gameweek unless --allow-gw-mismatch is passed.",
+    "where": "uv run python -m fpl bootstrap --gw N"
+   },
+   {
+    "name": "Save last round's live stats",
+    "detail": "event-live for round M = N−1 refuses with exit 1 until FPL marks the round data-checked. Once saved, it is a final snapshot served at any age.",
+    "where": "uv run python -m fpl event-live --gw N --round M"
+   },
+   {
+    "name": "Fetch fixtures and missing summaries",
+    "detail": "fixtures is a full dump; summaries --missing-past fetches only players with no summary in any gameweek, usually a few new signings.",
+    "where": "fpl fixtures; fpl summaries --missing-past"
+   },
+   {
+    "name": "Sync the season store",
+    "detail": "store sync brings the SQLite store level with data/raw and prints the coverage line copied into meta.md.",
+    "where": "uv run python -m fpl store sync --gw N"
+   },
+   {
+    "name": "Fetch our entry",
+    "detail": "When team_id is set: entry (bank and value), picks for round M (our actual picks and captain) and entry-history (points, rank, bank, value per GW).",
+    "where": "fpl entry / picks / entry-history"
+   },
+   {
+    "name": "Write the slim CSV and meta.md",
+    "detail": "slim-csv writes players-slim.csv from the cached bootstrap; the agent writes meta.md from the CLI's printed lines only.",
+    "where": "fpl slim-csv; agents/data-collector.md § meta.md template"
+   },
+   {
+    "name": "Run the auth pre-flight",
+    "detail": "When data/auth.json exists and team_id is set, auth-check makes one my-team read and the agent records only PASS or FAIL.",
+    "where": "uv run python -m fpl auth-check --gw N"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "data/raw/gw{N}/ snapshots",
+    "to": "store",
+    "detail": "bootstrap.json, fixtures.json, event-live-e{M}.json, players/summary-{id}.json, entry, picks and entry-history files, each with a .meta/ sidecar."
+   },
+   {
+    "name": "players-slim.csv",
+    "to": "inputs",
+    "detail": "One row per player with price, status, chance of playing, news, minutes, xG, xA, DefCon and set-piece order; never filtered."
+   },
+   {
+    "name": "Bootstrap and fixtures",
+    "to": "fixtures",
+    "detail": "The fixture analyst and fixtures-rate read them."
+   },
+   {
+    "name": "Round M live stats",
+    "to": "ledger",
+    "detail": "calibrate and actuals read the final event-live snapshot."
+   },
+   {
+    "name": "meta.md and auth result",
+    "to": "you",
+    "detail": "A FAIL on the auth line means you must re-capture credentials now, not at the executor step."
+   }
+  ],
+  "rules": [
+   "Cached commands refetch only when the snapshot is older than --max-age (default 24 hours) or --force is given, and print (fetched), (cached, age Xh) or (cached, age Xh, final).",
+   "A final snapshot (event-live once data-checked, or our picks for a finished, checked round) is never stale and is refetched only with --force.",
+   "Refreshed snapshots move to .archive/ first; a write that would overwrite an existing archive entry is refused. Writes are atomic.",
+   "bootstrap, fixtures and summaries refuse to fetch into a gameweek whose deadline has passed unless --allow-post-deadline is given, so a past GW keeps its pre-deadline state.",
+   "event-live refuses until the cached bootstrap shows the round data-checked; the collector records the error and continues, and every season-store reader then refuses too.",
+   "Only the CLI writes into data/raw/; the agent writes only meta.md and never redirects output into the folder.",
+   "One retry per failed command; --force only when the error says a cached snapshot cannot be read. Every failure and retry is recorded under Errors.",
+   "Counts come from CLI stdout, never from ls or the agent's own scripts.",
+   "The agent never opens data/auth.json and never copies credential key names or lengths into meta.md."
+  ],
+  "files": [
+   "data/raw/gw{N}/bootstrap.json",
+   "data/raw/gw{N}/fixtures.json",
+   "data/raw/gw{N}/event-live-e{M}.json",
+   "data/raw/gw{N}/players/summary-{id}.json",
+   "data/raw/gw{N}/players-slim.csv",
+   "data/raw/gw{N}/meta.md",
+   "data/raw/gw{N}/.archive/",
+   "data/raw/gw{N}/.meta/",
+   "data/raw/gw1/prior-season.json",
+   "data/entry.json",
+   "agents/data-collector.md",
+   "fpl/store.py",
+   "fpl/service.py"
+  ],
+  "commands": [
+   "uv run python -m fpl bootstrap --gw 11",
+   "uv run python -m fpl event-live --gw 11 --round 10",
+   "uv run python -m fpl fixtures --gw 11",
+   "uv run python -m fpl summaries --gw 11 --missing-past",
+   "uv run python -m fpl store sync --gw 11",
+   "uv run python -m fpl picks --gw 11 --team-id <id> --event 10",
+   "uv run python -m fpl slim-csv --gw 11",
+   "uv run python -m fpl auth-check --gw 11"
+  ],
+  "example": {
+   "title": "data/raw/gw11/meta.md (team id left out)",
+   "lines": [
+    "GW: 11",
+    "Deadline: 2026-11-21 11:00:00+00:00",
+    "Fetched at: 2026-11-20 11:01:17.325694+00:00",
+    "Previous GW: 10 finished=true data_checked=true",
+    "- summaries --gw 11 --missing-past → (2 fetched, 0 cached)",
+    "Coverage: players 672, no_pl_history 137, missing_past 0",
+    "Errors: none",
+    "auth: PASS — authenticated session works",
+    "Later that morning the finalizer's flags refresh moved the 11:01 bootstrap to .archive/bootstrap-20261120T110117_325694Z.json"
+   ]
+  },
+  "status": "Snapshot folders exist for gw1 to gw11; the GW11 collection on 2026-11-20 ran every command with no errors, and round 10 was finished and data-checked."
+ },
+ "store": {
+  "summary": "A local SQLite file, data/store/season-2026-27.sqlite, built only from data/raw. It holds this season's per-match rows and each player's past seasons so the analysis commands can query history quickly. It is derived and git-ignored, so it can always be rebuilt from the raw files.",
+  "inputs": [
+   {
+    "name": "Kept raw snapshots",
+    "from": "raw",
+    "detail": "Every bootstrap, fixtures, event-live and element-summary file in data/raw, never .archive/ or .meta/ files themselves (sidecar fetch time and finality are read)."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Scan and hash the raw tree",
+    "detail": "sync hashes every raw file and sidecar and compares them with the store's manifest. With nothing new it writes nothing.",
+    "where": "fpl/season_store.py: _scan, sync"
+   },
+   {
+    "name": "Take the sync lock",
+    "detail": "A lock file beside the store stops two processes from building it at once; readers need no lock.",
+    "where": "fpl/season_store.py: sync_lock"
+   },
+   {
+    "name": "Build the tables",
+    "detail": "Per-match rows come from final event-live snapshots; an element summary fills in only double gameweeks or a side event-live cannot resolve. Otherwise a double gameweek is split by minutes and marked.",
+    "where": "fpl/season_store.py: _build"
+   },
+   {
+    "name": "Swap in the new file",
+    "detail": "The build is written to a temporary file and moved over the store only when complete, so a failed sync leaves the old store as it was.",
+    "where": "fpl/season_store.py: _write"
+   },
+   {
+    "name": "Reconcile totals",
+    "detail": "Each player's season totals in the latest bootstrap are compared with the sum of his stored rounds; any difference prints a mismatch line and exits 3.",
+    "where": "fpl/season_store.py: _reconcile"
+   },
+   {
+    "name": "Print the coverage line",
+    "detail": "How many of the GW N bootstrap's players have a kept summary, how many of those have no past PL season, and how many still lack a summary.",
+    "where": "fpl/season_store.py: _coverage_line"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Per-match history for EP",
+    "to": "ep",
+    "detail": "fpl ep reads this season's matches and past seasons from the store by default."
+   },
+   {
+    "name": "Fixture history",
+    "to": "fixtures",
+    "detail": "fixtures-rate builds club ratings from the store."
+   },
+   {
+    "name": "Minutes and history views",
+    "to": "inputs",
+    "detail": "players --minutes and history give the player analyst minutes per round and per-match rows."
+   },
+   {
+    "name": "Scoring history for the optimizer",
+    "to": "proposal",
+    "detail": "objective rebuilds prior-only EP from the store."
+   }
+  ],
+  "rules": [
+   "Exit 0 = OK, 1 = error, 3 = a player's bootstrap season totals differ from the sum of his stored rounds (the store is still updated).",
+   "A round's live stats are stored only from a final event-live snapshot; a missing round makes every reader refuse, naming the event-live command.",
+   "Readers (ep, objective, players --minutes, fixtures-rate, history, backtest) sync a store that is behind data/raw first and say so in one stderr line.",
+   "verify checks the store matches data/raw and equals a fresh build; it exits 1 when it does not, and the fix is store rebuild.",
+   "verify and status write nothing.",
+   "The rebuild is deterministic: an incremental sync and a sync from scratch give the same database.",
+   "--store without --history-from store refuses on ep, objective, players and fixtures-rate.",
+   "Never edit the store by hand; it is not a raw file."
+  ],
+  "files": [
+   "data/store/season-2026-27.sqlite",
+   "data/store/season-2026-27.sqlite.lock",
+   "data/store/season-2026-27.sqlite.scan.json",
+   "data/raw/",
+   "fpl/season_store.py",
+   "fpl/history_view.py"
+  ],
+  "commands": [
+   "uv run python -m fpl store sync --gw 11",
+   "uv run python -m fpl store status --gw 11",
+   "uv run python -m fpl store verify --gw 11",
+   "uv run python -m fpl store rebuild --gw 11",
+   "uv run python -m fpl history --gw 11 --ids 411 --last 5"
+  ],
+  "example": {
+   "title": "store status on 2026-11-20",
+   "lines": [
+    "store data/store/season-2026-27.sqlite: schema 3, 3976 files, gw1-11",
+    "event-live      10     10     6562",
+    "summary       3944      0     2112",
+    "rounds 1-10",
+    "player_rounds 6562",
+    "in sync with data/raw",
+    "coverage gw11: players 672, no_pl_history 137, missing_past 0"
+   ]
+  },
+  "status": "As of GW11 the store is schema 3, in sync with data/raw, holds final live stats for rounds 1 to 10 (6,562 player-round rows) and has a summary for every player in the GW11 bootstrap."
+ },
+ "fixtures": {
+  "summary": "This box rates every club's attack and defence from this season's match xG, then turns each club's next six fixtures into expected goals scored, expected goals conceded and a clean-sheet chance. The arithmetic is code (`fpl fixtures-rate`); the fixture analyst agent (Opus) reads the printed tables and writes the judgment around them. Ratings start from club priors fixed at GW1, so one big match cannot swing a club's rating on its own.",
+  "inputs": [
+   {
+    "name": "Cached bootstrap and fixture list",
+    "from": "raw",
+    "detail": "data/raw/gw{N}/bootstrap.json gives club short names and each player's club; fixtures.json gives every match, played and to come."
+   },
+   {
+    "name": "Season match rows",
+    "from": "store",
+    "detail": "This season's per-player match xG from the season store, each row counted for the club the player played for in that match."
+   },
+   {
+    "name": "Final event-live snapshots",
+    "from": "raw",
+    "detail": "event-live-e{r}.json for every round before N; a player who played but has no match row is recovered from it."
+   },
+   {
+    "name": "Club priors",
+    "from": null,
+    "detail": "data/analysis/club-priors.json: one ATT and one DEFW per club, written once by this agent at GW1 and never edited."
+   },
+   {
+    "name": "Last week's ratings",
+    "from": "fixtures",
+    "detail": "data/analysis/gw{N-1}/fixtures.json, used only to print how much each rating moved (the Δ columns)."
+   },
+   {
+    "name": "Retro corrections for A2",
+    "from": "retro",
+    "detail": "The `## Corrections` sections of every data/retro/gw*.md; the agent applies the active ones addressed to A2."
+   },
+   {
+    "name": "Last week's scheduled checks",
+    "from": "fixtures",
+    "detail": "Only the `## Scheduled checks` section of data/analysis/gw{N-1}/fixtures.md."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Load snapshots and priors",
+    "detail": "Reads the cached bootstrap, the fixture list, the match rows and the club priors. Refuses when club-priors.json is missing or a past round has no event-live snapshot, naming the command that fetches it.",
+    "where": "fpl/fixture_ratings.py:load_inputs, load_priors"
+   },
+   {
+    "name": "Measure each played match",
+    "detail": "Each side's xG is the sum of its players' xG for that fixture, rounded to 2 decimals. The match gives implied ATT = xG ÷ (venue base × opponent's prior DEFW) and implied DEFW = xG conceded ÷ (opponent's venue base × opponent's prior ATT), each clipped to [0.55, 1.80].",
+    "where": "fpl/fixture_ratings.py:_stored_side_xg, implied_attack, implied_defence, clip"
+   },
+   {
+    "name": "Blend with the prior and rescale",
+    "detail": "Rating = (k × prior + sum of implied values) ÷ (k + matches played), with k 5.7 for attack and 4.0 for defence (4.0 and 3.0 for promoted clubs). Both ratings are then rescaled to a 20-club mean of 1.00 and rounded to 2 decimals.",
+    "where": "fpl/fixture_ratings.py:_ratings, blend, renormalise"
+   },
+   {
+    "name": "Build the six-gameweek fixture rows",
+    "detail": "For GW N to N+5: λ_att = base × own ATT × opponent DEFW (base 1.54 at home, 1.33 away); λ_def is the opponent's λ_att; P(CS) = e^(−λ_def). A row is banded when either club is promoted; a double gameweek gives two rows, a blank none.",
+    "where": "fpl/fixture_ratings.py:_rows"
+   },
+   {
+    "name": "Write the JSON and the tables",
+    "detail": "Writes fixtures.json for `fpl ep` and fixtures-tables.md: ratings with Δ, implied ratings by round, attack and defence tickers, swings, FDR against the model's ranks, promoted-club rows and one detail table per gameweek.",
+    "where": "fpl/fixture_ratings.py:write_outputs, render_tables"
+   },
+   {
+    "name": "Write the commentary",
+    "detail": "The Opus agent writes fixtures.md: Headline, What changed, Corrections applied, Promoted clubs, FDR vs model, Swings, Blanks and doubles, Uncertainty flags, Scheduled checks. Every number is quoted from the tables, never recomputed.",
+    "where": "agents/fixture-analyst.md § Steps, § fixtures.md sections"
+   },
+   {
+    "name": "Check the file EP will read",
+    "detail": "Runs `fpl ep --check`, which validates fixtures.json against the bootstrap; it must exit 0.",
+    "where": "fpl/__main__.py:run_ep_check"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "fixtures.json",
+    "to": "ep",
+    "detail": "Club ratings and one row per club per window gameweek with lambda_att, lambda_def and p_cs: the only fixture input the EP formula reads."
+   },
+   {
+    "name": "Club ATT/DEFW ratings",
+    "to": "inputs",
+    "detail": "The player analyst prints each club's ATT/DEFW from fixtures.json when deciding overrides for promoted-club and no-history players."
+   },
+   {
+    "name": "fixtures-tables.md and fixtures.md",
+    "to": "proposal",
+    "detail": "The optimizer reads the tickers and the commentary, for example to avoid buying for one good fixture that turns bad in two."
+   },
+   {
+    "name": "fixtures-tables.md and fixtures.md",
+    "to": "review",
+    "detail": "The red-team reads them for fixture myopia, concentration and chip-path checks."
+   },
+   {
+    "name": "Backlog rows",
+    "to": null,
+    "detail": "Findings outside the agent's remit (model arithmetic, CLI, specs, data quirks) appended to docs/backlog.md with a shell append."
+   }
+  ],
+  "rules": [
+   "`fixtures-rate` runs once, on its own, never chained with && or ; and never piped. On a non-zero exit the agent stops and returns `fixtures-rate: REFUSED (exit <code>)` with every error: and hint: line exactly as printed.",
+   "The agent never rebuilds ratings by hand or in a script, and never writes or edits fixtures.json or fixtures-tables.md. A correction that asks it to is refused and logged to the backlog.",
+   "Number rule: every λ, P(CS) and rating is quoted exactly as printed. A rank or a word like 'best' comes only from a rank column (ATT rating rank, DEFW rating rank, ATT rank, CS rank), never from counting rows.",
+   "club-priors.json is written once at GW1 and never edited: all 20 clubs, att and defw in [0.3, 3], a `source` on each, unknown keys refused. Promoted clubs get differentiated assumed values whose source starts with 'ASSUMPTION'.",
+   "The prior keeps at least 25% of the weight through GW10 (k ÷ (k + 9)).",
+   "Promoted-club ratings are an assumption with HIGH uncertainty; the band stays on their rows until a retro correction releases it, which is not the fixture analyst's decision.",
+   "`fpl ep` refuses a fixtures.json that misses a club, has att/defw outside [0.3, 3], base_lambda outside [0.5, 5], a λ outside (0, 6], a club playing itself, or more than two rows for a club in one gameweek.",
+   "The agent does not read docs/backlog.md, player summaries, the raw fixture list, other parts of earlier fixtures.md files, or (outside GW1) bootstrap.json.",
+   "Local only: no network, no credentials. The agent never runs git commit."
+  ],
+  "files": [
+   "data/analysis/club-priors.json",
+   "data/raw/gw{N}/bootstrap.json",
+   "data/raw/gw{N}/fixtures.json",
+   "data/raw/gw{r+1}/event-live-e{r}.json",
+   "data/store/season-2026-27.sqlite",
+   "data/analysis/gw{N-1}/fixtures.json",
+   "data/analysis/gw{N-1}/fixtures.md",
+   "data/analysis/gw{N}/fixtures.json",
+   "data/analysis/gw{N}/fixtures-tables.md",
+   "data/analysis/gw{N}/fixtures.md",
+   "data/retro/gw*.md",
+   "docs/backlog.md",
+   "fpl/fixture_ratings.py",
+   "agents/fixture-analyst.md",
+   "docs/ep-model.md"
+  ],
+  "commands": [
+   "uv run python -m fpl fixtures-rate --gw 11",
+   "awk '/^## /{p=($0 ~ /^## Corrections/)} p' data/retro/gw*.md",
+   "sed -n '/^## Scheduled checks/,/^## /p' data/analysis/gw10/fixtures.md",
+   "uv run python -m fpl ep --gw 11 --check"
+  ],
+  "example": {
+   "title": "Brighton away at Hull, GW11",
+   "lines": [
+    "Run: 10 rounds, 100 matches; 129 of 400 implied ratings clipped; league xG 2.95 per match against a base of 2.87.",
+    "BHA attack prior 0.90; its ten implied ATT values sum to 13.32 (round 1, 3.77 xG v AVL, is clipped to 1.80).",
+    "Blend: (5.7 × 0.90 + 13.32) ÷ (5.7 + 10) = 1.175; rescaled to the 20-club mean, ATT 1.16, rating rank 2.",
+    "Hull (promoted): ATT 0.72, DEFW 1.12. Brighton DEFW 0.92.",
+    "BHA λ_att at HUL = 1.33 (away base) × 1.16 × 1.12 = 1.73.",
+    "BHA λ_def = Hull's λ_att at home = 1.54 × 0.72 × 0.92 = 1.02, so P(CS) = e^(−1.02) = 0.36.",
+    "band: true, because Hull is promoted; fixtures.md shows it as 0.36 ± under correction C12."
+   ]
+  },
+  "status": "The GW11 run rated 10 rounds and 100 matches for the GW11–16 window with no blanks or doubles; MCI has the best attacking run (ATT rank 1, Σλ_att 11.44), ARS the best defensive run (CS rank 1, ΣP(CS) 2.20), and correction C12 (a two-sided promoted-club band) is active and untested."
+ },
+ "inputs": {
+  "summary": "The player analyst agent (Opus) runs once per position (GKP, DEF, MID, FWD) and writes the judgment the formula cannot compute: how likely each player is to start in each of the next six gameweeks, and where his default rates are wrong. It writes inputs-{pos}.json for `fpl ep` and a short players-{pos}.md for the optimizer. It never computes expected points itself.",
+  "inputs": [
+   {
+    "name": "Position view from the cached bootstrap",
+    "from": "raw",
+    "detail": "`fpl players` lists every player of the position with status, news, chance of playing, season totals and set-piece orders."
+   },
+   {
+    "name": "Minutes per round",
+    "from": "store",
+    "detail": "The same view appends minutes in each of the last six rounds from the season store, plus kickoff dates and `back_gw` for players with a dated return."
+   },
+   {
+    "name": "Active A3 corrections",
+    "from": "retro",
+    "detail": "`fpl corrections --agent A3` prints only the retro corrections that bind this agent now."
+   },
+   {
+    "name": "Club ratings",
+    "from": "fixtures",
+    "detail": "Each club's ATT/DEFW from fixtures.json, for override decisions on promoted clubs and attack indices."
+   },
+   {
+    "name": "Last week's judgment",
+    "from": "inputs",
+    "detail": "One line per player from data/analysis/gw{N-1}/inputs-{pos}.json (p_start, ramp, uncertainty, override keys, notes), to update rather than rebuild."
+   },
+   {
+    "name": "Research verdicts",
+    "from": null,
+    "detail": "Title and Verdict of any optional data/analysis/gw{N}/research-*.md written for the user; a verdict replaces a guessed return."
+   },
+   {
+    "name": "Flags delta (REOPEN only)",
+    "from": "final",
+    "detail": "The data/raw/gw{N}/flags-delta-<stamp>.json the finalizer's freshness gate wrote, naming players whose status, chance or news changed."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Gather the evidence",
+    "detail": "One `fpl players` call prints the whole position as CSV: status, news, chance, totals, set-piece orders, minutes per round for the last six rounds, and kickoff columns for dated returns.",
+    "where": "agents/player-analyst.md Call 1"
+   },
+   {
+    "name": "Read the context",
+    "detail": "One Bash prints the active A3 corrections, each club's ATT/DEFW, last week's row per player, and the verdict of any research file.",
+    "where": "agents/player-analyst.md Call 2"
+   },
+   {
+    "name": "Write inputs-{pos}.json",
+    "detail": "One row per player: p_start, or a six-value p_start_gw when availability changes across the window; an uncertainty tag (LOW, MED, HIGH) for rate risk only; optional overrides with a reason; notes.",
+    "where": "agents/player-analyst.md Call 3; contract docs/ep-model.md §3"
+   },
+   {
+    "name": "Run EP and read the table",
+    "detail": "Runs `fpl ep` for the position and checks the numbers; one rerun is allowed after fixing a p_start or override. Missing history triggers one `summaries --missing-past` fetch. A share-check flag is acted on only for rows where the analyst set xg90, xa90 or attack_mult.",
+    "where": "agents/player-analyst.md Call 4"
+   },
+   {
+    "name": "Write players-{pos}.md",
+    "detail": "At most 120 lines: Top 15 by EP6 copied from the ep table, Minutes calls, Overrides, Nailed cheap beats rotating premium, Retro compliance, and up to five Escalations for the optimizer.",
+    "where": "agents/player-analyst.md Call 5"
+   },
+   {
+    "name": "Append backlog rows",
+    "detail": "Only for findings outside the agent's remit: one quoted heredoc appended to docs/backlog.md, with the closing EOF at column 0.",
+    "where": "agents/player-analyst.md Call 6"
+   },
+   {
+    "name": "REOPEN mode",
+    "detail": "When the freshness gate finds a moved flag, the agent reads only that delta, changes the affected rows plus same-club same-position teammates, reruns `ep`, and replaces the Top 15, Minutes calls and Escalations in players-{pos}.md. At most 6 tool calls.",
+    "where": "agents/player-analyst.md § REOPEN mode"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "inputs-{pos}.json",
+    "to": "ep",
+    "detail": "The judgment file `fpl ep` compiles into expected points."
+   },
+   {
+    "name": "players-{pos}.md",
+    "to": "proposal",
+    "detail": "Ranking, minutes calls, overrides and escalations; the GW11 proposal weighed each escalation in a table."
+   },
+   {
+    "name": "Return lines",
+    "to": null,
+    "detail": "Both file paths, top 5 by EP6, override count, escalations and backlog rows, in at most 15 plain lines to the orchestrator."
+   },
+   {
+    "name": "Backlog rows",
+    "to": null,
+    "detail": "Out-of-remit findings appended to docs/backlog.md as `| GWN | date | A3-POS | kind | finding | evidence | open |`."
+   }
+  ],
+  "rules": [
+   "At most 10 tool calls per position, one ep rerun and one summaries fetch included; REOPEN mode at most 6.",
+   "Coverage: every player of the position priced above £4.5m with status a or d needs a row, or `fpl ep` refuses and lists them. Cheaper or unavailable players left out are excluded and counted.",
+   "Availability limits from the news line: status i, s, u or n, or chance 0, sets p_start_gw[0] = 0 unless back_gw is N or N*. 'Expected back D' or 'Suspended until D' sets 0 for every gameweek before back_gw; `>M` sets 0 for the whole window. Status d with X% caps p_start_gw[0] at X/100.",
+   "An unknown return date means 0 for GW N; any later value is a guess, ramped no faster than dated returns, and the notes say 'guess'.",
+   "New signings with no PL history are capped at p_start 0.7 until two consecutive starts of 60+ minutes.",
+   "With p_start_gw present, p_start must equal p_start_gw[0], or `ep` warns that it was ignored.",
+   "Minutes risk lives only in p_start; the uncertainty tag is rate risk only and never enters the arithmetic or any decision multiplier.",
+   "Every override needs a reason. Ceilings: xg90 and xa90 ≤ 2, dc90 ≤ 30, saves90 ≤ 10, bonus_per_start ≤ 3, yellow90 ≤ 1, minutes_per_start in (0, 90], prior_weight in [0, 1], attack_mult in [0.25, 4]. A ceiling refusal is a unit slip to fix, not to argue with.",
+   "Players are judged on underlying data only: net transfers, ownership and price moves are never evidence about a player (decision of 2026-11-20 in docs/plans/price-adjusted-gain.md).",
+   "A correction to the arithmetic is a code change; the analyst notes it under Retro compliance and never emulates it through overrides.",
+   "Off limits: computing EP or rates, reading bootstrap.json, element summaries, event-live files, calibration ledgers, whole retro files, docs/backlog.md, and editing players-{pos}.json by hand.",
+   "Never commits to git."
+  ],
+  "files": [
+   "data/analysis/gw{N}/inputs-{pos}.json",
+   "data/analysis/gw{N}/players-{pos}.md",
+   "data/analysis/gw{N}/fixtures.json",
+   "data/analysis/gw{N-1}/inputs-{pos}.json",
+   "data/analysis/gw{N}/research-*.md",
+   "data/retro/gw*.md",
+   "data/raw/gw{N}/flags-delta-<stamp>.json",
+   "docs/backlog.md",
+   "agents/player-analyst.md",
+   "docs/ep-model.md"
+  ],
+  "commands": [
+   "uv run python -m fpl players --gw 11 --position DEF --status a,d,i,s,n --minutes --minutes-last 6 --kickoffs --fields id,name,team,price,status,chance_of_playing,news,minutes,starts,xG,xA,penalties_order,direct_freekicks_order,corners_and_indirect_freekicks_order --format csv",
+   "uv run python -m fpl corrections --gw 11 --agent A3",
+   "uv run python -m fpl ep --gw 11 --position DEF",
+   "uv run python -m fpl summaries --gw 11 --missing-past"
+  ],
+  "example": {
+   "title": "GW11 analyst rows",
+   "lines": [
+    "Rows: GKP 38, DEF 186, MID 211, FWD 48. Overrides: 0, 23, 48, 6. Rows with a varying p_start_gw: 4, 42, 41, 10.",
+    "De Cuyper (DEF 115): p_start 0.94 flat, LOW, notes '10/10 starts, unbroken; corners 2, FK 4'.",
+    "Calafiori (DEF 8): p_start 0.90, LOW, notes '22,90,68 R8-R10 starts at LB'.",
+    "Thiago (FWD 106): suspended until 5 Dec, back_gw 14, so p_start_gw [0, 0, 0, 0.93, 0.95, 0.95].",
+    "Saka (MID 12): expected back 20 Dec, back_gw 16, so [0, 0, 0, 0, 0, 0.5].",
+    "Semenyo (MID 397): knee, unknown return date, so GW11 is 0 and the ramp [0, 0.25, 0.45, 0.6, 0.7, 0.75] is marked a guess.",
+    "Dasilva (DEF 176, promoted club): attack_mult 0.8, tagged HIGH, because a second-tier prior overstates his attacking rate."
+   ]
+  },
+  "status": "GW11 inputs were written for all four positions; the MID analyst escalated that the GW13 midweek round and European rotation at ARS, CHE, LIV, MCI, NEW and TOT are not priced into p_start, which the red-team carried as finding F1."
+ },
+ "ep": {
+  "summary": "`fpl ep` is the code that turns the analyst's inputs and the fixture rows into expected points (EP) for every judged player in each of the next six gameweeks. One formula and one constants table serve all four positions, so a term cannot differ between DEF and MID. It is local only: cached snapshots and the season store, no network and no credentials.",
+  "inputs": [
+   {
+    "name": "inputs-{pos}.json",
+    "from": "inputs",
+    "detail": "p_start or p_start_gw, uncertainty, notes and any rate overrides with a reason."
+   },
+   {
+    "name": "fixtures.json",
+    "from": "fixtures",
+    "detail": "Base λ, club ATT ratings and each window fixture's lambda_att, lambda_def and p_cs."
+   },
+   {
+    "name": "Cached bootstrap",
+    "from": "raw",
+    "detail": "Each player's web_name, club, price and status, and this season's bonus totals for the league bonus mean."
+   },
+   {
+    "name": "Match history",
+    "from": "store",
+    "detail": "Past PL seasons and this season's matches per player from the season store, synced first when it is behind data/raw."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Validate the inputs",
+    "detail": "Strict schemas: unknown keys, out-of-range values, a name that does not match the bootstrap web_name, or overrides without a reason refuse with the offending row. The coverage rule then checks every player above £4.5m with status a or d has a row.",
+    "where": "fpl/ep.py:parse_inputs, parse_fixtures, _check_coverage, _check_clubs, _check_fixture_rows"
+   },
+   {
+    "name": "Derive per-90 rates",
+    "detail": "Prior from up to two past PL seasons, shrunk toward the position's league mean; current from this season; blended by prior weight max(0.2, 600 ÷ (600 + current minutes)). Bonus and DefCon follow their own rules; analyst overrides replace the computed value.",
+    "where": "fpl/ep.py:_effective_rates, prior_weight, shrink_rate, bonus_rate, _league_mean"
+   },
+   {
+    "name": "Score every fixture",
+    "detail": "Computes the eight terms for each window fixture, sums them per gameweek and multiplies by that gameweek's p_start. A blank scores 0; a double adds two fixtures.",
+    "where": "fpl/ep.py:_score_fixture, build_predictions"
+   },
+   {
+    "name": "Add the steadiness columns",
+    "detail": "p4_gw (chance of 4+ points per gameweek) and returns5 (rounds with 4+ points of the last five) are added; neither enters EP.",
+    "where": "fpl/consistency.py"
+   },
+   {
+    "name": "Run the team-xG share check",
+    "detail": "For players with 3+ starts, compares the share of club xG and xA his rates assume with the share he has taken; flags a gap above 0.05 or 40% of the season share, whichever is larger.",
+    "where": "fpl/team_share.py"
+   },
+   {
+    "name": "Write and print",
+    "detail": "Writes players-{pos}.json sorted by ep_total6, each row stamped with the model digest. Prints a `model <digest>` line, the top rows with their term breakdown and p4/ret5/share columns, the coverage line and one `share check` line.",
+    "where": "fpl/ep.py:write_predictions; fpl/__main__.py (ep command)"
+   }
+  ],
+  "formula": [
+   {
+    "term": "Start weighting",
+    "plain": "Each gameweek's sum of terms is multiplied by the analyst's p_start for that gameweek. A blank gameweek scores 0, a double gameweek adds both fixtures, and substitute appearances are ignored."
+   },
+   {
+    "term": "Rates (prior, current, blend)",
+    "plain": "The prior pools the most recent PL seasons until 900 minutes or two seasons, then shrinks toward the position's league mean with 450 minutes of weight. The current rate counts every match this season equally. The blend gives the prior weight max(0.2, 600 ÷ (600 + current minutes)): 1.00 at 0 minutes, 0.77 at 180, 0.40 at 900."
+   },
+   {
+    "term": "Appearance",
+    "plain": "1 + P60, where P60 is the chance of playing 60+ minutes once started, read off minutes per start: 50 → 0.25, 60 → 0.50, 70 → 0.80, 80 → 0.95, 88 → 1.00."
+   },
+   {
+    "term": "Attack (goals and assists)",
+    "plain": "(xG per 90 × goal points + xA per 90 × 3) × minutes per start ÷ 90 × fixture multiplier. Goal points are 6 for GKP and DEF, 5 for MID, 4 for FWD. The fixture multiplier is the fixture's λ_att ÷ (league base mean × the club's own ATT), times any attack_mult override; dividing by the club's own ATT stops club strength being counted twice."
+   },
+   {
+    "term": "Clean sheet",
+    "plain": "P(CS) for the fixture × clean-sheet points × P60. Points are 4 for GKP and DEF, 1 for MID, 0 for FWD."
+   },
+   {
+    "term": "Goals conceded",
+    "plain": "GKP and DEF lose 1 point per 2 goals conceded: minus the exact Poisson expectation of floor(goals ÷ 2), with goals drawn at λ_def × minutes per start ÷ 90."
+   },
+   {
+    "term": "DefCon",
+    "plain": "2 × P(hit) × a minutes factor (45 → 0, 60 → 0.65, 90 → 1.0). The threshold is 10 clearances, blocks, interceptions and tackles for DEF, 12 including recoveries for MID and FWD; GKP has none. P(hit) blends a mapped chance from the prior DefCon rate with this season's hit rate, by the prior weight. DefCon rates count only seasons from 2024/25, when the stat began."
+   },
+   {
+    "term": "Saves",
+    "plain": "GKP only: the exact Poisson expectation of floor(saves ÷ 3), with saves drawn at saves per 90 × minutes share × λ_def ÷ base mean, plus 0.10 per fixture for penalty saves."
+   },
+   {
+    "term": "Bonus",
+    "plain": "Bonus per start × a position adjustment for this season's BPS changes (GKP 1.10, DEF 0.90, MID and FWD 1.00). Bonus per start pools all the player's past and current bonus and shrinks it toward the position's league bonus mean with 30 (GKP), 60 (DEF), 20 (MID) or 15 (FWD) starts of weight."
+   },
+   {
+    "term": "Cards",
+    "plain": "Minus yellow cards per 90 × minutes per start ÷ 90."
+   },
+   {
+    "term": "Prior-only reading",
+    "plain": "The same inputs with every row's prior weight forced to 1.0, so this season's form counts for nothing. `objective` rebuilds it in memory beside the published blend; `ep --prior-weight 1.0 --out <file>` writes it as a what-if."
+   }
+  ],
+  "outputs": [
+   {
+    "name": "players-{pos}.json",
+    "to": "proposal",
+    "detail": "Per player: p_start_gw, ep_gw, ep_total6, ep_per_million, fixtures, the eight terms, the effective rates, model digest, p4_gw, returns5 and share_flag; `objective` scores squads from it."
+   },
+   {
+    "name": "players-{pos}.json",
+    "to": "review",
+    "detail": "The red-team reads the same rows and can rebuild the prior-only view with --prior-weight 1.0."
+   },
+   {
+    "name": "Prediction snapshot",
+    "to": "lock",
+    "detail": "Before the deadline `fpl plan` copies the players files into data/decisions/gw{N}/predictions.lock.json."
+   },
+   {
+    "name": "Predictions to score",
+    "to": "retro",
+    "detail": "`fpl calibrate` compares these predictions with the round's actual points."
+   },
+   {
+    "name": "Printed table",
+    "to": "inputs",
+    "detail": "The analyst reads the table and may fix inputs and rerun once."
+   }
+  ],
+  "rules": [
+   "Refuses an inputs row with unknown keys, out-of-range values, a name that does not match bootstrap (accents and case ignored), or overrides without a reason, naming the row.",
+   "Coverage: refuses when a player above £4.5m with status a or d has no row, listing them; `--allow-missing-ids` exempts named players, who go unscored and are named in a warning.",
+   "Override ceilings: xg90 and xa90 ≤ 2, dc90 ≤ 30, saves90 ≤ 10, bonus_per_start ≤ 3, yellow90 ≤ 1, minutes_per_start in (0, 90], prior_weight in [0, 1], attack_mult in [0.25, 4].",
+   "Once data/decisions/gw{N}/final.md exists, `ep` refuses to write players-{pos}.json ('gw{N} is decided'); a what-if must use --out.",
+   "`--prior-weight W` needs W in [0, 1] and --out, and cannot be combined with --check.",
+   "A round with no final event-live snapshot refuses, naming the `event-live` command that fetches it.",
+   "`objective` refuses players files whose model digest differs from the code's ('players files built by another model version'); the fix is to rerun `ep` for every position.",
+   "The uncertainty tag is passed through and never used in the arithmetic. There is no form term.",
+   "The share check is a reading aid only; when there is no event-live snapshot to measure club xG it prints `share check skipped` and still writes the file.",
+   "A model change lands as a ModelConfig field switched off by default. It is switched on only when `fpl backtest` passes all five rules: CI upper bound < 0, bias no worse than +0.05, every position ΔMAE ≤ +0.02, ΔMAE ≤ −0.01, and wins in at least M − 1 of M rounds."
+  ],
+  "files": [
+   "data/analysis/gw{N}/inputs-{pos}.json",
+   "data/analysis/gw{N}/fixtures.json",
+   "data/analysis/gw{N}/players-{pos}.json",
+   "data/raw/gw{N}/bootstrap.json",
+   "data/store/season-2026-27.sqlite",
+   "data/decisions/gw{N}/final.md",
+   "data/model/gates/",
+   "fpl/ep.py",
+   "fpl/consistency.py",
+   "fpl/team_share.py",
+   "docs/ep-model.md"
+  ],
+  "commands": [
+   "uv run python -m fpl ep --gw 11 --position DEF",
+   "uv run python -m fpl ep --gw 11 --position MID --share-detail",
+   "uv run python -m fpl ep --gw 11 --check",
+   "uv run python -m fpl ep --gw 11 --position DEF --prior-weight 1.0 --out /tmp/players-DEF-prior.json",
+   "uv run python -m fpl backtest --gw 8 --rounds 3-7 --manifest data/model/gates/manifest.toml --record-all",
+   "uv run python -m fpl gates --gw 8 --summary"
+  ],
+  "example": {
+   "title": "De Cuyper (DEF 115, BHA, £5.5m), GW11",
+   "lines": [
+    "Model 64ad9c9c; p_start 0.94 in all six gameweeks; fixtures HUL(A), NEW(H), BOU(A), NFO(A), EVE(H), IPS(H).",
+    "Minutes: 1404 prior, 822 current, so prior weight = 600 ÷ (600 + 822) = 0.422.",
+    "Effective rates: xG 0.194 and xA 0.182 per 90, 83.1 minutes per start, bonus 0.347 per start, DefCon 4.20 per 90.",
+    "EP by gameweek: 4.614, 4.914, 3.419, 3.634, 4.500, 4.846.",
+    "Six-GW terms: appearance 11.11 + attack 9.31 + clean sheet 6.56 − goals conceded 1.95 + DefCon 0.44 + bonus 1.76 − cards 1.30 = 25.93 EP6.",
+    "p4_gw for GW11–13: 0.529, 0.557, 0.385; returns5 4 of 5; no share flag.",
+    "For contrast: Trafford (GKP) gets 4.99 of his 22.53 from saves; Haaland (FWD) gets 17.23 of his 34.90 from attack."
+   ]
+  },
+  "status": "GW11 players files carry model 64ad9c9c; every model change tested over rounds 3–7 (blend K, recency, opponent adjustment, finishing and others) failed its backtest gate, so the model still runs its original constants and combined.json ships the baseline."
+ },
+ "proposal": {
+  "summary": "The squad optimizer agent (Fable) chooses this gameweek's transfers, captain, vice, bench order and any chip. It searches for plans, but every figure comes from `fpl objective`, which scores a squad as the six-gameweek sum of the best XI's EP plus the captain's EP, on two readings: blend and prior-only. A move is made only when it clears the transfer rule on both readings.",
+  "inputs": [
+   {
+    "name": "players-*.json",
+    "from": "ep",
+    "detail": "Per-gameweek EP for every judged player; `objective` refuses files from another model version."
+   },
+   {
+    "name": "fixtures.md and fixtures-tables.md",
+    "from": "fixtures",
+    "detail": "Tickers and swings, so a buy is not made for one good fixture that turns bad in two."
+   },
+   {
+    "name": "Analyst escalations",
+    "from": "inputs",
+    "detail": "Doubts the analysts could not price; the GW11 proposal weighed each one in a table."
+   },
+   {
+    "name": "Current squad",
+    "from": "final",
+    "detail": "The STATE block of the latest earlier final.md: picks, team_value (bank already included), bank, free transfers, chips used."
+   },
+   {
+    "name": "Selling prices, bank, free transfers",
+    "from": "api",
+    "detail": "Relayed by the orchestrator from the authenticated my-team read; without them `objective` labels sales unverified."
+   },
+   {
+    "name": "Suggestions",
+    "from": "suggestions",
+    "detail": "Rows of data/suggestions.md, read once on the first run of the cycle."
+   },
+   {
+    "name": "Previous ledger",
+    "from": "ledger",
+    "detail": "The `## Suggestions` table of the latest final.md; closed rows are copied forward verbatim."
+   },
+   {
+    "name": "Retro corrections",
+    "from": "retro",
+    "detail": "Active A4 corrections from data/retro/*.md (C8, C14, C15 and C20 at GW11)."
+   },
+   {
+    "name": "review.md (revision only)",
+    "from": "review",
+    "detail": "On a REVISE verdict the optimizer reruns once with the review's findings."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Set money and squad",
+    "detail": "Takes the squad from the previous STATE block and builds the --sell list from relayed selling prices. Budget is team_value, which already includes the bank.",
+    "where": "agents/squad-optimizer.md § Input; fpl/objective.py"
+   },
+   {
+    "name": "Budget skeleton",
+    "detail": "Decides the premium slots (over £9m) first and tests each against two mid-priced alternatives. Bank should end at £0.5m or less unless the proposal justifies more.",
+    "where": "agents/squad-optimizer.md § Heuristic procedure 1–2"
+   },
+   {
+    "name": "Score every single move",
+    "detail": "`objective` prints the baseline, every legal single transfer with its blend and prior-only gain and gate result, the greedy reference plan, and the `tie-break move:` and `tie-break group:` lines.",
+    "where": "fpl/objective.py:legal_singles, greedy_reference, tie_break_moves"
+   },
+   {
+    "name": "Grade candidate plans",
+    "detail": "Each plan is scored with `--moves`. A move's gain is its marginal: the plan minus the plan with that one pair undone. The verdict fails a plan whose blend gain is more than 0.05 below the greedy reference.",
+    "where": "fpl/objective.py:evaluate_plan, move_marginals"
+   },
+   {
+    "name": "Captain, vice, bench, chips",
+    "detail": "Captain is the XI's highest single-GW EP. Bench follows GW EP, and dead bench slots (p_start below 0.5) are reported. Wildcard or free hit is graded with `--chip`.",
+    "where": "agents/squad-optimizer.md § Captaincy, § Chips; fpl/objective.py:best_lineup"
+   },
+   {
+    "name": "Dispose suggestions",
+    "detail": "Lists malformed rows, fires withdraw rows, expires rows past Until GW, then gives each open S# a status (followed, rejected, deferred, standing) with an EP6 delta or the rule it breaks.",
+    "where": "agents/squad-optimizer.md § Suggestions"
+   },
+   {
+    "name": "Write squad-proposal.md",
+    "detail": "Summary, `objective` lines verbatim, squad table, XI, captaincy, bench, `Gate ids:` line, provisional chip plan, `Bench check:` line, suggestions ledger and the STATE block. A rerun first archives the previous proposal as squad-proposal.v{k}.md.",
+    "where": "agents/squad-optimizer.md § Output"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "squad-proposal.md",
+    "to": "review",
+    "detail": "The full proposal with its audit trail of `objective` output."
+   },
+   {
+    "name": "STATE block and Gate ids",
+    "to": "final",
+    "detail": "The finalizer copies the STATE block unchanged and passes the Gate ids line to `fpl flags --ids`."
+   },
+   {
+    "name": "Suggestions ledger",
+    "to": "ledger",
+    "detail": "Marker line `Read data/suggestions.md through S<max>` and one row per S#, carried verbatim into final.md."
+   },
+   {
+    "name": "Rerun request",
+    "to": "ep",
+    "detail": "When `objective` refuses players files built by another model version, the optimizer stops and asks the orchestrator to rerun `fpl ep` for every position."
+   },
+   {
+    "name": "Backlog rows",
+    "to": null,
+    "detail": "Out-of-remit findings appended to docs/backlog.md with a shell append."
+   }
+  ],
+  "rules": [
+   "Free move: blend gain ≥ 2.0 and prior-only gain ≥ 0. Hit (−4 points): blend gross gain ≥ 6.0 and prior-only gross gain > 0. Otherwise the free transfer is banked.",
+   "When a plan takes hits, its lowest-gain moves are the paid ones. With free transfers left after the plan, `objective` must show no further move passing the free gate.",
+   "Tie-break: when two moves share the same outgoing player and are within 0.5 blend EP6, the reference prefers the steadier incoming player: higher 3-GW mean p4_gw by at least 0.03 (GKP and FWD only), else a return rate higher by at least 0.2 with 3+ rounds each, else EP6. A plan that takes the other move fails.",
+   "Hard constraints: budget = team_value (never add bank again), 2 GKP / 5 DEF / 5 MID / 3 FWD, at most 3 per club, a legal XI formation.",
+   "Captain: the highest undiscounted single-GW EP in the XI. Only within 0.5 EP may the pick prefer a player with p_start_gw[0] ≥ 0.85. The uncertainty tag never scales EP.",
+   "Chips: a wildcard or free hit must beat the best plan without it by ≥ 6.0 blend and ≥ 0 prior-only; a free hit is scored on GW N alone. `chip:` is emitted every gameweek, `chip: null` included.",
+   "Free transfers next GW: min(5, free − used + 1) when used ≤ free, else 1.",
+   "Suggestions never override a hard constraint, the transfer rule or the audit trail. They may add a candidate or break a tie within 0.5 EP6 (only when the `tie-break group:` line ends '(decided by blend)') or 0.5 single-GW EP for captaincy. Two rows pulling apart: the higher S# wins.",
+   "Cut-off: the first run records the highest S# read; reruns that cycle keep that set, and later rows wait for the next gameweek.",
+   "From GW12, S10 applies: between two moves that both pass the rule within 0.5 EP6, prefer the one selling a player whose net transfers this gameweek are at or below −10% of his owners; a money tie-break only. S9 withdraws S7 at the same cycle.",
+   "Never runs `my-team` or any authenticated command, never commits, and writes only the proposal, its archive copy and backlog rows."
+  ],
+  "files": [
+   "data/analysis/gw{N}/players-*.json",
+   "data/analysis/gw{N}/fixtures.md",
+   "data/analysis/gw{N}/fixtures-tables.md",
+   "data/decisions/gw{N-1}/final.md",
+   "data/decisions/gw{N}/squad-proposal.md",
+   "data/decisions/gw{N}/squad-proposal.v{k}.md",
+   "data/decisions/gw{N}/review.md",
+   "data/suggestions.md",
+   "data/retro/gw*.md",
+   "docs/backlog.md",
+   "fpl/objective.py",
+   "fpl/objective_report.py",
+   "agents/squad-optimizer.md"
+  ],
+  "commands": [
+   "uv run python -m fpl objective --gw 11 --sell 411:15.6,379:9.1,4:8.0,427:7.9,68:6.3,453:6.0,8:5.9,249:5.6,542:5.7,60:5.5,112:5.0,127:5.0,385:5.0,332:4.5,496:4.4 --bank 0.1 --free-transfers 3 --top 40",
+   "uv run python -m fpl objective --gw 11 --sell <list> --bank 0.1 --free-transfers 3 --moves 8:115 --top 10",
+   "uv run python -m fpl objective --gw 11 --sell <list> --bank 0.1 --free-transfers 3 --moves none",
+   "uv run python -m fpl objective --gw 11 --sell <list> --bank 0.1 --free-transfers 3 --chip freehit --moves <out:in,…>"
+  ],
+  "example": {
+   "title": "Calafiori → De Cuyper, GW11",
+   "lines": [
+    "Relayed: 3 free transfers, bank 0.1, selling-price sum 99.5, budget 99.6.",
+    "Baseline over GW11–16: blend 345.346, prior-only 334.971. 1564 legal single moves; only five gain on blend, all selling Calafiori.",
+    "Calafiori → De Cuyper: +2.374 blend (≥ 2.0) and +1.881 prior-only (≥ 0): passes the free gate.",
+    "Calafiori → Silva: +2.042 / +0.646 also passes but is within 0.5; the tie-break picks De Cuyper on returns 4/5 v 3/5.",
+    "After the plan the best single is Barnes → Groß +0.621 / −1.723, which fails on the prior sign, so two free transfers are banked (3 at the GW12 deadline).",
+    "Captain Haaland 6.047, 0.741 clear of Isak 5.306. Vice Gabriel 5.229 over Isak (0.077 gap, inside 0.5) by suggestion S8.",
+    "Free hit on GW11 alone: +0.313 / +0.276 over the greedy plan, far below 6.0, so chip: null.",
+    "Bank 0.1 + 5.9 − 5.5 = 0.5; team_value stays 99.6."
+   ]
+  },
+  "status": "The GW11 proposal (first run, no revision) made one free transfer, Calafiori → De Cuyper, banked two, captained Haaland and played no chip, with S7 and S8 standing; the GW12 run will be the first to process S9 (withdraw S7) and S10 (money tie-break)."
+ },
+ "review": {
+  "summary": "The red-team reviewer agent (Fable) attacks the squad proposal on the assumption that the optimizer is wrong somewhere. It recomputes the money, positions, clubs and formation itself, reruns the scoring, and grades each finding LOW, MED or HIGH. Any HIGH finding means REVISE, which sends the proposal back to the optimizer once.",
+  "inputs": [
+   {
+    "name": "squad-proposal.md",
+    "from": "proposal",
+    "detail": "The plan, its `objective` output, STATE block and suggestions ledger."
+   },
+   {
+    "name": "fixtures.md and fixtures-tables.md",
+    "from": "fixtures",
+    "detail": "For fixture myopia, concentration and chip-path checks."
+   },
+   {
+    "name": "players-*.json",
+    "from": "ep",
+    "detail": "EP, p_start_gw and term breakdowns used to check minutes risk and captaincy."
+   },
+   {
+    "name": "players-slim.csv",
+    "from": "raw",
+    "detail": "Status, chance of playing, news dates and ownership from the cached bootstrap."
+   },
+   {
+    "name": "Suggestions and previous ledger",
+    "from": "suggestions",
+    "detail": "data/suggestions.md and the `## Suggestions` ledger of the latest final.md, to recompute the open set."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Read the proposal and evidence",
+    "detail": "Reads the proposal, the analysis files, the slim player CSV and the suggestions file with the previous ledger.",
+    "where": "agents/red-team-reviewer.md § Input"
+   },
+   {
+    "name": "Recompute independently",
+    "detail": "Reruns `objective` with the proposal's arguments, recomputes budget, position counts, club counts and formation by hand, and can rebuild the prior-only view with `ep --prior-weight 1.0 --out`.",
+    "where": "agents/red-team-reviewer.md checklist 3 and 7"
+   },
+   {
+    "name": "Work the checklist",
+    "detail": "Goes through all twelve items, from minutes risk to suggestions, scoring each finding LOW, MED or HIGH.",
+    "where": "agents/red-team-reviewer.md § Checklist"
+   },
+   {
+    "name": "Check the suggestions ledger",
+    "detail": "Recomputes the open set up to the proposal's `through S<max>` marker and compares every row with the previous ledger.",
+    "where": "agents/red-team-reviewer.md checklist 12"
+   },
+   {
+    "name": "Write review.md and the verdict",
+    "detail": "Lists findings with severity and a concrete alternative for every HIGH, then the verdict: REVISE if there is at least one HIGH, otherwise APPROVE.",
+    "where": "agents/red-team-reviewer.md § Output"
+   },
+   {
+    "name": "One revision loop",
+    "detail": "On REVISE the orchestrator reruns the optimizer once with review.md as input, then goes to the finalizer. Anything still unresolved is listed in final.md as an accepted risk.",
+    "where": "CLAUDE.md § Revision mechanics"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "review.md (REVISE)",
+    "to": "proposal",
+    "detail": "Findings the optimizer must address in its single rerun."
+   },
+   {
+    "name": "review.md (findings)",
+    "to": "final",
+    "detail": "Every HIGH or MED finding the final plan does not fix is listed under Accepted risks by its review id."
+   },
+   {
+    "name": "Backlog rows",
+    "to": null,
+    "detail": "Tool or spec gaps found while reviewing, appended to docs/backlog.md (GW11: one row for the DefCon-share print gap behind F4)."
+   }
+  ],
+  "rules": [
+   "Verdict REVISE if and only if there is at least one HIGH finding; every HIGH carries a concrete alternative.",
+   "Exactly one revision loop per cycle; REOPEN cycles from the freshness gate are exempt from that cap.",
+   "1 Minutes risk: any starter with P(start) below 0.85, any bench player who does not actually play.",
+   "2 Injury or suspension flags missed or stale, checked against chance_of_playing and news dates.",
+   "3 Constraints recomputed, never trusted: budget = STATE team_value; adding bank again is HIGH. With less than £0.2m left, name a fallback transfer for an overnight price rise.",
+   "4 Concentration: more than 2 players depending on one club's attack.",
+   "5 Template exposure: players owned above 30% that are not held, and the rank cost if they haul.",
+   "6 Fixture myopia: does the squad decay right after the 6-GW window when no free transfers are left?",
+   "7 Hit justification: any −4 with a flimsy case, or whose gross gain changes sign prior-only. A move named the winner on `objective`'s tie-break group line is not a finding.",
+   "8 Captaincy: the pick must be the highest undiscounted single-GW EP, unless the 0.5 tie-break with p_start_gw[0] ≥ 0.85 applies. EP is never weighted by the uncertainty tag.",
+   "9 Recency bias: any pick driven by last gameweek's haul rather than underlying numbers.",
+   "10 Chip path: is there a realistic window to use all set-1 chips before the GW19 deadline, and does any move sell a Triple Captain target or dismantle a Bench Boost bench?",
+   "11 Price risk: buys or holds at imminent price-fall risk; approved transfers are POSTed before the next overnight price change.",
+   "12 Suggestions: HIGH for an open S# with no row, a closed row altered, an expired or withdrawn row not closed, a row with From GW > N, a changed GW on a re-deferred or standing row, a deferral three cycles old, a `followed` row below −0.5 EP6 or not reproducible within 0.5, a `rejected` row with no number or rule. MED for a standing row whose reason does not say how the plan honours it, or a deferral revisit beyond N+2. Rows above the marker and listed malformed rows are never findings.",
+   "Never commits; out-of-remit findings go to docs/backlog.md by shell append only."
+  ],
+  "files": [
+   "data/decisions/gw{N}/squad-proposal.md",
+   "data/decisions/gw{N}/review.md",
+   "data/analysis/gw{N}/fixtures.md",
+   "data/analysis/gw{N}/fixtures-tables.md",
+   "data/analysis/gw{N}/players-*.json",
+   "data/raw/gw{N}/players-slim.csv",
+   "data/suggestions.md",
+   "data/decisions/gw{N-1}/final.md",
+   "docs/backlog.md",
+   "agents/red-team-reviewer.md"
+  ],
+  "commands": [
+   "uv run python -m fpl objective --gw 11 --sell <proposal list> --bank 0.1 --free-transfers 3 --moves 8:115",
+   "uv run python -m fpl ep --gw 11 --position DEF --prior-weight 1.0 --out <scratch>/players-DEF-prior.json",
+   "uv run python -m fpl final-check --gw 11 --proposal data/decisions/gw11/squad-proposal.md"
+  ],
+  "example": {
+   "title": "GW11 review of Calafiori → De Cuyper",
+   "lines": [
+    "Rerun of `objective` reproduces baseline 345.346 / 334.971, plan +2.374 / +1.881, verdict PASS, XI 58.405.",
+    "Budget: selling prices after the move sum to 99.1, plus bank 0.5 = 99.6 = STATE team_value; bank not added twice.",
+    "Positions 2/5/5/3; BHA, BOU, LEE and TOT 2 each, no club at 3; 4-3-3 legal.",
+    "F1 MED: three rounds in nine days (GW12–14) are not priced into p_start for six players at clubs with European or cup fixtures.",
+    "F2 MED: only one Arsenal defender held while ARS is clean-sheet rank 1 for the window.",
+    "F3 MED: Barnes and Mbeumo held through likely price falls (up to 0.2 of team value); POST the De Cuyper transfer today.",
+    "F4 and F5 LOW: bench order settled on last week's DefCon shares; banded clean-sheet rows not shown to be below each player's largest term.",
+    "Item 12: S7 and S8 open and carried with GW unchanged; S1–S6 identical to the GW10 ledger.",
+    "Verdict: APPROVE (no HIGH)."
+   ]
+  },
+  "status": "The GW11 review returned APPROVE with three MED findings (F1–F3) and two LOW (F4, F5), all carried into final.md; earlier this season the GW5 and GW8 reviews returned REVISE."
+ },
+ "final": {
+  "summary": "The finalizer agent (Opus) turns the approved proposal into the decision record, data/decisions/gw{N}/final.md. First it runs the freshness gate: a fresh bootstrap pull checks that no squad or incoming player's status, chance of playing or news has changed since the analysis. It makes no selection decisions: it copies the proposal's STATE block unchanged and has code check the result.",
+  "inputs": [
+   {
+    "name": "squad-proposal.md",
+    "from": "proposal",
+    "detail": "Its STATE block, `Gate ids:` line and suggestions ledger."
+   },
+   {
+    "name": "review.md",
+    "from": "review",
+    "detail": "Findings by id; unfixed HIGH and MED findings become accepted risks."
+   },
+   {
+    "name": "Previous ledger",
+    "from": "ledger",
+    "detail": "The previous final.md's `## Suggestions` table, which `final-check` uses to catch dropped or altered rows."
+   },
+   {
+    "name": "Baseline bootstrap",
+    "from": "raw",
+    "detail": "The bootstrap cached just before the refresh, the one the analysis read."
+   },
+   {
+    "name": "Fresh bootstrap",
+    "from": "api",
+    "detail": "`fpl flags` always hits the network and refreshes the bootstrap."
+   },
+   {
+    "name": "my-team budget",
+    "from": "api",
+    "detail": "When data/auth.json exists, one authenticated read whose `budget` line must match the proposal's team_value."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Pre-checks",
+    "detail": "Stops if final.md already exists. Runs `final-check`: P1 the STATE block parses and has picks, P2 the ledger marker is present, P3 no S# from the previous ledger is missing and no closed row changed. Exit 1 returns the FAIL lines; the proposal is never repaired.",
+    "where": "fpl/final_check.py:check_proposal; agents/finalizer.md §0"
+   },
+   {
+    "name": "Freshness gate",
+    "detail": "`flags --ids <Gate ids>` refreshes the bootstrap and diffs status, chance_of_playing_next_round and news against the cached baseline, writing a flags-delta file. Exit 0 passes; 3 returns REOPEN; 4 and 5 stop.",
+    "where": "fpl/freshness.py:flag_delta; fpl/__main__.py:run_flags"
+   },
+   {
+    "name": "Budget cross-check",
+    "detail": "When data/auth.json exists, compares the `my-team` budget with the proposal's team_value. A difference of 0.1 or more stops with both numbers and no final.md.",
+    "where": "agents/finalizer.md §2"
+   },
+   {
+    "name": "Assemble final.md",
+    "detail": "Writes the squad table with Id and GW{N} EP (ep_gw[0], unrounded), XI, captain and vice, bench, transfers, accepted risks, rationale, the `## Suggestions` ledger verbatim, and the STATE block last.",
+    "where": "agents/finalizer.md §2–§3"
+   },
+   {
+    "name": "Verify with code",
+    "detail": "Reruns `final-check`, now also F1 STATE parses and nothing follows it, F2 the chip keys are present, F3 STATE equals the proposal's, F4 ledger copied verbatim; then `plan` strict-parses the block. Both are rerun until they pass.",
+    "where": "fpl/final_check.py:check_final; fpl/state.py:parse_state"
+   },
+   {
+    "name": "Post-deadline correction (rare)",
+    "detail": "Only when the deadline passed and the plan was not applied: reads the fielded picks, adds a `## CORRECTION — plan not applied` section, replaces only the STATE block and regenerates plan.json.",
+    "where": "agents/finalizer.md §5"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "final.md STATE block",
+    "to": "plan",
+    "detail": "`fpl plan` compiles it with the cached bootstrap into plan.json and writes the predictions lock."
+   },
+   {
+    "name": "STATE block as next week's squad",
+    "to": "proposal",
+    "detail": "The next cycle's optimizer and `objective` read the current squad from it."
+   },
+   {
+    "name": "`## Suggestions` ledger",
+    "to": "ledger",
+    "detail": "Carried verbatim from the proposal; the next optimizer reads it and nothing older."
+   },
+   {
+    "name": "Squad table and picks",
+    "to": "retro",
+    "detail": "`calibrate` scores the predictions and reads the picks from it after the round."
+   },
+   {
+    "name": "REOPEN with the delta path",
+    "to": "inputs",
+    "detail": "On flags exit 3 the orchestrator reruns the player analyst for each affected position in REOPEN mode, then the finalizer."
+   },
+   {
+    "name": "STALE",
+    "to": "raw",
+    "detail": "On flags exit 5 the data collector must run again before finalizing."
+   }
+  ],
+  "rules": [
+   "`flags` exit codes: 0 no gate id changed (pass); 3 a gate id changed (REOPEN with the printed gate lines); 4 no baseline (report); 5 baseline over 24h old (STALE); 1 error.",
+   "Never rerun `flags` to clear an exit 3 or 5: the rerun would diff against the refreshed snapshot and hide the change. The `pool (informational)` section is never a gate.",
+   "A bootstrap refresh, including the one `flags` makes, refuses before saving when the fresh copy shows the deadline has passed.",
+   "On any stop the return is the reason and the evidence lines exactly as printed, with nothing about what the change does to EP, transfers, the XI or the captain.",
+   "Never overwrite an existing final.md (the post-deadline correction is the only exception).",
+   "STATE is copied value for value, team_value and bank included; the only permitted change is adding `chip: null` when the proposal omits it.",
+   "STATE keys: gw, team_id, team_value (selling prices + bank, never market value, never bank twice), bank, free_transfers_banked, chip (the only field that plays a chip: a bootstrap chip name, inside its window, not already used), chips_used (history), transfers_made (names for humans, never drive a POST), chip_plan (forecast earmarks, status provisional by default), picks.",
+   "picks: exactly 15 strict lines `- {id, name, position, captain, vice}`; positions 1–11 are the XI, 12–15 the bench in auto-sub order with 12 the backup goalkeeper; one captain and one vice, both in the XI.",
+   "The STATE block is strict-parsed: unknown keys, malformed lines or missing required keys refuse with the offending line.",
+   "REOPEN cycles are exempt from the one-revision cap.",
+   "Writes only final.md and backlog rows (plus plan.json in a correction); runs no git command that changes files.",
+   "Post-deadline correction: when `auth-check` fails, team_value comes from `entry` last_deadline_value and is labelled market basis; `git diff` must show removed lines only inside the old yaml block; the orchestrator commits it separately as `gw{N}: correct record — <why>`."
+  ],
+  "files": [
+   "data/decisions/gw{N}/final.md",
+   "data/decisions/gw{N}/squad-proposal.md",
+   "data/decisions/gw{N}/review.md",
+   "data/decisions/gw{N-1}/final.md",
+   "data/decisions/gw{N}/plan.json",
+   "data/raw/gw{N}/bootstrap.json",
+   "data/raw/gw{N}/.archive/bootstrap-<stamp>.json",
+   "data/raw/gw{N}/flags-delta-<stamp>.json",
+   "data/suggestions.md",
+   "docs/backlog.md",
+   "fpl/freshness.py",
+   "fpl/final_check.py",
+   "fpl/state.py",
+   "agents/finalizer.md"
+  ],
+  "commands": [
+   "uv run python -m fpl final-check --gw 11",
+   "uv run python -m fpl flags --gw 11 --ids 385,496,4,112,115,60,332,542,68,427,127,453,411,379,249",
+   "uv run python -m fpl my-team --gw 11",
+   "uv run python -m fpl plan --gw 11",
+   "uv run python -m fpl picks --gw N --team-id <id> --event N",
+   "uv run python -m fpl plan --gw N --out data/decisions/gw{N}/plan.json"
+  ],
+  "example": {
+   "title": "GW11 finalization",
+   "lines": [
+    "`flags` on the 15 gate ids (De Cuyper the one transfer-in), refreshed 2026-11-20 11:19 UTC against a baseline 0.3h old: 0 of 15 changed, exit 0, PASS.",
+    "Delta written to data/raw/gw11/flags-delta-20261120T111949_151858Z.json; pool (informational): 0 changed.",
+    "`my-team`: free transfers 3, bank 0.1, budget 99.6, equal to the proposal's team_value 99.6, so it is copied unchanged.",
+    "STATE: gw 11, team_value 99.6, bank 0.5, free_transfers_banked 3, chip null, chips_used wildcard GW8 and 3xc GW9.",
+    "chip_plan: freehit GW16 and bboost GW19, both provisional.",
+    "transfers_made: Calafiori → De Cuyper, cost 0; picks: 15 lines, Haaland (411) captain, Gabriel (4) vice.",
+    "Accepted risks: F1, F2, F3 (MED); F4 and F5 LOW noted."
+   ]
+  },
+  "status": "GW11 final.md was written after a passing gate and committed as the decision record (54d6e7d), and the Calafiori → De Cuyper transfer and lineup were then applied (5db736e); no REOPEN or record correction was needed."
+ },
+ "plan": {
+  "summary": "plan.json is the one machine-readable description of what to send to FPL for a gameweek. The plan builder (agent A8, Haiku model) runs a single command; code, not a model, turns final.md's STATE block and the cached bootstrap into the plan. A misread player id cannot be undone after a transfer, so no model ever parses the prose.",
+  "inputs": [
+   {
+    "name": "final.md STATE block",
+    "from": "final",
+    "detail": "The strict-parsed yaml block at the end of data/decisions/gw{N}/final.md: picks, chip, chip_plan, chips_used, transfers_made, bank, team_value."
+   },
+   {
+    "name": "Previous STATE block",
+    "from": "final",
+    "detail": "data/decisions/gw{N-1}/final.md, for the id-level transfer diff and the free transfers available at this deadline."
+   },
+   {
+    "name": "Cached bootstrap",
+    "from": "raw",
+    "detail": "Player ids, clubs, positions, prices, chip windows and the deadline; no network."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Parse STATE strictly",
+    "detail": "Unknown keys, malformed lines and missing keys refuse with the offending line; a STATE block for another gameweek refuses.",
+    "where": "fpl/state.py: parse_state"
+   },
+   {
+    "name": "Check squad legality",
+    "detail": "2 GKP / 5 DEF / 5 MID / 3 FWD, slot 1 and slot 12 are goalkeepers, XI has 1 GKP, at least 3 DEF, 2 MID, 1 FWD, and at most 3 per club.",
+    "where": "fpl/plan.py: validate_formation, validate_club_limit"
+   },
+   {
+    "name": "Check the chip",
+    "detail": "The chip must be named in the bootstrap chips array, inside its window for this GW, and not already used in that window.",
+    "where": "fpl/plan.py: _validate_chip"
+   },
+   {
+    "name": "Resolve transfers",
+    "detail": "picks-diff compares the two picks: blocks by id and is authoritative; state-names resolves transfers_made names only when the previous final.md has no picks:. If both readings exist and disagree, it refuses.",
+    "where": "fpl/plan.py: _resolve_transfers, _cross_check_names, _resolve_by_name"
+   },
+   {
+    "name": "Collect warnings",
+    "detail": "Null team_id, chip_plan earmarks outside every window, pairing differences, an empty transfers_made with a squad diff, and an implied −4 hit.",
+    "where": "fpl/plan.py: build_plan, _warn_transfer_cost"
+   },
+   {
+    "name": "Write plan.json and the lock",
+    "detail": "Writes the plan, then writes or refreshes the predictions lock before the deadline, then prints the summary the agent copies.",
+    "where": "fpl/__main__.py: run_plan"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "plan.json",
+    "to": "team",
+    "detail": "The --from-plan payload source for make-transfers and set-lineup."
+   },
+   {
+    "name": "predictions.lock.json",
+    "to": "lock",
+    "detail": "Written as a side effect before the deadline."
+   },
+   {
+    "name": "Printed summary",
+    "to": "you",
+    "detail": "chip, captain, free transfers, transfers and every WARNING line, relayed verbatim in the cycle report."
+   }
+  ],
+  "rules": [
+   "schema_version is 1; the executor refuses any other version or a plan whose gw differs from --gw.",
+   "transfer_source is picks-diff, state-names or none.",
+   "A name matching zero or several players is a hard error listing the candidates; the tool never guesses.",
+   "Prices are audit snapshots: selling_price is always null and purchase_price_at_plan is only compared with the price at POST time (price_resolution: live).",
+   "Common refusals: no 'picks:' section, ambiguous transfer name, no player named, readings disagree, unknown chip / outside every window / already used, illegal squad, no snapshot 'bootstrap'.",
+   "The agent runs the command once, never reads or edits final.md or plan.json, and on a refusal reports the error and hint lines verbatim and stops.",
+   "Local only: no network and no credentials.",
+   "plan.json is derived, so regenerating it is safe."
+  ],
+  "files": [
+   "data/decisions/gw{N}/plan.json",
+   "data/decisions/gw{N}/final.md",
+   "data/decisions/gw{N-1}/final.md",
+   "data/raw/gw{N}/bootstrap.json",
+   "agents/plan-builder.md",
+   "fpl/plan.py",
+   "fpl/state.py"
+  ],
+  "commands": [
+   "uv run python -m fpl plan --gw 11 --out data/decisions/gw11/plan.json",
+   "uv run python -m fpl plan --gw 11 --format json"
+  ],
+  "example": {
+   "title": "GW11 plan.json (team id left out)",
+   "lines": [
+    "chip: none",
+    "captain: Haaland (411), vice: Gabriel (4)",
+    "free transfers: 3 at this deadline (gw10 STATE), 3 banked for the next deadline",
+    "transfers: 1 (picks-diff)",
+    "  Calafiori (8) -> De Cuyper (115), buy £5.5m at plan time, cost 0",
+    "formation 4-3-3, bank 0.5, value 99.6; bench [496, 127, 332, 453]",
+    "chip_plan: freehit gw16, bboost gw19 (both provisional); warnings: []"
+   ]
+  },
+  "status": "The GW11 plan was built 0.02 hours after the bootstrap fetch with one free transfer resolved by picks-diff and no warnings, and it was applied the same morning."
+ },
+ "team": {
+  "summary": "The team executor (agent A9, Haiku model) applies plan.json to your real FPL team through the authenticated CLI. Transfers go first and need your approval of an exact transfer id; the lineup follows and needs no approval because it can be changed until the deadline. The step is optional; you can always apply the plan on the website yourself.",
+  "inputs": [
+   {
+    "name": "plan.json",
+    "from": "plan",
+    "detail": "The only payload source; the agent never opens it, the CLI reads it."
+   },
+   {
+    "name": "Credentials",
+    "from": "you",
+    "detail": "data/auth.json from auth-import, or a fresh ./curl-request capture the executor imports."
+   },
+   {
+    "name": "Approval block",
+    "from": "you",
+    "detail": "Your own approval words quoted verbatim plus the transfer id you approved."
+   },
+   {
+    "name": "my-team read and bootstrap prices",
+    "from": "api",
+    "detail": "Selling prices come from the authenticated my-team read at POST time and purchase prices from the GW's bootstrap snapshot, not from plan.json."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Check preconditions",
+    "detail": "plan.json exists, an optional capture is imported, and auth-check passes (exit 0). Any failure is a skip, not a workflow failure.",
+    "where": "agents/team-executor.md § Preconditions"
+   },
+   {
+    "name": "Dry-run the transfers",
+    "detail": "make-transfers diffs the live squad against the plan's 15 and prints each transfer, any price drift, the estimated hit and a 12-character transfer id. No transfers pending prints already applied.",
+    "where": "uv run python -m fpl make-transfers --gw N --from-plan …"
+   },
+   {
+    "name": "Wait for your approval",
+    "detail": "The orchestrator relays the transfers and id to you. Only your own words approve; the orchestrator never writes an Approval block for you.",
+    "where": "CLAUDE.md § Weekly cycle step 8"
+   },
+   {
+    "name": "Apply the transfers",
+    "detail": "--apply --approve <id> refuses unless the id equals a hash of the entry, gameweek, out/in pairs and chip it is about to send. After the POST the squad is re-read and verified.",
+    "where": "fpl/write.py: transfer_id, apply_transfers; fpl/__main__.py: _ensure_approved"
+   },
+   {
+    "name": "Dry-run and apply the lineup",
+    "detail": "set-lineup refuses if it names players the entry does not own yet, then posts XI, captain, vice, bench order and any bboost or 3xc chip, and verifies.",
+    "where": "fpl/write.py: plan_lineup, apply_lineup"
+   },
+   {
+    "name": "Record the run",
+    "detail": "Every auth-check, make-transfers and set-lineup run appends one line to runs.jsonl; every --apply also writes a timestamped audit record.",
+    "where": "fpl/runlog.py: append_run; fpl/write.py: _record_and_verify"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Transfers and lineup on FPL",
+    "to": "api",
+    "detail": "POST /transfers/ and POST /my-team/{team_id}/."
+   },
+   {
+    "name": "Audit records",
+    "to": null,
+    "detail": "data/executor/gw{N}/{command}-{stamp}.json with payload and verification result, never credentials."
+   },
+   {
+    "name": "runs.jsonl",
+    "to": null,
+    "detail": "Append-only log of every outcome: pass, fail, dry-run, already-applied, applied, refused, verify-failed, error."
+   },
+   {
+    "name": "Executor report",
+    "to": "you",
+    "detail": "Fixed lines: auth, import, transfers, lineup, audit, log, next."
+   }
+  ],
+  "rules": [
+   "Transfers before the lineup, always; set-lineup refuses with `lineup names N player(s) not in the squad` otherwise.",
+   "Writes refuse after the deadline (cannot be forced) and within 30 minutes of it; --force-deadline overrides only the margin and only when you asked for it in your own words.",
+   "make-transfers --apply refuses without --approve or with an id that does not match the payload; the approved id comes from the Approval block, never the dry-run.",
+   "Chip routing: bboost and 3xc ride set-lineup; wildcard and freehit ride make-transfers; the other command sends null and prints a note. An unknown chip refuses.",
+   "A wildcard or free hit with no transfers left to make refuses unless the chip is already active.",
+   "A price rise the bank cannot absorb refuses; drift the bank can absorb prints a price drift note and does not void the approval.",
+   "No POST retries; a 401/403 gets one token refresh and one replay.",
+   "The agent never passes --chip, --force, --from-final, --out, --in, --picks, --captain or --vice, never runs my-team or auth-refresh, and never reads data/auth.json or curl-request."
+  ],
+  "files": [
+   "data/decisions/gw{N}/plan.json",
+   "data/executor/gw{N}/runs.jsonl",
+   "data/executor/gw{N}/make-transfers-{stamp}.json",
+   "data/executor/gw{N}/set-lineup-{stamp}.json",
+   "agents/team-executor.md",
+   "fpl/write.py",
+   "fpl/runlog.py",
+   "docs/api-write.md"
+  ],
+  "commands": [
+   "uv run python -m fpl auth-check --gw 11",
+   "uv run python -m fpl make-transfers --gw 11 --from-plan data/decisions/gw11/plan.json",
+   "uv run python -m fpl make-transfers --gw 11 --from-plan data/decisions/gw11/plan.json --apply --approve 106dd68cb8f2",
+   "uv run python -m fpl set-lineup --gw 11 --from-plan data/decisions/gw11/plan.json",
+   "uv run python -m fpl set-lineup --gw 11 --from-plan data/decisions/gw11/plan.json --apply"
+  ],
+  "example": {
+   "title": "GW11 execution on 2026-11-20 (from runs.jsonl and the audit records)",
+   "lines": [
+    "11:21:49 make-transfers dry-run, transfer id 106dd68cb8f2",
+    "transfer: Calafiori (8) → De Cuyper (115), sell £5.9m, buy £5.5m",
+    "11:28:04 dry-run again, same id 106dd68cb8f2",
+    "11:28:11 make-transfers applied and verified — audit: data/executor/gw11/make-transfers-20261120T112811_054232Z.json",
+    "11:28:18 set-lineup applied and verified; captain Haaland (411), vice Gabriel (4), bench Kinsky, Gomez, Justin, Barnes"
+   ]
+  },
+  "status": "GW11's one transfer and lineup were applied and verified on 2026-11-20, a day before the 2026-11-21 11:00 UTC deadline."
+ },
+ "lock": {
+  "summary": "A small file, data/decisions/gw{N}/predictions.lock.json, that freezes what we predicted at decision time. It stores a hash of each players-*.json file plus each player's first-gameweek EP and p_start. Calibration scores this lock, so a prediction file edited after the decision cannot change the score.",
+  "inputs": [
+   {
+    "name": "Prediction files",
+    "from": "ep",
+    "detail": "data/analysis/gw{N}/players-{GKP,DEF,MID,FWD}.json written by fpl ep."
+   },
+   {
+    "name": "Deadline",
+    "from": "raw",
+    "detail": "The GW deadline from the cached bootstrap, carried in the plan."
+   },
+   {
+    "name": "fpl plan run",
+    "from": "plan",
+    "detail": "The lock is written as a side effect of fpl plan, never by hand."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Check the deadline",
+    "detail": "After the deadline no lock is written; plan prints a WARNING instead.",
+    "where": "fpl/decision_record.py: write_lock"
+   },
+   {
+    "name": "Hash and copy rows",
+    "detail": "sha256 of each players file, and for every row its id mapped to [ep_gw[0], p_start].",
+    "where": "fpl/decision_record.py: _lock_document"
+   },
+   {
+    "name": "Compare with an existing lock",
+    "detail": "If the file hashes match, nothing is written. If they differ, the old lock is renamed predictions.lock.v{k}.json with the next free k and a WARNING is printed.",
+    "where": "fpl/decision_record.py: write_lock, _archive_path"
+   },
+   {
+    "name": "Write the new lock",
+    "detail": "Written with exclusive create, so an existing file is never overwritten in place.",
+    "where": "fpl/decision_record.py: write_lock"
+   },
+   {
+    "name": "Score from the lock later",
+    "detail": "calibrate prefers the lock over the decision commit and prints its short hash on the predictions: line.",
+    "where": "fpl/decision_record.py: _lock_predictions"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "predictions.lock.json",
+    "to": "ledger",
+    "detail": "The first choice of decision record for calibrate."
+   },
+   {
+    "name": "predictions.lock.v{k}.json",
+    "to": null,
+    "detail": "Archived earlier locks, committed with the cycle commit."
+   }
+  ],
+  "rules": [
+   "Written only by fpl plan and only before the GW deadline; never edited by hand.",
+   "A lock that cannot be built (no or unreadable players files) is a warning, not an error.",
+   "Replaced only when the players files changed; the old one is kept as predictions.lock.v{k}.json.",
+   "calibrate refuses a lock with the wrong schema_version or gw, or one naming ids absent from every players file on disk.",
+   "Without a lock, calibrate falls back to the commit that first added data/decisions/gw{M}/final.md; a correct-record commit is never chosen.",
+   "Committed in the cycle commit together with any archived versions."
+  ],
+  "files": [
+   "data/decisions/gw{N}/predictions.lock.json",
+   "data/decisions/gw{N}/predictions.lock.v{k}.json",
+   "data/analysis/gw{N}/players-{pos}.json",
+   "fpl/decision_record.py"
+  ],
+  "commands": [
+   "uv run python -m fpl plan --gw 11 --out data/decisions/gw11/plan.json",
+   "uv run python -m fpl calibrate --gw 12 --round 11"
+  ],
+  "example": {
+   "title": "GW11 lock",
+   "lines": [
+    "schema_version 1, gw 11, 4 files hashed: players-DEF.json, players-FWD.json, players-GKP.json, players-MID.json",
+    "483 rows, e.g. \"385\": [3.578, 0.95] (Trafford: GW11 EP 3.578, p_start 0.95)",
+    "Committed in 54d6e7d gw11: Calafiori → De Cuyper (free, 3 FT banked), captain Haaland, vice Gabriel; retro gw10",
+    "Round 10 was scored from its lock: predictions: lock 1ea5e50e86f0 (drift: none)"
+   ]
+  },
+  "status": "Locks exist for GW8 to GW11; GW8 also holds an archived predictions.lock.v1.json because its players files changed after the first lock."
+ },
+ "you": {
+  "summary": "You are the only person who can approve a transfer, hold the FPL login, and steer the system. The agents propose and the CLI executes, but anything irreversible or credential-related waits for you. You can also skip any optional step and act on the FPL website yourself.",
+  "inputs": [
+   {
+    "name": "Cycle report",
+    "from": null,
+    "detail": "The orchestrator's report: transfers and transfer id, plan warnings, suggestion ledger rows, new backlog rows, usage ledger line."
+   },
+   {
+    "name": "Transfer dry-run",
+    "from": "team",
+    "detail": "Each transfer and its 12-character id, relayed verbatim."
+   },
+   {
+    "name": "Auth FAIL",
+    "from": "raw",
+    "detail": "The collector's pre-flight tells you early when credentials need re-capturing."
+   },
+   {
+    "name": "CODE corrections",
+    "from": "retro",
+    "detail": "Model fixes escalated to you, outside the gameweek cycle."
+   },
+   {
+    "name": "Heavy-selling line",
+    "from": "ledger",
+    "detail": "A monitoring figure for you only."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Register and set team_id",
+    "detail": "Fill data/entry.json with your team id once; until then entry, picks and the executor are skipped.",
+    "where": "data/entry.json"
+   },
+   {
+    "name": "Capture credentials",
+    "detail": "In a browser profile used only for this, copy the my-team request as cURL into ./curl-request, run auth-import, then delete the capture file.",
+    "where": "docs/api-write.md § 1"
+   },
+   {
+    "name": "Steer with suggestions",
+    "detail": "Append rows to data/suggestions.md; never edit or delete one. Retract with a `withdraw S<n>` row.",
+    "where": "data/suggestions.md"
+   },
+   {
+    "name": "Approve or decline transfers",
+    "detail": "Approve the exact transfer id in your own words, decline, or apply the plan by hand on the website. A pre-approval counts only for this gameweek.",
+    "where": "CLAUDE.md § Weekly cycle step 8"
+   },
+   {
+    "name": "Decide on model changes",
+    "detail": "A CODE correction ships as a ModelConfig field switched off by default, with tests; its fpl backtest gate record decides whether it is switched on.",
+    "where": "docs/ep-model.md § 5, § 8"
+   },
+   {
+    "name": "Triage the backlog",
+    "detail": "In a separate session, change Status cells only through fpl backlog status, then run fpl backlog check.",
+    "where": "docs/backlog.md; fpl backlog"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Suggestion rows",
+    "to": "suggestions",
+    "detail": "Non-binding steers the squad optimizer must dispose of."
+   },
+   {
+    "name": "Approval block",
+    "to": "team",
+    "detail": "Your words quoted verbatim plus the approved transfer id."
+   },
+   {
+    "name": "data/auth.json",
+    "to": "api",
+    "detail": "Written by auth-import with mode 0600; git-ignored."
+   },
+   {
+    "name": "team_id",
+    "to": "raw",
+    "detail": "Read by the data collector from data/entry.json."
+   }
+  ],
+  "rules": [
+   "Only you approve transfers, and only the executor applies them; the orchestrator never runs --apply and never puts its own words in your quote.",
+   "A pre-approval never carries over to another gameweek or session, and still needs a dry-run first because the id comes from it.",
+   "--force-deadline is used only when you ask for it in your own words; a passed deadline can never be forced.",
+   "A capture's bearer token lives 60 minutes; the refresh token lasts months. Browsing FPL in the capture profile or logging out there kills the saved token.",
+   "Delete the curl-request capture after import: it holds a plaintext bearer token. Agents never read data/auth.json or curl-request.",
+   "Suggestions never override hard constraints or the transfer rule and never drive a POST on their own.",
+   "Declining, or applying by hand on the website, is a valid outcome; afterwards the executor runs with no approval and the transfer step prints already applied."
+  ],
+  "files": [
+   "data/entry.json",
+   "data/suggestions.md",
+   "data/auth.json (never opened by agents)",
+   "data/auth.example.json",
+   "curl-request (git-ignored capture, delete after import)",
+   "docs/api-write.md",
+   "docs/backlog.md"
+  ],
+  "commands": [
+   "uv run python -m fpl auth-import --curl-file curl-request",
+   "uv run python -m fpl auth-check --gw 11",
+   "uv run python -m fpl auth-refresh --dry-run",
+   "uv run python -m fpl my-team --gw 11",
+   "uv run python -m fpl backlog list --status open",
+   "uv run python -m fpl backlog check"
+  ],
+  "example": {
+   "title": "Your part in GW11 (2026-11-20)",
+   "lines": [
+    "11:00:53 auth-check FAIL — session expired and refresh failed (no refresh token in the credentials)",
+    "11:01:01 auth-check PASS — authenticated session works",
+    "Transfer id 106dd68cb8f2 (Calafiori → De Cuyper) dry-run at 11:21:49, approved, applied at 11:28:11",
+    "Appended S9 (withdraw S7) and S10 (a money tie-break from GW12) to data/suggestions.md"
+   ]
+  },
+  "status": "As of GW11 you approved and applied one transfer, the session passed auth-check after one failed check, and two new suggestion rows (S9, S10) wait for the GW12 optimizer."
+ },
+ "suggestions": {
+  "summary": "data/suggestions.md is where you leave non-binding steers for the squad optimizer: a transfer to consider, a player to hold, a chip timing, a target. The optimizer must dispose of every open row each cycle and record why in the Suggestions ledger in final.md. A suggestion never overrides the hard constraints or the transfer rule.",
+  "inputs": [
+   {
+    "name": "Your rows",
+    "from": "you",
+    "detail": "One table row each: | S# | Date | From GW | Until GW | Suggestion |, append-only."
+   },
+   {
+    "name": "Previous ledger",
+    "from": "final",
+    "detail": "The ## Suggestions table of the latest data/decisions/*/final.md, which says which rows are still open."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Read once and set the cut-off",
+    "detail": "The optimizer's first run of the cycle reads the file and records the highest S# read. Re-runs that cycle keep that set; rows added later wait for the next gameweek.",
+    "where": "agents/squad-optimizer.md § Suggestions"
+   },
+   {
+    "name": "Work out the open set",
+    "detail": "A row is open when From GW ≤ N (blank = open), Until GW is blank or ≥ N, and its latest status is absent, deferred or standing.",
+    "where": "agents/squad-optimizer.md § Suggestions"
+   },
+   {
+    "name": "Handle malformed, withdraw and expired rows",
+    "detail": "Malformed rows are listed, not disposed. A `withdraw S<n>` row closes S<n> as withdrawn whatever its GW columns. A row past its Until GW becomes expired.",
+    "where": "agents/squad-optimizer.md § Suggestions steps 1–3"
+   },
+   {
+    "name": "Dispose each open row",
+    "detail": "Each gets followed, rejected, deferred or standing, with an EP6 delta or the rule it breaks. A suggestion may add a candidate or break a tie inside 0.5 EP6 (squad) or 0.5 single-GW EP (captaincy).",
+    "where": "agents/squad-optimizer.md § Suggestions step 4"
+   },
+   {
+    "name": "Check and carry the ledger",
+    "detail": "The red-team recomputes the open set (checklist item 12); fpl final-check refuses a ledger that drops an S#; the finalizer carries it into final.md verbatim, never into the STATE block.",
+    "where": "agents/red-team-reviewer.md item 12; fpl/final_check.py"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Suggestions ledger",
+    "to": "proposal",
+    "detail": "Marker line `Read data/suggestions.md through S<max>`, then | S# | GW | Status | Reason |, one row per S# read with From GW ≤ N."
+   },
+   {
+    "name": "Ledger in final.md",
+    "to": "final",
+    "detail": "Carried verbatim; closed rows are copied forward unchanged."
+   },
+   {
+    "name": "Cycle report rows",
+    "to": "you",
+    "detail": "Every ledger row with GW = N or an open status."
+   }
+  ],
+  "rules": [
+   "followed (closed): done in full, or a single-choice steer done in part with the reason naming what was not taken.",
+   "rejected (closed): not worth it or infeasible; the reason gives the rule with numbers, e.g. `transfer rule: +1.21 < 2.0`.",
+   "deferred (open): right idea, wrong week; names a revisit GW ≤ N+2.",
+   "standing (open): an accepted policy or multi-transfer move, honoured and re-affirmed every cycle until closed.",
+   "expired (closed): Until GW passed with the row still open.",
+   "withdrawn (closed): retracted by a `withdraw S<n>` row.",
+   "GW in the ledger is the cycle that first set the current status; re-affirming standing keeps the old GW.",
+   "Cells must not contain |, a newline or a triple backtick; S# is never reused.",
+   "Only the squad optimizer acts on suggestions; the retro reads past the ledger and never names an S#.",
+   "Two rows pulling one choice apart: the higher S# wins the tie and the other is rejected naming it."
+  ],
+  "files": [
+   "data/suggestions.md",
+   "data/decisions/gw{N}/squad-proposal.md",
+   "data/decisions/gw{N}/final.md",
+   "agents/squad-optimizer.md",
+   "agents/red-team-reviewer.md",
+   "agents/finalizer.md",
+   "fpl/final_check.py"
+  ],
+  "commands": [
+   "uv run python -m fpl final-check --gw 11",
+   "uv run python -m fpl objective --gw 11 --moves OUT:IN"
+  ],
+  "example": {
+   "title": "GW11 ledger (read through S8)",
+   "lines": [
+    "S1, S3, S4, S5: followed at GW6 (Ndiaye, Anderson and Scott sold)",
+    "S2: rejected at GW4, unreachable: model ceiling 62.8 EP per GW against a 65 target",
+    "S6: followed at GW8, wildcard played; 60 EP per GW stayed unreachable (best 56.06)",
+    "S7: standing since GW7; Mbeumo → Gibbs-White −2.610 / −2.347 FAIL, so he is held",
+    "S8: standing since GW7; tie-break chose Calafiori → De Cuyper +2.374 v Calafiori → Silva +2.042, EP6 delta 0.00",
+    "S9 (withdraw S7) and S10 (From GW 12) were written on 2026-11-20 after the cut-off, so GW12 reads them"
+   ]
+  },
+  "status": "After GW11, S7 and S8 are the two open rows, both standing; S9 will close S7 as withdrawn and S10 becomes open in the GW12 cycle."
+ },
+ "ledger": {
+  "summary": "fpl calibrate scores a finished round: it joins every expected-points prediction we wrote before the deadline with what players actually scored. The result, data/retro/gw{M}-calibration.json and its printed table, is the arithmetic the retro analyst must use. The agents explain the numbers; they never recompute them.",
+  "inputs": [
+   {
+    "name": "Locked predictions",
+    "from": "lock",
+    "detail": "The round's predictions.lock.json, or else the players-*.json files in the commit that first added that round's final.md."
+   },
+   {
+    "name": "Round M live stats",
+    "from": "raw",
+    "detail": "The round's final event-live snapshot; it is fetched only when none is saved and refused until the round is data-checked."
+   },
+   {
+    "name": "Squad and captain",
+    "from": "final",
+    "detail": "The picks: block of data/decisions/gw{M}/final.md builds the squad rows."
+   },
+   {
+    "name": "Decision bootstrap",
+    "from": "raw",
+    "detail": "The gw{M} bootstrap gives ownership and this gameweek's transfer counts for the heavy-selling line."
+   },
+   {
+    "name": "Earlier ledgers",
+    "from": null,
+    "detail": "Prior gw*-calibration.json files feed the cumulative line."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Load the decision record",
+    "detail": "With --predictions-from commit (the default) it scores the lock, else the decision commit, and prints one predictions: line. A file changed after the decision gets one WARNING.",
+    "where": "fpl/decision_record.py: record_predictions"
+   },
+   {
+    "name": "Validate prediction rows",
+    "detail": "Prediction files are written by agents, so each row is validated like an API payload (id, p_start between 0 and 1, ep_gw, uncertainty tier).",
+    "where": "fpl/calibrate.py: PlayerPrediction, load_predictions"
+   },
+   {
+    "name": "Join with actuals",
+    "detail": "Each prediction is matched to the round's actual points, minutes and start; error = actual − predicted, so positive means we under-predicted.",
+    "where": "fpl/calibrate.py: build_report"
+   },
+   {
+    "name": "Aggregate",
+    "detail": "Bias and MAE overall, by position, by uncertainty tier and by price band; a minutes Brier score with expected v actual starts; DefCon hits; cumulative stats over all prior rounds.",
+    "where": "fpl/calibrate.py: aggregate, grouped, _minutes_calibration, _cumulative"
+   },
+   {
+    "name": "Build the squad section",
+    "detail": "Squad XI predicted v actual with the captain counted twice, bench points stranded, 15 squad rows with * on |err| > 3, and captain hindsight against the best scorer in the XI we fielded.",
+    "where": "fpl/calibrate.py: _squad_section, squad_misses"
+   },
+   {
+    "name": "Add the heavy-selling line",
+    "detail": "For players owned by at least 1%, those whose net transfers are at or below −10% of their owners are compared with the rest on expected v actual starts and mean error. It is monitoring only.",
+    "where": "fpl/calibrate.py: _heavy_selling"
+   },
+   {
+    "name": "Write the ledger",
+    "detail": "Writes data/retro/gw{M}-calibration.json and prints the table, plus the top under- and over-predicted pool players.",
+    "where": "uv run python -m fpl calibrate --gw N --round M"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "gw{M}-calibration.json and stdout table",
+    "to": "retro",
+    "detail": "The retro analyst pastes its lines verbatim and never opens the JSON."
+   },
+   {
+    "name": "heavy selling line",
+    "to": "you",
+    "detail": "For the user to monitor; no attribution or correction may be based on it."
+   }
+  ],
+  "rules": [
+   "Refuses until the round has data_checked: true, because bonus points are final only then.",
+   "No lock and no commit adding gw{M}/final.md: refuses and suggests --predictions-from worktree.",
+   "A lock that names player ids absent from every players-*.json on disk refuses.",
+   "When a players file changed after the lock, the locked [ep, p_start] values replace the on-disk ones for that file.",
+   "* marks |err| > 3 on the unrounded error, so +3.00* is a miss.",
+   "Captain hindsight looks only at the XI; captaining a bench player was never an option.",
+   "The ledger is derived, so regenerating it is safe and expected.",
+   "Heavy selling: ownership ≥ 1.0% (HEAVY_SELLING_MIN_OWNERSHIP_PCT), net share ≤ −0.10 (HEAVY_SELLING_NET_SHARE); skipped with a warning when the bootstrap lacks total_players or transfer counts."
+  ],
+  "files": [
+   "data/retro/gw{M}-calibration.json",
+   "data/decisions/gw{M}/predictions.lock.json",
+   "data/decisions/gw{M}/final.md",
+   "data/analysis/gw{M}/players-{pos}.json",
+   "data/raw/gw{N}/event-live-e{M}.json",
+   "fpl/calibrate.py",
+   "fpl/decision_record.py"
+  ],
+  "commands": [
+   "uv run python -m fpl calibrate --gw 11 --round 10",
+   "uv run python -m fpl calibrate --gw 11 --round 10 --predictions-from worktree",
+   "uv run python -m fpl actuals --gw 11 --round 10 --ids 385,427,542"
+  ],
+  "example": {
+   "title": "Round 10 calibration, printed during the GW11 cycle",
+   "lines": [
+    "round 10 calibration — 476 players matched, 0 unmatched (cached, age 8.8h, final)",
+    "predictions: lock 1ea5e50e86f0 (drift: none)",
+    "overall         476    0.19   1.44",
+    "minutes: brier 0.0846, expected starts 217.3, actual 218, gap -0.7",
+    "heavy selling: n 4, starts exp 0.6 v act 1, err +0.00 | rest ≥1% owned: n 168, starts exp 123.1 v act 130, err +0.29",
+    "squad XI (captain doubled): predicted 58.95, actual 82; bench stranded 22",
+    "captain: Gabriel 8 pts; hindsight best in XI: Barry 16 (forgone 8)",
+    "cumulative (rounds 1,2,3,4,5,6,7,8,9,10): n=4741 bias=0.15 mae=1.51 brier=0.1148"
+   ]
+  },
+  "status": "Ledgers exist for rounds 1 to 10; round 10 scored the GW10 predictions lock with no drift, and the heavy-selling line was added after the GW10 retro was written, so that retro does not show it."
+ },
+ "retro": {
+  "summary": "After each finished gameweek the retro analyst (agent A6, Opus model) explains why predictions missed and writes rules that later agents must follow. Each rule is a numbered correction, C1, C2 and so on. Rules for agents are read back through fpl corrections; rules about the model's arithmetic go to you as a code change instead.",
+  "inputs": [
+   {
+    "name": "Calibration table",
+    "from": "ledger",
+    "detail": "The arithmetic ground truth; the retro pastes its lines and never recomputes them."
+   },
+   {
+    "name": "Actual picks and history",
+    "from": "raw",
+    "detail": "picks for round M and entry-history give the fielded team, rank and team value."
+   },
+   {
+    "name": "Last round's decision",
+    "from": "final",
+    "detail": "data/decisions/gwM/final.md, to compare the plan with what was fielded."
+   },
+   {
+    "name": "Earlier corrections",
+    "from": null,
+    "detail": "fpl corrections prints the latest status table and the text of every active rule."
+   }
+  ],
+  "stages": [
+   {
+    "name": "Gather in one turn",
+    "detail": "One Bash call runs calibrate, picks, entry-history, corrections and an index of fpl/ep.py; final.md is read alongside. No exploring.",
+    "where": "agents/retro-analyst.md § Call 1"
+   },
+   {
+    "name": "Pull actuals for the misses",
+    "detail": "actuals for every id on the squad misses line plus chosen pool players, and the source of any ep.py function a CODE correction names.",
+    "where": "agents/retro-analyst.md § Call 2"
+   },
+   {
+    "name": "Classify each miss",
+    "detail": "Each squad row with |err| > 3 gets one class: MINUTES, VARIANCE, MODEL, INFORMATION, BENCH-ORDER or EXECUTION. VARIANCE means good process and no correction.",
+    "where": "agents/retro-analyst.md § Attribution"
+   },
+   {
+    "name": "Update prior corrections",
+    "detail": "Every earlier C# is marked active, retired or revised with one clause of evidence. A CODE correction stays active only if the printed function still has the defect.",
+    "where": "agents/retro-analyst.md § Attribution step 3"
+   },
+   {
+    "name": "Write gwM.md",
+    "detail": "Fixed sections in order: Squad, Misses, Captain and bench, Findings, Corrections, Running calibration stats, Carried into GWN. New rules are bold lines: **C<n> — A<k> (<agent>): <rule>.**",
+    "where": "agents/retro-analyst.md § Output"
+   },
+   {
+    "name": "Mirror to the backlog",
+    "detail": "Each new, revised or retired CODE C# and each gap: line is appended to docs/backlog.md as one row, with a quoted heredoc and no reading of the file.",
+    "where": "agents/retro-analyst.md § Call 4"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Active A3 rules",
+    "to": "inputs",
+    "detail": "The player analyst reads `fpl corrections --agent A3` before setting p_start and overrides."
+   },
+   {
+    "name": "Active A2 rules",
+    "to": "fixtures",
+    "detail": "The fixture analyst must apply corrections addressed to it; it starts only after the retro returns."
+   },
+   {
+    "name": "Correction notes",
+    "to": "proposal",
+    "detail": "The squad optimizer reads correction notes from data/retro/."
+   },
+   {
+    "name": "CODE corrections",
+    "to": "you",
+    "detail": "The orchestrator escalates them; a model change lands as a ModelConfig field switched off by default, and its fpl backtest gate decides whether it is switched on."
+   }
+  ],
+  "rules": [
+   "The run starts once the data collector has written data/raw/gw{N}/bootstrap.json, and calibrate refuses until round M is data-checked.",
+   "Never read data/retro/*-calibration.json, data/analysis/**, data/raw/** or docs/backlog.md; never recompute a statistic the ledger carries.",
+   "Never compute a counterfactual (another XI, captain or transfer); a missing number becomes a gap: line, which becomes a TOOL backlog row.",
+   "Statuses in the table: active, retired (satisfied / moved to C<new> / superseded by spec / premise false), revised (see C<new>).",
+   "An arithmetic correction (coefficient, anchor, blend constant, points value) targets fpl/ep.py as CODE, with a Premise sentence; an analyst is never asked to imitate arithmetic through its inputs.",
+   "Small samples: level corrections are withheld on power grounds; an error persisting 3+ gameweeks becomes a rule.",
+   "The heavy-selling line and the user's suggestions ledger are never used for attribution or corrections.",
+   "A backtest gate passes a model change only when all five rules hold: CI upper bound < 0, bias no worse by 0.05, no position worse by 0.02, ΔMAE ≤ −0.01, and wins in at least M − 1 of M rounds.",
+   "The agent never runs git commit."
+  ],
+  "files": [
+   "data/retro/gw{M}.md",
+   "docs/backlog.md",
+   "agents/retro-analyst.md",
+   "fpl/corrections.py",
+   "fpl/ep.py",
+   "docs/ep-model.md",
+   "data/model/gates/"
+  ],
+  "commands": [
+   "uv run python -m fpl calibrate --gw 11 --round 10",
+   "uv run python -m fpl corrections --gw 11 --round 10",
+   "uv run python -m fpl corrections --gw 11 --agent A3",
+   "uv run python -m fpl actuals --gw 11 --round 10 --ids <ids>",
+   "uv run python -m fpl backtest --rounds A-B --set k=v",
+   "uv run python -m fpl gates --summary --gw 11"
+  ],
+  "example": {
+   "title": "GW10 retro and what the player analyst saw at GW11",
+   "lines": [
+    "XI 82 v 58.95 predicted. All 7 squad misses are VARIANCE; no squad miss is MINUTES (every row start Y). No process correction is warranted.",
+    "| C21 | A3 | active | third round in force: starts gap −0.7 after −3.7 and −6.1; rotation-band clause untestable (Findings) |",
+    "| C10 | CODE | active — unshipped | premise checked against calibrate stdout — holds: `defcon: 39/181 hits` with no Σ P(hit); cumulative still n/bias/mae/brier only |",
+    "corrections for A3 from data/retro/gw10.md: 1 active, 5 retired",
+    "3 gap: lines became 3 TOOL rows in docs/backlog.md dated 2026-11-20"
+   ]
+  },
+  "status": "Retros exist for GW1 to GW10; the GW10 retro issued no new correction, kept C21 as the one active A3 rule, and lists four CODE corrections to calibrate output (C10, C13, C17, C19) as active but not yet shipped."
+ }
+}</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = {};
+  try { DATA = JSON.parse(document.getElementById("nodes").textContent); } catch (e) { DATA = {}; }
+
+  var KIND = {
+    source: "FPL", data: "Data", analysis: "Analysis", decision: "Decision", learn: "Learning", human: "You"
+  };
+  var META = {
+    api:         { t: "FPL public API",     k: "source",   who: "fantasy.premierleague.com", tier: "code" },
+    raw:         { t: "Raw snapshots",      k: "data",     who: "data collector",            tier: "haiku" },
+    store:       { t: "Season store",       k: "data",     who: "fpl store",                 tier: "code" },
+    fixtures:    { t: "Fixture ratings",    k: "analysis", who: "fixture analyst",           tier: "opus" },
+    inputs:      { t: "Analyst inputs",     k: "analysis", who: "player analyst ×4",         tier: "opus" },
+    ep:          { t: "EP predictions",     k: "analysis", who: "fpl ep",                    tier: "code" },
+    proposal:    { t: "Squad proposal",     k: "decision", who: "squad optimizer",           tier: "fable" },
+    review:      { t: "Red-team review",    k: "decision", who: "red-team reviewer",         tier: "fable" },
+    final:       { t: "final.md STATE",     k: "decision", who: "finalizer",                 tier: "opus" },
+    plan:        { t: "plan.json",          k: "decision", who: "plan builder",              tier: "haiku" },
+    team:        { t: "Your FPL team",      k: "source",   who: "team executor",             tier: "haiku" },
+    lock:        { t: "Predictions lock",   k: "learn",    who: "fpl plan",                  tier: "code" },
+    you:         { t: "You",                k: "human",    who: "the only approver",         tier: "code" },
+    suggestions: { t: "Suggestions",        k: "human",    who: "data/suggestions.md",       tier: "code" },
+    ledger:      { t: "Calibration ledger", k: "learn",    who: "fpl calibrate",             tier: "code" },
+    retro:       { t: "Retro corrections",  k: "learn",    who: "retro analyst",             tier: "opus" }
+  };
+  var ROWS = [
+    ["Learn", ["ledger", "retro"]],
+    ["Collect and analyse", ["api", "raw", "store", "fixtures", "inputs"]],
+    ["Decide", ["ep", "proposal", "review", "final", "plan"]],
+    ["Act", ["team", "lock", "you", "suggestions"]]
+  ];
+  var ORDER = ["api", "raw", "store", "ledger", "retro", "fixtures", "inputs", "ep", "you", "suggestions", "proposal", "review", "final", "plan", "lock", "team"];
+
+  var svg = document.getElementById("map");
+  var pick = document.getElementById("pick");
+  var body = document.getElementById("body");
+  var insp = document.getElementById("insp");
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) rich(n, String(text));
+    return n;
+  }
+  // Text with `backticks` becomes <code>; everything is inserted as text nodes.
+  function rich(n, s) {
+    var parts = s.split("`");
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) continue;
+      if (i % 2) { var c = document.createElement("code"); c.textContent = parts[i]; n.appendChild(c); }
+      else n.appendChild(document.createTextNode(parts[i]));
+    }
+    return n;
+  }
+  function swatch(id) {
+    var k = META[id].k, s = document.createElement("i");
+    s.className = "sw";
+    s.style.background = "var(--k-" + k + ")";
+    s.style.borderColor = "var(--k-" + k + "-b)";
+    return s;
+  }
+  function nodeBtn(id, label) {
+    var b = el("button", "nb");
+    b.type = "button";
+    b.appendChild(swatch(id));
+    b.appendChild(document.createTextNode(label || META[id].t));
+    b.addEventListener("click", function () { go(id); });
+    return b;
+  }
+  function tierSpan(tier) {
+    var s = el("span", "tier", tier === "code" ? "code" : tier);
+    s.style.color = "var(--t-" + tier + ")";
+    return s;
+  }
+  function go(id) {
+    if (location.hash === "#" + id) render(id, true);
+    else location.hash = id;
+  }
+
+  // Make every chart box a keyboard-reachable button with a "+" affordance.
+  var gs = svg.querySelectorAll(".n");
+  Array.prototype.forEach.call(gs, function (g) {
+    var id = g.getAttribute("data-id");
+    var r = g.querySelector("rect");
+    var x = +r.getAttribute("x") + +r.getAttribute("width") - 18;
+    var y = +r.getAttribute("y") + 20;
+    var plus = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    plus.setAttribute("class", "go"); plus.setAttribute("x", x); plus.setAttribute("y", y);
+    plus.textContent = "+";
+    g.appendChild(plus);
+    g.setAttribute("tabindex", "0");
+    g.setAttribute("role", "button");
+    g.setAttribute("aria-label", "Open " + META[id].t);
+    g.addEventListener("click", function () { go(id); });
+    g.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(id); }
+    });
+  });
+
+  // Picker list (also the way in on a phone, where the chart scrolls sideways).
+  var rowsHost = document.getElementById("pickrows");
+  ROWS.forEach(function (row) {
+    var r = el("div", "pick-row");
+    r.appendChild(el("div", "lab", row[0].toUpperCase()));
+    var b = el("div", "btns");
+    row[1].forEach(function (id) { b.appendChild(nodeBtn(id)); });
+    r.appendChild(b);
+    rowsHost.appendChild(r);
+  });
+
+  function highlight(id) {
+    var near = {};
+    if (id) near[id] = true;
+    Array.prototype.forEach.call(svg.querySelectorAll(".e"), function (p) {
+      var on = id && (p.getAttribute("data-from") === id || p.getAttribute("data-to") === id);
+      p.classList.toggle("on", !!on);
+      if (on) { near[p.getAttribute("data-from")] = true; near[p.getAttribute("data-to")] = true; }
+    });
+    Array.prototype.forEach.call(gs, function (g) {
+      var gid = g.getAttribute("data-id");
+      g.classList.toggle("sel", gid === id);
+      g.classList.toggle("near", !!near[gid]);
+    });
+    svg.classList.toggle("focus", !!id);
+  }
+
+  function neighbours(id) {
+    var ins = [], outs = [];
+    Array.prototype.forEach.call(svg.querySelectorAll(".e"), function (p) {
+      var f = p.getAttribute("data-from"), t = p.getAttribute("data-to");
+      if (t === id && ins.indexOf(f) < 0) ins.push(f);
+      if (f === id && outs.indexOf(t) < 0) outs.push(t);
+    });
+    return { ins: ins, outs: outs };
+  }
+
+  function ioList(items, dirKey) {
+    var wrap = el("div", "io");
+    (items || []).forEach(function (it) {
+      var c = el("div", "ioc");
+      c.appendChild(el("div", "nm", it.name));
+      if (it.detail) c.appendChild(el("p", null, it.detail));
+      var ref = it[dirKey];
+      if (ref && META[ref]) c.appendChild(nodeBtn(ref, (dirKey === "from" ? "from " : "to ") + META[ref].t));
+      wrap.appendChild(c);
+    });
+    if (!wrap.children.length) wrap.appendChild(el("p", "muted", "Nothing recorded."));
+    return wrap;
+  }
+
+  function block(title, child) {
+    var d = el("div");
+    d.appendChild(el("h4", null, title));
+    d.appendChild(child);
+    return d;
+  }
+  function listOf(items, cls) {
+    var ul = el("ul", cls);
+    (items || []).forEach(function (s) { ul.appendChild(el("li", null, s)); });
+    return ul;
+  }
+
+  function render(id, scroll) {
+    var m = META[id];
+    if (!m) {
+      highlight(null);
+      body.hidden = true; pick.hidden = false;
+      return;
+    }
+    var d = DATA[id] || {};
+    highlight(id);
+    pick.hidden = true; body.hidden = false;
+    body.textContent = "";
+    body.style.setProperty("--kb", "var(--k-" + m.k + "-b)");
+    body.style.setProperty("--kf", "var(--k-" + m.k + ")");
+
+    // Head
+    var head = el("div", "ihead");
+    var top = el("div", "ihead-top");
+    var crumb = el("div", "crumb");
+    var back = el("button", null, "System map");
+    back.type = "button";
+    back.addEventListener("click", function () { location.hash = "map"; });
+    crumb.appendChild(back);
+    crumb.appendChild(document.createTextNode("›"));
+    crumb.appendChild(document.createTextNode(KIND[m.k]));
+    crumb.appendChild(document.createTextNode("›"));
+    crumb.appendChild(document.createTextNode(m.t));
+    top.appendChild(crumb);
+    var x = el("button", "x", "Close ✕");
+    x.type = "button";
+    x.addEventListener("click", function () { location.hash = "map"; });
+    top.appendChild(x);
+    head.appendChild(top);
+    var h = el("h3", null, m.t);
+    h.tabIndex = -1;
+    head.appendChild(h);
+    var meta = el("div", "imeta");
+    var kc = el("span", "chip");
+    kc.appendChild(swatch(id)); kc.style.display = "inline-flex"; kc.style.gap = "6px"; kc.style.alignItems = "center";
+    kc.appendChild(document.createTextNode(KIND[m.k]));
+    meta.appendChild(kc);
+    var wc = el("span", "chip", m.who + " · ");
+    wc.appendChild(tierSpan(m.tier));
+    meta.appendChild(wc);
+    head.appendChild(meta);
+    if (d.summary) head.appendChild(el("p", "summary", d.summary));
+    body.appendChild(head);
+
+    var pad = el("div", "ipad");
+
+    // Inputs → Inside → Outputs
+    var flow = el("div", "flow");
+    flow.appendChild(block("Comes in", ioList(d.inputs, "from")));
+    var ol = el("ol", "stages");
+    (d.stages || []).forEach(function (s) {
+      var li = el("li");
+      var c = el("div", "stc");
+      c.appendChild(el("div", "nm", s.name));
+      if (s.detail) c.appendChild(el("p", null, s.detail));
+      if (s.where) c.appendChild(el("div", "where", s.where));
+      li.appendChild(c);
+      ol.appendChild(li);
+    });
+    if (!ol.children.length) ol.appendChild(el("li", null, "No steps recorded."));
+    flow.appendChild(block("Inside, step by step", ol));
+    flow.appendChild(block("Goes out", ioList(d.outputs, "to")));
+    pad.appendChild(flow);
+
+    // EP formula, when present
+    if (d.formula && d.formula.length) {
+      var ft = el("div", "ftbl");
+      var tb = el("table");
+      var thd = el("thead"); var trh = el("tr");
+      trh.appendChild(el("th", null, "Term")); trh.appendChild(el("th", null, "How it is worked out"));
+      thd.appendChild(trh); tb.appendChild(thd);
+      var tbd = el("tbody");
+      d.formula.forEach(function (f) {
+        var tr = el("tr");
+        tr.appendChild(el("td", null, f.term));
+        tr.appendChild(el("td", null, f.plain));
+        tbd.appendChild(tr);
+      });
+      tb.appendChild(tbd); ft.appendChild(tb);
+      pad.appendChild(block("The formula, term by term", ft));
+    }
+
+    // Rules + example | files + commands
+    var two = el("div", "two");
+    var left = el("div");
+    if (d.rules && d.rules.length) left.appendChild(block("Rules that hold inside", listOf(d.rules, "plain")));
+    if (d.example && d.example.lines && d.example.lines.length) {
+      var pre = el("pre", "ex");
+      pre.textContent = d.example.lines.join("\n");
+      left.appendChild(block("Example · " + (d.example.title || ""), pre));
+    }
+    var right = el("div");
+    if (d.files && d.files.length) right.appendChild(block("Files", listOf(d.files, "mono")));
+    if (d.commands && d.commands.length) right.appendChild(block("Commands", listOf(d.commands, "mono")));
+    var nb = neighbours(id);
+    var conn = el("div", "btns");
+    conn.style.display = "flex"; conn.style.flexWrap = "wrap"; conn.style.gap = "6px";
+    nb.ins.forEach(function (n) { conn.appendChild(nodeBtn(n, "← " + META[n].t)); });
+    nb.outs.forEach(function (n) { conn.appendChild(nodeBtn(n, META[n].t + " →")); });
+    if (conn.children.length) right.appendChild(block("Connected on the chart", conn));
+    two.appendChild(left); two.appendChild(right);
+    pad.appendChild(two);
+
+    if (d.status) {
+      var st = el("div", "statusline");
+      st.appendChild(el("h4", null, "Now"));
+      st.appendChild(el("p", null, d.status));
+      pad.appendChild(st);
+    }
+
+    // Previous / next in reading order
+    var i = ORDER.indexOf(id);
+    var nav = el("div", "navrow");
+    var prev = ORDER[(i - 1 + ORDER.length) % ORDER.length], next = ORDER[(i + 1) % ORDER.length];
+    var pb = el("button", "navb", "← " + META[prev].t); pb.type = "button";
+    pb.addEventListener("click", function () { go(prev); });
+    var nx = el("button", "navb", META[next].t + " →"); nx.type = "button";
+    nx.addEventListener("click", function () { go(next); });
+    nav.appendChild(pb); nav.appendChild(nx);
+    pad.appendChild(nav);
+
+    body.appendChild(pad);
+
+    if (scroll) {
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      insp.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      try { h.focus({ preventScroll: true }); } catch (e) { /* older browsers */ }
+    }
+  }
+
+  function fromHash(scroll) {
+    var id = (location.hash || "").replace(/^#/, "");
+    render(id, scroll && !!META[id]);
+  }
+  window.addEventListener("hashchange", function () { fromHash(true); });
+  fromHash(true);
+})();
+</script>

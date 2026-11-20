@@ -4,6 +4,25 @@ Systematic, multi-agent FPL team selection with persistent state and a
 calibration loop. Designed to run under Claude Code (CLAUDE.md is the
 orchestrator prompt; agents/ are subagent prompts).
 
+## System map
+
+A one-page visual overview of the system, written for people rather than for
+the agents' weekly work. It has a chart of what the system works with and how
+each thing produces the next, the weekly cycle, the main ideas, the guardrails,
+and where the season stands. Click any box on the chart to open it: what
+comes in, each step inside, what goes out, its rules, files and commands, and
+a worked example from GW11.
+
+- Published page (private to its owner): https://claude.ai/artifact/CJG54kVrNs9byp8Q9tFfG9
+- Source: `docs/system-map.html`. To change the page, edit this file and
+  publish it again to the same link. In Claude Code, ask Claude to update the
+  system map: it publishes the file with the Artifact tool and passes the link
+  above as `url`, so the link stays the same. The text for each box is in the
+  JSON block with id `nodes` near the end of the file.
+
+The "Where it stands" cards are a snapshot from 20 November 2026, after the
+GW11 decision. They do not update by themselves.
+
 ## Layout
 ```
 CLAUDE.md              orchestrator: rules, constraints, workflow
@@ -19,6 +38,7 @@ agents/
   team-executor.md     A9  applies plan.json to the real team (write API)
 docs/
   api-write.md         authenticated write path: credential capture, gates
+  system-map.html      source of the published system map (for people)
 fpl/                   deterministic data CLI package
   models.py            typed FPL API payloads (validation boundary)
   http.py              HTTP gateway (swappable for tests)
