@@ -1,0 +1,19 @@
+{
+ "command": "make-transfers",
+ "team_id": 8455344,
+ "payload": {
+  "entry": 8455344,
+  "event": 11,
+  "transfers": [
+   {
+    "element_in": 115,
+    "element_out": 8,
+    "purchase_price": 55,
+    "selling_price": 59
+   }
+  ],
+  "chip": null
+ },
+ "verified": true,
+ "problems": []
+}
